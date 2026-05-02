@@ -1,20 +1,21 @@
-/* global Router, API, UI */
+/* global Router, API, UI, I18n */
 Router.register('tracker', async () => {
   const c = UI.el;
+  const t = (k, f) => I18n.t(k, f);
   const data = await API.get('/api/tracker');
   const rows = data.rows || [];
 
   const filterStatus = c('select', { className: 'select', style: { maxWidth: '180px' } }, [
-    c('option', { value: '' }, 'все статусы'),
+    c('option', { value: '' }, t('track.allStatus')),
     ...[...new Set(rows.map((r) => r.status).filter(Boolean))].map((s) => c('option', { value: s }, s)),
   ]);
   const filterScore = c('select', { className: 'select', style: { maxWidth: '180px' } }, [
-    c('option', { value: '' }, 'любой score'),
-    c('option', { value: '4' }, '≥ 4.0'),
-    c('option', { value: '3' }, '≥ 3.0'),
-    c('option', { value: '0' }, '< 3.0'),
+    c('option', { value: '' }, t('track.anyScore')),
+    c('option', { value: '4' }, t('track.scoreHigh')),
+    c('option', { value: '3' }, t('track.scoreMid')),
+    c('option', { value: '0' }, t('track.scoreLow')),
   ]);
-  const filterText = c('input', { className: 'input', placeholder: 'Поиск по компании / роли…' });
+  const filterText = c('input', { className: 'input', placeholder: t('track.search') });
 
   const tbody = c('tbody');
 
@@ -32,7 +33,7 @@ Router.register('tracker', async () => {
       visible++;
     }
     if (visible === 0) {
-      tbody.appendChild(c('tr', null, c('td', { colspan: 8, style: { textAlign: 'center', padding: '40px', color: 'var(--foggy)' } }, 'Нет совпадений')));
+      tbody.appendChild(c('tr', null, c('td', { colspan: 8, style: { textAlign: 'center', padding: '40px', color: 'var(--foggy)' } }, t('track.noMatch'))));
     }
   }
   function row(r) {
@@ -45,7 +46,7 @@ Router.register('tracker', async () => {
       c('td', null, c('span', { className: 'score-pill ' + scoreCls }, r.score || '—')),
       c('td', null, c('span', { className: 'badge ' + statusClass(r.status) }, r.status || '')),
       c('td', null, r.pdfReady ? '✓' : '—'),
-      c('td', null, r.reportPath ? c('button', { className: 'btn btn-ghost btn-sm', onClick: () => Router.go('/reports/' + r.reportPath.replace(/^reports\//, '').replace(/\.md$/, '')) }, 'Отчёт') : ''),
+      c('td', null, r.reportPath ? c('button', { className: 'btn btn-ghost btn-sm', onClick: () => Router.go('/reports/' + r.reportPath.replace(/^reports\//, '').replace(/\.md$/, '')) }, t('track.report')) : ''),
     ]);
   }
 
@@ -55,13 +56,13 @@ Router.register('tracker', async () => {
   return c('div', null, [
     c('header', { className: 'page-header' }, [
       c('div', null, [
-        c('h1', { className: 'page-title' }, 'Трекер заявок'),
-        c('p', { className: 'page-subtitle' }, `${rows.length} записей в data/applications.md`),
+        c('h1', { className: 'page-title' }, t('track.title')),
+        c('p', { className: 'page-subtitle' }, `${rows.length} ${t('track.entriesIn')} data/applications.md`),
       ]),
       c('div', { className: 'flex gap-3' }, [
-        c('button', { className: 'btn btn-ghost', onClick: () => runFix('/api/run/normalize') }, 'Normalize'),
-        c('button', { className: 'btn btn-ghost', onClick: () => runFix('/api/run/dedup') }, 'Dedup'),
-        c('button', { className: 'btn btn-ghost', onClick: () => runFix('/api/run/merge') }, 'Merge TSV'),
+        c('button', { className: 'btn btn-ghost', onClick: () => runFix('/api/run/normalize', t) }, t('track.normalize')),
+        c('button', { className: 'btn btn-ghost', onClick: () => runFix('/api/run/dedup', t) }, t('track.dedup')),
+        c('button', { className: 'btn btn-ghost', onClick: () => runFix('/api/run/merge', t) }, t('track.merge')),
       ]),
     ]),
 
@@ -74,7 +75,7 @@ Router.register('tracker', async () => {
     c('div', { className: 'table-wrap' },
       c('table', { className: 'tbl' }, [
         c('thead', null, c('tr', null,
-          ['#', 'Дата', 'Компания', 'Роль', 'Score', 'Статус', 'PDF', ''].map((h) => c('th', null, h))
+          ['#', t('track.col.date'), t('scan.col.company'), t('scan.col.role'), 'Score', t('track.col.status'), 'PDF', ''].map((h) => c('th', null, h))
         )),
         tbody,
       ])
@@ -82,11 +83,11 @@ Router.register('tracker', async () => {
   ]);
 });
 
-async function runFix(path) {
-  UI.toast('Запускаю…');
+async function runFix(path, t) {
+  UI.toast(t('track.runStart'));
   try {
     const r = await API.post(path);
-    UI.toast('Готово · exit ' + r.code, r.code === 0 ? 'success' : 'error');
+    UI.toast(t('track.done') + ' · exit ' + r.code, r.code === 0 ? 'success' : 'error');
     UI.modal('Output', UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n\n' + r.stderr : '')));
   } catch (e) {
     UI.toast(e.message, 'error');

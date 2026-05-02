@@ -137,12 +137,19 @@ async function run() {
     const bannerVisible = await page.locator('#conn-banner').isVisible();
     if (!bannerVisible) throw new Error('banner did NOT show after server killed');
     const bannerText = await page.locator('#conn-banner .conn-msg').textContent();
-    if (!bannerText.includes('Сервер не отвечает')) throw new Error('banner text wrong: ' + bannerText);
+    // Banner text varies by locale (browser auto-detected); accept any of the
+    // 8 translations that signal "server not responding"
+    const accepts = ['Server is not responding', 'Сервер не отвечает', 'El servidor no responde',
+                     'O servidor não está respondendo', '서버가 응답하지 않습니다', 'サーバーが応答していません',
+                     '服务器未响应', '伺服器未回應'];
+    if (!accepts.some((s) => bannerText.includes(s))) throw new Error('banner text wrong: ' + bannerText);
     console.log('  ✓ banner visible after server down');
 
-    // also: in-content area should show useful "Нет связи" message, not toast spam
+    // in-content area should show a "no connection" message in any of 8 langs
     const emptyText = await page.locator('.empty').first().textContent();
-    if (!emptyText.includes('Нет связи')) throw new Error('content area missing "Нет связи" message');
+    const noConn = ['No connection', 'Нет связи', 'Sin conexión', 'Sem conexão',
+                    '서버 연결', 'サーバーに接続', '与服务器无连接', '與伺服器無連線'];
+    if (!noConn.some((s) => emptyText.includes(s))) throw new Error('content area missing connection error: ' + emptyText);
 
     // recovery: restart server on SAME port to make banner auto-clear
     const newPort = parseInt(baseUrl.split(':').pop(), 10);
@@ -294,7 +301,9 @@ async function run() {
     await page.locator('textarea.textarea').first().fill(
       'About the role: We are looking for a Senior Backend Engineer with strong PHP and Go experience. Responsibilities: build microservices, lead code reviews, mentor juniors. Requirements: 5+ years backend, fluent English.'
     );
-    await page.locator('button.btn-primary:has-text("Оценить")').click();
+    // Button text changes per locale ("Оценить" / "Evaluate" / "Evaluar" / …)
+    // — match any primary button whose visible text contains ▶
+    await page.locator('button.btn-primary:has-text("▶")').first().click();
     await page.waitForSelector('#eval-out .card', { timeout: 5000 });
     const out = await page.locator('#eval-out').textContent();
     if (!out.includes('Manual mode') && !out.includes('GEMINI_API_KEY')) {

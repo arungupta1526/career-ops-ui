@@ -1,13 +1,14 @@
-/* global Router, API, UI */
+/* global Router, API, UI, I18n */
 Router.register('settings', async () => {
   const c = UI.el;
+  const t = (k, f) => I18n.t(k, f);
   const data = await API.get('/api/profile');
   const profile = data.profile;
 
   if (!profile) {
     return c('div', null, [
-      c('header', { className: 'page-header' }, [c('div', null, [c('h1', { className: 'page-title' }, 'Профиль')])]),
-      c('div', { className: 'empty' }, 'config/profile.yml не найден.'),
+      c('header', { className: 'page-header' }, [c('div', null, [c('h1', { className: 'page-title' }, t('set.title'))])]),
+      c('div', { className: 'empty' }, t('set.notFound')),
     ]);
   }
 
@@ -24,20 +25,20 @@ Router.register('settings', async () => {
   return c('div', null, [
     c('header', { className: 'page-header' }, [
       c('div', null, [
-        c('h1', { className: 'page-title' }, 'Профиль'),
-        c('p', { className: 'page-subtitle' }, 'Read-only. Редактируйте config/profile.yml в проекте.'),
+        c('h1', { className: 'page-title' }, t('set.title')),
+        c('p', { className: 'page-subtitle' }, t('set.subtitle')),
       ]),
     ]),
 
     c('div', { className: 'card-row' }, [
-      info('Имя', cand.full_name),
-      info('Email', cand.email),
-      info('Локация', cand.location),
+      info(t('set.name'), cand.full_name),
+      info(t('set.email'), cand.email),
+      info(t('set.location'), cand.location),
       info('LinkedIn', cand.linkedin),
     ]),
 
     c('section', { className: 'section' }, [
-      c('h2', { className: 'section-title' }, 'Целевые роли'),
+      c('h2', { className: 'section-title' }, t('set.targetRoles')),
       c('div', { className: 'card' }, [
         c('div', { className: 'flex', style: { flexWrap: 'wrap', gap: '8px' } },
           (targets.primary || []).map((r) => c('span', { className: 'tag', style: { fontSize: '13px' } }, r))
@@ -46,7 +47,7 @@ Router.register('settings', async () => {
     ]),
 
     c('section', { className: 'section' }, [
-      c('h2', { className: 'section-title' }, 'Архетипы'),
+      c('h2', { className: 'section-title' }, t('set.archetypes')),
       c('div', { className: 'card-row' },
         (targets.archetypes || []).map((a) => c('div', { className: 'card' }, [
           c('div', { style: { fontWeight: 700 } }, a.name),
@@ -60,9 +61,9 @@ Router.register('settings', async () => {
     ]),
 
     c('section', { className: 'section' }, [
-      c('h2', { className: 'section-title' }, 'YAML (raw)'),
+      c('h2', { className: 'section-title' }, t('set.rawYaml')),
       c('details', null, [
-        c('summary', { style: { cursor: 'pointer', padding: '8px 0', color: 'var(--foggy)' } }, 'Показать'),
+        c('summary', { style: { cursor: 'pointer', padding: '8px 0', color: 'var(--foggy)' } }, t('set.show')),
         c('pre', { className: 'console' }, data.raw || ''),
       ]),
     ]),

@@ -1,34 +1,35 @@
-/* global Router, API, UI */
+/* global Router, API, UI, I18n */
 Router.register('evaluate', async () => {
   const c = UI.el;
+  const t = (k, f) => I18n.t(k, f);
   const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
   const prefillUrl = params.get('url') || '';
 
   const jdInput = c('textarea', {
     className: 'textarea',
     rows: 16,
-    placeholder: 'Вставьте полный текст вакансии (responsibilities, requirements, qualifications, about the role…)',
+    placeholder: t('eval.placeholder'),
   });
   const saveJd = c('input', { type: 'checkbox', id: 'save-jd' });
   const out = c('div', { id: 'eval-out' });
 
   if (prefillUrl) {
-    jdInput.value = `URL: ${prefillUrl}\n\n[Вставьте здесь полный текст JD]`;
+    jdInput.value = `URL: ${prefillUrl}\n\n[paste JD text here]`;
   }
 
   async function run() {
     const jd = jdInput.value.trim();
     if (jd.length < 50) {
-      UI.toast('JD слишком короткий (min 50 chars)', 'error');
+      UI.toast(t('eval.shortJd'), 'error');
       return;
     }
-    out.innerHTML = '<div class="loading">Оценка…</div>';
+    out.innerHTML = `<div class="loading">${t('eval.evaluating')}</div>`;
     try {
       const r = await API.post('/api/evaluate', { jd, save: saveJd.checked });
       renderResult(r);
     } catch (e) {
       out.innerHTML = '';
-      out.appendChild(c('div', { className: 'empty' }, 'Ошибка: ' + e.message));
+      out.appendChild(c('div', { className: 'empty' }, t('common.error') + ': ' + e.message));
     }
   }
 
@@ -36,15 +37,15 @@ Router.register('evaluate', async () => {
     out.innerHTML = '';
     if (r.mode === 'manual') {
       out.appendChild(c('div', { className: 'card' }, [
-        c('div', { className: 'badge badge-warn mb-3' }, 'Manual mode (нет GEMINI_API_KEY)'),
+        c('div', { className: 'badge badge-warn mb-3' }, t('eval.manualMode')),
         c('p', null, r.message),
-        c('p', { className: 'field-hint' }, 'Скопируйте промпт ниже и вставьте в Claude Code или другой LLM.'),
+        c('p', { className: 'field-hint' }, t('eval.copyHint')),
         c('pre', { className: 'console' }, r.prompt),
         c('div', { className: 'flex gap-3 mt-3' }, [
           c('button', { className: 'btn btn-primary', onClick: () => {
             navigator.clipboard.writeText(r.prompt);
-            UI.toast('Промпт скопирован', 'success');
-          }}, '⧉ Скопировать промпт'),
+            UI.toast(t('eval.copied'), 'success');
+          }}, t('eval.copy')),
         ]),
       ]));
     } else {
@@ -53,7 +54,7 @@ Router.register('evaluate', async () => {
         c('div', { className: 'flex-between mb-3' }, [
           c('div', { className: 'flex gap-3' }, [
             c('div', { className: 'badge ' + cls }, 'Gemini · exit ' + r.code),
-            r.saved && c('div', { className: 'badge badge-info' }, 'Сохранено: ' + r.saved),
+            r.saved && c('div', { className: 'badge badge-info' }, 'Saved: ' + r.saved),
           ]),
         ]),
         r.stdout && c('div', { className: 'md', html: UI.md(r.stdout) }),
@@ -68,22 +69,22 @@ Router.register('evaluate', async () => {
   return c('div', null, [
     c('header', { className: 'page-header' }, [
       c('div', null, [
-        c('h1', { className: 'page-title' }, 'Оценить вакансию'),
-        c('p', { className: 'page-subtitle' }, 'Полный А–G анализ: Role, CV match, Risks, Comp, Strategy, Verdict, Legitimacy.'),
+        c('h1', { className: 'page-title' }, t('eval.title')),
+        c('p', { className: 'page-subtitle' }, t('eval.subtitle')),
       ]),
     ]),
 
     c('div', { className: 'card' }, [
       c('div', { className: 'field' }, [
-        c('label', null, 'Job Description'),
+        c('label', null, t('eval.jdLbl')),
         jdInput,
       ]),
       c('label', { className: 'flex', style: { gap: '8px', userSelect: 'none' } }, [
-        saveJd, c('span', null, 'Сохранить JD в jds/'),
+        saveJd, c('span', null, t('eval.saveJd')),
       ]),
       c('div', { className: 'flex gap-3 mt-3' }, [
-        c('button', { className: 'btn btn-primary', onClick: run }, '▶ Оценить'),
-        c('button', { className: 'btn btn-ghost', onClick: () => { jdInput.value = ''; out.innerHTML = ''; } }, 'Очистить'),
+        c('button', { className: 'btn btn-primary', onClick: run }, t('eval.btnEval')),
+        c('button', { className: 'btn btn-ghost', onClick: () => { jdInput.value = ''; out.innerHTML = ''; } }, t('eval.btnClear')),
       ]),
     ]),
 

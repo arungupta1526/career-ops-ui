@@ -1,6 +1,7 @@
-/* global Router, API, UI */
+/* global Router, API, UI, I18n */
 Router.register('reports', async (params) => {
   const c = UI.el;
+  const t = (k, f) => I18n.t(k, f);
 
   // single report view
   if (params[0]) {
@@ -13,8 +14,8 @@ Router.register('reports', async (params) => {
           c('p', { className: 'page-subtitle' }, [r.date, r.archetype, r.legitimacy].filter(Boolean).join(' · ')),
         ]),
         c('div', { className: 'flex gap-3' }, [
-          c('button', { className: 'btn btn-ghost', onClick: () => Router.go('/reports') }, '← Все отчёты'),
-          r.url && c('a', { className: 'btn btn-ghost', href: r.url, target: '_blank', rel: 'noopener' }, 'Открыть JD ↗'),
+          c('button', { className: 'btn btn-ghost', onClick: () => Router.go('/reports') }, t('rep.allReports')),
+          r.url && c('a', { className: 'btn btn-ghost', href: r.url, target: '_blank', rel: 'noopener' }, t('rep.openJd')),
         ]),
       ]),
       c('div', { className: 'card md', html: UI.md(r.markdown) }),
@@ -28,9 +29,9 @@ Router.register('reports', async (params) => {
   if (reports.length === 0) {
     return c('div', null, [
       c('header', { className: 'page-header' }, [
-        c('div', null, [c('h1', { className: 'page-title' }, 'Отчёты')]),
+        c('div', null, [c('h1', { className: 'page-title' }, t('rep.title'))]),
       ]),
-      c('div', { className: 'empty' }, 'Отчётов пока нет. Сделайте первую оценку.'),
+      c('div', { className: 'empty' }, t('rep.empty')),
     ]);
   }
 
@@ -57,8 +58,8 @@ Router.register('reports', async (params) => {
   return c('div', null, [
     c('header', { className: 'page-header' }, [
       c('div', null, [
-        c('h1', { className: 'page-title' }, 'Отчёты'),
-        c('p', { className: 'page-subtitle' }, `${reports.length} отчётов в reports/`),
+        c('h1', { className: 'page-title' }, t('rep.title')),
+        c('p', { className: 'page-subtitle' }, `${reports.length} ${t('rep.inDir')} reports/`),
       ]),
     ]),
     c('div', { className: 'card-row' }, cards),

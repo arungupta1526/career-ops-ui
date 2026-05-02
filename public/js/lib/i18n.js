@@ -103,6 +103,18 @@ window.I18n = (function () {
     'scan.consoleReady':{en: '> ready. press scan button.', es: '> listo. presiona scan.', 'pt-BR': '> pronto. pressione scan.', ko: '> 준비. scan 버튼 누르세요.', ja: '> 準備完了。scan を押してください。', ru: '> ready. press «запустить scan».', 'zh-CN': '> 就绪。按 scan。', 'zh-TW': '> 就緒。按 scan。' },
     'scan.noResults': { en: 'No results. Run EN or RU scan above — the table will appear here when finished.', es: 'Sin resultados. Ejecuta EN o RU scan arriba — la tabla aparecerá aquí al finalizar.', 'pt-BR': 'Sem resultados. Execute EN ou RU scan acima — a tabela aparecerá aqui ao terminar.', ko: '결과 없음. 위에서 EN 또는 RU scan을 실행하세요 — 완료 시 테이블이 여기에 표시됩니다.', ja: '結果なし。上から EN または RU scan を実行してください — 完了時にテーブルがここに表示されます。', ru: 'Нет результатов. Запустите EN или RU scan выше — после завершения таблица появится здесь.', 'zh-CN': '无结果。在上方运行 EN 或 RU scan — 完成后表格将显示在此处。', 'zh-TW': '無結果。在上方執行 EN 或 RU scan — 完成後表格將顯示在此處。' },
     'app.setupIssue': { en: 'Setup issue: ', es: 'Problema de setup: ', 'pt-BR': 'Problema de setup: ', ko: '설정 문제: ', ja: 'セットアップの問題: ', ru: 'Setup проблема: ', 'zh-CN': '设置问题:', 'zh-TW': '設定問題:' },
+    'router.loading': { en: 'Loading…', es: 'Cargando…', 'pt-BR': 'Carregando…', ko: '로딩 중…', ja: '読み込み中…', ru: 'Загрузка…', 'zh-CN': '加载中…', 'zh-TW': '載入中…' },
+    'router.netError':{ en: 'No connection to server', es: 'Sin conexión al servidor', 'pt-BR': 'Sem conexão com servidor', ko: '서버 연결 끊김', ja: 'サーバーに接続できません', ru: 'Нет связи с сервером', 'zh-CN': '与服务器无连接', 'zh-TW': '與伺服器無連線' },
+    'router.error':   { en: 'Error', es: 'Error', 'pt-BR': 'Erro', ko: '오류', ja: 'エラー', ru: 'Ошибка', 'zh-CN': '错误', 'zh-TW': '錯誤' },
+    'router.runStart':{ en: 'Run', es: 'Ejecutar', 'pt-BR': 'Executar', ko: '실행', ja: '実行', ru: 'Запустите', 'zh-CN': '运行', 'zh-TW': '執行' },
+    'app.runDoctor':  { en: 'Running doctor.mjs…', es: 'Ejecutando doctor.mjs…', 'pt-BR': 'Executando doctor.mjs…', ko: 'doctor.mjs 실행 중…', ja: 'doctor.mjs 実行中…', ru: 'Запускаю doctor.mjs…', 'zh-CN': '正在运行 doctor.mjs…', 'zh-TW': '正在執行 doctor.mjs…' },
+    'scan.failedPortals':{en: 'Failed to load portals.yml', es: 'Error al cargar portals.yml', 'pt-BR': 'Falha ao carregar portals.yml', ko: 'portals.yml 로드 실패', ja: 'portals.yml の読み込みに失敗', ru: 'Не удалось загрузить portals.yml', 'zh-CN': '无法加载 portals.yml', 'zh-TW': '無法載入 portals.yml' },
+    'scan.allDisabled':{en: 'All companies disabled (enabled: false).', es: 'Todas las empresas deshabilitadas.', 'pt-BR': 'Todas as empresas desabilitadas.', ko: '모든 회사가 비활성화됨.', ja: 'すべての会社が無効です。', ru: 'Все компании отключены (enabled: false).', 'zh-CN': '所有公司已禁用。', 'zh-TW': '所有公司已停用。' },
+    'scan.shownTop':  { en: 'Showing first 200 of', es: 'Mostrando primeros 200 de', 'pt-BR': 'Mostrando primeiros 200 de', ko: '처음 200개 표시 / 총', ja: '最初の 200 件を表示 / 合計', ru: 'Показаны первые 200 из', 'zh-CN': '显示前 200 (共', 'zh-TW': '顯示前 200 (共' },
+    'scan.scanResultsApi':{en: 'API configured', es: 'API configurada', 'pt-BR': 'API configurada', ko: 'API 구성됨', ja: 'API 設定済み', ru: 'API настроен', 'zh-CN': 'API 已配置', 'zh-TW': 'API 已設定' },
+    'scan.websearchOnly':{en: 'websearch only — scanner skips', es: 'solo websearch — scanner omite', 'pt-BR': 'apenas websearch — scanner ignora', ko: 'websearch만 — scanner 건너뜀', ja: 'websearch のみ — scanner はスキップ', ru: 'websearch only — scanner skip', 'zh-CN': '仅 websearch — scanner 跳过', 'zh-TW': '僅 websearch — scanner 跳過' },
+    'conn.recovered': { en: 'Connection restored', es: 'Conexión restaurada', 'pt-BR': 'Conexão restaurada', ko: '연결 복원됨', ja: '接続が復元されました', ru: 'Соединение восстановлено', 'zh-CN': '连接已恢复', 'zh-TW': '連線已恢復' },
+    'scan.startEnv':  { en: 'Run', es: 'Ejecuta', 'pt-BR': 'Execute', ko: '실행', ja: '実行', ru: 'Запустите', 'zh-CN': '运行', 'zh-TW': '執行' },
 
     // Pipeline
     'pipe.title':     { en: 'Pipeline', es: 'Pipeline', 'pt-BR': 'Pipeline', ko: '파이프라인', ja: 'パイプライン', ru: 'Pipeline', 'zh-CN': '流水线', 'zh-TW': '流水線' },
@@ -158,6 +170,8 @@ window.I18n = (function () {
     'track.scoreMid': { en: '≥ 3.0', es: '≥ 3.0', 'pt-BR': '≥ 3.0', ko: '≥ 3.0', ja: '≥ 3.0', ru: '≥ 3.0', 'zh-CN': '≥ 3.0', 'zh-TW': '≥ 3.0' },
     'track.scoreLow': { en: '< 3.0', es: '< 3.0', 'pt-BR': '< 3.0', ko: '< 3.0', ja: '< 3.0', ru: '< 3.0', 'zh-CN': '< 3.0', 'zh-TW': '< 3.0' },
     'track.noMatch':  { en: 'No matches', es: 'Sin coincidencias', 'pt-BR': 'Sem correspondências', ko: '일치 항목 없음', ja: '一致なし', ru: 'Нет совпадений', 'zh-CN': '无匹配', 'zh-TW': '無匹配' },
+    'track.col.date': { en: 'Date', es: 'Fecha', 'pt-BR': 'Data', ko: '날짜', ja: '日付', ru: 'Дата', 'zh-CN': '日期', 'zh-TW': '日期' },
+    'track.col.status':{ en: 'Status', es: 'Estado', 'pt-BR': 'Status', ko: '상태', ja: 'ステータス', ru: 'Статус', 'zh-CN': '状态', 'zh-TW': '狀態' },
 
     'rep.allReports': { en: '← All reports', es: '← Todos los reportes', 'pt-BR': '← Todos relatórios', ko: '← 모든 보고서', ja: '← すべてのレポート', ru: '← Все отчёты', 'zh-CN': '← 所有报告', 'zh-TW': '← 所有報告' },
     'rep.openJd':     { en: 'Open JD ↗', es: 'Abrir JD ↗', 'pt-BR': 'Abrir JD ↗', ko: 'JD 열기 ↗', ja: 'JD を開く ↗', ru: 'Открыть JD ↗', 'zh-CN': '打开 JD ↗', 'zh-TW': '開啟 JD ↗' },

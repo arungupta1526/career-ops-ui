@@ -9,9 +9,11 @@ window.API = (function () {
     if (!banner) return;
     if (lost) {
       banner.hidden = false;
+      const baseMsg = (window.I18n && window.I18n.t)
+        ? window.I18n.t('conn.down', 'Server is not responding.')
+        : 'Server is not responding.';
       banner.querySelector('.conn-msg').textContent =
-        'Сервер не отвечает (' + (reason || 'fetch failed') + '). ' +
-        'Проверьте, что запущен: bash web-ui/bin/start.sh';
+        baseMsg + ' (' + (reason || 'fetch failed') + ') · bash web-ui/bin/start.sh';
     } else {
       banner.hidden = true;
     }
@@ -23,7 +25,7 @@ window.API = (function () {
       const r = await fetch('/api/health', { cache: 'no-store' });
       if (r.ok) {
         setConnectionState(false);
-        if (window.UI) UI.toast('Соединение восстановлено', 'success');
+        if (window.UI) UI.toast((window.I18n && I18n.t('conn.recovered', 'Connection restored')) || 'Connection restored', 'success');
       }
     } catch {}
   }, 3000);

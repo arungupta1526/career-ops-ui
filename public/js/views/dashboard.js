@@ -90,8 +90,9 @@ function metric(label, value, sub, cls) {
 
 function recentTable(rows, scoreClass) {
   const c = UI.el;
+  const t = (k, f) => window.I18n.t(k, f);
   if (!rows.length) {
-    return c('div', { className: 'empty' }, 'Заявок ещё нет.');
+    return c('div', { className: 'empty' }, t('common.empty'));
   }
   const tbody = c('tbody', null,
     rows.map((r) => c('tr', null, [
@@ -107,7 +108,7 @@ function recentTable(rows, scoreClass) {
   return c('div', { className: 'table-wrap' },
     c('table', { className: 'tbl' }, [
       c('thead', null, c('tr', null,
-        ['Компания', 'Роль', 'Score', 'Статус', 'Дата'].map((h) => c('th', null, h))
+        [t('scan.col.company'), t('scan.col.role'), 'Score', t('track.col.status'), t('track.col.date')].map((h) => c('th', null, h))
       )),
       tbody,
     ])
@@ -116,8 +117,9 @@ function recentTable(rows, scoreClass) {
 
 function pipelineCard(urls) {
   const c = UI.el;
+  const t = (k, f) => window.I18n.t(k, f);
   if (!urls.length) {
-    return c('div', { className: 'empty' }, 'Pipeline пуст. Добавьте URL во вкладке Pipeline.');
+    return c('div', { className: 'empty' }, t('pipe.empty'));
   }
   return c('div', { className: 'card' },
     c('div', { className: 'flex', style: { flexDirection: 'column', alignItems: 'stretch', gap: '8px' } },

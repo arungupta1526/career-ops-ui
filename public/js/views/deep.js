@@ -1,13 +1,14 @@
-/* global Router, API, UI */
+/* global Router, API, UI, I18n */
 Router.register('deep', async () => {
   const c = UI.el;
-  const company = c('input', { className: 'input', placeholder: 'Например, Wheely' });
-  const role = c('input', { className: 'input', placeholder: 'Senior Backend Engineer (опционально)' });
+  const t = (k, f) => I18n.t(k, f);
+  const company = c('input', { className: 'input', placeholder: t('deep.companyExample') });
+  const role = c('input', { className: 'input', placeholder: t('deep.roleExample') });
   const out = c('div');
 
   async function run() {
-    if (!company.value.trim()) return UI.toast('Введите компанию', 'error');
-    out.innerHTML = '<div class="loading">Генерация…</div>';
+    if (!company.value.trim()) return UI.toast(t('deep.enterCompany'), 'error');
+    out.innerHTML = `<div class="loading">${t('deep.generating')}</div>`;
     try {
       const r = await API.post('/api/deep', {
         company: company.value.trim(),
@@ -20,8 +21,8 @@ Router.register('deep', async () => {
         c('div', { className: 'flex gap-3 mt-3' }, [
           c('button', { className: 'btn btn-primary', onClick: () => {
             navigator.clipboard.writeText(r.prompt);
-            UI.toast('Промпт скопирован', 'success');
-          }}, '⧉ Скопировать промпт'),
+            UI.toast(t('eval.copied'), 'success');
+          }}, t('eval.copy')),
         ]),
       ]));
     } catch (e) {
@@ -33,16 +34,16 @@ Router.register('deep', async () => {
   return c('div', null, [
     c('header', { className: 'page-header' }, [
       c('div', null, [
-        c('h1', { className: 'page-title' }, 'Deep research'),
-        c('p', { className: 'page-subtitle' }, 'Брифинг компании: команда, культура, новости, переговорные позиции, smart questions.'),
+        c('h1', { className: 'page-title' }, t('deep.title')),
+        c('p', { className: 'page-subtitle' }, t('deep.subtitle')),
       ]),
     ]),
     c('div', { className: 'card' }, [
       c('div', { className: 'row' }, [
-        c('div', { className: 'field' }, [c('label', null, 'Компания'), company]),
-        c('div', { className: 'field' }, [c('label', null, 'Роль'), role]),
+        c('div', { className: 'field' }, [c('label', null, t('deep.companyLbl')), company]),
+        c('div', { className: 'field' }, [c('label', null, t('deep.roleLbl')), role]),
       ]),
-      c('button', { className: 'btn btn-primary', onClick: run }, '▶ Сгенерировать промпт'),
+      c('button', { className: 'btn btn-primary', onClick: run }, t('deep.run')),
     ]),
     c('div', { className: 'mt-5' }, out),
   ]);

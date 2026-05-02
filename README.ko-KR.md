@@ -9,6 +9,8 @@
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
+![career-ops-ui — vacancy search](./screen_vacancy_found.png)
+
 ## 한 줄 설치
 
 ```bash

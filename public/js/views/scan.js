@@ -47,7 +47,15 @@ Router.register('scan', async () => {
 
   function streamTo(consoleEl, path, kind, onDone) {
     consoleEl.textContent = '';
-    UI.toast(`Сканирование (${kind}) запущено…`, 'success');
+    UI.toast(`${kind} scan…`, 'success');
+    // Poll the results table every 2s while the stream is open. Both EN and RU
+    // scanners only write to data/last-scan.json AT THE END, but polling lets
+    // us catch the update without depending on the done-callback firing
+    // (defensive: in case of network hiccups, lost SSE connection, etc.).
+    const pollHandle = setInterval(() => {
+      refreshResults().catch(() => {});
+    }, 2500);
+
     API.stream(path, (ev, data) => {
       if (ev === 'log') {
         const cls = data.stream === 'stderr' ? ' err' : '';
@@ -57,6 +65,7 @@ Router.register('scan', async () => {
       } else if (ev === 'start') {
         appendMeta(consoleEl, `▶ ${data.script}\n`);
       } else if (ev === 'done') {
+        clearInterval(pollHandle);
         const okMsg = data.counts
           ? `\n✓ done · raw=${data.counts.raw}, NEW=${data.counts.fresh}` +
             (data.errors ? ` · ${data.errors} non-fatal errors` : '')
@@ -64,11 +73,17 @@ Router.register('scan', async () => {
         appendMeta(consoleEl, okMsg + '\n');
         const fresh = data.counts?.fresh;
         UI.toast(
-          fresh != null ? `${kind}: ${fresh} новых офферов` : `${kind} завершён`,
+          fresh != null ? `${kind}: ${fresh} new offers` : `${kind} done`,
           'success'
         );
-        if (onDone) onDone();
+        // Trigger one final refresh + onDone, with a slight delay to make sure
+        // the JSON file has been flushed to disk on the server side.
+        setTimeout(() => {
+          refreshResults().catch(() => {});
+          if (onDone) onDone();
+        }, 300);
       } else if (ev === 'error') {
+        clearInterval(pollHandle);
         appendMeta(consoleEl, `\n✗ ${data.message}\n`);
         UI.toast(data.message, 'error');
       }
@@ -163,8 +178,8 @@ Router.register('scan', async () => {
 
     // Header summary
     const summary = c('div', { className: 'flex gap-3 mb-3', style: { flexWrap: 'wrap' } }, [
-      enWhen && c('span', { className: 'badge badge-info' }, `EN scan · ${enWhen} · ${lastResults.en.fresh?.length || 0} новых / ${lastResults.en.filtered?.length || 0} matching`),
-      ruWhen && c('span', { className: 'badge badge-info' }, `RU scan · ${ruWhen} · ${lastResults.ru.fresh?.length || 0} новых / ${lastResults.ru.filtered?.length || 0} matching`),
+      enWhen && c('span', { className: 'badge badge-info' }, `EN scan · ${enWhen} · ${lastResults.en.fresh?.length || 0} new / ${lastResults.en.filtered?.length || 0} matching`),
+      ruWhen && c('span', { className: 'badge badge-info' }, `RU scan · ${ruWhen} · ${lastResults.ru.fresh?.length || 0} new / ${lastResults.ru.filtered?.length || 0} matching`),
     ]);
     resultsEl.appendChild(summary);
 
@@ -205,7 +220,7 @@ Router.register('scan', async () => {
       return true;
     });
     if (!rows.length) {
-      resultsEl.appendChild(c('div', { className: 'empty' }, 'Нет совпадений'));
+      resultsEl.appendChild(c('div', { className: 'empty' }, t('track.noMatch')));
       return;
     }
     const tbody = c('tbody', null, rows.slice(0, 200).map((r) => {
@@ -231,7 +246,7 @@ Router.register('scan', async () => {
     ));
     if (rows.length > 200) {
       resultsEl.appendChild(c('p', { className: 'field-hint', style: { textAlign: 'center', marginTop: '12px' } },
-        `Показаны первые 200 из ${rows.length}.`));
+        `${t('scan.shownTop')} ${rows.length}.`));
     }
   }
 
@@ -311,11 +326,11 @@ Router.register('scan', async () => {
       c('h3', { style: { marginTop: 0 } }, `${t('scan.activeCo')} ${companies.length}/${apiCompanies.length}`),
       portalsErr
         ? c('div', { className: 'empty' }, [
-            c('strong', null, 'Не удалось загрузить portals.yml'),
+            c('strong', null, t('scan.failedPortals')),
             c('p', { style: { color: 'var(--foggy)', marginTop: '8px' } }, portalsErr.message),
           ])
         : companies.length === 0
-        ? c('div', { className: 'empty' }, 'Все компании отключены (enabled: false).')
+        ? c('div', { className: 'empty' }, t('scan.allDisabled'))
         : c('div', { className: 'flex', style: { flexWrap: 'wrap', gap: '8px' } },
             companies.map((co) => {
               const hasApi = apiCompanies.includes(co);
@@ -326,7 +341,7 @@ Router.register('scan', async () => {
                   background: hasApi ? 'rgba(0,138,5,.10)' : 'var(--beach)',
                   color: hasApi ? 'var(--kazan)' : 'var(--foggy)',
                 },
-                title: hasApi ? 'API настроен' : 'websearch only — scanner skip',
+                title: hasApi ? t('scan.scanResultsApi') : t('scan.websearchOnly'),
               }, (hasApi ? '✓ ' : '○ ') + (co.name || co));
             })
           ),

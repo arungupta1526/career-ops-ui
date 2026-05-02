@@ -61,7 +61,7 @@ I18n.onChange(() => {
 
   // top-bar buttons
   document.getElementById('btn-doctor').addEventListener('click', async () => {
-    UI.toast('Запускаю doctor.mjs…');
+    UI.toast(I18n.t('app.runDoctor', 'Running doctor.mjs…'));
     try {
       const r = await API.post('/api/run/doctor');
       UI.modal('doctor', UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n' + r.stderr : '')));
@@ -80,7 +80,7 @@ I18n.onChange(() => {
       // simple URL paste detection → add to pipeline
       if (q.startsWith('http')) {
         API.post('/api/pipeline', { url: q }).then(() => {
-          UI.toast('Добавлено в pipeline', 'success');
+          UI.toast(I18n.t('pipe.added', 'Added to pipeline'), 'success');
           search.value = '';
           if (Router.current().name === 'pipeline') Router.render();
         }).catch((err) => UI.toast(err.message, 'error'));

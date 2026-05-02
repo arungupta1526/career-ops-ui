@@ -22,7 +22,7 @@ window.Router = (function () {
     const content = document.getElementById('content');
     const renderer = routes[name] || routes['dashboard'];
 
-    content.innerHTML = '<div class="loading">Загрузка…</div>';
+    content.innerHTML = `<div class="loading">${(window.I18n && I18n.t('router.loading', 'Loading…')) || 'Loading…'}</div>`;
     try {
       const result = await renderer(params);
       if (result instanceof Node) {
@@ -34,13 +34,16 @@ window.Router = (function () {
     } catch (err) {
       console.error(err);
       const isNet = err && err.network;
+      const t = (k, f) => (window.I18n && I18n.t) ? I18n.t(k, f) : f;
+      const titleStr = isNet ? t('router.netError', 'No connection to server') : t('router.error', 'Error');
+      const retryStr = t('common.retry', 'Retry');
+      const runStr = t('router.runStart', 'Run');
       content.innerHTML = `<div class="empty">
-        <strong>${isNet ? 'Нет связи с сервером' : 'Ошибка'}</strong>
+        <strong>${titleStr}</strong>
         <p style="margin: 12px 0 0; color: var(--foggy)">${(err && err.message) || err}</p>
-        ${isNet ? '<p style="margin-top:8px;color:var(--foggy);font-size:13px;">Запустите: <code>bash web-ui/bin/start.sh</code></p>' : ''}
-        <button class="btn btn-ghost mt-3" onclick="Router.render()">Повторить</button>
+        ${isNet ? `<p style="margin-top:8px;color:var(--foggy);font-size:13px;">${runStr}: <code>bash web-ui/bin/start.sh</code></p>` : ''}
+        <button class="btn btn-ghost mt-3" onclick="Router.render()">${retryStr}</button>
       </div>`;
-      // Only toast non-network errors (banner already shown for network)
       if (!isNet) window.UI?.toast(err.message || 'Render error', 'error');
     }
   }
