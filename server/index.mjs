@@ -13,7 +13,7 @@
  *   GEMINI_API_KEY   forwarded to gemini-eval.mjs if present
  */
 import express from 'express';
-import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs';
 import yaml from 'js-yaml';
 import { PATHS, PROJECT_ROOT, PUBLIC_DIR, path as projPath } from './lib/paths.mjs';
 import {
@@ -207,6 +207,19 @@ export function createApp() {
     const file = projPath('jds', name);
     if (!existsSync(file)) return res.status(404).json({ error: 'not found' });
     res.type('text/plain').send(readFileSync(file, 'utf8'));
+  });
+
+  app.delete('/api/jds/:name', (req, res) => {
+    // Strip path-traversal characters; require the canonical .txt suffix
+    // so we cannot accidentally remove an unrelated file.
+    const safe = req.params.name.replace(/[^\w\-.]/g, '');
+    if (!safe || !safe.endsWith('.txt')) {
+      return res.status(400).json({ error: 'invalid jd name' });
+    }
+    const file = projPath('jds', safe);
+    if (!existsSync(file)) return res.status(404).json({ error: 'not found' });
+    unlinkSync(file);
+    res.json({ ok: true, deleted: safe });
   });
 
   app.post('/api/jds', (req, res) => {
