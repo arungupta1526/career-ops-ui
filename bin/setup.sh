@@ -111,41 +111,83 @@ fi
 scaffold_cv() {
   local target="$CAREER_OPS_DIR/cv.md"
   [ -f "$target" ] && return
+  # Realistic example CV (fictional — Alex Doe). Lets the project run
+  # end-to-end out of the box: scan finds vacancies, evaluator can match
+  # against this CV, dashboard shows metrics. Replace with your own when
+  # ready (or use the "📁 Upload CV" button in the UI).
   cat > "$target" <<'CV_EOF'
-# Your Name
+# Alex Doe
 
-> EDIT ME — replace with your full name and a one-line summary
-> (e.g. "Senior PHP / Go Backend Engineer · 14 years · Moscow → Remote EU")
+Senior Backend Engineer · 8 years · PHP + Go · Berlin → Remote EU/UK
 
 ## Summary
 
-EDIT ME — 2-3 sentences. What's your "superpower"? Domain, stack, scale.
+Senior backend engineer with 8 years building high-throughput services
+in PHP (Symfony, Laravel) and Go. Shipped microservices handling 50K+
+RPS at peak, led migrations from monoliths to event-driven architectures
+on Kafka, and mentored 6 engineers across 2 teams. Comfortable owning
+a service from API design through production observability.
 
 ## Experience
 
-### Company Name — Senior Backend Engineer
-*Mar 2024 — present · Remote*
+### Acme Marketplace — Senior Backend Engineer
+*Mar 2023 — present · Berlin (remote-first)*
 
-- EDIT ME — bullet point with a metric ("reduced p99 latency by 38%")
-- EDIT ME — second bullet, ideally also with a metric
-- EDIT ME — stack: PHP 8.3, Symfony 6, Go 1.22, PostgreSQL 16, Kafka
+- Led migration of the order-pricing service from monolith PHP 7.4 to a
+  fleet of 4 Go microservices (gRPC + Kafka), reducing p99 latency
+  **from 380 ms to 95 ms (−75%)** under 2× peak load.
+- Designed the new shipping-rates API consumed by 12 internal clients;
+  reached **99.97% availability** over 9 months with zero post-launch
+  PagerDuty incidents.
+- Mentored 3 mid-level engineers: introduced async code review playbook,
+  cut average PR cycle time from 3.2 days to 1.4 days.
+- Stack: Go 1.22, PHP 8.3 (Symfony 6.4), PostgreSQL 16, Kafka, Redis,
+  Kubernetes (EKS), Datadog, GitHub Actions.
+
+### Northwind SaaS — Backend Engineer
+*Jan 2020 — Feb 2023 · Berlin*
+
+- Built the multi-tenant billing engine in Symfony + Doctrine handling
+  €4.2M ARR across 1.8K B2B accounts; **reduced invoice-error rate from
+  1.1% to 0.07%** by introducing event sourcing for state transitions.
+- Owned the public REST API (140+ endpoints) — wrote OpenAPI spec,
+  versioning policy, deprecation workflow; SDK clients in 4 languages.
+- Performance: cut average PDF-invoice generation from 3.4 s to 410 ms
+  with a Redis-backed render queue and PHP-FPM tuning.
+- Stack: PHP 8.1 (Symfony 5.4), MySQL 8, RabbitMQ, Redis, Docker,
+  Bitbucket Pipelines.
+
+### Tinker Studio — PHP Developer
+*Aug 2017 — Dec 2019 · Berlin*
+
+- Shipped 14 client projects (e-commerce, CMS, internal tooling) in
+  Laravel 5.x → 8.x; consistent on-time delivery across 3 PMs.
+- Wrote the studio's reusable headless-CMS skeleton — adopted by all
+  new projects, **cut greenfield setup from 5 days to 6 hours**.
 
 ## Projects
 
-- **Project name** — what it is, what you built, link if public
+- **`open-rate-limiter`** — Go library, sliding-window rate limiter
+  with Redis backend. 1.2K GitHub stars, used in production by 3
+  companies. https://github.com/example/open-rate-limiter
+- **`acme-cli`** — internal-tool CLI in Go for managing the marketplace
+  staging environments. Adopted across 4 teams (24 daily users).
 
 ## Education
 
-- 2010–2015 University Name, MSc / BSc in Field
+- 2013–2017 — TU Berlin, BSc Computer Science (GPA 1.7 / 1.0 best)
 
 ## Skills
 
-- **Backend:** PHP, Go, Python
-- **Databases:** PostgreSQL, MySQL, Redis, ClickHouse
-- **Cloud:** AWS, Docker, Kubernetes
-- **Languages:** English (B2), Russian (native)
+- **Backend:** Go (1.22), PHP (8.3, Symfony 6, Laravel 10), gRPC, REST
+- **Databases:** PostgreSQL, MySQL, Redis, ClickHouse, Elasticsearch
+- **Streaming:** Kafka, RabbitMQ, NATS
+- **Cloud / DevOps:** Docker, Kubernetes (EKS), Terraform, Datadog,
+  Prometheus, Grafana, GitHub Actions
+- **Practices:** TDD, event sourcing, DDD, code review, on-call
+- **Languages:** English (C1), German (B2)
 CV_EOF
-  green "  ✓ scaffolded $target — please edit before evaluating offers"
+  green "  ✓ scaffolded $target — sample CV (Alex Doe). Replace with yours when ready."
 }
 
 scaffold_profile() {
