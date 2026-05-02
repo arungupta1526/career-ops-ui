@@ -2,21 +2,33 @@
 window.Router = (function () {
   const routes = {};
 
+  // Route aliases — kept for URL stability when an internal name changes
+  // and bookmarks/external links exist for the old form. The user-facing
+  // hash stays e.g. `#/profile`, but internally we resolve to `settings`.
+  const ALIASES = {
+    profile: 'settings',
+  };
+
   function register(name, renderer) {
     routes[name] = renderer;
   }
 
   function current() {
     const hash = window.location.hash.slice(2) || 'dashboard';
-    const [name, ...rest] = hash.split('/');
-    return { name, params: rest };
+    const [rawName, ...rest] = hash.split('/');
+    const name = ALIASES[rawName] || rawName;
+    return { name, rawName, params: rest };
   }
 
   async function render() {
-    const { name, params } = current();
+    const { name, rawName, params } = current();
 
     document.querySelectorAll('.nav-item').forEach((a) => {
-      a.classList.toggle('active', a.dataset.route === name);
+      // Highlight nav match against EITHER the alias (rawName) or the
+      // resolved route — so #/profile lights up the Profile nav item
+      // even though it routes to `settings` internally.
+      const r = a.dataset.route;
+      a.classList.toggle('active', r === name || r === rawName);
     });
 
     const content = document.getElementById('content');

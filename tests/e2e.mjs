@@ -317,6 +317,27 @@ async function run() {
     console.log(`  ✗ ${err.message}`);
   }
 
+  console.log('\n  Flow 5: #/profile alias → settings (FIX-C2)');
+  try {
+    await page.goto(`${baseUrl}/#/profile`, { waitUntil: 'networkidle' });
+    await page.waitForSelector('h1.page-title', { timeout: 5000 });
+    const title = (await page.locator('h1.page-title').first().textContent()).trim();
+    // Profile/Settings page title across 8 languages
+    const expected = ['Profile', 'Perfil', 'Профиль', 'プロフィール', '프로필', '个人资料', '個人資料'];
+    if (!expected.some((s) => title.includes(s))) {
+      throw new Error('expected Profile-like title, got: ' + title);
+    }
+    // Sidebar Profile nav item should be highlighted
+    const active = await page.locator('.nav-item[data-route="settings"]').evaluate((el) => el.classList.contains('active'));
+    if (!active) throw new Error('Profile sidebar item not highlighted at #/profile');
+    console.log('  ✓ #/profile resolves to Profile view');
+    passed++;
+  } catch (err) {
+    failed++;
+    failures.push({ route: 'flow:profile-alias', message: err.message });
+    console.log(`  ✗ ${err.message}`);
+  }
+
   console.log('\n  Flow 3: CV preview is XSS-safe (FIX-C10)');
   try {
     // Read current cv.md, restore at the end
