@@ -212,10 +212,23 @@ export function createApp() {
   app.post('/api/jds', (req, res) => {
     const { text, slug } = req.body || {};
     if (!text) return res.status(400).json({ error: 'text required' });
-    const name = (slug ? slugify(slug) : `jd-${today()}-${Date.now()}`) + '.txt';
+    let warning = null;
+    let safeSlug = null;
+    if (slug) {
+      safeSlug = slugify(slug);
+      if (!safeSlug) {
+        return res.status(400).json({ error: 'slug had no usable characters' });
+      }
+      // Only flag the cases users care about: unsafe characters were
+      // stripped. Pure case-folding ("Acme" → "acme") and whitespace
+      // collapsing don't deserve a warning.
+      const stripped = /[^\w\s-]/.test(slug);
+      if (stripped) warning = `slug normalized from "${slug}" to "${safeSlug}"`;
+    }
+    const name = (safeSlug || `jd-${today()}-${Date.now()}`) + '.txt';
     mkdirSync(PATHS.jdsDir, { recursive: true });
     writeFileSync(projPath('jds', name), text);
-    res.json({ ok: true, name });
+    res.json({ ok: true, name, ...(warning ? { warning } : {}) });
   });
 
   // ───────────────────────────── CV ─────────────────────────────
