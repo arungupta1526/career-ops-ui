@@ -36,7 +36,7 @@
   "scripts": {
     "start": "node server/index.mjs",
     "dev": "node --watch server/index.mjs",
-    "test": "node --test tests/parsers.test.mjs tests/api.test.mjs tests/ru-scanner.test.mjs tests/en-scanner.test.mjs tests/skills.test.mjs tests/cv-xss.test.mjs tests/security-headers.test.mjs tests/router.test.mjs tests/i18n-coverage.test.mjs tests/url-validation.test.mjs tests/jd-sanitize.test.mjs tests/jds-delete.test.mjs",
+    "test": "node --test tests/parsers.test.mjs tests/api.test.mjs tests/ru-scanner.test.mjs tests/en-scanner.test.mjs tests/skills.test.mjs tests/cv-xss.test.mjs tests/security-headers.test.mjs tests/router.test.mjs tests/i18n-coverage.test.mjs tests/url-validation.test.mjs tests/jd-sanitize.test.mjs tests/jds-delete.test.mjs tests/health-privacy.test.mjs",
     "test:e2e": "node tests/e2e.mjs"
   },
   "dependencies": {

@@ -76,9 +76,13 @@ export function createApp() {
 
   app.get('/api/health', async (_req, res) => {
     const checks = [];
+    // When the UI is exposed beyond loopback, anyone on the LAN can hit
+    // /api/health. We strip absolute paths and exact Node versions from
+    // the response so a curious neighbor can't fingerprint the host.
+    const hidden = isPubliclyExposed() ? 'hidden' : null;
     // Required checks — system can't function without these
-    checks.push({ name: 'Node version', required: true, ok: parseInt(process.versions.node) >= 18, value: `v${process.versions.node}` });
-    checks.push({ name: 'Project root', required: true, ok: existsSync(PROJECT_ROOT), value: PROJECT_ROOT });
+    checks.push({ name: 'Node version', required: true, ok: parseInt(process.versions.node) >= 18, value: hidden ?? `v${process.versions.node}` });
+    checks.push({ name: 'Project root', required: true, ok: existsSync(PROJECT_ROOT), value: hidden ?? PROJECT_ROOT });
     checks.push({ name: 'cv.md', required: true, ok: existsSync(PATHS.cv) });
     checks.push({ name: 'config/profile.yml', required: true, ok: existsSync(PATHS.profile) });
     checks.push({ name: 'portals.yml', required: true, ok: existsSync(PATHS.portals) });
