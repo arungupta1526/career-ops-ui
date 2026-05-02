@@ -396,9 +396,10 @@ export function createApp() {
   // ───────────────────────────── Evaluate (Gemini if available, else prompt) ─────────────────────────────
 
   app.post('/api/evaluate', async (req, res) => {
-    const { jd, save } = req.body || {};
+    const { jd: rawJd, save } = req.body || {};
+    const jd = sanitizeJobDescription(rawJd);
     if (!jd || jd.length < 50) {
-      return res.status(400).json({ error: 'JD text required (min 50 chars)' });
+      return res.status(400).json({ error: 'JD text required (min 50 chars after sanitization)' });
     }
 
     let saved = null;
@@ -487,6 +488,27 @@ function safeListReports() {
     })
     .filter(Boolean)
     .sort((a, b) => new Date(b.mtime) - new Date(a.mtime));
+}
+
+/**
+ * Sanitize a job-description text before it joins a prompt destined for
+ * an LLM. Removes:
+ *   - control bytes (NUL, ANSI escapes, etc.) that would confuse downstream
+ *     terminals or trigger silent string-mangling in tooling
+ *   - script tags, which neither contribute meaning nor belong in a JD
+ *   - leading/trailing whitespace
+ * Caps length at 50 KB — JDs over that size are paste mistakes, not real
+ * postings, and bloat the prompt for no upside.
+ */
+export function sanitizeJobDescription(input) {
+  if (typeof input !== 'string') return '';
+  let s = input
+    .replace(/\[[0-9;]*m/g, '')         // ANSI color escapes
+    .replace(/[ --]/g, '') // control chars (keep \t \n \r)
+    .replace(/<script\b[\s\S]*?<\/script\s*>/gi, '');
+  s = s.trim();
+  if (s.length > 50_000) s = s.slice(0, 50_000);
+  return s;
 }
 
 /**
