@@ -72,3 +72,35 @@ Para arquitectura completa, referencia API, configuración avanzada y notas de s
 ## Licencia
 
 MIT. Construido sobre [career-ops](https://github.com/santifer/career-ops) por [santifer](https://santifer.io).
+
+---
+
+## 🌍 Getting Started — primeros pasos tras la instalación
+
+Tras el one-command install tienes dos repos clonados con archivos scaffold (`cv.md`, `config/profile.yml`, `portals.yml`, `data/applications.md`, `data/pipeline.md` con marcadores **EDIT ME**). La página Health debería estar toda verde al primer arranque. Reemplaza los placeholders con tus datos reales:
+
+### 1. Crea tu CV (`cv.md`)
+
+- **A — pega un currículum existente** en `career-ops/cv.md` en markdown limpio.
+- **B — sube desde la UI:** click **CV** → **📁 Cargar CV** → elige `.md`/`.txt` → revisa preview → click **💾 Guardar**.
+- **C — dale tu LinkedIn a Claude Code:** abre Claude Code, ejecuta `/career-ops`, pide "extrae mi CV y escríbelo a cv.md".
+
+### 2. Edita perfil (`config/profile.yml`)
+
+Reemplaza placeholders: nombre, email, ubicación, LinkedIn, roles objetivo, **arquetipos** (lo más importante), rango salarial.
+
+### 3. Configura scanner (`portals.yml`)
+
+Ajusta `title_filter.positive`/`negative`. Ya hay 3 boards (GitLab, Vercel, Linear). Más en [`docs/portals-examples.md`](docs/portals-examples.md).
+
+### 4. (Opcional) Gemini API key
+
+```bash
+echo "GEMINI_API_KEY=tu-clave" >> career-ops/.env
+```
+
+### 5. Verifica y empieza
+
+Health → todo verde. **🌐 Buscar en todas las fuentes** → tabla con chips → copia URL → **Pipeline** → **Evaluate**.
+
+Documentación completa (arquitectura, API, seguridad): [README en inglés](README.md).

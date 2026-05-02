@@ -72,3 +72,35 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 ## ライセンス
 
 MIT。[santifer](https://santifer.io) による [career-ops](https://github.com/santifer/career-ops) の上に構築。
+
+---
+
+## 🌍 Getting Started — インストール後の最初のステップ
+
+ワンコマンドインストール後、2 つのクローンされたリポジトリとスキャフォールドファイル(`cv.md`、`config/profile.yml`、`portals.yml`、`data/applications.md`、`data/pipeline.md` — **EDIT ME** マーカー入り)があります。Health ページは初回起動で全て緑のはずです。プレースホルダーを実際のデータに置き換えてください:
+
+### 1. CV を作成 (`cv.md`)
+
+- **A — 既存の履歴書を貼り付け:** `career-ops/cv.md` にクリーンな markdown で。
+- **B — UI からアップロード:** **CV** クリック → **📁 履歴書をアップロード** → `.md`/`.txt` 選択 → プレビュー確認 → **💾 保存** クリック。
+- **C — Claude Code に LinkedIn を渡す:** Claude Code で `/career-ops` 実行、「CV を抽出して cv.md に書いて」と依頼。
+
+### 2. プロフィール (`config/profile.yml`)
+
+プレースホルダーを置換: 名前、メール、場所、LinkedIn、対象役割、**archetypes** (最重要)、給与範囲。
+
+### 3. スキャナー (`portals.yml`)
+
+`title_filter.positive`/`negative` を調整。3 つの board (GitLab、Vercel、Linear) があらかじめ設定。詳細: [`docs/portals-examples.md`](docs/portals-examples.md)。
+
+### 4. (オプション) Gemini API key
+
+```bash
+echo "GEMINI_API_KEY=your-key" >> career-ops/.env
+```
+
+### 5. 確認して開始
+
+Health → すべて緑。**🌐 すべてのソースを検索** → チップフィルター付きテーブル → URL コピー → **Pipeline** → **Evaluate**。
+
+完全なドキュメント (アーキテクチャ、API、セキュリティ): [英語の README](README.md)。

@@ -87,12 +87,57 @@ Router.register('scan', async () => {
     if (dryRun.checked) params.set('dryRun', '1');
     streamTo(consoleEl, '/api/stream/scan-ru?' + params.toString(), 'RU', refreshResults);
   }
+  // Unified "Scan all" — runs EN first, then RU sequentially. Results from both
+  // accumulate into the same table because both write to data/last-scan.json.
+  function runScanAll() {
+    const enParams = new URLSearchParams();
+    if (dryRun.checked) enParams.set('dryRun', '1');
+    const company = companySelect.value;
+    if (company) enParams.set('company', company);
+
+    consoleEl.textContent = '';
+    UI.toast(t('scan.runAll', 'Scanning all sources…'), 'success');
+    appendMeta(consoleEl, '▶ EN scan (Greenhouse + Ashby + Lever)\n');
+
+    const es1 = API.stream('/api/stream/scan-en?' + enParams.toString(), (ev, data) => {
+      if (ev === 'log') {
+        const cls = data.stream === 'stderr' ? ' err' : '';
+        consoleEl.appendChild(c('span', { className: cls }, data.line + '\n'));
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+      } else if (ev === 'done') {
+        const enFresh = data.counts?.fresh ?? 0;
+        appendMeta(consoleEl, `✓ EN done · NEW=${enFresh}\n\n▶ RU scan (hh.ru + Habr Career)\n`);
+        // chain RU scan after EN finishes
+        const ruParams = new URLSearchParams();
+        if (dryRun.checked) ruParams.set('dryRun', '1');
+        API.stream('/api/stream/scan-ru?' + ruParams.toString(), (ev2, d2) => {
+          if (ev2 === 'log') {
+            const cls = d2.stream === 'stderr' ? ' err' : '';
+            consoleEl.appendChild(c('span', { className: cls }, d2.line + '\n'));
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+          } else if (ev2 === 'done') {
+            const ruFresh = d2.counts?.fresh ?? 0;
+            const total = enFresh + ruFresh;
+            appendMeta(consoleEl, `✓ RU done · NEW=${ruFresh}\n\n✓ ALL DONE · total NEW=${total}\n`);
+            UI.toast(`Scan all: ${total} new offers`, 'success');
+            refreshResults();
+          } else if (ev2 === 'error') {
+            appendMeta(consoleEl, `\n✗ RU error: ${d2.message}\n`);
+          }
+        });
+      } else if (ev === 'error') {
+        appendMeta(consoleEl, `\n✗ EN error: ${data.message}\n`);
+        UI.toast(data.message, 'error');
+      }
+    });
+  }
 
   // Render the rich table of last-scan results
   let lastResults = { en: null, ru: null };
   // Active chip selections (multi-select, intersection across categories)
   const activeTech = new Set();
   const activeLevel = new Set();
+  const activeDynamic = new Set();
 
   async function refreshResults() {
     try {
@@ -128,11 +173,17 @@ Router.register('scan', async () => {
       return;
     }
 
-    // ── Chip facets (skills + level) computed on the CURRENT all-rows set ──
+    // ── Chip facets (skills + level + dynamic keywords) ──
+    // Dynamic keywords adapt to whatever roles the user actually scanned —
+    // gives meaningful chips even for non-engineering profiles (marketing,
+    // design, finance, …) where the hardcoded TECH_GROUPS would be empty.
     const facets = window.Skills.computeFacets(allRows);
+    const dynKeywords = window.Skills.extractDynamicKeywords(allRows, { limit: 20 });
+    const dynCounts = Object.fromEntries(dynKeywords);
     const chipsContainer = c('div', { className: 'mb-3', style: { display: 'flex', flexDirection: 'column', gap: '8px' } });
-    chipsContainer.appendChild(buildChipRow(t('scan.chip.stack'), facets.tech, activeTech));
-    chipsContainer.appendChild(buildChipRow(t('scan.chip.level'), facets.level, activeLevel));
+    if (Object.keys(facets.tech).length) chipsContainer.appendChild(buildChipRow(t('scan.chip.stack'), facets.tech, activeTech));
+    if (Object.keys(facets.level).length) chipsContainer.appendChild(buildChipRow(t('scan.chip.level'), facets.level, activeLevel));
+    if (dynKeywords.length) chipsContainer.appendChild(buildChipRow(t('scan.chip.dynamic', 'Keywords'), dynCounts, activeDynamic));
     resultsEl.appendChild(chipsContainer);
 
     // ── Now apply ALL filters (text/remote/source + chips) ──
@@ -146,6 +197,11 @@ Router.register('scan', async () => {
       if (fr === 'reloc' && !r.relocates) return false;
       if (fs && r.source !== fs) return false;
       if (!window.Skills.rowMatches(r, activeTech, activeLevel)) return false;
+      if (activeDynamic.size) {
+        let any = false;
+        for (const k of activeDynamic) if (window.Skills.rowHasKeyword(r, k)) { any = true; break; }
+        if (!any) return false;
+      }
       return true;
     });
     if (!rows.length) {
@@ -233,8 +289,9 @@ Router.register('scan', async () => {
         c('label', { className: 'flex', style: { gap: '8px', userSelect: 'none' } }, [
           dryRun, c('span', null, t('scan.dryRun')),
         ]),
-        c('button', { className: 'btn btn-primary', onClick: runEnScan, title: 'Greenhouse / Ashby / Lever' }, t('scan.btnEn')),
-        c('button', { className: 'btn btn-dark', onClick: runRuScan, title: 'hh.ru + Habr Career' }, t('scan.btnRu')),
+        c('button', { className: 'btn btn-primary', onClick: runScanAll, title: 'Greenhouse + Ashby + Lever + hh.ru + Habr Career' }, '🌐 ' + t('scan.btnAll', 'Scan all')),
+        c('button', { className: 'btn btn-ghost', onClick: runEnScan, title: 'Greenhouse / Ashby / Lever only' }, t('scan.btnEn')),
+        c('button', { className: 'btn btn-ghost', onClick: runRuScan, title: 'hh.ru + Habr Career only' }, t('scan.btnRu')),
         c('button', { className: 'btn btn-ghost', onClick: () => Router.go('/pipeline') }, t('scan.btnPipe')),
       ]),
     ]),

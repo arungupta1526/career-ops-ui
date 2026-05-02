@@ -88,3 +88,47 @@ Multi-select внутри категории (OR), пересечение меж
 ## Лицензия
 
 MIT. Построено поверх [career-ops](https://github.com/santifer/career-ops) от [santifer](https://santifer.io).
+
+---
+
+## 🌍 Getting Started — первые шаги после установки
+
+После one-command install вы получаете два склонированных репо со скаффолд-шаблонами `cv.md`, `config/profile.yml`, `portals.yml`, `data/applications.md`, `data/pipeline.md` (внутри markeры **EDIT ME**). Health page должна быть полностью зелёной с первого запуска. Замените заглушки на свои данные:
+
+### 1. Создайте CV (`cv.md`)
+
+Три варианта:
+
+- **A — вставьте готовое резюме:** откройте `career-ops/cv.md`, замените EDIT-ME на чистый markdown (Summary, Experience, Projects, Education, Skills).
+- **B — загрузите из UI:** клик **CV** в сайдбаре → **📁 Загрузить CV** → выберите `.md`/`.txt` → проверьте preview → клик **💾 Сохранить**.
+- **C — продиктуйте Claude Code:** в Claude Code запустите `/career-ops`, вставьте LinkedIn URL, попросите «извлеки моё CV и запиши в cv.md».
+
+Метрики должны быть конкретными («снизил p99 на 38%», не «улучшил производительность»).
+
+### 2. Профиль (`config/profile.yml`)
+
+```bash
+$EDITOR career-ops/config/profile.yml
+```
+
+Замените заглушки: ФИО, email, локация, LinkedIn, целевые роли, **архетипы** (самое важное — по ним идёт матчинг JD), salary target.
+
+### 3. Сканер (`portals.yml`)
+
+```bash
+$EDITOR career-ops/portals.yml
+```
+
+Настройте `title_filter.positive` / `negative`. В `tracked_companies` уже есть 3 рабочие board (GitLab, Vercel, Linear). Готовые блоки 24+ компаний — в [`docs/portals-examples.md`](docs/portals-examples.md). Для hh.ru/Habr — настройте `russian_portals.queries`.
+
+### 4. (Опционально) Gemini API key
+
+```bash
+echo "GEMINI_API_KEY=your-key" >> career-ops/.env
+```
+
+### 5. Проверьте и начинайте работу
+
+Обновите Health → все обязательные чеки зелёные. Затем: **🌐 Сканировать все источники** → таблица вакансий с динамическими chip-фильтрами → копируйте URL → **Pipeline** → **Evaluate**.
+
+Полная документация (архитектура, API, security): см. [English README](README.md).

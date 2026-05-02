@@ -72,3 +72,35 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 ## 许可证
 
 MIT。基于 [santifer](https://santifer.io) 的 [career-ops](https://github.com/santifer/career-ops) 构建。
+
+---
+
+## 🌍 Getting Started — 安装后的第一步
+
+一键安装后,你有两个克隆的仓库和脚手架文件 (`cv.md`、`config/profile.yml`、`portals.yml`、`data/applications.md`、`data/pipeline.md` — 带 **EDIT ME** 标记)。首次启动时 Health 页面应全部为绿色。用真实数据替换占位符:
+
+### 1. 创建 CV (`cv.md`)
+
+- **A — 粘贴现有简历** 到 `career-ops/cv.md` 中,使用干净的 markdown。
+- **B — 从 UI 上传:** 点击 **CV** → **📁 上传简历** → 选择 `.md`/`.txt` → 检查预览 → 点击 **💾 保存**。
+- **C — 将 LinkedIn 给 Claude Code:** 在 Claude Code 中运行 `/career-ops`,请求「提取我的 CV 并写入 cv.md」。
+
+### 2. 个人资料 (`config/profile.yml`)
+
+替换占位符:姓名、邮箱、位置、LinkedIn、目标角色、**archetypes** (最重要)、薪资范围。
+
+### 3. 扫描器 (`portals.yml`)
+
+调整 `title_filter.positive`/`negative`。已预设 3 个 board (GitLab、Vercel、Linear)。更多内容:[`docs/portals-examples.md`](docs/portals-examples.md)。
+
+### 4. (可选) Gemini API key
+
+```bash
+echo "GEMINI_API_KEY=your-key" >> career-ops/.env
+```
+
+### 5. 验证并开始
+
+Health → 全部为绿。**🌐 搜索所有来源** → 带 chip 过滤器的表格 → 复制 URL → **Pipeline** → **Evaluate**。
+
+完整文档 (架构、API、安全):[英文 README](README.md)。

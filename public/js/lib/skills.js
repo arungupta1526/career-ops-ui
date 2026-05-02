@@ -81,6 +81,55 @@ window.Skills = (function () {
   }
 
   /**
+   * Dynamic keyword extraction — pull the N most-frequent capitalised tokens
+   * from titles, excluding noise. This makes chips ADAPT to whatever roles
+   * the user actually scans (marketing, design, finance, etc.) instead of
+   * being locked to the backend-engineer vocabulary above.
+   *
+   * Returns ordered list of [keyword, count] pairs.
+   */
+  const STOPWORDS = new Set([
+    'and', 'or', 'the', 'a', 'an', 'of', 'to', 'in', 'at', 'for', 'with',
+    'by', 'on', 'as', 'from', 'us', 'eu', 'uk', 'usa', 'india', 'remote',
+    'hybrid', 'engineer', 'developer', 'software', 'job', 'role',
+  ]);
+  function extractDynamicKeywords(rows, opts = {}) {
+    const { limit = 25, minLength = 3, minCount = 2 } = opts;
+    const counts = {};
+    for (const r of rows) {
+      const title = (r.title || '').replace(/[(){}\[\],/—–•·|]/g, ' ');
+      // tokens: words 3+ chars, must contain a letter
+      const tokens = title.split(/\s+/).filter((w) =>
+        w.length >= minLength && /[a-zа-я]/i.test(w)
+      );
+      for (const raw of tokens) {
+        // strip punctuation, normalise case
+        const w = raw.replace(/^[^\p{L}+#.]+|[^\p{L}+#.]+$/gu, '');
+        if (!w || STOPWORDS.has(w.toLowerCase())) continue;
+        // canonical form: lowercase except for known acronyms (PHP, Go, AI)
+        const key = (/^[A-Z]{2,5}$/.test(w) || /^[A-Z][a-z]/.test(w))
+          ? w
+          : w.toLowerCase();
+        counts[key] = (counts[key] || 0) + 1;
+      }
+    }
+    return Object.entries(counts)
+      .filter(([_, n]) => n >= minCount)
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, limit);
+  }
+
+  /**
+   * Whether row's title contains the dynamic keyword (case-insensitive
+   * whole-word match).
+   */
+  function rowHasKeyword(row, keyword) {
+    if (!keyword) return true;
+    const re = new RegExp('\\b' + keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+    return re.test(row.title || '');
+  }
+
+  /**
    * Compute facet counts for a list of rows: { tech: {label: count}, level: {…} }.
    * Used to render only the chips that actually have results.
    */
@@ -116,6 +165,7 @@ window.Skills = (function () {
 
   return {
     detectTech, detectLevel, computeFacets, rowMatches,
+    extractDynamicKeywords, rowHasKeyword,
     TECH_GROUPS, LEVEL_GROUPS,
   };
 })();
