@@ -385,6 +385,206 @@ Issues and PRs welcome. Two house rules:
 
 ---
 
+---
+
+## 🇷🇺 Полное руководство на русском — как развернуть и работать
+
+### Один файл, две команды
+
+**Самый быстрый путь (одна команда, всё с нуля):**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/setup.sh | bash
+```
+
+Эта команда выполняется в текущей папке и делает следующее:
+
+1. Проверяет, что установлен Node.js 18+
+2. Клонирует [santifer/career-ops](https://github.com/santifer/career-ops) в `./career-ops/` (родительский проект — пайплайн поиска работы)
+3. Клонирует [Fighter90/career-ops-ui](https://github.com/Fighter90/career-ops-ui) в `./career-ops/web-ui/` (этот веб-интерфейс)
+4. Прописывает `/web-ui/` в `.gitignore` родительского репо (чтобы родитель не пытался отслеживать UI как поддиректорию)
+5. Устанавливает npm-зависимости (express + js-yaml — всего 71 пакет, ~3 секунды)
+6. Запускает Express-сервер на `http://127.0.0.1:4317`
+7. Открывает страницу в браузере
+
+Через ~5 секунд после запуска вы увидите Дашборд.
+
+**Альтернативно (вручную, если страшно делать `curl | bash`):**
+
+```bash
+git clone https://github.com/santifer/career-ops.git
+cd career-ops
+git clone https://github.com/Fighter90/career-ops-ui.git web-ui
+bash web-ui/bin/start.sh
+```
+
+### Первый запуск — онбординг
+
+При первом запуске на странице **Health** вы увидите красные `FAIL`-бейджи рядом с обязательными файлами:
+
+- `cv.md` — ваше CV в markdown
+- `config/profile.yml` — профиль (имя, email, целевые роли, архетипы)
+- `portals.yml` — конфигурация скан-портaлов
+
+Создайте их по шаблонам из родительского проекта (см. [career-ops онбординг](https://github.com/santifer/career-ops#first-run--onboarding)). Минимальный путь:
+
+```bash
+cd career-ops
+cp config/profile.example.yml config/profile.yml
+cp templates/portals.example.yml portals.yml
+echo "# Your CV" > cv.md  # потом наполните содержимым
+```
+
+После этого на странице **Health** все обязательные чеки станут зелёными `OK`. `GEMINI_API_KEY` остаётся `OPTIONAL` — система работает и без него (просто `Оценить` будет выдавать промпт для копи-пасты вместо автоматической оценки).
+
+### Как пользоваться — пошагово
+
+#### 1. Поиск вакансий (страница Поиск / Scan)
+
+Две кнопки:
+
+- **🌍 EN scan** — обходит публичные API Greenhouse / Ashby / Lever по 24 предустановленным backend-friendly компаниям (Stripe, Cloudflare, GitLab, Vercel, Linear, Supabase, Datadog, …). За один запуск собирает ~3000 вакансий, фильтрует по `title_filter.positive` / `title_filter.negative` из `portals.yml`, дедуплицирует через `data/scan-history.tsv` и добавляет новые URL в `data/pipeline.md`.
+- **🇷🇺 RU scan** — ищет в hh.ru API + парсит HTML Habr Career по ключевым словам из секции `russian_portals.queries` в `portals.yml`. hh.ru вне РФ возвращает 403 — это нормально, Habr Career работает с любого IP.
+
+Логи стримятся в реальном времени (через SSE) в чёрную консоль внизу. После завершения появляется **таблица найденных вакансий** с колонками: компания, роль (кликабельная ссылка), локация, тип (Remote/Hybrid badge), reloc, зарплата, источник.
+
+**Фильтры в таблице:**
+
+- `все matching` / `только новые` — показать всё, что прошло фильтр позитивов, или только то, что новое относительно истории.
+- Текстовый поиск — по компании, роли, локации.
+- Тип — `все` / `только remote` / `hybrid` / `релокация`.
+- Источник — `Greenhouse` / `Ashby` / `Lever` / `hh.ru` / `Habr`.
+- **Chip-фильтры по стеку** — PHP, Symfony, Laravel, Go, Rust, Node.js, TypeScript, Python, Ruby, Java, C#/.NET, C++, Backend, Frontend, Fullstack, Microservices, High-load, Distributed, DevOps/SRE, Data, ML/AI, Mobile, Security, Database, Cloud, API.
+- **Chip-фильтры по уровню** — Lead/Tech Lead, Architect, Manager, Principal/Staff, Senior, Middle, Junior.
+
+Множественный выбор внутри категории работает как **OR**, между категориями — как **AND**. Рядом с каждым chip'ом — счётчик. Кнопка `сбросить` появляется при активных фильтрах.
+
+#### 2. Pipeline
+
+Очередь URL вакансий, ожидающих оценки. Можно добавлять вручную (поле + кнопка `+ Добавить`), удалять (✕), или открывать прямо в браузере (клик по URL). Из строки можно прыгнуть на `Оценить` с предзаполненным URL.
+
+#### 3. Оценить вакансию
+
+Вставляешь полный текст JD (минимум 50 символов) → кнопка `▶ Оценить`:
+
+- Если в `.env` родительского проекта задан `GEMINI_API_KEY` — запускает `node gemini-eval.mjs --file <tmp>` и показывает полный A–G отчёт (Role Summary, CV Match, Risks, Compensation, Strategy, Verdict, Posting Legitimacy).
+- Иначе — возвращает готовый промпт, который можно скопировать в Claude Code / ChatGPT / Gemini Web. Промпт уже содержит ссылки на `cv.md`, `config/profile.yml`, `modes/_shared.md`, `modes/oferta.md`.
+
+Чекбокс «Сохранить JD в jds/» сохраняет вакансию в `jds/jd-YYYY-MM-DD-{ts}.txt`.
+
+#### 4. Deep research
+
+Вводишь название компании (опционально — конкретную роль) → получаешь полный промпт по структуре `modes/deep.md`: company snapshot, engineering culture, recent news, Glassdoor sentiment, interview process intel, negotiation leverage, smart questions для рекрутера. Промпт нужно вставить в Claude Code (там есть WebFetch / WebSearch).
+
+#### 5. Apply helper
+
+Вводишь URL вакансии (и опционально JD) → получаешь чек-лист подачи: проверить liveness постинга, актуальность CV, подготовить STAR+R истории, ответы на EEO/sponsorship-вопросы, сохранить интервью-prep. Реальное автозаполнение форм через Playwright живёт в `/career-ops apply` внутри Claude Code.
+
+#### 6. Трекер заявок
+
+Таблица из `data/applications.md`. Фильтры по статусу (Evaluated / Applied / Interview / Offer / Rejected / SKIP), по диапазону score (≥4.0 / ≥3.0 / <3.0), free-text по компании и роли. Кнопки в шапке:
+
+- **Normalize** — `node normalize-statuses.mjs` (приводит статусы к canonical форме из `templates/states.yml`)
+- **Dedup** — `node dedup-tracker.mjs` (убирает дубли company+role)
+- **Merge TSV** — `node merge-tracker.mjs` (мержит TSV-файлы из `batch/tracker-additions/`)
+
+Вывод каждого скрипта показывается в модальном окне.
+
+#### 7. Отчёты
+
+Карточки всех файлов в `reports/`. Клик по карточке — открывает полный markdown-отчёт с распарсенным заголовком (Score, Date, Archetype, URL, Legitimacy, PDF status). Markdown рендерится встроенным renderer (без внешних зависимостей) — поддерживает заголовки, таблицы, списки, code blocks, blockquote, ссылки.
+
+#### 8. CV
+
+Live-редактор `cv.md` с side-by-side preview. Кнопка `💾 Сохранить` пишет в `cv.md`. Кнопка `sync-check` запускает `node cv-sync-check.mjs` — проверяет, что метрики в отчётах согласованы с CV.
+
+#### 9. Профиль
+
+Read-only вьюха `config/profile.yml` — имя, email, локация, LinkedIn, целевые роли, архетипы (с описанием). Если хотите редактировать — открывайте `config/profile.yml` напрямую в редакторе.
+
+#### 10. Health
+
+Все setup-проверки в badge'ах **OK** (зелёный) / **OPTIONAL** (янтарный) / **FAIL** (красный). Кнопки запуска `node doctor.mjs` и `node verify-pipeline.mjs` с выводом в модалку.
+
+### Переключение языков
+
+В нижней части сайдбара — 8 кнопок: `English`, `Español`, `Português`, `한국어`, `日本語`, `Русский`, `简体中文`, `繁體中文`. Активный язык подсвечивается чёрным. Выбор сохраняется в `localStorage` — переживает перезагрузку. По умолчанию язык определяется из `navigator.language` браузера.
+
+При смене языка все `data-i18n`-элементы (nav, top bar, banners) перерисовываются мгновенно, активный view также перерендеривается.
+
+### Глобальные горячие клавиши
+
+- `Ctrl+K` / `Cmd+K` — фокус на глобальный поиск (вверху страницы). Если вставить туда URL и нажать Enter — он автоматически добавится в Pipeline.
+- `Esc` — закрыть открытое модальное окно.
+
+### Connection-banner
+
+Если сервер падает (например, вы убили процесс) — наверху страницы появляется коралловый баннер «Сервер не отвечает» с кнопкой `Обновить`. Клиент пингует `/api/health` каждые 3 секунды и автоматически убирает баннер + показывает зелёный toast «Соединение восстановлено», когда сервер снова отвечает.
+
+### Обновление до свежей версии
+
+Из директории, где запускали `setup.sh`:
+
+```bash
+bash career-ops/web-ui/bin/setup.sh
+```
+
+Скрипт идемпотентный — увидит, что репо уже клонированы, сделает `git fetch && git pull --ff-only` для обоих, не тронет ваши данные (cv.md, applications.md, reports/, и т.д.) и поднимет сервер.
+
+### Кастомизация портaлов
+
+В `portals.yml` родительского проекта можно:
+
+**Добавить новые компании с API** (Greenhouse / Ashby / Lever):
+
+```yaml
+tracked_companies:
+  - name: My Company
+    careers_url: https://mycompany.com/careers
+    api: https://boards-api.greenhouse.io/v1/boards/mycompany/jobs
+    scan_method: greenhouse
+    notes: "Internal note"
+    enabled: true
+```
+
+Готовый список 24+ проверенных компаний с рабочими slug'ами — в [`docs/portals-examples.md`](docs/portals-examples.md).
+
+**Настроить русскоязычный поиск** (для RU scan):
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr"]   # один или оба источника
+  area: 113                  # 1=Москва, 2=СПб, 113=Россия, 1001=удалённая работа
+  per_page: 50
+  only_remote: false         # true → только "Можно удалённо"
+  queries:
+    - "Senior PHP"
+    - "Тимлид Go"
+    - "Backend Senior"
+    # … добавьте свои ключевые слова
+```
+
+### Что НЕ делает этот UI (limitations)
+
+- **Не отправляет заявки автоматически.** Apply helper выдаёт чек-лист; Playwright-автозаполнение остаётся в `/career-ops apply` внутри Claude Code.
+- **Не запускает LLM-режимы (oferta / deep / contacto / batch / patterns / followup) полностью.** Для них нужен LLM. UI генерирует ready-to-paste промпты для Claude.
+- **Не модифицирует ничего внутри `career-ops/` за пределами разрешённых путей** (`data/`, `jds/`, `cv.md`, `config/`, `portals.yml`, `output/`). Никаких сюрпризов с перезаписью ваших настроек.
+
+### Безопасность
+
+- Сервер биндится на `127.0.0.1` по умолчанию — никогда не выставляется в интернет без явного `HOST=0.0.0.0`.
+- Пути из клиента санитизируются (`replace(/[^\w\-.]/g, '')`).
+- Все subprocess-вызовы используют `spawn` с массивом аргументов — **никакой shell-интерполяции**.
+- Streaming-эндпоинты убивают child-процесс при disconnect клиента.
+
+### Как остановить и удалить
+
+Остановить сервер: `Ctrl+C` в окне с процессом, или `lsof -ti:4317 | xargs kill`.
+
+Полностью удалить (вместе с вашими данными): `rm -rf career-ops`. Если хотите сохранить тренировочные данные — сначала забэкапьте `career-ops/cv.md`, `career-ops/data/`, `career-ops/reports/`, `career-ops/interview-prep/`.
+
+---
+
 ## License
 
 MIT. See [LICENSE](LICENSE).

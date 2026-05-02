@@ -38,18 +38,20 @@ async function shutdownServer() {
   return new Promise((resolve) => server.close(resolve));
 }
 
+// Each route accepts EITHER its English or its Russian title (depends on
+// browser-detected locale in headless Chrome — usually English).
 const ROUTES = [
-  { name: 'dashboard', selector: 'h1.page-title', expectText: 'Командный центр' },
-  { name: 'scan', selector: 'h1.page-title', expectText: 'Поиск вакансий' },
-  { name: 'pipeline', selector: 'h1.page-title', expectText: 'Pipeline' },
-  { name: 'evaluate', selector: 'h1.page-title', expectText: 'Оценить вакансию' },
-  { name: 'deep', selector: 'h1.page-title', expectText: 'Deep research' },
-  { name: 'apply', selector: 'h1.page-title', expectText: 'Apply helper' },
-  { name: 'tracker', selector: 'h1.page-title', expectText: 'Трекер заявок' },
-  { name: 'reports', selector: 'h1.page-title', expectText: 'Отчёты' },
-  { name: 'cv', selector: 'h1.page-title', expectText: 'CV' },
-  { name: 'settings', selector: 'h1.page-title', expectText: 'Профиль' },
-  { name: 'health', selector: 'h1.page-title', expectText: 'Health' },
+  { name: 'dashboard', selector: 'h1.page-title', expectAny: ['Command Center', 'Командный центр', 'Centro de Comando'] },
+  { name: 'scan',      selector: 'h1.page-title', expectAny: ['Vacancy search', 'Поиск вакансий', 'Búsqueda de vacantes'] },
+  { name: 'pipeline',  selector: 'h1.page-title', expectAny: ['Pipeline'] },
+  { name: 'evaluate',  selector: 'h1.page-title', expectAny: ['Evaluate vacancy', 'Оценить вакансию', 'Evaluar vacante'] },
+  { name: 'deep',      selector: 'h1.page-title', expectAny: ['Deep research'] },
+  { name: 'apply',     selector: 'h1.page-title', expectAny: ['Apply helper'] },
+  { name: 'tracker',   selector: 'h1.page-title', expectAny: ['Application tracker', 'Трекер заявок', 'Tracker de aplicaciones'] },
+  { name: 'reports',   selector: 'h1.page-title', expectAny: ['Reports', 'Отчёты', 'Reportes'] },
+  { name: 'cv',        selector: 'h1.page-title', expectAny: ['CV'] },
+  { name: 'settings',  selector: 'h1.page-title', expectAny: ['Profile', 'Профиль', 'Perfil'] },
+  { name: 'health',    selector: 'h1.page-title', expectAny: ['Health', 'Estado', 'Saúde'] },
 ];
 
 async function run() {
@@ -76,8 +78,8 @@ async function run() {
       await page.goto(url, { waitUntil: 'networkidle', timeout: 8000 });
       await page.waitForSelector(r.selector, { timeout: 5000 });
       const text = await page.locator(r.selector).first().textContent();
-      if (!text || !text.trim().includes(r.expectText)) {
-        throw new Error(`expected "${r.expectText}" in title, got "${text}"`);
+      if (!text || !r.expectAny.some((e) => text.trim().includes(e))) {
+        throw new Error(`expected one of [${r.expectAny.join(' | ')}] in title, got "${text}"`);
       }
       // Move cursor away from the sidebar so :hover doesn't pollute screenshots
       await page.mouse.move(800, 400);
@@ -222,6 +224,31 @@ async function run() {
     await page.waitForTimeout(200);
     console.log(`  ✓ 8 languages, switching works, persists across reload`);
     passed++;
+
+    // Sub-test: rotate through ALL 8 langs on dashboard, verify the page-title
+    // changes to a non-empty string each time and never produces console errors.
+    console.log('  → exercising all 8 languages on dashboard');
+    const seenTitles = {};
+    for (const code of expected) {
+      await page.locator(`.lang-btn[data-lang-btn="${code}"]`).click();
+      await page.waitForTimeout(150);
+      const title = (await page.locator('h1.page-title').first().textContent()).trim();
+      if (!title) throw new Error(`page-title empty after switching to ${code}`);
+      seenTitles[code] = title;
+      // visit scan page too — this hit the user-reported bug
+      await page.goto(`${baseUrl}/#/scan`);
+      await page.waitForSelector('h1.page-title');
+      const scanTitle = (await page.locator('h1.page-title').first().textContent()).trim();
+      if (!scanTitle) throw new Error(`scan title empty for ${code}`);
+      seenTitles[code + '/scan'] = scanTitle;
+      await page.goto(`${baseUrl}/#/dashboard`);
+      await page.waitForSelector('h1.page-title');
+    }
+    // titles for distinct languages must actually differ (otherwise i18n is no-op)
+    const dashTitles = expected.map((c) => seenTitles[c]);
+    const uniqDash = new Set(dashTitles);
+    if (uniqDash.size < 5) throw new Error(`expected distinct dash titles per lang, got: ${[...uniqDash].join(' | ')}`);
+    console.log(`  ✓ all 8 langs rotated; ${uniqDash.size} distinct dashboard titles`);
   } catch (err) {
     failed++;
     failures.push({ route: 'flow:i18n', message: err.message });

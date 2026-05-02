@@ -1,6 +1,7 @@
-/* global Router, API, UI */
+/* global Router, API, UI, I18n */
 Router.register('scan', async () => {
   const c = UI.el;
+  const t = (k, f) => I18n.t(k, f);
   let portalsData = null;
   let portalsErr = null;
   try {
@@ -15,19 +16,19 @@ Router.register('scan', async () => {
     /jobs\.ashbyhq\.com|jobs\.lever\.co|job-boards\.greenhouse\.io/.test(co.careers_url || '')
   );
 
-  const consoleEl = c('pre', { className: 'console', id: 'scan-console' }, '> ready. press «запустить scan».');
+  const consoleEl = c('pre', { className: 'console', id: 'scan-console' }, t('scan.consoleReady'));
   const resultsEl = c('div', { id: 'scan-results' });
 
   const dryRun = c('input', { type: 'checkbox', id: 'dry-run' });
-  const filterText = c('input', { className: 'input', placeholder: 'фильтр по компании / роли / локации…', style: { maxWidth: '320px' } });
+  const filterText = c('input', { className: 'input', placeholder: t('scan.filterText'), style: { maxWidth: '320px' } });
   const filterRemote = c('select', { className: 'select', style: { maxWidth: '160px' } }, [
-    c('option', { value: '' }, 'все типы'),
-    c('option', { value: 'remote' }, 'только remote'),
-    c('option', { value: 'hybrid' }, 'hybrid'),
-    c('option', { value: 'reloc' }, 'релокация'),
+    c('option', { value: '' }, t('scan.allTypes')),
+    c('option', { value: 'remote' }, t('scan.remoteOnly')),
+    c('option', { value: 'hybrid' }, t('scan.hybrid')),
+    c('option', { value: 'reloc' }, t('scan.reloc')),
   ]);
   const filterSource = c('select', { className: 'select', style: { maxWidth: '160px' } }, [
-    c('option', { value: '' }, 'все источники'),
+    c('option', { value: '' }, t('scan.allSources')),
     c('option', { value: 'greenhouse' }, 'Greenhouse'),
     c('option', { value: 'ashby' }, 'Ashby'),
     c('option', { value: 'lever' }, 'Lever'),
@@ -35,12 +36,12 @@ Router.register('scan', async () => {
     c('option', { value: 'habr-career' }, 'Habr'),
   ]);
   const filterScope = c('select', { className: 'select', style: { maxWidth: '160px' } }, [
-    c('option', { value: 'all' }, 'все matching'),
-    c('option', { value: 'fresh' }, 'только новые'),
+    c('option', { value: 'all' }, t('scan.scopeAll')),
+    c('option', { value: 'fresh' }, t('scan.scopeFresh')),
   ]);
 
   const companySelect = c('select', { className: 'select', id: 'company-select' }, [
-    c('option', { value: '' }, 'все компании'),
+    c('option', { value: '' }, t('scan.allCompanies')),
     ...apiCompanies.map((co) => c('option', { value: co.name }, co.name)),
   ]);
 
@@ -134,8 +135,8 @@ Router.register('scan', async () => {
     // ── Chip facets (skills + level) computed on the CURRENT all-rows set ──
     const facets = window.Skills.computeFacets(allRows);
     const chipsContainer = c('div', { className: 'mb-3', style: { display: 'flex', flexDirection: 'column', gap: '8px' } });
-    chipsContainer.appendChild(buildChipRow('Стек', facets.tech, activeTech));
-    chipsContainer.appendChild(buildChipRow('Уровень', facets.level, activeLevel));
+    chipsContainer.appendChild(buildChipRow(t('scan.chip.stack'), facets.tech, activeTech));
+    chipsContainer.appendChild(buildChipRow(t('scan.chip.level'), facets.level, activeLevel));
     resultsEl.appendChild(chipsContainer);
 
     // ── Now apply ALL filters (text/remote/source + chips) ──
@@ -171,7 +172,7 @@ Router.register('scan', async () => {
     resultsEl.appendChild(c('div', { className: 'table-wrap' },
       c('table', { className: 'tbl' }, [
         c('thead', null, c('tr', null,
-          ['Компания', 'Роль', 'Локация', 'Тип', 'Reloc', 'Зарплата', 'Источник'].map((h) => c('th', null, h))
+          [t('scan.col.company'), t('scan.col.role'), t('scan.col.loc'), t('scan.col.type'), 'Reloc', t('scan.col.salary'), t('scan.col.source')].map((h) => c('th', null, h))
         )),
         tbody,
       ])
@@ -210,7 +211,7 @@ Router.register('scan', async () => {
       row.appendChild(c('span', {
         className: 'chip clear',
         onClick: () => { activeSet.clear(); renderResults(); },
-      }, 'сбросить'));
+      }, t('scan.chip.clear')));
     }
     return row;
   }
@@ -221,36 +222,32 @@ Router.register('scan', async () => {
   return c('div', null, [
     c('header', { className: 'page-header' }, [
       c('div', null, [
-        c('h1', { className: 'page-title' }, 'Поиск вакансий'),
+        c('h1', { className: 'page-title' }, t('scan.title')),
         c('p', { className: 'page-subtitle' },
-          `EN: ${apiCompanies.length} компаний с API · RU: hh.ru + Habr Career`),
+          `EN: ${apiCompanies.length} · RU: hh.ru + Habr Career`),
       ]),
     ]),
 
     c('div', { className: 'card mb-3' }, [
       c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap', alignItems: 'flex-end' } }, [
         c('div', { className: 'field', style: { flex: 1, marginBottom: 0, minWidth: '220px' } }, [
-          c('label', null, 'Компания (для EN, опционально)'),
+          c('label', null, t('scan.companyLbl')),
           companySelect,
         ]),
         c('label', { className: 'flex', style: { gap: '8px', userSelect: 'none' } }, [
-          dryRun, c('span', null, 'Dry run (без записи)'),
+          dryRun, c('span', null, t('scan.dryRun')),
         ]),
-        c('button', { className: 'btn btn-primary', onClick: runEnScan, title: 'Greenhouse / Ashby / Lever' }, '🌍 EN scan'),
-        c('button', { className: 'btn btn-dark', onClick: runRuScan, title: 'hh.ru + Habr Career' }, '🇷🇺 RU scan'),
-        c('button', { className: 'btn btn-ghost', onClick: () => Router.go('/pipeline') }, 'Pipeline'),
+        c('button', { className: 'btn btn-primary', onClick: runEnScan, title: 'Greenhouse / Ashby / Lever' }, t('scan.btnEn')),
+        c('button', { className: 'btn btn-dark', onClick: runRuScan, title: 'hh.ru + Habr Career' }, t('scan.btnRu')),
+        c('button', { className: 'btn btn-ghost', onClick: () => Router.go('/pipeline') }, t('scan.btnPipe')),
       ]),
-      c('p', { className: 'field-hint', style: { margin: '12px 0 0' } },
-        `EN: ${apiCompanies.length} enabled-компаний с structured API (Greenhouse/Ashby/Lever). ` +
-        'RU: hh.ru + Habr Career по ключевым словам из portals.yml. ' +
-        'hh.ru вне РФ возвращает 403 — это окей, Habr подхватит.'),
     ]),
 
     c('div', null, consoleEl),
 
     c('section', { className: 'section' }, [
       c('div', { className: 'flex-between mb-3', style: { flexWrap: 'wrap', gap: '12px' } }, [
-        c('h2', { className: 'section-title', style: { margin: 0 } }, 'Найденные вакансии'),
+        c('h2', { className: 'section-title', style: { margin: 0 } }, t('scan.results')),
         c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap' } },
           [filterScope, filterText, filterRemote, filterSource]),
       ]),
@@ -258,7 +255,7 @@ Router.register('scan', async () => {
     ]),
 
     c('div', { className: 'card mt-5' }, [
-      c('h3', { style: { marginTop: 0 } }, `Активные компании ${companies.length}/${apiCompanies.length} с API`),
+      c('h3', { style: { marginTop: 0 } }, `${t('scan.activeCo')} ${companies.length}/${apiCompanies.length}`),
       portalsErr
         ? c('div', { className: 'empty' }, [
             c('strong', null, 'Не удалось загрузить portals.yml'),

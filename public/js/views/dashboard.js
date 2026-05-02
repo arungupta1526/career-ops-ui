@@ -1,7 +1,8 @@
-/* global Router, API, UI */
+/* global Router, API, UI, I18n */
 Router.register('dashboard', async () => {
   const data = await API.get('/api/dashboard');
   const c = UI.el;
+  const t = (k, f) => I18n.t(k, f);
 
   function scoreClass(n) {
     if (n == null) return '';
@@ -13,30 +14,30 @@ Router.register('dashboard', async () => {
   const root = c('div', null, [
     c('header', { className: 'page-header' }, [
       c('div', null, [
-        c('h1', { className: 'page-title' }, 'Командный центр'),
-        c('p', { className: 'page-subtitle' }, 'Все вакансии, отчёты и активные процессы — в одном месте.'),
+        c('h1', { className: 'page-title' }, t('dash.title')),
+        c('p', { className: 'page-subtitle' }, t('dash.subtitle')),
       ]),
       c('div', { className: 'flex gap-3' }, [
-        c('button', { className: 'btn btn-ghost', onClick: () => Router.go('/pipeline') }, 'Открыть Pipeline'),
-        c('button', { className: 'btn btn-primary', onClick: () => Router.go('/evaluate') }, 'Оценить вакансию'),
+        c('button', { className: 'btn btn-ghost', onClick: () => Router.go('/pipeline') }, t('dash.openPipeline')),
+        c('button', { className: 'btn btn-primary', onClick: () => Router.go('/evaluate') }, t('dash.evaluate')),
       ]),
     ]),
 
     // metrics
     c('div', { className: 'card-row' }, [
-      metric('Заявки', data.counts.applications, 'трекер'),
-      metric('Pipeline', data.counts.pipeline, 'ожидают обработки'),
-      metric('Отчёты', data.counts.reports, 'сгенерировано'),
-      metric('Средний score', data.avgScore ?? '—', '/ 5.0', scoreClass(data.avgScore)),
+      metric(t('dash.apps'), data.counts.applications, t('dash.tracker')),
+      metric(t('dash.pipeline'), data.counts.pipeline, t('dash.pending')),
+      metric(t('dash.reports'), data.counts.reports, t('dash.generated')),
+      metric(t('dash.avgScore'), data.avgScore ?? '—', '/ 5.0', scoreClass(data.avgScore)),
     ]),
 
     // by status
     c('section', { className: 'section' }, [
-      c('h2', { className: 'section-title' }, 'Статусы заявок'),
+      c('h2', { className: 'section-title' }, t('dash.statuses')),
       c('div', { className: 'card' },
         c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap' } },
           Object.entries(data.byStatus).length === 0
-            ? [c('div', { className: 'empty', style: { width: '100%' } }, 'Заявок пока нет — добавьте URL в Pipeline.')]
+            ? [c('div', { className: 'empty', style: { width: '100%' } }, t('common.empty'))]
             : Object.entries(data.byStatus).map(([s, n]) =>
                 c('div', { className: 'badge ' + statusClass(s) }, `${s} · ${n}`)
               )
@@ -47,18 +48,18 @@ Router.register('dashboard', async () => {
     c('div', { className: 'grid-2 section' }, [
       // recent
       c('div', null, [
-        c('h2', { className: 'section-title' }, 'Последние заявки'),
+        c('h2', { className: 'section-title' }, t('dash.recent')),
         recentTable(data.recent, scoreClass),
       ]),
       // pipeline
       c('div', null, [
-        c('h2', { className: 'section-title' }, 'Pipeline'),
+        c('h2', { className: 'section-title' }, t('dash.pipeline')),
         pipelineCard(data.pipeline),
       ]),
     ]),
 
     data.lastReport && c('section', { className: 'section' }, [
-      c('h2', { className: 'section-title' }, 'Последний отчёт'),
+      c('h2', { className: 'section-title' }, t('dash.lastReport')),
       c('div', { className: 'card' }, [
         c('div', { className: 'flex-between' }, [
           c('div', null, [
@@ -69,7 +70,7 @@ Router.register('dashboard', async () => {
               data.lastReport.scoreNum != null && c('span', { className: 'score-pill ' + scoreClass(data.lastReport.scoreNum) }, data.lastReport.score),
             ]),
           ]),
-          c('button', { className: 'btn btn-ghost btn-sm', onClick: () => Router.go('/reports/' + data.lastReport.slug) }, 'Открыть →'),
+          c('button', { className: 'btn btn-ghost btn-sm', onClick: () => Router.go('/reports/' + data.lastReport.slug) }, t('common.open') + ' →'),
         ]),
       ]),
     ]),
