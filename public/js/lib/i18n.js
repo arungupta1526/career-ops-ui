@@ -195,6 +195,11 @@ window.I18n = (function () {
 
     // Health
     'health.title':   { en: 'Health', es: 'Estado', 'pt-BR': 'Saúde', ko: '상태', ja: 'ヘルス', ru: 'Health', 'zh-CN': '健康', 'zh-TW': '健康' },
+    'health.runDoctor':{ en: 'Run doctor', es: 'Ejecutar doctor', 'pt-BR': 'Executar doctor', ko: 'doctor 실행', ja: 'doctor を実行', ru: 'Запустить doctor', 'zh-CN': '运行 doctor', 'zh-TW': '執行 doctor' },
+    'health.verify':  { en: 'Verify pipeline', es: 'Verificar pipeline', 'pt-BR': 'Verificar pipeline', ko: '파이프라인 확인', ja: 'パイプラインを検証', ru: 'Проверить pipeline', 'zh-CN': '验证流水线', 'zh-TW': '驗證流水線' },
+    'health.badgeOk': { en: 'OK', es: 'OK', 'pt-BR': 'OK', ko: 'OK', ja: 'OK', ru: 'OK', 'zh-CN': 'OK', 'zh-TW': 'OK' },
+    'health.badgeOptional':{ en: 'OPTIONAL', es: 'OPCIONAL', 'pt-BR': 'OPCIONAL', ko: '선택사항', ja: 'オプション', ru: 'OPTIONAL', 'zh-CN': '可选', 'zh-TW': '選用' },
+    'health.badgeFail':{ en: 'FAIL', es: 'FALLO', 'pt-BR': 'FALHA', ko: '실패', ja: '失敗', ru: 'FAIL', 'zh-CN': '失败', 'zh-TW': '失敗' },
 
     // Tracker
     'track.title':    { en: 'Application tracker', es: 'Tracker de aplicaciones', 'pt-BR': 'Tracker de aplicações', ko: '지원 트래커', ja: '応募トラッカー', ru: 'Трекер заявок', 'zh-CN': '申请跟踪器', 'zh-TW': '申請追蹤器' },

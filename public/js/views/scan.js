@@ -1,5 +1,21 @@
 /* global Router, API, UI, I18n */
+
+// Module-level handle for the active scan-results poll. We track it across
+// view renders so navigating away from /scan during an in-flight scan
+// doesn't leak setInterval timers (one per scan) into the page lifetime.
+let __activeScanPollHandle = null;
+function __cancelActiveScanPoll() {
+  if (__activeScanPollHandle) {
+    clearInterval(__activeScanPollHandle);
+    __activeScanPollHandle = null;
+  }
+}
+// Cancel on every route change — the renderer always begins from a clean slate.
+window.addEventListener('hashchange', __cancelActiveScanPoll);
+
 Router.register('scan', async () => {
+  // Clean up any stale poll from a previous /scan visit.
+  __cancelActiveScanPoll();
   const c = UI.el;
   const t = (k, f) => I18n.t(k, f);
   let portalsData = null;
@@ -48,11 +64,11 @@ Router.register('scan', async () => {
   function streamTo(consoleEl, path, kind, onDone) {
     consoleEl.textContent = '';
     UI.toast(`${kind} scan…`, 'success');
-    // Poll the results table every 2s while the stream is open. Both EN and RU
-    // scanners only write to data/last-scan.json AT THE END, but polling lets
-    // us catch the update without depending on the done-callback firing
-    // (defensive: in case of network hiccups, lost SSE connection, etc.).
-    const pollHandle = setInterval(() => {
+    // Cancel any prior in-flight poll so back-to-back scan clicks don't
+    // accumulate intervals, and assign the new one to the module-level handle
+    // so __cancelActiveScanPoll() (on hashchange) can clean up.
+    __cancelActiveScanPoll();
+    __activeScanPollHandle = setInterval(() => {
       refreshResults().catch(() => {});
     }, 2500);
 
@@ -65,7 +81,7 @@ Router.register('scan', async () => {
       } else if (ev === 'start') {
         appendMeta(consoleEl, `▶ ${data.script}\n`);
       } else if (ev === 'done') {
-        clearInterval(pollHandle);
+        __cancelActiveScanPoll();
         const okMsg = data.counts
           ? `\n✓ done · raw=${data.counts.raw}, NEW=${data.counts.fresh}` +
             (data.errors ? ` · ${data.errors} non-fatal errors` : '')
@@ -76,14 +92,14 @@ Router.register('scan', async () => {
           fresh != null ? `${kind}: ${fresh} new offers` : `${kind} done`,
           'success'
         );
-        // Trigger one final refresh + onDone, with a slight delay to make sure
-        // the JSON file has been flushed to disk on the server side.
+        // Final refresh + onDone, with a small delay so the JSON file
+        // is flushed to disk on the server side.
         setTimeout(() => {
           refreshResults().catch(() => {});
           if (onDone) onDone();
         }, 300);
       } else if (ev === 'error') {
-        clearInterval(pollHandle);
+        __cancelActiveScanPoll();
         appendMeta(consoleEl, `\n✗ ${data.message}\n`);
         UI.toast(data.message, 'error');
       }
