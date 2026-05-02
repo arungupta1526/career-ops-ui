@@ -317,6 +317,80 @@ async function run() {
     console.log(`  ✗ ${err.message}`);
   }
 
+  console.log('\n  Flow 3: CV preview is XSS-safe (FIX-C10)');
+  try {
+    // Read current cv.md, restore at the end
+    const cvRes = await fetch(`${baseUrl}/api/cv`);
+    const { markdown: original } = await cvRes.json();
+
+    // The preview will:
+    //   1. Receive a payload that, if rendered raw, would assign window.__pwn.
+    //   2. The server-side stripper neutralizes it before write.
+    //   3. The client-side renderer escapes everything before transformation,
+    //      so even if the server failed, no script tag would survive.
+    const payload = '# Pwned CV\n\n' +
+      '<img src=x onerror="window.__pwn_img=11">\n\n' +
+      '<script>window.__pwn_script=22</script>\n\n' +
+      '[click](javascript:window.__pwn_link=33)\n\n' +
+      '<svg onload="window.__pwn_svg=44"></svg>\n\n' +
+      '<iframe src="javascript:window.__pwn_iframe=55"></iframe>\n\n' +
+      '<a href="data:text/html,<script>window.__pwn_data=66</script>">data link</a>\n';
+    await fetch(`${baseUrl}/api/cv`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ markdown: payload }),
+    });
+
+    await page.evaluate(() => {
+      delete window.__pwn_img;
+      delete window.__pwn_script;
+      delete window.__pwn_link;
+      delete window.__pwn_svg;
+      delete window.__pwn_iframe;
+      delete window.__pwn_data;
+    });
+    await page.goto(`${baseUrl}/#/cv`, { waitUntil: 'networkidle' });
+    await page.waitForSelector('#cv-preview', { timeout: 5000 });
+    // Force-trigger the input handler too (covers the live-preview path).
+    await page.evaluate(() => {
+      const ta = document.querySelector('textarea.textarea');
+      ta.dispatchEvent(new Event('input'));
+    });
+    await page.waitForTimeout(300);
+
+    const pwned = await page.evaluate(() => ({
+      img: window.__pwn_img,
+      script: window.__pwn_script,
+      link: window.__pwn_link,
+      svg: window.__pwn_svg,
+      iframe: window.__pwn_iframe,
+      data: window.__pwn_data,
+    }));
+    for (const [k, v] of Object.entries(pwned)) {
+      if (v !== undefined) throw new Error(`payload "${k}" executed → window.__pwn_${k}=${v}`);
+    }
+
+    // Also verify rendered HTML carries no script/onerror residue
+    const html = await page.locator('#cv-preview').innerHTML();
+    if (/<script/i.test(html)) throw new Error('rendered preview contains <script> tag');
+    if (/onerror\s*=/i.test(html)) throw new Error('rendered preview contains onerror= handler');
+    if (/javascript:/i.test(html)) throw new Error('rendered preview contains javascript: URL');
+
+    console.log('  ✓ CV preview blocks all 6 XSS payload types');
+    passed++;
+
+    // Restore the original CV
+    await fetch(`${baseUrl}/api/cv`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ markdown: original || '# placeholder\n' }),
+    });
+  } catch (err) {
+    failed++;
+    failures.push({ route: 'flow:cv-xss', message: err.message });
+    console.log(`  ✗ ${err.message}`);
+  }
+
   await browser.close();
   await shutdownServer();
 

@@ -184,12 +184,16 @@ export function createApp() {
   });
 
   app.put('/api/cv', (req, res) => {
-    const md = (req.body?.markdown ?? req.body) || '';
-    if (typeof md !== 'string' || !md.trim()) {
+    const raw = (req.body?.markdown ?? req.body) || '';
+    if (typeof raw !== 'string' || !raw.trim()) {
       return res.status(400).json({ error: 'markdown body required' });
     }
+    if (raw.length > 1024 * 1024) {
+      return res.status(413).json({ error: 'markdown too large (max 1MB)' });
+    }
+    const md = stripDangerousMarkdown(raw);
     writeFileSync(PATHS.cv, md);
-    res.json({ ok: true, bytes: md.length });
+    res.json({ ok: true, bytes: md.length, sanitized: md.length !== raw.length });
   });
 
   // ───────────────────────────── Profile ─────────────────────────────
@@ -441,6 +445,32 @@ function safeListReports() {
     })
     .filter(Boolean)
     .sort((a, b) => new Date(b.mtime) - new Date(a.mtime));
+}
+
+/**
+ * Strip dangerous patterns from CV markdown before persisting.
+ * Defense-in-depth — the client-side renderer also escapes everything,
+ * but neutralizing the file at rest protects any consumer that bypasses
+ * the renderer (e.g. raw `cat cv.md`, third-party tools, future endpoints).
+ */
+export function stripDangerousMarkdown(text) {
+  if (!text) return '';
+  let s = String(text).replace(/ /g, '');
+  s = s
+    .replace(/<script\b[\s\S]*?<\/script\s*>/gi, '')
+    .replace(/<iframe\b[\s\S]*?<\/iframe\s*>/gi, '')
+    .replace(/<object\b[\s\S]*?<\/object\s*>/gi, '')
+    .replace(/<embed\b[^>]*\/?>/gi, '')
+    .replace(/<style\b[\s\S]*?<\/style\s*>/gi, '')
+    .replace(/<form\b[\s\S]*?<\/form\s*>/gi, '')
+    .replace(/<svg\b[\s\S]*?<\/svg\s*>/gi, '')
+    .replace(/\son[a-z]+\s*=\s*"[^"]*"/gi, '')
+    .replace(/\son[a-z]+\s*=\s*'[^']*'/gi, '')
+    .replace(/\son[a-z]+\s*=\s*[^\s>]+/gi, '')
+    .replace(/javascript\s*:/gi, '')
+    .replace(/vbscript\s*:/gi, '')
+    .replace(/data\s*:\s*text\/html/gi, '');
+  return s;
 }
 
 function buildEvaluationPrompt(jd) {
