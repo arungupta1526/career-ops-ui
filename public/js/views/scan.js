@@ -124,11 +124,7 @@ Router.register('scan', async () => {
     resultsEl.appendChild(summary);
 
     if (!allRows.length) {
-      resultsEl.appendChild(
-        c('div', { className: 'empty' },
-          'Нет результатов. Запустите EN или RU scan выше — после завершения таблица появится здесь.'
-        )
-      );
+      resultsEl.appendChild(c('div', { className: 'empty' }, t('scan.noResults')));
       return;
     }
 

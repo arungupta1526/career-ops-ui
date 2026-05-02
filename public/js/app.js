@@ -44,7 +44,7 @@ I18n.onChange(() => {
     // h.ok=false ONLY when a REQUIRED check fails. Optional misses (no GEMINI_API_KEY) just lower h.ok? — no, server now keeps ok=true for optional misses.
     if (!h.ok) {
       const failed = h.checks.filter((c) => c.required && !c.ok).map((c) => c.name);
-      UI.toast('Setup проблема: ' + failed.join(', '), 'error');
+      UI.toast(I18n.t('app.setupIssue', 'Setup issue: ') + failed.join(', '), 'error');
     }
     // Don't toast warnings — visible badge in Health page is enough.
   } catch (err) {

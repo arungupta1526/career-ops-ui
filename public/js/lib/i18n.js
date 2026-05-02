@@ -98,6 +98,8 @@ window.I18n = (function () {
     'scan.col.source':{ en: 'Source', es: 'Fuente', 'pt-BR': 'Fonte', ko: '소스', ja: 'ソース', ru: 'Источник', 'zh-CN': '来源', 'zh-TW': '來源' },
     'scan.activeCo':  { en: 'Active companies', es: 'Empresas activas', 'pt-BR': 'Empresas ativas', ko: '활성 회사', ja: 'アクティブな会社', ru: 'Активные компании', 'zh-CN': '活动公司', 'zh-TW': '活動公司' },
     'scan.consoleReady':{en: '> ready. press scan button.', es: '> listo. presiona scan.', 'pt-BR': '> pronto. pressione scan.', ko: '> 준비. scan 버튼 누르세요.', ja: '> 準備完了。scan を押してください。', ru: '> ready. press «запустить scan».', 'zh-CN': '> 就绪。按 scan。', 'zh-TW': '> 就緒。按 scan。' },
+    'scan.noResults': { en: 'No results. Run EN or RU scan above — the table will appear here when finished.', es: 'Sin resultados. Ejecuta EN o RU scan arriba — la tabla aparecerá aquí al finalizar.', 'pt-BR': 'Sem resultados. Execute EN ou RU scan acima — a tabela aparecerá aqui ao terminar.', ko: '결과 없음. 위에서 EN 또는 RU scan을 실행하세요 — 완료 시 테이블이 여기에 표시됩니다.', ja: '結果なし。上から EN または RU scan を実行してください — 完了時にテーブルがここに表示されます。', ru: 'Нет результатов. Запустите EN или RU scan выше — после завершения таблица появится здесь.', 'zh-CN': '无结果。在上方运行 EN 或 RU scan — 完成后表格将显示在此处。', 'zh-TW': '無結果。在上方執行 EN 或 RU scan — 完成後表格將顯示在此處。' },
+    'app.setupIssue': { en: 'Setup issue: ', es: 'Problema de setup: ', 'pt-BR': 'Problema de setup: ', ko: '설정 문제: ', ja: 'セットアップの問題: ', ru: 'Setup проблема: ', 'zh-CN': '设置问题:', 'zh-TW': '設定問題:' },
 
     // Pipeline
     'pipe.title':     { en: 'Pipeline', es: 'Pipeline', 'pt-BR': 'Pipeline', ko: '파이프라인', ja: 'パイプライン', ru: 'Pipeline', 'zh-CN': '流水线', 'zh-TW': '流水線' },
@@ -130,6 +132,8 @@ window.I18n = (function () {
     'cv.subtitle':    { en: 'Source of truth for evaluations. All scripts read cv.md.', es: 'Fuente de verdad para evaluaciones. Todos los scripts leen cv.md.', 'pt-BR': 'Fonte de verdade para avaliações. Todos os scripts leem cv.md.', ko: '평가의 진실 소스. 모든 스크립트가 cv.md를 읽습니다.', ja: '評価の真実の情報源。すべてのスクリプトが cv.md を読みます。', ru: 'Источник истины для оценки. Все скрипты читают cv.md.', 'zh-CN': '评估的真实来源。所有脚本读取 cv.md。', 'zh-TW': '評估的真實來源。所有指令稿讀取 cv.md。' },
     'cv.markdown':    { en: 'Markdown', es: 'Markdown', 'pt-BR': 'Markdown', ko: '마크다운', ja: 'Markdown', ru: 'Markdown', 'zh-CN': 'Markdown', 'zh-TW': 'Markdown' },
     'cv.preview':     { en: 'Preview', es: 'Vista previa', 'pt-BR': 'Pré-visualização', ko: '미리보기', ja: 'プレビュー', ru: 'Превью', 'zh-CN': '预览', 'zh-TW': '預覽' },
+    'cv.upload':      { en: 'Upload CV', es: 'Cargar CV', 'pt-BR': 'Carregar CV', ko: '이력서 업로드', ja: '履歴書をアップロード', ru: 'Загрузить CV', 'zh-CN': '上传简历', 'zh-TW': '上傳履歷' },
+    'cv.saved':       { en: 'Saved', es: 'Guardado', 'pt-BR': 'Salvo', ko: '저장됨', ja: '保存済み', ru: 'Сохранено', 'zh-CN': '已保存', 'zh-TW': '已儲存' },
 
     // Settings/Profile
     'set.title':      { en: 'Profile', es: 'Perfil', 'pt-BR': 'Perfil', ko: '프로필', ja: 'プロフィール', ru: 'Профиль', 'zh-CN': '个人资料', 'zh-TW': '個人資料' },

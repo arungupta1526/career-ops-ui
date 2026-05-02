@@ -103,18 +103,182 @@ else
   green "  ✓ npm deps already installed"
 fi
 
-# ── 5. show first-run hints ───────────────────────────────────────────
+# ── 5. scaffold any missing user-data files from upstream templates ──
+# This avoids the red "Setup issue" badges on the Health page on first launch.
+# Each scaffolded file contains a clear "EDIT ME" marker so the user knows
+# exactly what to fill in.
+
+scaffold_cv() {
+  local target="$CAREER_OPS_DIR/cv.md"
+  [ -f "$target" ] && return
+  cat > "$target" <<'CV_EOF'
+# Your Name
+
+> EDIT ME — replace with your full name and a one-line summary
+> (e.g. "Senior PHP / Go Backend Engineer · 14 years · Moscow → Remote EU")
+
+## Summary
+
+EDIT ME — 2-3 sentences. What's your "superpower"? Domain, stack, scale.
+
+## Experience
+
+### Company Name — Senior Backend Engineer
+*Mar 2024 — present · Remote*
+
+- EDIT ME — bullet point with a metric ("reduced p99 latency by 38%")
+- EDIT ME — second bullet, ideally also with a metric
+- EDIT ME — stack: PHP 8.3, Symfony 6, Go 1.22, PostgreSQL 16, Kafka
+
+## Projects
+
+- **Project name** — what it is, what you built, link if public
+
+## Education
+
+- 2010–2015 University Name, MSc / BSc in Field
+
+## Skills
+
+- **Backend:** PHP, Go, Python
+- **Databases:** PostgreSQL, MySQL, Redis, ClickHouse
+- **Cloud:** AWS, Docker, Kubernetes
+- **Languages:** English (B2), Russian (native)
+CV_EOF
+  green "  ✓ scaffolded $target — please edit before evaluating offers"
+}
+
+scaffold_profile() {
+  local target="$CAREER_OPS_DIR/config/profile.yml"
+  [ -f "$target" ] && return
+  mkdir -p "$CAREER_OPS_DIR/config"
+  if [ -f "$CAREER_OPS_DIR/config/profile.example.yml" ]; then
+    cp "$CAREER_OPS_DIR/config/profile.example.yml" "$target"
+    green "  ✓ scaffolded $target from profile.example.yml — please edit"
+  else
+    cat > "$target" <<'PROFILE_EOF'
+# EDIT ME — replace with your real values
+candidate:
+  full_name: "Your Name"
+  email: "you@example.com"
+  phone: ""
+  location: "City, Country"
+  linkedin: "https://www.linkedin.com/in/your-handle/"
+  portfolio_url: ""
+  github: ""
+
+target_roles:
+  primary:
+    - "Senior Backend Engineer"
+  archetypes:
+    - name: "Senior Backend Engineer"
+      level: "Senior"
+      fit: "primary"
+      notes: "Replace with your strongest archetype"
+
+compensation:
+  target_currency: "USD"
+  target_range:
+    base_min: 100000
+    base_max: 160000
+
+language:
+  modes_dir: "modes"
+PROFILE_EOF
+    green "  ✓ scaffolded $target — please edit"
+  fi
+}
+
+scaffold_portals() {
+  local target="$CAREER_OPS_DIR/portals.yml"
+  [ -f "$target" ] && return
+  if [ -f "$CAREER_OPS_DIR/templates/portals.example.yml" ]; then
+    cp "$CAREER_OPS_DIR/templates/portals.example.yml" "$target"
+    green "  ✓ scaffolded $target from portals.example.yml"
+  else
+    cat > "$target" <<'PORTALS_EOF'
+# Minimal portals.yml. Add more entries from docs/portals-examples.md in
+# the career-ops-ui repo for ready-to-paste blocks (24+ verified companies).
+title_filter:
+  positive:
+    - "Backend"
+    - "Senior"
+  negative:
+    - "Junior"
+    - "Intern"
+
+tracked_companies:
+  - name: GitLab
+    careers_url: https://about.gitlab.com/jobs/
+    api: https://boards-api.greenhouse.io/v1/boards/gitlab/jobs
+    scan_method: greenhouse
+    enabled: true
+
+  - name: Vercel
+    careers_url: https://vercel.com/careers
+    api: https://boards-api.greenhouse.io/v1/boards/vercel/jobs
+    scan_method: greenhouse
+    enabled: true
+
+  - name: Linear
+    careers_url: https://linear.app/careers
+    api: https://api.ashbyhq.com/posting-api/job-board/linear?includeCompensation=true
+    scan_method: ashby
+    enabled: true
+
+# Russian portals (used by web-ui /api/stream/scan-ru).
+russian_portals:
+  sources: ["habr"]   # add "hh" if running from a Russian IP
+  area: 113
+  per_page: 50
+  queries:
+    - "Senior Backend"
+PORTALS_EOF
+    green "  ✓ scaffolded minimal $target — see docs/portals-examples.md to add more"
+  fi
+}
+
+scaffold_data() {
+  mkdir -p "$CAREER_OPS_DIR/data"
+  if [ ! -f "$CAREER_OPS_DIR/data/applications.md" ]; then
+    cat > "$CAREER_OPS_DIR/data/applications.md" <<'APPS_EOF'
+# Applications Tracker
+
+| # | Date | Company | Role | Score | Status | PDF | Report | Notes |
+|---|------|---------|------|-------|--------|-----|--------|-------|
+APPS_EOF
+    green "  ✓ scaffolded data/applications.md (empty tracker)"
+  fi
+  if [ ! -f "$CAREER_OPS_DIR/data/pipeline.md" ]; then
+    cat > "$CAREER_OPS_DIR/data/pipeline.md" <<'PIPE_EOF'
+# Pipeline — Pending URLs
+
+Drop job URLs (one per line) inside the fence. Run scan or `/career-ops pipeline`
+to process them.
+
+```
+```
+PIPE_EOF
+    green "  ✓ scaffolded data/pipeline.md (empty pipeline)"
+  fi
+}
+
+bold ""
+bold "  Scaffolding starter files (so Health is green on first launch)"
+scaffold_cv
+scaffold_profile
+scaffold_portals
+scaffold_data
+
+# ── 6. show first-run hints ───────────────────────────────────────────
 echo ""
 bold "  Setup complete."
 dim   "  parent project: $(cd "$CAREER_OPS_DIR" && pwd)"
 dim   "  web UI:         $(cd "$UI_DIR" && pwd)"
 echo  ""
-
-# ── 6. onboarding hints if user files are missing ────────────────────
-[ ! -f "$CAREER_OPS_DIR/cv.md" ] && \
-  dim "  ! cv.md missing — open the UI and the Health page will guide you."
-[ ! -f "$CAREER_OPS_DIR/config/profile.yml" ] && \
-  dim "  ! config/profile.yml missing — see career-ops onboarding."
+dim   "  → Edit cv.md, config/profile.yml, portals.yml in the parent project."
+dim   "  → Then refresh the Health page — everything should be green."
+dim   "  → Or use the CV view in the UI to upload your CV directly."
 
 # ── 7. launch ─────────────────────────────────────────────────────────
 if [ "${SKIP_START:-0}" = "1" ]; then
