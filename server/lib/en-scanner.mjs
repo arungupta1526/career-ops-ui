@@ -1,0 +1,231 @@
+/**
+ * EN portal scanner — Greenhouse / Ashby / Lever.
+ *
+ * Drop-in replacement for the original scan.mjs but:
+ *   - In-process (no subprocess)
+ *   - Yields rich job objects with location / isRemote / relocates / salary
+ *   - Filters by title using portals.yml.title_filter (positive + negative)
+ *   - Auto-detects API from careers_url even when api: field is missing
+ *   - Persists last-scan results to data/last-scan.json (UI reads this)
+ *
+ * Reads the same portals.yml as scan.mjs.
+ */
+import { readFileSync, existsSync, writeFileSync, appendFileSync, mkdirSync } from 'node:fs';
+import yaml from 'js-yaml';
+import { PATHS } from './paths.mjs';
+import { addPipelineUrl } from './parsers.mjs';
+import { fetchGreenhouse } from './sources/greenhouse.mjs';
+import { fetchAshby } from './sources/ashby.mjs';
+import { fetchLever } from './sources/lever.mjs';
+
+const CONCURRENCY = 8;
+
+export function detectApi(company) {
+  const url = company.careers_url || '';
+  if (company.api && company.api.includes('greenhouse')) {
+    return { type: 'greenhouse', url: company.api };
+  }
+  if (company.api && company.api.includes('ashbyhq')) {
+    return { type: 'ashby', url: company.api };
+  }
+  if (company.api && company.api.includes('lever.co')) {
+    return { type: 'lever', url: company.api };
+  }
+  // Auto-detection from careers_url
+  const ashbyMatch = url.match(/jobs\.ashbyhq\.com\/([^/?#]+)/);
+  if (ashbyMatch) return {
+    type: 'ashby',
+    url: `https://api.ashbyhq.com/posting-api/job-board/${ashbyMatch[1]}?includeCompensation=true`,
+  };
+  const leverMatch = url.match(/jobs\.lever\.co\/([^/?#]+)/);
+  if (leverMatch) return { type: 'lever', url: `https://api.lever.co/v0/postings/${leverMatch[1]}` };
+  const ghMatch = url.match(/job-boards(?:\.eu)?\.greenhouse\.io\/([^/?#]+)/);
+  if (ghMatch) return {
+    type: 'greenhouse',
+    url: `https://boards-api.greenhouse.io/v1/boards/${ghMatch[1]}/jobs`,
+  };
+  return null;
+}
+
+const FETCHERS = {
+  greenhouse: fetchGreenhouse,
+  ashby: fetchAshby,
+  lever: fetchLever,
+};
+
+function loadPortals() {
+  if (!existsSync(PATHS.portals)) return {};
+  return yaml.load(readFileSync(PATHS.portals, 'utf8')) || {};
+}
+
+function loadSeenUrls() {
+  const seen = new Set();
+  for (const p of [PATHS.scanHistory, PATHS.pipeline, PATHS.applications]) {
+    try {
+      const text = readFileSync(p, 'utf8');
+      for (const m of text.matchAll(/https?:\/\/\S+/g)) seen.add(m[0]);
+    } catch {}
+  }
+  return seen;
+}
+
+function passesPositive(title, positives) {
+  if (!positives.length) return true;
+  const t = (title || '').toLowerCase();
+  return positives.some((p) => t.includes(p.toLowerCase()));
+}
+function passesNegative(title, negatives) {
+  const t = (title || '').toLowerCase();
+  return !negatives.some((n) => t.includes(n.toLowerCase()));
+}
+
+async function pMap(items, mapper, concurrency) {
+  const out = new Array(items.length);
+  let i = 0;
+  async function worker() {
+    while (i < items.length) {
+      const idx = i++;
+      try { out[idx] = await mapper(items[idx], idx); }
+      catch (e) { out[idx] = { __error: e }; }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, worker));
+  return out;
+}
+
+/**
+ * Run an EN scan.
+ *
+ * Options:
+ *   writeFiles  (default true)  — write to pipeline.md + scan-history.tsv + last-scan.json
+ *   companyName               — if set, scan only that company
+ *   onLog(stream, line)
+ *   fetchImpl                 — for tests
+ */
+export async function runEnScan(opts = {}) {
+  const { writeFiles = true, companyName, onLog = () => {}, fetchImpl } = opts;
+  const portals = loadPortals();
+  const tf = portals.title_filter || {};
+  const positives = tf.positive || [];
+  const negatives = tf.negative || [];
+  const seen = loadSeenUrls();
+
+  let companies = portals.tracked_companies || portals.companies || [];
+  companies = companies.filter((c) => c.enabled !== false);
+  if (companyName) {
+    companies = companies.filter((c) => c.name?.toLowerCase().includes(companyName.toLowerCase()));
+  }
+
+  const withApi = companies.map((c) => ({ ...c, _api: detectApi(c) })).filter((c) => c._api);
+  const skipped = companies.length - withApi.length;
+
+  const log = (s, line) => onLog(s, line);
+  log('stdout', '━'.repeat(60));
+  log('stdout', `EN Portal Scan — ${new Date().toISOString().slice(0, 10)}`);
+  log('stdout', '━'.repeat(60));
+  log('stdout', `Enabled companies:    ${companies.length}`);
+  log('stdout', `With API:             ${withApi.length}`);
+  log('stdout', `Without API (skipped):${skipped}`);
+  log('stdout', `Already seen:         ${seen.size} URLs`);
+  log('stdout', '');
+
+  const errors = [];
+  const fetchedPerCo = await pMap(withApi, async (c) => {
+    const fetcher = FETCHERS[c._api.type];
+    try {
+      const items = await fetcher(c._api.url, { fetchImpl });
+      // Stamp company name on each (Greenhouse fills its own; Ashby/Lever do not)
+      const withCo = items.map((i) => ({ ...i, company: i.company || c.name }));
+      log('stdout', `  ✓ ${c.name.padEnd(28)} ${c._api.type.padEnd(10)} ${items.length} jobs`);
+      return withCo;
+    } catch (e) {
+      errors.push(`${c.name}: ${e.message}`);
+      log('stderr', `  ✗ ${c.name.padEnd(28)} ${c._api.type.padEnd(10)} ${e.message}`);
+      return [];
+    }
+  }, CONCURRENCY);
+
+  const allRaw = fetchedPerCo.flat();
+  // Apply title filter (positive must match, negative must NOT match)
+  const filtered = allRaw.filter(
+    (j) => passesPositive(j.title, positives) && passesNegative(j.title, negatives)
+  );
+  const removedTitle = allRaw.length - filtered.length;
+  const fresh = filtered.filter((j) => !seen.has(j.url));
+  const dup = filtered.length - fresh.length;
+
+  log('stdout', '');
+  log('stdout', '━'.repeat(60));
+  log('stdout', `Total found:           ${allRaw.length}`);
+  log('stdout', `Filtered by title:     ${removedTitle} removed`);
+  log('stdout', `Already-seen dedup:    ${dup} skipped`);
+  log('stdout', `New offers added:      ${fresh.length}`);
+  log('stdout', '━'.repeat(60));
+
+  if (writeFiles) {
+    if (fresh.length) {
+      appendToPipeline(fresh);
+      appendToHistory(fresh);
+      log('stdout', `→ Appended ${fresh.length} URLs to data/pipeline.md`);
+    }
+    // Save BOTH fresh (new) and filtered (all matching positives, even dups)
+    // so the UI can show a richer list to browse.
+    saveLastScan({
+      kind: 'en',
+      when: new Date().toISOString(),
+      fresh,
+      filtered: filtered.slice(0, 500), // cap to keep file small
+      errors,
+    });
+  }
+
+  if (errors.length) {
+    log('stderr', `\n${errors.length} error(s):`);
+    errors.slice(0, 5).forEach((e) => log('stderr', '  · ' + e));
+    if (errors.length > 5) log('stderr', `  …and ${errors.length - 5} more`);
+  }
+
+  return {
+    counts: { raw: allRaw.length, removedTitle, dup, fresh: fresh.length, skipped },
+    fresh,
+    errors,
+  };
+}
+
+function appendToPipeline(jobs) {
+  let content = '';
+  try { content = readFileSync(PATHS.pipeline, 'utf8'); } catch {}
+  let updated = content;
+  for (const j of jobs) updated = addPipelineUrl(updated, j.url);
+  mkdirSync(PATHS.pipeline.replace(/\/[^/]+$/, ''), { recursive: true });
+  writeFileSync(PATHS.pipeline, updated);
+}
+function appendToHistory(jobs) {
+  mkdirSync(PATHS.scanHistory.replace(/\/[^/]+$/, ''), { recursive: true });
+  const lines = jobs.map((j) =>
+    [new Date().toISOString().slice(0, 10), j.source, j.id, j.company, j.title, j.url]
+      .map((x) => String(x ?? '').replace(/\t/g, ' '))
+      .join('\t')
+  );
+  appendFileSync(PATHS.scanHistory, lines.join('\n') + '\n');
+}
+
+const LAST_SCAN_PATH = PATHS.applications.replace(/applications\.md$/, 'last-scan.json');
+
+export function saveLastScan(payload) {
+  let prev = { en: null, ru: null };
+  try {
+    prev = JSON.parse(readFileSync(LAST_SCAN_PATH, 'utf8'));
+  } catch {}
+  prev[payload.kind] = payload;
+  mkdirSync(LAST_SCAN_PATH.replace(/\/[^/]+$/, ''), { recursive: true });
+  writeFileSync(LAST_SCAN_PATH, JSON.stringify(prev, null, 2));
+}
+
+export function loadLastScan() {
+  try {
+    return JSON.parse(readFileSync(LAST_SCAN_PATH, 'utf8'));
+  } catch {
+    return { en: null, ru: null };
+  }
+}

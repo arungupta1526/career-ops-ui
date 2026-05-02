@@ -1,0 +1,47 @@
+{
+  "name": "career-ops-ui",
+  "version": "1.0.0",
+  "description": "Airbnb-styled web interface for the career-ops AI job-search pipeline — search, evaluate, deep-dive, apply, track every offer from a single browser tab.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Sergey Emelyanov",
+  "homepage": "https://github.com/Fighter90/career-ops-ui#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Fighter90/career-ops-ui.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Fighter90/career-ops-ui/issues"
+  },
+  "keywords": [
+    "career-ops",
+    "job-search",
+    "claude-code",
+    "greenhouse",
+    "ashby",
+    "lever",
+    "hh.ru",
+    "habr-career",
+    "ats",
+    "express",
+    "sse"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "server/index.mjs",
+  "bin": {
+    "career-ops-ui": "bin/start.sh"
+  },
+  "scripts": {
+    "start": "node server/index.mjs",
+    "dev": "node --watch server/index.mjs",
+    "test": "node --test tests/parsers.test.mjs tests/api.test.mjs tests/ru-scanner.test.mjs tests/en-scanner.test.mjs",
+    "test:e2e": "node tests/e2e.mjs"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {}
+}

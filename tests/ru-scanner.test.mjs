@@ -1,0 +1,164 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { searchHH } from '../server/lib/sources/hh.mjs';
+import { searchHabr, parseHabrCards } from '../server/lib/sources/habr.mjs';
+
+// ───────────────────────── HH ─────────────────────────
+
+test('searchHH: normalizes API response', async () => {
+  const fakeFetch = async () =>
+    new Response(
+      JSON.stringify({
+        items: [
+          {
+            id: '12345',
+            name: 'Senior PHP Developer',
+            employer: { name: 'Acme Corp' },
+            alternate_url: 'https://hh.ru/vacancy/12345',
+            area: { name: 'Москва' },
+            published_at: '2026-05-02T10:00:00+0300',
+            salary: { from: 200000, to: 350000, currency: 'RUR' },
+            snippet: { requirement: 'PHP 8+', responsibility: 'Build APIs' },
+          },
+        ],
+      }),
+      { status: 200, headers: { 'content-type': 'application/json' } }
+    );
+  const items = await searchHH('PHP', { fetchImpl: fakeFetch });
+  assert.equal(items.length, 1);
+  const j = items[0];
+  assert.equal(j.id, 'hh-12345');
+  assert.equal(j.title, 'Senior PHP Developer');
+  assert.equal(j.company, 'Acme Corp');
+  assert.equal(j.url, 'https://hh.ru/vacancy/12345');
+  assert.equal(j.location, 'Москва');
+  assert.match(j.salary, /200000.*350000.*RUR/);
+  assert.equal(j.source, 'hh.ru');
+});
+
+test('searchHH: throws with geoBlocked flag on 403', async () => {
+  const fakeFetch = async () =>
+    new Response(JSON.stringify({ errors: [{ type: 'forbidden' }] }), { status: 403 });
+  await assert.rejects(
+    () => searchHH('PHP', { fetchImpl: fakeFetch }),
+    (err) => err.geoBlocked === true && err.status === 403 && /403/.test(err.message)
+  );
+});
+
+test('searchHH: builds correct URL with params', async () => {
+  let capturedUrl = '';
+  const fakeFetch = async (url) => {
+    capturedUrl = url;
+    return new Response('{"items": []}', { status: 200, headers: { 'content-type': 'application/json' } });
+  };
+  await searchHH('Senior Go', { area: 1001, perPage: 25, onlyRemote: true, fetchImpl: fakeFetch });
+  assert.match(capturedUrl, /text=Senior\+Go/);
+  assert.match(capturedUrl, /area=1001/);
+  assert.match(capturedUrl, /per_page=25/);
+  assert.match(capturedUrl, /schedule=remote/);
+});
+
+// ───────────────────────── HABR ─────────────────────────
+
+test('parseHabrCards: extracts vacancy fields', () => {
+  const html = `
+<section class="vacancies-list">
+<div class="vacancy-card"><a aria-label="X" class="vacancy-card__backdrop-link" href="/vacancies/1000164921"></a><div class="vacancy-card__inner"><div class="vacancy-card__date"><time class="basic-date" datetime="2026-04-20T19:26:44+03:00">20 апреля</time></div><a class="vacancy-card__icon-link" href="/vacancies/1000164921"></a><div class="vacancy-card__info"><div class="vacancy-card__company"><a class="link-comp" href="/c/x">Остров Сокровищ</a></div><div class="vacancy-card__title"><a class="vacancy-card__title-link" href="/vacancies/1000164921">PHP-разработчик </a></div><div class="vacancy-card__salary"><div class="basic-salary">от 100 000 до 250 000 ₽</div></div><div class="vacancy-card__meta"><div class="chip-with-icon__text">Middle</div><div class="chip-with-icon__text">Можно удалённо</div></div></div></div></div>
+</section>`;
+  const cards = parseHabrCards(html);
+  assert.equal(cards.length, 1);
+  const c = cards[0];
+  assert.equal(c.id, 'habr-1000164921');
+  assert.equal(c.title, 'PHP-разработчик');
+  assert.equal(c.company, 'Остров Сокровищ');
+  assert.equal(c.url, 'https://career.habr.com/vacancies/1000164921');
+  assert.match(c.salary, /100 000.*250 000/);
+  assert.equal(c.location, 'Remote');
+  assert.equal(c.isRemote, true);
+  assert.equal(c.workplaceType, 'Remote');
+  assert.match(c.snippet, /Middle/);
+  assert.equal(c.source, 'habr-career');
+});
+
+test('parseHabrCards: empty input → []', () => {
+  assert.deepEqual(parseHabrCards(''), []);
+  assert.deepEqual(parseHabrCards('<html>no cards</html>'), []);
+});
+
+test('searchHabr: throws on non-2xx', async () => {
+  const fakeFetch = async () => new Response('forbidden', { status: 403 });
+  await assert.rejects(
+    () => searchHabr('PHP', { fetchImpl: fakeFetch }),
+    (err) => err.status === 403 && /403/.test(err.message)
+  );
+});
+
+test('searchHabr: builds URL with params', async () => {
+  let captured = '';
+  const fakeFetch = async (url) => {
+    captured = url;
+    return new Response('<section class="vacancies-list"></section>', {
+      status: 200, headers: { 'content-type': 'text/html' },
+    });
+  };
+  await searchHabr('Go', { onlyRemote: true, fetchImpl: fakeFetch });
+  assert.match(captured, /q=Go/);
+  assert.match(captured, /remote=1/);
+  assert.match(captured, /sort=date/);
+});
+
+// ───────────────────────── orchestrator ─────────────────────────
+
+test('runRuScan: end-to-end with mocked sources, dry-run', async () => {
+  const { runRuScan } = await import('../server/lib/ru-scanner.mjs');
+
+  // Fake fetch routes both hh.ru and habr.career
+  const fakeFetch = async (url) => {
+    if (url.startsWith('https://api.hh.ru/')) {
+      return new Response(JSON.stringify({
+        items: [{
+          id: 'h1', name: 'Senior PHP Engineer', employer: { name: 'X' },
+          alternate_url: 'https://hh.ru/vacancy/h1', area: { name: 'Москва' },
+          published_at: '2026-05-02', salary: null, snippet: {},
+        }],
+      }), { status: 200, headers: { 'content-type': 'application/json' } });
+    }
+    if (url.startsWith('https://career.habr.com/')) {
+      return new Response(`<section class="vacancies-list">
+<div class="vacancy-card"><a class="vacancy-card__backdrop-link" href="/vacancies/9001"></a><div class="vacancy-card__inner"><div class="vacancy-card__company"><a class="link-comp" href="/c/y">Y Corp</a></div><div class="vacancy-card__title"><a class="vacancy-card__title-link" href="/vacancies/9001">Junior PHP</a></div></div></div>
+<div class="vacancy-card"><a class="vacancy-card__backdrop-link" href="/vacancies/9002"></a><div class="vacancy-card__inner"><div class="vacancy-card__company"><a class="link-comp" href="/c/z">Z Corp</a></div><div class="vacancy-card__title"><a class="vacancy-card__title-link" href="/vacancies/9002">Senior Go Developer</a></div></div></div>
+</section>`, { status: 200, headers: { 'content-type': 'text/html' } });
+    }
+    throw new Error('unexpected URL: ' + url);
+  };
+
+  const logs = [];
+  const result = await runRuScan({
+    writeFiles: false,
+    fetchImpl: fakeFetch,
+    onLog: (s, l) => logs.push([s, l]),
+  });
+
+  // hh: 1 hit per query × N queries = N items, dedup → 1 unique
+  // habr: 2 hits per query, one is "Junior" → filtered by negative
+  assert.ok(result.counts.raw >= 2, 'should have raw items');
+  assert.ok(result.counts.removedNeg >= 1, 'Junior must be filtered');
+  assert.equal(result.errors.length, 0, 'no errors expected');
+  assert.ok(logs.some(([s, l]) => l.includes('RU Portal Scan')), 'banner logged');
+  assert.ok(logs.some(([s, l]) => l.includes('NEW') || l.includes('New offers added')), 'summary logged');
+});
+
+test('runRuScan: surfaces hh.ru 403 as error, continues with habr', async () => {
+  const { runRuScan } = await import('../server/lib/ru-scanner.mjs');
+  const fakeFetch = async (url) => {
+    if (url.startsWith('https://api.hh.ru/')) {
+      return new Response('{"errors":[{"type":"forbidden"}]}', { status: 403 });
+    }
+    return new Response('<section class="vacancies-list"></section>', {
+      status: 200, headers: { 'content-type': 'text/html' },
+    });
+  };
+  const result = await runRuScan({ writeFiles: false, fetchImpl: fakeFetch, onLog: () => {} });
+  assert.ok(result.errors.length > 0);
+  assert.ok(result.errors.some((e) => /geo-blocked|403/.test(e)));
+});
