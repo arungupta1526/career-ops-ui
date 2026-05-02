@@ -5,7 +5,7 @@
 
 **English** | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-87%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-88%20passed-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
@@ -133,16 +133,16 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 
 | Page             | What it does                                                                                                       |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------ |
-| **Дашборд**      | Aggregated counts (apps / pipeline / reports), avg score, status breakdown, latest 5 apps + latest report.         |
-| **Поиск**        | **Two scanners:** 🌍 EN scan (Greenhouse/Ashby/Lever, 24+ verified company boards) + 🇷🇺 RU scan (hh.ru API + Habr Career HTML scraping). Live SSE log streaming + clickable results table with location / Remote-Hybrid badge / relocation flag / salary / source filters. |
+| **Dashboard**    | Aggregated counts (apps / pipeline / reports), avg score, status breakdown, latest 5 apps + latest report.         |
+| **Scan**         | **Three buttons:** 🌐 Scan all (chains EN + RU) · 🌍 EN scan (Greenhouse/Ashby/Lever, 24+ verified company boards) · 🇷🇺 RU scan (hh.ru API + Habr Career HTML scraping). Live SSE log streaming + clickable results table with location / Remote-Hybrid badge / relocation flag / salary / source filters and dynamic stack/level/keyword chips. |
 | **Pipeline**     | CRUD on `data/pipeline.md`. Jump straight from a URL to evaluate.                                                  |
-| **Оценить**      | Paste JD → if `GEMINI_API_KEY` is set, runs `gemini-eval.mjs`; otherwise returns a ready-to-paste prompt for Claude. Save JD to `jds/` optional. |
+| **Evaluate**     | Paste JD → if `GEMINI_API_KEY` is set, runs `gemini-eval.mjs`; otherwise returns a ready-to-paste prompt for Claude. Save JD to `jds/` optional. |
 | **Deep research**| Generates the full `modes/deep.md` prompt for the named company / role.                                            |
 | **Apply helper** | Generates a submission checklist; the actual Playwright form-fill stays in `/career-ops apply` inside Claude Code. |
-| **Трекер**       | Filterable table over `data/applications.md` (status, score, free-text). One-click `node normalize-statuses.mjs` / `dedup-tracker.mjs` / `merge-tracker.mjs`. |
-| **Отчёты**       | Browse and read every report under `reports/` with parsed header (Score / Legitimacy / URL).                       |
-| **CV**           | Live markdown editor for `cv.md` with side-by-side preview + one-click `cv-sync-check.mjs`.                        |
-| **Профиль**      | Read-only view of `config/profile.yml` + archetypes — UI-friendly summary.                                         |
+| **Tracker**      | Filterable table over `data/applications.md` (status, score, free-text). One-click `node normalize-statuses.mjs` / `dedup-tracker.mjs` / `merge-tracker.mjs`. |
+| **Reports**      | Browse and read every report under `reports/` with parsed header (Score / Legitimacy / URL).                       |
+| **CV**           | Live markdown editor for `cv.md` with side-by-side preview + one-click `cv-sync-check.mjs` + 📁 Upload CV button.  |
+| **Profile**      | Read-only view of `config/profile.yml` + archetypes — UI-friendly summary.                                         |
 | **Health**       | All setup checks in OK / OPTIONAL / FAIL badges + buttons to run `doctor.mjs` and `verify-pipeline.mjs`.           |
 
 Global keyboard shortcuts:
