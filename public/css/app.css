@@ -423,6 +423,31 @@ table.tbl tr:hover td { background: #fafafa; }
 .md a { color: var(--rausch); }
 .md blockquote { border-left: 3px solid var(--rausch); padding-left: var(--space-4); color: var(--foggy); margin: var(--space-3) 0; }
 
+/* ───────────────────────── language switcher ───────────────────────── */
+.lang-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding-bottom: 8px;
+}
+.lang-btn {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--foggy);
+  cursor: pointer;
+  font-weight: 500;
+  transition: background var(--transition), color var(--transition);
+}
+.lang-btn:hover { background: var(--beach); color: var(--hof); }
+.lang-btn.active {
+  background: var(--hof);
+  color: var(--paper);
+  font-weight: 600;
+}
+
 /* ───────────────────────── chip filter ───────────────────────── */
 .chip-row {
   display: flex;

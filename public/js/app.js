@@ -1,4 +1,41 @@
-/* global Router, API, UI */
+/* global Router, API, UI, I18n */
+
+// ── i18n bootstrap: render lang switcher + apply translations on every change ──
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    const key = el.getAttribute('data-i18n');
+    const fallback = el.textContent;
+    el.textContent = I18n.t(key, fallback);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    el.placeholder = I18n.t(key, el.placeholder);
+  });
+}
+
+function renderLangSwitcher() {
+  const host = document.getElementById('lang-switcher');
+  if (!host) return;
+  host.innerHTML = '';
+  const current = I18n.getLang();
+  for (const l of I18n.getLangs()) {
+    const btn = document.createElement('button');
+    btn.className = 'lang-btn' + (l.code === current ? ' active' : '');
+    btn.textContent = l.label;
+    btn.title = l.code;
+    btn.dataset.langBtn = l.code;
+    btn.addEventListener('click', () => I18n.setLang(l.code));
+    host.appendChild(btn);
+  }
+}
+
+I18n.onChange(() => {
+  applyI18n();
+  renderLangSwitcher();
+  // re-render the current view so per-view translations apply
+  if (window.Router) Router.render();
+});
+
 (async function init() {
   // load version + health (silent on warnings; only toast on real failures)
   try {
@@ -17,6 +54,9 @@
 
   // initial route
   if (!window.location.hash) window.location.hash = '#/dashboard';
+  // i18n first paint
+  renderLangSwitcher();
+  applyI18n();
   Router.render();
 
   // top-bar buttons

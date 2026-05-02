@@ -3,25 +3,35 @@
 > An Airbnb-styled web interface for the [career-ops](https://github.com/santifer/career-ops) AI job-search pipeline.
 > Search, evaluate, deep-dive, apply, and track every offer from a single browser tab — instead of bouncing between Claude Code, terminals, and markdown files.
 
-[![tests](https://img.shields.io/badge/tests-73%20passed-brightgreen)](#tests)
+**English** | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
+
+[![tests](https://img.shields.io/badge/tests-87%20passed-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ```
    ┌──────────────────────────────────────────────────────────────────────┐
-   │ ◆ Дашборд        │  Командный центр                                  │
-   │ ◇ Поиск          │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐  │
-   │ ▤ Pipeline        │  │ Заявки  │ │Pipeline │ │Отчёты   │ │  Score  │  │
-   │ ▷ Оценить         │  │   12    │ │    3    │ │   12    │ │   4.2   │  │
-   │ ⌕ Deep research   │  └─────────┘ └─────────┘ └─────────┘ └─────────┘  │
-   │ → Apply helper    │                                                    │
-   │ ≡ Трекер          │  Найденные вакансии    [filters: scope·type·src]  │
-   │ ▦ Отчёты          │  ┌────────────────────────────────────────────┐   │
-   │ ✎ CV              │  │ Vercel  Software Engineer, Backend  Remote │   │
-   │ ⚙ Профиль         │  │ GitLab  Engineering Manager, AI     Remote │   │
-   │ ❤ Health          │  │ Stripe  Backend Engineer, Billing   US     │   │
+   │ ◆ Dashboard      │  Command Center                                   │
+   │ ◇ Scan           │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐  │
+   │ ▤ Pipeline       │  │  Apps   │ │Pipeline │ │ Reports │ │  Score  │  │
+   │ ▷ Evaluate       │  │   12    │ │    3    │ │   12    │ │   4.2   │  │
+   │ ⌕ Deep research  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘  │
+   │ → Apply helper   │                                                    │
+   │ ≡ Tracker        │  Vacancies found  [filters: stack · level · src]  │
+   │ ▦ Reports        │  ┌────────────────────────────────────────────┐   │
+   │ ✎ CV             │  │ Vercel  Software Engineer, Backend  Remote │   │
+   │ ⚙ Profile        │  │ GitLab  Engineering Manager, AI     Remote │   │
+   │ ❤ Health         │  │ Stripe  Backend Engineer, Billing   US     │   │
    └──────────────────────────────────────────────────────────────────────┘
 ```
+
+## One-command install
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/setup.sh | bash
+```
+
+This clones both repos (career-ops + career-ops-ui), installs deps, and starts the server at http://127.0.0.1:4317.
 
 ---
 

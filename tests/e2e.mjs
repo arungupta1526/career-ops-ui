@@ -192,6 +192,42 @@ async function run() {
     console.log(`  ✗ ${err.message}`);
   }
 
+  console.log('\n  Flow 2d: language switcher (8 languages)');
+  try {
+    await page.goto(`${baseUrl}/#/dashboard`);
+    await page.waitForSelector('h1.page-title');
+    await page.waitForSelector('.lang-switcher button', { timeout: 5000 });
+    const langs = await page.$$eval('.lang-btn', (els) => els.map((e) => e.dataset.langBtn));
+    const expected = ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW'];
+    for (const code of expected) {
+      if (!langs.includes(code)) throw new Error(`missing language: ${code}`);
+    }
+    // Switch to Russian
+    await page.locator('.lang-btn[data-lang-btn="ru"]').click();
+    await page.waitForTimeout(300);
+    const navTextRu = await page.locator('.nav-item[data-route="dashboard"]').textContent();
+    if (!navTextRu.includes('Дашборд')) throw new Error(`RU nav not applied: "${navTextRu}"`);
+    // Switch to Japanese
+    await page.locator('.lang-btn[data-lang-btn="ja"]').click();
+    await page.waitForTimeout(300);
+    const navTextJa = await page.locator('.nav-item[data-route="dashboard"]').textContent();
+    if (!navTextJa.includes('ダッシュボード')) throw new Error(`JA nav not applied: "${navTextJa}"`);
+    // Persist: reload and verify Japanese persisted
+    await page.reload();
+    await page.waitForSelector('.lang-btn');
+    const navAfterReload = await page.locator('.nav-item[data-route="dashboard"]').textContent();
+    if (!navAfterReload.includes('ダッシュボード')) throw new Error(`lang did not persist after reload: "${navAfterReload}"`);
+    // Reset to English for the rest of the suite
+    await page.locator('.lang-btn[data-lang-btn="en"]').click();
+    await page.waitForTimeout(200);
+    console.log(`  ✓ 8 languages, switching works, persists across reload`);
+    passed++;
+  } catch (err) {
+    failed++;
+    failures.push({ route: 'flow:i18n', message: err.message });
+    console.log(`  ✗ ${err.message}`);
+  }
+
   console.log('\n  Flow 2c: skill / level chip filters');
   try {
     await page.goto(`${baseUrl}/#/scan`);
