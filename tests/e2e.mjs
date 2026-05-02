@@ -192,6 +192,37 @@ async function run() {
     console.log(`  ✗ ${err.message}`);
   }
 
+  console.log('\n  Flow 2c: skill / level chip filters');
+  try {
+    await page.goto(`${baseUrl}/#/scan`);
+    await page.waitForSelector('h1.page-title');
+    // After RU scan from flow 2b, last-scan.json has Habr rows. Wait for chips.
+    await page.waitForSelector('.chip-row .chip', { timeout: 10000 });
+    const chipsBefore = await page.locator('#scan-results .chip').count();
+    if (chipsBefore < 2) throw new Error(`expected >=2 chips, got ${chipsBefore}`);
+    // Click the first non-clear chip → table should re-render
+    const firstChip = page.locator('#scan-results .chip:not(.clear)').first();
+    const chipText = await firstChip.textContent();
+    await firstChip.click();
+    await page.waitForTimeout(300);
+    const isOn = await firstChip.evaluate((el) => el.classList.contains('on'));
+    if (!isOn) throw new Error(`chip "${chipText}" did not toggle on`);
+    // The "сбросить" chip should now be visible
+    const clearVisible = await page.locator('#scan-results .chip.clear').count();
+    if (clearVisible < 1) throw new Error('clear chip not shown after activation');
+    // Click clear → chip should turn off
+    await page.locator('#scan-results .chip.clear').first().click();
+    await page.waitForTimeout(200);
+    const stillOn = await firstChip.evaluate((el) => el.classList.contains('on')).catch(() => false);
+    if (stillOn) throw new Error('clear did not deactivate chip');
+    console.log(`  ✓ chips render & toggle (first chip: "${chipText.trim()}")`);
+    passed++;
+  } catch (err) {
+    failed++;
+    failures.push({ route: 'flow:chip-filters', message: err.message });
+    console.log(`  ✗ ${err.message}`);
+  }
+
   console.log('\n  Flow 2: evaluate generates manual prompt');
   try {
     delete process.env.GEMINI_API_KEY;

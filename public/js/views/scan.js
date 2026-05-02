@@ -89,6 +89,9 @@ Router.register('scan', async () => {
 
   // Render the rich table of last-scan results
   let lastResults = { en: null, ru: null };
+  // Active chip selections (multi-select, intersection across categories)
+  const activeTech = new Set();
+  const activeLevel = new Set();
 
   async function refreshResults() {
     try {
@@ -127,6 +130,15 @@ Router.register('scan', async () => {
       );
       return;
     }
+
+    // ── Chip facets (skills + level) computed on the CURRENT all-rows set ──
+    const facets = window.Skills.computeFacets(allRows);
+    const chipsContainer = c('div', { className: 'mb-3', style: { display: 'flex', flexDirection: 'column', gap: '8px' } });
+    chipsContainer.appendChild(buildChipRow('Стек', facets.tech, activeTech));
+    chipsContainer.appendChild(buildChipRow('Уровень', facets.level, activeLevel));
+    resultsEl.appendChild(chipsContainer);
+
+    // ── Now apply ALL filters (text/remote/source + chips) ──
     const q = (filterText.value || '').toLowerCase().trim();
     const fr = filterRemote.value;
     const fs = filterSource.value;
@@ -136,6 +148,7 @@ Router.register('scan', async () => {
       if (fr === 'hybrid' && !/hybrid/i.test(r.workplaceType || '')) return false;
       if (fr === 'reloc' && !r.relocates) return false;
       if (fs && r.source !== fs) return false;
+      if (!window.Skills.rowMatches(r, activeTech, activeLevel)) return false;
       return true;
     });
     if (!rows.length) {
@@ -170,6 +183,37 @@ Router.register('scan', async () => {
   }
 
   ;[filterText, filterRemote, filterSource, filterScope].forEach((el) => el.addEventListener('input', renderResults));
+
+  // Build a chip row for one facet category. Active selections survive across re-renders
+  // because activeTech / activeLevel are scoped above.
+  function buildChipRow(label, counts, activeSet) {
+    const row = c('div', { className: 'chip-row' }, c('span', { className: 'chip-label' }, label));
+    // Sort by count desc, then alpha
+    const ordered = Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    if (!ordered.length) {
+      row.appendChild(c('span', { style: { color: 'var(--foggy)', fontSize: '12px' } }, '—'));
+      return row;
+    }
+    for (const [name, count] of ordered) {
+      const isOn = activeSet.has(name);
+      const chip = c('span', {
+        className: 'chip' + (isOn ? ' on' : ''),
+        onClick: () => {
+          if (activeSet.has(name)) activeSet.delete(name);
+          else activeSet.add(name);
+          renderResults();
+        },
+      }, [name, c('span', { className: 'chip-count' }, String(count))]);
+      row.appendChild(chip);
+    }
+    if (activeSet.size) {
+      row.appendChild(c('span', {
+        className: 'chip clear',
+        onClick: () => { activeSet.clear(); renderResults(); },
+      }, 'сбросить'));
+    }
+    return row;
+  }
 
   // load results on first render
   refreshResults();

@@ -423,6 +423,55 @@ table.tbl tr:hover td { background: #fafafa; }
 .md a { color: var(--rausch); }
 .md blockquote { border-left: 3px solid var(--rausch); padding-left: var(--space-4); color: var(--foggy); margin: var(--space-3) 0; }
 
+/* ───────────────────────── chip filter ───────────────────────── */
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.chip-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--foggy);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-right: 4px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 11px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--slate);
+  background: var(--paper);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--hof);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+  user-select: none;
+}
+.chip:hover { background: var(--beach); }
+.chip.on {
+  background: var(--hof);
+  color: var(--paper);
+  border-color: var(--hof);
+}
+.chip-count {
+  font-weight: 700;
+  font-size: 11px;
+  opacity: .7;
+}
+.chip.clear {
+  background: transparent;
+  border-color: transparent;
+  color: var(--rausch);
+  font-weight: 600;
+}
+.chip.clear:hover { background: rgba(255,56,92,.08); }
+
 /* ───────────────────────── connection banner ───────────────────────── */
 .conn-banner {
   position: sticky;
