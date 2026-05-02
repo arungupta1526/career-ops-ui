@@ -33,6 +33,43 @@ export function createApp() {
   const app = express();
   app.use(express.json({ limit: '5mb' }));
   app.use(express.text({ limit: '5mb', type: ['text/plain', 'text/markdown'] }));
+
+  // ──────────────── Security headers ────────────────
+  // Always-on baseline (cheap, no breakage). CSP is layered on top when the
+  // server is exposed beyond loopback (HOST=0.0.0.0) — that's the only case
+  // where exfiltration via XSS becomes reachable from a LAN attacker.
+  app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'same-origin');
+    if (isPubliclyExposed()) {
+      // default-src 'self' covers img-src/script-src/connect-src etc.;
+      // explicit allowlists below loosen only what the SPA needs:
+      //   - Google Fonts CSS at fonts.googleapis.com
+      //   - Google Fonts WOFF2 at fonts.gstatic.com
+      //   - inline style="..." attrs in router error template (style-src 'unsafe-inline')
+      //   - inline favicon as data: URI (img-src 'self' data:)
+      // 'unsafe-inline' is intentionally NOT in script-src — all event
+      // handlers were moved to addEventListener.
+      res.setHeader(
+        'Content-Security-Policy',
+        [
+          "default-src 'self'",
+          "script-src 'self'",
+          "style-src 'self' https://fonts.googleapis.com 'unsafe-inline'",
+          "font-src 'self' https://fonts.gstatic.com",
+          "img-src 'self' data:",
+          "connect-src 'self'",
+          "object-src 'none'",
+          "base-uri 'self'",
+          "frame-ancestors 'none'",
+          "form-action 'self'",
+        ].join('; ')
+      );
+    }
+    next();
+  });
+
   app.use(express.static(PUBLIC_DIR));
 
   // ───────────────────────────── Health & Dashboard ─────────────────────────────
@@ -445,6 +482,18 @@ function safeListReports() {
     })
     .filter(Boolean)
     .sort((a, b) => new Date(b.mtime) - new Date(a.mtime));
+}
+
+/**
+ * True when HOST binds beyond loopback — i.e. listening on 0.0.0.0 or any
+ * non-127.0.0.1/::1 interface. Used to gate Content-Security-Policy so
+ * stricter limits only kick in when the UI is reachable from the network.
+ */
+function isPubliclyExposed() {
+  const host = (process.env.HOST || '127.0.0.1').trim();
+  if (!host) return false;
+  if (host === '127.0.0.1' || host === '::1' || host === 'localhost') return false;
+  return true;
 }
 
 /**

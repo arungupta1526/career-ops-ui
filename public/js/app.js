@@ -70,6 +70,8 @@ I18n.onChange(() => {
     }
   });
   document.getElementById('btn-quick-scan').addEventListener('click', () => Router.go('/scan'));
+  // connection-banner refresh button (was inline onclick — moved out for CSP)
+  document.getElementById('conn-refresh-btn')?.addEventListener('click', () => location.reload());
 
   // global search
   const search = document.getElementById('global-search');

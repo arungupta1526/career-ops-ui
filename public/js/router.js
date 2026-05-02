@@ -42,8 +42,9 @@ window.Router = (function () {
         <strong>${titleStr}</strong>
         <p style="margin: 12px 0 0; color: var(--foggy)">${(err && err.message) || err}</p>
         ${isNet ? `<p style="margin-top:8px;color:var(--foggy);font-size:13px;">${runStr}: <code>bash web-ui/bin/start.sh</code></p>` : ''}
-        <button class="btn btn-ghost mt-3" onclick="Router.render()">${retryStr}</button>
+        <button class="btn btn-ghost mt-3" data-action="router-retry">${retryStr}</button>
       </div>`;
+      content.querySelector('[data-action="router-retry"]')?.addEventListener('click', () => render());
       if (!isNet) window.UI?.toast(err.message || 'Render error', 'error');
     }
   }
