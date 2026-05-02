@@ -24,3 +24,23 @@ test('router: nav highlight handles both alias name and resolved route', () => {
   // otherwise #/profile would not light up the Profile sidebar item.
   assert.match(SRC, /classList\.toggle\(\s*['"]active['"]\s*,\s*r\s*===\s*name\s*\|\|\s*r\s*===\s*rawName/);
 });
+
+// ───────────────────────── FIX-C7: catch-all 404 ─────────────────────────
+
+test('router: __not_found__ view is registered (FIX-C7)', () => {
+  assert.match(SRC, /register\(\s*['"]__not_found__['"]/);
+});
+
+test('router: unknown routes fall back to __not_found__, NOT dashboard', () => {
+  // The renderer-resolution line should reference __not_found__, not silently fall back to dashboard.
+  assert.match(SRC, /routes\[\s*['"]__not_found__['"]\s*\]/);
+  // Old behavior (`routes['dashboard']` as fallback) must be gone.
+  assert.ok(
+    !/renderer\s*=\s*routes\[name\]\s*\|\|\s*routes\['dashboard'\]/.test(SRC),
+    'router still falls back to dashboard for unknown routes — FIX-C7 regressed'
+  );
+});
+
+test('router: 404 view links back to dashboard', () => {
+  assert.match(SRC, /href\s*=\s*['"]#\/dashboard['"]/);
+});

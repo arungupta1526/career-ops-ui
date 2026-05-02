@@ -32,7 +32,9 @@ window.Router = (function () {
     });
 
     const content = document.getElementById('content');
-    const renderer = routes[name] || routes['dashboard'];
+    // Unknown route → render the dedicated 404 view instead of silently
+    // falling back to the dashboard (which masked typos and broken links).
+    const renderer = routes[name] || routes['__not_found__'];
 
     content.innerHTML = `<div class="loading">${(window.I18n && I18n.t('router.loading', 'Loading…')) || 'Loading…'}</div>`;
     try {
@@ -66,6 +68,36 @@ window.Router = (function () {
   }
 
   window.addEventListener('hashchange', render);
+
+  // 404 view — registered here so it cannot collide with a real route name
+  // and so the router never depends on an external file being loaded first.
+  register('__not_found__', () => {
+    const t = (k, f) => (window.I18n && window.I18n.t) ? window.I18n.t(k, f) : f;
+    const { rawName } = current();
+    const wrap = document.createElement('div');
+    wrap.className = 'page-404 empty';
+    wrap.style.padding = '64px 24px';
+    wrap.style.textAlign = 'center';
+
+    const h1 = document.createElement('h1');
+    h1.className = 'page-title';
+    h1.textContent = t('notFound.title', '404 — page not found');
+
+    const p = document.createElement('p');
+    p.style.color = 'var(--foggy)';
+    p.style.margin = '12px 0 24px';
+    const body = t('notFound.body', "The route “{path}” doesn't exist.")
+      .replace('{path}', '#/' + (rawName || ''));
+    p.textContent = body;
+
+    const a = document.createElement('a');
+    a.className = 'btn btn-primary';
+    a.href = '#/dashboard';
+    a.textContent = t('notFound.back', 'Back to Dashboard');
+
+    wrap.append(h1, p, a);
+    return wrap;
+  });
 
   return { register, render, go, current };
 })();

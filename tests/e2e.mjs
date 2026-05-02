@@ -317,6 +317,23 @@ async function run() {
     console.log(`  ✗ ${err.message}`);
   }
 
+  console.log('\n  Flow 4: 404 page on unknown route (FIX-C7)');
+  try {
+    await page.goto(`${baseUrl}/#/totally-random-xyz-${Date.now()}`, { waitUntil: 'networkidle' });
+    await page.waitForSelector('.page-404', { timeout: 5000 });
+    const title = (await page.locator('.page-404 h1').first().textContent()).trim();
+    if (!/404/.test(title)) throw new Error('expected "404" in heading, got: ' + title);
+    // Back-link to /#/dashboard must be present and functional
+    const backHref = await page.locator('.page-404 a').first().getAttribute('href');
+    if (backHref !== '#/dashboard') throw new Error('back-link href wrong: ' + backHref);
+    console.log('  ✓ unknown route renders 404 page');
+    passed++;
+  } catch (err) {
+    failed++;
+    failures.push({ route: 'flow:404', message: err.message });
+    console.log(`  ✗ ${err.message}`);
+  }
+
   console.log('\n  Flow 5: #/profile alias → settings (FIX-C2)');
   try {
     await page.goto(`${baseUrl}/#/profile`, { waitUntil: 'networkidle' });
