@@ -145,16 +145,21 @@ export function createApp() {
   app.post('/api/pipeline', (req, res) => {
     const url = (req.body?.url || req.body?.text || '').toString().trim();
     if (!url) return res.status(400).json({ error: 'url required' });
+    if (!isValidJobUrl(url)) {
+      return res.status(400).json({ error: 'invalid url (must be http/https, no script/template chars)' });
+    }
     let content = '';
     try {
       content = readFileSync(PATHS.pipeline, 'utf8');
     } catch {
       content = '';
     }
+    const before = parsePipeline(content);
+    const deduped = before.includes(url);
     const updated = addPipelineUrl(content, url);
     mkdirSync(projPath('data'), { recursive: true });
     writeFileSync(PATHS.pipeline, updated);
-    res.json({ ok: true, urls: parsePipeline(updated) });
+    res.json({ ok: true, deduped, urls: parsePipeline(updated) });
   });
 
   app.delete('/api/pipeline', (req, res) => {
@@ -482,6 +487,28 @@ function safeListReports() {
     })
     .filter(Boolean)
     .sort((a, b) => new Date(b.mtime) - new Date(a.mtime));
+}
+
+/**
+ * Validate a string as a job-posting URL. Allowed: http(s) URL with no
+ * angle brackets, quotes, or backticks (which signal template injection
+ * or markup attempts). Used by POST /api/pipeline so malformed payloads
+ * fail loudly with 400 instead of getting silently dropped on the floor.
+ */
+export function isValidJobUrl(input) {
+  if (typeof input !== 'string') return false;
+  const url = input.trim();
+  if (!url) return false;
+  if (/[<>"'`\\]/.test(url)) return false;
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+  if (!['http:', 'https:'].includes(parsed.protocol)) return false;
+  if (!parsed.hostname) return false;
+  return true;
 }
 
 /**
