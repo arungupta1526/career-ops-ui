@@ -193,7 +193,11 @@ Router.register('scan', async () => {
     // gives meaningful chips even for non-engineering profiles (marketing,
     // design, finance, …) where the hardcoded TECH_GROUPS would be empty.
     const facets = window.Skills.computeFacets(allRows);
-    const dynKeywords = window.Skills.extractDynamicKeywords(allRows, { limit: 20 });
+    // Filter dynamic keywords by script — non-Russian UI shouldn't show
+    // Cyrillic-only tokens like "разработчик" leaking from Habr data.
+    const lang = (window.I18n && I18n.getLang()) || 'en';
+    const script = lang === 'ru' ? 'all' : 'latin';
+    const dynKeywords = window.Skills.extractDynamicKeywords(allRows, { limit: 20, script });
     const dynCounts = Object.fromEntries(dynKeywords);
     const chipsContainer = c('div', { className: 'mb-3', style: { display: 'flex', flexDirection: 'column', gap: '8px' } });
     if (Object.keys(facets.tech).length) chipsContainer.appendChild(buildChipRow(t('scan.chip.stack'), facets.tech, activeTech));

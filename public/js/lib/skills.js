@@ -94,7 +94,7 @@ window.Skills = (function () {
     'hybrid', 'engineer', 'developer', 'software', 'job', 'role',
   ]);
   function extractDynamicKeywords(rows, opts = {}) {
-    const { limit = 25, minLength = 3, minCount = 2 } = opts;
+    const { limit = 25, minLength = 3, minCount = 2, script } = opts;
     const counts = {};
     for (const r of rows) {
       const title = (r.title || '').replace(/[(){}\[\],/—–•·|]/g, ' ');
@@ -106,6 +106,11 @@ window.Skills = (function () {
         // strip punctuation, normalise case
         const w = raw.replace(/^[^\p{L}+#.]+|[^\p{L}+#.]+$/gu, '');
         if (!w || STOPWORDS.has(w.toLowerCase())) continue;
+        // Optional: filter by script — when script='latin', drop Cyrillic-only
+        // tokens (e.g. "разработчик" leaking from Habr data into an EN UI).
+        // 'cyrillic' keeps Cyrillic-only tokens, 'all' (default) keeps both.
+        if (script === 'latin' && /[А-Яа-яЁё]/.test(w) && !/[A-Za-z]/.test(w)) continue;
+        if (script === 'cyrillic' && !/[А-Яа-яЁё]/.test(w)) continue;
         // canonical form: lowercase except for known acronyms (PHP, Go, AI)
         const key = (/^[A-Z]{2,5}$/.test(w) || /^[A-Z][a-z]/.test(w))
           ? w
