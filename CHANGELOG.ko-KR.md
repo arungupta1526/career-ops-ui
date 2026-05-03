@@ -8,7 +8,7 @@
 
 ## [1.7.0] — 2026-05-03
 
-v1.6.0 QA 보고서를 기반으로 한 21 커밋의 보안 + UX 강화. 세 가지 보안 계층 (XSS 정화, CSP, 입력 검증) 이 적용되었고, 누락된 CRUD 엔드포인트 (DELETE jds, POST tracker) 가 채워졌으며, UI 에 두 가지 새 페이지 — **Activity** 와 브라우저에서 직접 동작하는 재설계된 **Deep Research** — 가 추가되었습니다. 테스트 커버리지는 **73** 에서 **177** 로 증가했고, **새 테스트 파일 14 개** 가 추가되었습니다.
+QA r5 를 기반으로 한 28 커밋의 보안 + UX + 기능 완성 강화. 세 가지 보안 계층 적용, 모든 누락된 CRUD 엔드포인트 보충, 부모 프로젝트 부트스트랩 자동화, **9 개의 새 페이지** 추가 — Activity, 재설계된 Deep Research, 그리고 7 개의 sidebar-그룹 모드 (project / training / followup / batch / outreach / interview-prep / patterns) — 부모 `modes/` 의 100% 커버. 테스트 커버리지는 **73** 에서 **209** 로 증가, **24 개 테스트 파일** + **23 단계 종합 Playwright e2e**. Coverage: **93.5 % 라인 / 82.6 % 브랜치**.
 
 ### 🔒 보안
 
@@ -20,6 +20,9 @@ v1.6.0 QA 보고서를 기반으로 한 21 커밋의 보안 + UX 강화. 세 가
 
 ### ✨ 새 기능
 
+- **`feat: 7 개의 새 사이드바 모드 + 그룹 사이드바` (FIX-C8)** — 부모 `modes/` 의 100% 커버. 새 라우트: `#/project`, `#/training`, `#/followup`, `#/batch`, `#/contacto`, `#/interview-prep`, `#/patterns`. 단일 view 팩토리 + 일반 엔드포인트 `POST /api/mode/:slug`. 사이드바는 6 개 그룹으로 구분. 총 18 개 항목. 새 테스트 12 개.
+- **`fix: 부모 deps + russian_portals 기본값 부트스트랩` (FIX-C4 + C9 + C12 + H2)** — `bin/start.sh` 가 부모 `node_modules` + Playwright Chromium 을 새 클론에서 자동 설치. `createApp()` 이 `russian_portals:` 블록 누락 시 추가. 멱등. 새 테스트 3 개.
+- **`fix: 9 개 죽은 포털 슬러그 비활성화` (FIX-C3)** — 9 개 슬러그 `enabled: false`. 새 `scripts/portals-health-check.mjs`. 새 테스트 3 개.
 - **`feat(activity): 사용자 동작 로그 + Activity 사이드바 페이지`** — 모든 상태 변경 API 요청이 `data/activity.jsonl` 에 기록됩니다. 사이드바에 새 항목 **활동** — 동작 prefix 칩 필터, ✓/✗ 배지, 새로고침 버튼. 5 MB 자동 회전. 새 테스트 10 개.
 - **`feat(deep): 브라우저에서 Deep Research 보기 + 저장 결과 아카이브`** — Deep Research 페이지가 이제 (a) `{ run: true }` 와 `GEMINI_API_KEY` 가 설정된 경우 Gemini 로 라이브 실행하고 `interview-prep/{slug}.md` 에 저장; (b) 저장된 모든 deep-research 파일을 상대 시간과 함께 카드로 표시; (c) 결과를 Markdown 으로 렌더링하고 **📋 복사 / ⬇ .md 다운로드 / ↗ 새 탭에서 열기** 액션을 제공합니다. 새 REST: `GET /api/interview-prep`, `GET /api/interview-prep/:name`, `DELETE /api/interview-prep/:name`. 새 테스트 7 개.
 - **`feat(cv): 브라우저에서 PDF 생성 + 다운로드 + PDF 아카이브`** — CV 페이지의 새 **📄 PDF 생성** 버튼이 모달 콘솔에서 `/api/stream/pdf` 를 스트림합니다. `ERR_MODULE_NOT_FOUND` / `playwright` 에러 시 복사 가능한 부트스트랩 명령을 표시합니다. "생성된 PDF" 섹션이 성공 후 자동 로드되어 모든 `output/*.pdf` 를 **↗ 열기** + **⬇ 다운로드** 버튼과 함께 표시합니다. 새 REST: `GET /api/output/pdfs`, `GET /api/output/pdfs/:name`. 새 테스트 6 개.
@@ -44,7 +47,9 @@ v1.6.0 QA 보고서를 기반으로 한 21 커밋의 보안 + UX 강화. 세 가
 
 ### ⚙️ DevOps
 
-- **테스트:** 73 → **177** (+104 테스트, 14 개 새 파일).
+- **테스트:** 73 → **209** (+136 테스트, 24 개 파일). Coverage: 93.5% 라인 / 82.6% 브랜치.
+- **종합 Playwright e2e** (`tests/e2e-comprehensive.mjs`, 23 단계).
+- **GitHub Actions:** `ci.yml`, `ai-review.yml` (Claude Code 가 모든 PR 리뷰), `release.yml`.
 - **CSP-friendly UI:** 모든 인라인 `onclick` 제거.
 
 ### 📦 새 REST 엔드포인트

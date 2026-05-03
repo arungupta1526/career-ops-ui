@@ -8,7 +8,7 @@
 
 ## [1.7.0] — 2026-05-03
 
-基於 v1.6.0 QA 報告的 21 次提交的安全強化 + UX 改進。落地了三層安全 (XSS 淨化、CSP、輸入驗證),補齊了缺失的 CRUD 端點 (DELETE jds、POST tracker),UI 新增兩個頁面 — **Activity** 和重新設計的 **Deep Research**(在瀏覽器中直接執行)。測試覆蓋率從 **73** 增加到 **177**,新增 **14 個測試檔案**。
+基於 QA r5 的 28 次提交的安全強化 + UX + 功能完善。三層安全落地,所有缺失的 CRUD 端點補齊,父專案 bootstrap 完全自動化,UI 新增 **9 個頁面** — Activity、重新設計的 Deep Research,以及 7 個分組側邊欄模式 (project / training / followup / batch / outreach / interview-prep / patterns) 覆蓋父 `modes/` 的 100%。測試覆蓋率從 **73** 增加到 **209**,**24 個測試檔案** + **23 步綜合 Playwright e2e**。Coverage: **93.5 % 行 / 82.6 % 分支**。
 
 ### 🔒 安全
 
@@ -20,6 +20,9 @@
 
 ### ✨ 新功能
 
+- **`feat: 7 個新側邊欄模式 + 分組側邊欄` (FIX-C8)** — 100% 覆蓋父 `modes/`。新路由: `#/project`、`#/training`、`#/followup`、`#/batch`、`#/contacto`、`#/interview-prep`、`#/patterns`。單一 view 工廠 + 通用端點 `POST /api/mode/:slug`。側邊欄分 6 組。共 18 項。12 個新測試。
+- **`fix: 父依賴 + russian_portals 預設值 bootstrap` (FIX-C4 + C9 + C12 + H2)** — `bin/start.sh` 在新克隆上自動安裝父 `node_modules` + Playwright Chromium。`createApp()` 在 `russian_portals:` 區塊缺失時追加。冪等。3 個新測試。
+- **`fix: 停用 9 個死連結 portal slugs` (FIX-C3)** — 9 個 slugs 標記為 `enabled: false`。新 `scripts/portals-health-check.mjs`。3 個新測試。
 - **`feat(activity): 使用者操作日誌 + Activity 側邊欄頁面`** — 每個狀態變更的 API 請求都被記錄到 `data/activity.jsonl`。新側邊欄項 **活動** — 操作前綴 chip 過濾器、✓/✗ 徽章、重新整理按鈕。5 MB 自動輪轉。新增 10 個測試。
 - **`feat(deep): 在瀏覽器中查看 Deep Research + 已儲存結果存檔`** — Deep Research 頁面現在 (a) 當 `{ run: true }` 且設定了 `GEMINI_API_KEY` 時透過 Gemini 即時執行,持久化到 `interview-prep/{slug}.md`;(b) 以帶相對時間戳的卡片列出所有已儲存的 deep-research 檔案;(c) 將結果渲染為 Markdown,每個結果提供 **📋 複製 / ⬇ 下載 .md / ↗ 在新分頁開啟** 操作。新 REST: `GET /api/interview-prep`、`GET /api/interview-prep/:name`、`DELETE /api/interview-prep/:name`。新增 7 個測試。
 - **`feat(cv): 在瀏覽器中產生 + 下載 PDF + PDF 存檔`** — CV 頁面新 **📄 產生 PDF** 按鈕在模態控制台中串流 `/api/stream/pdf`。`ERR_MODULE_NOT_FOUND` / `playwright` 錯誤時顯示可複製貼上的引導指令。「已產生的 PDF」部分在每次成功後自動載入,列出所有 `output/*.pdf` 及 **↗ 開啟** + **⬇ 下載** 按鈕。新 REST: `GET /api/output/pdfs`、`GET /api/output/pdfs/:name`。新增 6 個測試。
@@ -44,7 +47,9 @@
 
 ### ⚙️ DevOps
 
-- **測試數:** 73 → **177**(+104 個測試,14 個新檔案)。
+- **測試數:** 73 → **209**(+136 個測試,24 個檔案)。Coverage: 93.5% 行 / 82.6% 分支。
+- **綜合 Playwright e2e**(`tests/e2e-comprehensive.mjs`,23 步)。
+- **GitHub Actions:** `ci.yml`、`ai-review.yml`(Claude Code 審查每個 PR)、`release.yml`。
 - **CSP 友善 UI:** 移除所有內聯 `onclick`。
 
 ### 📦 新 REST 端點

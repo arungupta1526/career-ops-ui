@@ -8,7 +8,7 @@
 
 ## [1.7.0] — 2026-05-03
 
-v1.6.0 QA レポートに基づく 21 コミットの hardening + UX パス。3 つのセキュリティレイヤー (XSS サニタイズ、CSP、入力検証) が実装され、欠けていた CRUD エンドポイント (DELETE jds、POST tracker) が補完され、UI に **Activity** とブラウザで動作するようリデザインされた **Deep Research** の 2 つの新ページが追加されました。テストカバレッジは **73** から **177** に増加し、**14 個の新テストファイル** を追加しました。
+QA r5 に基づく 28 コミットのハードニング + UX + 機能完成パス。3 つのセキュリティレイヤーが着地し、欠けていた CRUD エンドポイントが全て埋められ、親プロジェクトのブートストラップが完全自動化、UI に **9 つの新ページ** — Activity、リデザインされた Deep Research、そして 7 つのサイドバーグループモード (project / training / followup / batch / outreach / interview-prep / patterns) が追加され親の `modes/` を 100% カバー。テストカバレッジは **73** から **209** に増加、**24 個のテストファイル** + **23 ステップの包括的 Playwright e2e**。Coverage: **93.5 % 行 / 82.6 % ブランチ**。
 
 ### 🔒 セキュリティ
 
@@ -20,6 +20,9 @@ v1.6.0 QA レポートに基づく 21 コミットの hardening + UX パス。3 
 
 ### ✨ 新機能
 
+- **`feat: 7 つの新サイドバーモード + グループサイドバー` (FIX-C8)** — 親 `modes/` を 100% カバー。新ルート: `#/project`, `#/training`, `#/followup`, `#/batch`, `#/contacto`, `#/interview-prep`, `#/patterns`。単一 view ファクトリ + 汎用エンドポイント `POST /api/mode/:slug`。サイドバーを 6 グループに分割。合計 18 項目。新テスト 12 個。
+- **`fix: 親 deps + russian_portals デフォルトのブートストラップ` (FIX-C4 + C9 + C12 + H2)** — `bin/start.sh` が新規クローンで親の `node_modules` + Playwright Chromium を自動インストール。`createApp()` が `russian_portals:` ブロックがなければ追加。冪等。新テスト 3 個。
+- **`fix: 9 つの死んだポータルスラッグを無効化` (FIX-C3)** — 9 スラッグを `enabled: false` に。新 `scripts/portals-health-check.mjs`。新テスト 3 個。
 - **`feat(activity): ユーザーアクションログ + Activity サイドバーページ`** — 状態を変更する API リクエストはすべて `data/activity.jsonl` に記録されます。サイドバーに新項目 **アクティビティ** — アクション prefix チップフィルタ、✓/✗ バッジ、リフレッシュボタン。5 MB で自動ローテーション。新テスト 10 個。
 - **`feat(deep): ブラウザで Deep Research を表示 + 保存結果のアーカイブ`** — Deep Research ページは今や (a) `{ run: true }` と `GEMINI_API_KEY` が設定されている場合 Gemini でライブ実行し、`interview-prep/{slug}.md` に永続化; (b) 保存されたすべての deep-research ファイルを相対タイムスタンプ付きカードでリスト表示; (c) 結果を Markdown としてレンダリングし、各結果に **📋 コピー / ⬇ .md をダウンロード / ↗ 新しいタブで開く** アクションを提供。新 REST: `GET /api/interview-prep`、`GET /api/interview-prep/:name`、`DELETE /api/interview-prep/:name`。新テスト 7 個。
 - **`feat(cv): ブラウザで PDF 生成 + ダウンロード + PDF アーカイブ`** — CV ページの新 **📄 PDF を生成** ボタンが `/api/stream/pdf` をモーダルコンソールでストリームします。`ERR_MODULE_NOT_FOUND` / `playwright` エラー時にコピペ可能なブートストラップコマンドを表示します。「生成された PDF」セクションは成功後に自動ロードされ、すべての `output/*.pdf` を **↗ 開く** + **⬇ ダウンロード** ボタンと共に表示します。新 REST: `GET /api/output/pdfs`、`GET /api/output/pdfs/:name`。新テスト 6 個。
@@ -44,7 +47,9 @@ v1.6.0 QA レポートに基づく 21 コミットの hardening + UX パス。3 
 
 ### ⚙️ DevOps
 
-- **テスト:** 73 → **177** (+104 テスト、14 個の新ファイル)。
+- **テスト:** 73 → **209** (+136 テスト、24 ファイル)。Coverage: 93.5% 行 / 82.6% ブランチ。
+- **包括的 Playwright e2e** (`tests/e2e-comprehensive.mjs`、23 ステップ)。
+- **GitHub Actions:** `ci.yml`、`ai-review.yml` (Claude Code が全 PR レビュー)、`release.yml`。
 - **CSP 互換 UI:** すべてのインライン `onclick` を削除。
 
 ### 📦 新 REST エンドポイント
