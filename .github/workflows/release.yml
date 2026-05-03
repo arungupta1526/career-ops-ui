@@ -1,0 +1,63 @@
+name: Release
+
+# Creates a GitHub Release whenever a tag matching `v*.*.*` is pushed.
+# Manual trigger:
+#   git tag v1.7.0
+#   git push origin v1.7.0
+#
+# The release notes are pulled directly from CHANGELOG.md so all 8
+# language variants stay the canonical source of truth.
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v1.7.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract release notes from CHANGELOG.md
+        id: notes
+        run: |
+          tag="${GITHUB_REF_NAME:-${{ inputs.tag }}}"
+          version="${tag#v}"
+          # Slice between "## [VERSION]" and the next "## ["
+          awk -v v="$version" '
+            $0 ~ "^## \\["v"\\]" {flag=1; print; next}
+            flag && /^## \[/ {exit}
+            flag {print}
+          ' CHANGELOG.md > .release-notes.md
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Verify package.json version matches tag
+        run: |
+          pkg=$(node -p "require('./package.json').version")
+          if [ "$pkg" != "${{ steps.notes.outputs.version }}" ]; then
+            echo "package.json says $pkg, tag says ${{ steps.notes.outputs.version }}"
+            exit 1
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ steps.notes.outputs.tag }}
+          tag_name: ${{ steps.notes.outputs.tag }}
+          body_path: .release-notes.md
+          draft: false
+          prerelease: ${{ contains(steps.notes.outputs.tag, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

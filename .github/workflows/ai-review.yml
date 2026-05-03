@@ -1,0 +1,73 @@
+name: AI Review (Claude Code)
+
+# Runs Claude Code on every pull request to leave a structured review
+# comment. Maintainers retain merge authority — Claude only suggests.
+#
+# Required repo secrets:
+#   ANTHROPIC_API_KEY   # console.anthropic.com → API keys
+#
+# Required permissions:
+#   contents: read           — checkout the diff
+#   pull-requests: write     — post the review comment
+#   issues: write            — fall-back comment surface
+#
+# How it triggers:
+#   - Any PR opened, synchronized, or reopened against main.
+#   - Re-runs on every push to the PR branch (so the review tracks the
+#     latest commits).
+#   - Comments are written as the github-actions[bot] user; maintainers
+#     and contributors can keep replying inline.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: ai-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Claude Code review
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-ai-review') }}
+    steps:
+      - name: Check out PR head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Run Claude Code review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Stay focused — Claude reviews ONLY this PR's diff against main.
+          # Custom prompt keeps comments terse, line-anchored, and avoids
+          # restating the whole PR description.
+          direct_prompt: |
+            You are reviewing this pull request against career-ops-ui's
+            engineering bar. Look for:
+
+              1. Security: XSS / prompt-injection / sanitizer regressions,
+                 CSP violations (no new inline onclick), validator gaps.
+              2. i18n: every new user-facing string must go through
+                 I18n.t() AND have entries in all 8 locales (en, es,
+                 pt-BR, ko, ja, ru, zh-CN, zh-TW). Missing locale = block.
+              3. Tests: every fix or feature needs at least one test.
+                 The Acceptance section in the PR body should match
+                 what's in tests/.
+              4. Parent-project boundary: edits to files outside web-ui/
+                 require explicit approval — call them out.
+              5. Commit style: must follow conventional-commits with
+                 FIX-N reference if it closes a numbered defect.
+
+            Be terse. Quote line numbers. Skip nitpicks. If everything
+            looks fine, say so in one sentence. Do not summarise the PR
+            description back to the author.
