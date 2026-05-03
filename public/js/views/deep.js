@@ -110,6 +110,20 @@ Router.register('deep', async () => {
           navigator.clipboard.writeText(prompt);
           UI.toast(t('eval.copied', 'Copied'), 'success');
         }}, '📋 ' + t('eval.copy', 'Copy prompt')),
+        // Re-submits the same form with run:true so users who hit
+        // "Generate prompt" first can still get the LLM result inline
+        // without retyping. Surfaces a clear error toast when no API
+        // key is set.
+        c('button', {
+          className: 'btn btn-ghost',
+          onClick: async (e) => {
+            if (!liveAvailable) {
+              UI.toast(t('deep.needKey', 'Set ANTHROPIC_API_KEY or GEMINI_API_KEY in .env first'), 'error');
+              return;
+            }
+            await runLive(e.currentTarget);
+          },
+        }, '⚡ ' + t('deep.showResult', 'Show result')),
       ]),
     ]));
   }

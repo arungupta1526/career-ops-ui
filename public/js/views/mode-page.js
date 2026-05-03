@@ -198,6 +198,19 @@
               UI.toast(t('eval.copied', 'Copied'), 'success');
             },
           }, '📋 ' + t('eval.copy', 'Copy prompt')),
+          // Re-submits with run:true so the user can hit it after
+          // "Generate prompt" without retyping. Errors out cleanly
+          // when no API key is wired up.
+          c('button', {
+            className: 'btn btn-ghost',
+            onClick: async (e) => {
+              if (!liveAvailable) {
+                UI.toast(t('deep.needKey', 'Set ANTHROPIC_API_KEY or GEMINI_API_KEY in .env first'), 'error');
+                return;
+              }
+              await submit(e.currentTarget, true);
+            },
+          }, '⚡ ' + t('deep.showResult', 'Show result')),
         ]),
       ]));
     }

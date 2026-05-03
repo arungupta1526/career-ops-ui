@@ -14,8 +14,9 @@
  */
 import express from 'express';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs';
+import { resolve } from 'node:path';
 import yaml from 'js-yaml';
-import { PATHS, PROJECT_ROOT, PUBLIC_DIR, path as projPath } from './lib/paths.mjs';
+import { PATHS, PROJECT_ROOT, PUBLIC_DIR, WEB_UI_ROOT, path as projPath } from './lib/paths.mjs';
 import {
   parseApplications,
   parsePipeline,
@@ -131,6 +132,24 @@ export function createApp() {
   app.use(activityMiddleware);
 
   app.use(express.static(PUBLIC_DIR));
+
+  // ───────────────────────────── Help ─────────────────────────────
+  // Serves the Markdown user guide. Lives in web-ui/docs/help/{lang}.md.
+  // Falls back to the English file if the requested locale is missing.
+
+  app.get('/api/help/:lang', (req, res) => {
+    const safeLang = req.params.lang.replace(/[^a-zA-Z0-9_-]/g, '');
+    const helpDir = resolve(WEB_UI_ROOT, 'docs', 'help');
+    const candidates = [`${safeLang}.md`, 'en.md'];
+    for (const fname of candidates) {
+      const full = resolve(helpDir, fname);
+      if (existsSync(full)) {
+        res.json({ lang: fname.replace(/\.md$/, ''), markdown: readFileSync(full, 'utf8') });
+        return;
+      }
+    }
+    res.status(404).json({ error: 'help docs not found' });
+  });
 
   // ───────────────────────────── Activity log ─────────────────────────────
 

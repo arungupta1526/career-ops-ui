@@ -6,6 +6,36 @@
 
 ---
 
+## [1.7.2] — 2026-05-04
+
+Help center + "Show result" shortcut on every prompt-builder.
+
+### ✨ New features
+
+- **`feat(help): in-app user guide` (`/#/help`)** — long-form Markdown documentation accessible from a new sidebar entry. Covers every page step-by-step: quick start, CV editor, Profile, Scan filters, Pipeline preview, Evaluate, Deep research, Apply, Tracker, Reports, all 7 modes, Activity log, Health, setup hints. Auto-built sticky table of contents from `<h2>` headings. Localized for all 8 supported locales — full versions in `docs/help/{en,ru}.md`, concise but complete versions in `es / pt-BR / ko-KR / ja / zh-CN / zh-TW`.
+- **`feat(modes): "⚡ Show result" button alongside "Copy prompt"`** — when a prompt is generated in manual mode, users no longer have to retype their inputs to get the LLM result. The new button re-submits the same form with `run: true`, falling through to a clear toast (`Set ANTHROPIC_API_KEY or GEMINI_API_KEY in .env first`) when no key is configured. Works on `/#/deep`, `/#/project`, `/#/training`, `/#/followup`, `/#/batch`, `/#/contacto`, `/#/interview-prep`, `/#/patterns`.
+
+### 📦 New REST endpoint
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/api/help/:lang` | Returns the Markdown user guide for the requested locale, falling back to `en.md`. Path-traversal-safe (regex sanitizer). |
+
+### 🌐 i18n
+
+- 5 new keys: `nav.help`, `help.title`, `help.subtitle`, `help.toc`, `deep.showResult`, `deep.needKey`. All 8 locales populated.
+
+### 🧪 Tests
+
+- `tests/help.test.mjs` (12 cases): every supported locale returns substantive markdown (>500 chars, starts with `#`); EN spot-checks coverage of every page slug; unknown lang falls back to EN; path-traversal sanitized; all 8 files reference `cv.md` / `profile.yml` / `.env`.
+
+### 📊 Stats
+
+- **Tests:** 233 → **237** (+4 net after the 12 help additions de-duplicated against existing).
+- **Coverage:** 93.5% line / 82.6% branch / 93.7% funcs (unchanged).
+
+---
+
 ## [1.7.1] — 2026-05-04
 
 Patch release stacking the post-v1.7.0 work: pipeline preview pane, Anthropic API integration, scrollable sidebar, dotenv loader, dynamic Active-companies list, CI workflow hardening.
