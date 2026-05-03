@@ -27,7 +27,7 @@
 
 ## 4. Scan (`#/scan`)
 
-求人サイトクローラー。**🌐 Scan all** = EN + RU;**🌍 EN scan** = Greenhouse/Ashby/Lever;**🇷🇺 RU scan** = hh.ru + Habr Career (`HH_USER_AGENT` 必要)。テキスト、リモート/ハイブリッド/移住、ソース、技術/レベルチップフィルタ。
+求人サイトクローラー。**🌐 Scan** runs everything (`HH_USER_AGENT` 必要)。テキスト、リモート/ハイブリッド/移住、ソース、技術/レベルチップフィルタ。
 
 ## 5. Pipeline (`#/pipeline`)
 

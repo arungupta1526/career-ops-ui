@@ -27,7 +27,7 @@
 
 ## 4. Scan (`#/scan`)
 
-채용 사이트 크롤러. **🌐 Scan all** = EN + RU; **🌍 EN scan** = Greenhouse/Ashby/Lever; **🇷🇺 RU scan** = hh.ru + Habr Career (`HH_USER_AGENT` 필요). 텍스트, 원격/하이브리드/이주, 소스, 기술/레벨 chip 필터.
+채용 사이트 크롤러. **🌐 Scan** runs everything (`HH_USER_AGENT` 필요). 텍스트, 원격/하이브리드/이주, 소스, 기술/레벨 chip 필터.
 
 ## 5. Pipeline (`#/pipeline`)
 

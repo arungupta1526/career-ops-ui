@@ -41,10 +41,7 @@ Shows `config/profile.yml` parsed and rendered. Edit the file directly on disk; 
 
 Crawls every enabled job board, deduplicates against `data/scan-history.tsv`, and writes hits into `data/last-scan.json`.
 
-**Buttons:**
-- **🌐 Scan all** — runs EN + RU scanners back-to-back.
-- **🌍 EN scan** — Greenhouse / Ashby / Lever only.
-- **🇷🇺 RU scan** — hh.ru + Habr Career. Note: hh.ru returns 403 from non-RU IPs — set `HH_USER_AGENT` in `.env`.
+**Button:** **🌐 Scan** — runs every enabled source in one go (Greenhouse / Ashby / Lever for EN, hh.ru + Habr Career for RU). Note: hh.ru returns 403 from non-RU IPs without a real-browser User-Agent — set `HH_USER_AGENT` in `.env` (or via the App settings page).
 
 **Filters** (results table): text, remote/hybrid/relocation, source (Greenhouse / Ashby / Lever / hh.ru / Habr), plus chip filters by detected tech / level. Click a chip to narrow; click "сбросить" / "clear" to reset.
 

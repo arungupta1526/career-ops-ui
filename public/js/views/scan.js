@@ -336,9 +336,16 @@ Router.register('scan', async () => {
         c('label', { className: 'flex', style: { gap: '8px', userSelect: 'none' } }, [
           dryRun, c('span', null, t('scan.dryRun')),
         ]),
-        c('button', { className: 'btn btn-primary', onClick: runScanAll, title: 'Greenhouse + Ashby + Lever + hh.ru + Habr Career' }, '🌐 ' + t('scan.btnAll', 'Scan all')),
-        c('button', { className: 'btn btn-ghost', onClick: runEnScan, title: 'Greenhouse / Ashby / Lever only' }, t('scan.btnEn')),
-        c('button', { className: 'btn btn-ghost', onClick: runRuScan, title: 'hh.ru + Habr Career only' }, t('scan.btnRu')),
+        // Single "Scan" button — runs every enabled source (EN APIs +
+        // RU portals) in one go. The earlier separate EN-scan / RU-scan
+        // buttons were noisy; users almost always want everything.
+        // Title attribute lists what it actually crawls so the
+        // expectation is set on hover.
+        c('button', {
+          className: 'btn btn-primary scan-run-btn',
+          onClick: runScanAll,
+          title: 'Greenhouse + Ashby + Lever + hh.ru + Habr Career',
+        }, '🌐 ' + t('scan.btnRun', 'Scan')),
         c('button', { className: 'btn btn-ghost', onClick: () => Router.go('/pipeline') }, t('scan.btnPipe')),
       ]),
     ]),

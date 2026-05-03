@@ -27,7 +27,7 @@ Muestra `config/profile.yml` parseado. Edítalo en disco; recarga toma cambios. 
 
 ## 4. Scan (`#/scan`)
 
-Crawler de portales. **🌐 Scan all** = EN + RU; **🌍 EN scan** = Greenhouse/Ashby/Lever; **🇷🇺 RU scan** = hh.ru + Habr Career (necesita `HH_USER_AGENT`). Filtros por texto, remoto/híbrido/relocación, fuente, chips de tech/nivel.
+Crawler de portales. **🌐 Scan** runs everything (necesita `HH_USER_AGENT`). Filtros por texto, remoto/híbrido/relocación, fuente, chips de tech/nivel.
 
 ## 5. Pipeline (`#/pipeline`)
 

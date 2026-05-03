@@ -41,10 +41,7 @@
 
 Обходит все включённые job boards, дедуплицирует против `data/scan-history.tsv`, пишет hits в `data/last-scan.json`.
 
-**Кнопки:**
-- **🌐 Scan all** — запускает EN + RU сканеры подряд.
-- **🌍 EN scan** — только Greenhouse / Ashby / Lever.
-- **🇷🇺 RU scan** — hh.ru + Habr Career. Замечание: hh.ru возвращает 403 с не-российских IP — задай `HH_USER_AGENT` в `.env`.
+**Кнопка:** **🌐 Scan** — запускает все включённые источники одной кнопкой (Greenhouse / Ashby / Lever для EN, hh.ru + Habr Career для RU). Замечание: hh.ru возвращает 403 с не-российских IP — задай `HH_USER_AGENT` в `.env` (или через страницу App settings).
 
 **Фильтры** (таблица результатов): текст, remote/hybrid/relocation, источник (Greenhouse / Ashby / Lever / hh.ru / Habr), плюс chip-фильтры по найденному стеку / уровню. Клик по chip — сужает; "сбросить" — снимает.
 

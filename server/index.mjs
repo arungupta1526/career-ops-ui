@@ -14,7 +14,7 @@
  */
 import express from 'express';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { resolve, dirname } from 'node:path';
 import yaml from 'js-yaml';
 import { PATHS, PROJECT_ROOT, PUBLIC_DIR, WEB_UI_ROOT, path as projPath } from './lib/paths.mjs';
 import {
@@ -32,6 +32,7 @@ import { runEnScan, loadLastScan } from './lib/en-scanner.mjs';
 import { activityMiddleware, readActivity, logActivity } from './lib/activity-log.mjs';
 import { loadEnvFile } from './lib/dotenv.mjs';
 import { runAnthropic, hasAnthropicKey } from './lib/anthropic.mjs';
+import { KNOWN_KEYS, SECRET_KEYS, parseEnv, maskSecret, validateConfig, updateEnvFile } from './lib/env-config.mjs';
 
 // Load parent's .env (HH_USER_AGENT, GEMINI_API_KEY, …) BEFORE createApp
 // runs so health checks and scanner config see the real values.
@@ -132,6 +133,52 @@ export function createApp() {
   app.use(activityMiddleware);
 
   app.use(express.static(PUBLIC_DIR));
+
+  // ───────────────────────────── App config (parent .env) ─────────────────────────────
+  // These two endpoints back the /#/config page. Writes go to the
+  // parent project's .env so career-ops scripts AND web-ui pick the
+  // values up the next time they read process.env.
+
+  app.get('/api/config', (_req, res) => {
+    let parsed = {};
+    if (existsSync(PATHS.envFile)) {
+      try { parsed = parseEnv(readFileSync(PATHS.envFile, 'utf8')); } catch {}
+    }
+    const out = {};
+    for (const k of KNOWN_KEYS) {
+      const live = process.env[k];
+      // Prefer the on-disk value (what the user just saved); fall back
+      // to whatever's currently in process.env (set via shell).
+      const v = parsed[k] !== undefined ? parsed[k] : live;
+      out[k] = SECRET_KEYS.has(k) ? maskSecret(v) : (v || '');
+    }
+    res.json({ envFile: PATHS.envFile, keys: KNOWN_KEYS, secretKeys: [...SECRET_KEYS], values: out });
+  });
+
+  app.post('/api/config', (req, res) => {
+    const body = req.body || {};
+    const v = validateConfig(body);
+    if (!v.ok) return res.status(400).json({ error: 'validation failed', details: v.errors });
+    // Filter to known keys only — never write attacker-supplied env vars.
+    const safe = {};
+    for (const k of KNOWN_KEYS) {
+      if (Object.prototype.hasOwnProperty.call(body, k)) safe[k] = body[k];
+    }
+    try {
+      mkdirSync(dirname(PATHS.envFile), { recursive: true });
+    } catch {}
+    const written = updateEnvFile(PATHS.envFile, safe);
+    // Apply to the running process so the change takes effect immediately
+    // (no restart needed). Iterate the SAFE map (not just written) so
+    // empty-string requests delete the corresponding process.env var
+    // even though updateEnvFile reports them as "deleted" rather than
+    // "written".
+    for (const [k, v] of Object.entries(safe)) {
+      if (v === '' || v == null) delete process.env[k];
+      else process.env[k] = v;
+    }
+    res.json({ ok: true, written });
+  });
 
   // ───────────────────────────── Help ─────────────────────────────
   // Serves the Markdown user guide. Lives in web-ui/docs/help/{lang}.md.

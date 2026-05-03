@@ -27,7 +27,7 @@
 
 ## 4. Scan (`#/scan`)
 
-招聘网站爬虫。**🌐 Scan all** = EN + RU;**🌍 EN scan** = Greenhouse/Ashby/Lever;**🇷🇺 RU scan** = hh.ru + Habr Career (需要 `HH_USER_AGENT`)。按文本、远程/混合/搬迁、来源、技术/级别 chip 过滤。
+招聘网站爬虫。**🌐 Scan** runs everything (需要 `HH_USER_AGENT`)。按文本、远程/混合/搬迁、来源、技术/级别 chip 过滤。
 
 ## 5. Pipeline (`#/pipeline`)
 
