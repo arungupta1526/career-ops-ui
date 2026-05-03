@@ -474,7 +474,13 @@ async function run() {
   }
   console.log(`  screenshots: ${SHOTS_DIR}`);
   console.log('');
-  process.exit(failed === 0 && pageErrors.length === 0 ? 0 : 1);
+  // Filter out the deliberate "kill the server, watch the banner" errors
+  // from Flow 2a — those Network errors are EXPECTED and don't indicate
+  // a regression. Anything else gets us a non-zero exit.
+  const realPageErrors = pageErrors.filter(
+    (e) => !/Network error|Failed to fetch|connection lost/i.test(e)
+  );
+  process.exit(failed === 0 && realPageErrors.length === 0 ? 0 : 1);
 }
 
 run().catch((err) => {
