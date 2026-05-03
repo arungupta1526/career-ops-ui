@@ -530,6 +530,27 @@ export function createApp() {
     res.json({ mode: 'gemini', saved, ...result });
   });
 
+  // Smoke-test endpoint — verify GEMINI_API_KEY is wired up without
+  // burning a real evaluation. Only runs when the key is set; returns
+  // a small sample of the model's response so the user knows it works.
+  app.post('/api/evaluate/test-gemini', async (_req, res) => {
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(400).json({ ok: false, error: 'GEMINI_API_KEY not set' });
+    }
+    const tmp = projPath('output', `gemini-smoke-${Date.now()}.txt`);
+    mkdirSync(PATHS.outputDir, { recursive: true });
+    // 50-char minimum from /api/evaluate also applies to gemini-eval.mjs
+    writeFileSync(tmp, 'Smoke test: Senior Backend Engineer with PHP and Go responsibilities, including microservice ownership and code review duties.');
+    try {
+      const result = await runNodeScript('gemini-eval.mjs', ['--file', tmp], { timeoutMs: 30_000 });
+      const sample = (result.stdout || '').slice(0, 200);
+      const ok = result.code === 0 && sample.length > 0;
+      res.json({ ok, code: result.code, sampleLength: (result.stdout || '').length, sample });
+    } catch (e) {
+      res.status(500).json({ ok: false, error: e.message });
+    }
+  });
+
   app.post('/api/deep', async (req, res) => {
     const { company, role, run } = req.body || {};
     if (!company) return res.status(400).json({ error: 'company required' });
