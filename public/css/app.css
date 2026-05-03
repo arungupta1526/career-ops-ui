@@ -75,7 +75,20 @@ input, textarea, select {
   flex-direction: column;
   gap: var(--space-5);
   z-index: 10;
+  /* Allow vertical scroll when content (18 nav items + 6 group headers
+     + footer) is taller than the viewport. The footer stays at the
+     bottom on tall windows because the inner column is min-h-full. */
+  overflow-y: auto;
+  overflow-x: hidden;
 }
+/* Hint scrollbar when needed but stay quiet on Macs that hide it. */
+.sidebar::-webkit-scrollbar { width: 8px; }
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--slate);
+  border-radius: 4px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover { background: var(--foggy); }
+.sidebar { scrollbar-width: thin; scrollbar-color: var(--slate) transparent; }
 
 .logo {
   display: flex;
