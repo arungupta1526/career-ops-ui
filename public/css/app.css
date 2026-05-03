@@ -90,6 +90,47 @@ input, textarea, select {
 .sidebar::-webkit-scrollbar-thumb:hover { background: var(--foggy); }
 .sidebar { scrollbar-width: thin; scrollbar-color: var(--slate) transparent; }
 
+/* Hamburger button — visible only on small screens */
+.sidebar-toggle {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--slate);
+  border-radius: var(--radius);
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--hof);
+  flex-shrink: 0;
+}
+.sidebar-toggle:active { transform: scale(.95); }
+
+/* Dim everything-but-sidebar when open on mobile */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.4);
+  z-index: 9;
+}
+body.sidebar-open .sidebar-backdrop { display: block; }
+
+/* Mobile breakpoint — anything narrower than a typical iPad portrait. */
+@media (max-width: 900px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    box-shadow: 0 0 24px rgba(0,0,0,.18);
+  }
+  body.sidebar-open .sidebar {
+    transform: translateX(0);
+  }
+  .sidebar-toggle { display: inline-flex; align-items: center; justify-content: center; }
+  .main { margin-left: 0 !important; padding-left: 12px; padding-right: 12px; }
+  .topbar { gap: 8px; }
+}
+
 .logo {
   display: flex;
   align-items: center;

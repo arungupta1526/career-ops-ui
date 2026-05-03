@@ -116,4 +116,20 @@ I18n.onChange(() => {
   document.getElementById('modal').addEventListener('click', (e) => {
     if (e.target.dataset.close !== undefined) UI.closeModal();
   });
+
+  // ── mobile sidebar drawer ──
+  // Hamburger button toggles `body.sidebar-open`; CSS rules in
+  // app.css (media query <900 px) translate the sidebar in/out.
+  // Backdrop and any nav-item click also close it so the user lands
+  // on the new page with the sidebar tucked away.
+  const toggle = document.getElementById('sidebar-toggle');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  function closeSidebar() { document.body.classList.remove('sidebar-open'); }
+  function openSidebar()  { document.body.classList.add('sidebar-open'); }
+  if (toggle) toggle.addEventListener('click', () =>
+    document.body.classList.toggle('sidebar-open'));
+  if (backdrop) backdrop.addEventListener('click', closeSidebar);
+  document.querySelectorAll('.sidebar a').forEach((a) =>
+    a.addEventListener('click', closeSidebar));
+  window.addEventListener('hashchange', closeSidebar);
 })();

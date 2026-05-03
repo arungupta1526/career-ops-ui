@@ -75,6 +75,16 @@ test('GET /api/health → 200 with checks[]', async () => {
   assert.ok(body.checks.every((c) => typeof c.required === 'boolean'));
 });
 
+test('GET /api/health: version comes from web-ui package.json (not parent VERSION)', async () => {
+  // Footer shows "v" + body.version — must match what users installed,
+  // i.e. web-ui's own package.json. The parent's VERSION file (if any)
+  // is exposed separately as parentVersion.
+  const { body } = await get('/api/health');
+  assert.match(body.version, /^\d+\.\d+\.\d+/, `expected SemVer-ish, got "${body.version}"`);
+  // 1.6.0 was the parent's stale VERSION; we should not display that.
+  assert.notEqual(body.version, '1.6.0', 'web-ui version is being read from parent VERSION');
+});
+
 test('GET /api/health: ok=true even when only optional checks fail', async () => {
   const prevKey = process.env.GEMINI_API_KEY;
   delete process.env.GEMINI_API_KEY;

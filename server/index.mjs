@@ -214,14 +214,22 @@ export function createApp() {
       checks.push({ name: label, required: false, ok: existsSync(dir), value: hidden ?? (existsSync(dir) ? 'exists' : 'will be auto-created on first write') });
     }
 
+    // The footer shows the WEB-UI version (this repo's package.json),
+    // not the parent project's VERSION file — those drift independently
+    // and the footer is about "what UI am I running?".
     let version = '?';
+    let parentVersion = null;
     try {
-      version = readFileSync(PATHS.version, 'utf8').trim();
+      const pkg = JSON.parse(readFileSync(resolve(WEB_UI_ROOT, 'package.json'), 'utf8'));
+      version = pkg.version || '?';
+    } catch {}
+    try {
+      parentVersion = readFileSync(PATHS.version, 'utf8').trim();
     } catch {}
     // ok = all REQUIRED checks pass. Optional misses are warnings only.
     const ok = checks.filter((c) => c.required).every((c) => c.ok);
     const warnings = checks.filter((c) => !c.required && !c.ok).length;
-    res.json({ ok, warnings, version, checks });
+    res.json({ ok, warnings, version, parentVersion, checks });
   });
 
   app.get('/api/dashboard', (_req, res) => {
