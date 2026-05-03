@@ -322,14 +322,38 @@ Router.register('scan', async () => {
       ]),
     ]),
 
-    hhUaSet ? null : c('div', {
-      className: 'card mb-3',
-      style: { background: '#fff8e6', borderColor: '#f0c674', color: '#8a6300' },
-    }, [
-      c('strong', null, '⚠ HH_USER_AGENT'),
-      c('p', { style: { margin: '6px 0 0', fontSize: '14px' } },
-        t('scan.hhWarning', 'hh.ru returns 403 from non-RU IPs without a real-browser User-Agent. Set HH_USER_AGENT in .env to enable. Habr Career still works either way.')),
-    ]),
+    (() => {
+      // FIX-H1 banner: shows once when HH_USER_AGENT is unset, dismissible
+      // forever via the ✕ button (persisted in localStorage). Users on RU
+      // IPs don't need this and can hide it; users who actually hit a 403
+      // can re-show it by clearing the flag in DevTools.
+      if (hhUaSet) return null;
+      let dismissed = false;
+      try { dismissed = localStorage.getItem('careerOpsHhUaWarningDismissed') === '1'; } catch {}
+      if (dismissed) return null;
+      const banner = c('div', {
+        className: 'card mb-3',
+        style: { background: '#fff8e6', borderColor: '#f0c674', color: '#8a6300', position: 'relative' },
+      }, [
+        c('button', {
+          'aria-label': t('common.close', 'Close'),
+          title: t('common.close', 'Close'),
+          style: {
+            position: 'absolute', top: '8px', right: '12px',
+            background: 'transparent', border: 0, cursor: 'pointer',
+            fontSize: '20px', lineHeight: 1, color: '#8a6300',
+          },
+          onClick: () => {
+            try { localStorage.setItem('careerOpsHhUaWarningDismissed', '1'); } catch {}
+            banner.remove();
+          },
+        }, '×'),
+        c('strong', null, 'ℹ HH_USER_AGENT'),
+        c('p', { style: { margin: '6px 0 0', fontSize: '14px', paddingRight: '24px' } },
+          t('scan.hhWarning', 'hh.ru returns 403 from non-RU IPs without a real-browser User-Agent. Set HH_USER_AGENT in .env to enable. Habr Career still works either way.')),
+      ]);
+      return banner;
+    })(),
 
     c('div', { className: 'card mb-3' }, [
       c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap', alignItems: 'flex-end' } }, [
