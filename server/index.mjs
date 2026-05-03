@@ -472,13 +472,71 @@ export function createApp() {
     res.json({ mode: 'gemini', saved, ...result });
   });
 
-  app.post('/api/deep', (req, res) => {
-    const { company, role } = req.body || {};
+  app.post('/api/deep', async (req, res) => {
+    const { company, role, run } = req.body || {};
     if (!company) return res.status(400).json({ error: 'company required' });
+    const prompt = buildDeepPrompt(company, role);
+
+    // When the client opts in via { run: true } AND Gemini is configured,
+    // execute the prompt server-side and return the rendered Markdown so
+    // the user sees real research output without leaving the browser.
+    // Gemini has no web-search tool, so the result is shallower than what
+    // Claude Code can produce, but it's directly viewable. We persist
+    // every successful run into interview-prep/ for future browsing.
+    if (run && process.env.GEMINI_API_KEY) {
+      const tmp = projPath('output', `web-deep-${Date.now()}.txt`);
+      mkdirSync(PATHS.outputDir, { recursive: true });
+      writeFileSync(tmp, prompt);
+      const result = await runNodeScript('gemini-eval.mjs', ['--file', tmp], { timeoutMs: 180_000 });
+      const markdown = (result.stdout || '').trim();
+      let saved = null;
+      if (markdown) {
+        const slug = `${slugify(company)}-${role ? slugify(role) : 'general'}.md`;
+        mkdirSync(PATHS.interviewPrepDir, { recursive: true });
+        writeFileSync(projPath('interview-prep', slug), markdown);
+        saved = slug;
+      }
+      return res.json({ mode: 'gemini', prompt, markdown, saved, code: result.code });
+    }
+
     res.json({
-      prompt: buildDeepPrompt(company, role),
-      message: 'Paste this into Claude Code for full deep research with WebFetch.',
+      mode: 'manual',
+      prompt,
+      message: process.env.GEMINI_API_KEY
+        ? 'Set { run: true } to execute via Gemini, or copy the prompt into Claude Code.'
+        : 'Paste this into Claude Code for full deep research with WebFetch.',
     });
+  });
+
+  // ───────────────────────── Interview-prep (deep research archive) ─────────────────────────
+
+  app.get('/api/interview-prep', (_req, res) => {
+    if (!existsSync(PATHS.interviewPrepDir)) return res.json({ files: [] });
+    const files = readdirSync(PATHS.interviewPrepDir)
+      .filter((f) => f.endsWith('.md'))
+      .map((f) => {
+        const stat = statSync(projPath('interview-prep', f));
+        return { name: f, size: stat.size, mtime: stat.mtime };
+      })
+      .sort((a, b) => new Date(b.mtime) - new Date(a.mtime));
+    res.json({ files });
+  });
+
+  app.get('/api/interview-prep/:name', (req, res) => {
+    const safe = req.params.name.replace(/[^\w\-.]/g, '');
+    if (!safe || !safe.endsWith('.md')) return res.status(400).json({ error: 'invalid name' });
+    const file = projPath('interview-prep', safe);
+    if (!existsSync(file)) return res.status(404).json({ error: 'not found' });
+    res.json({ name: safe, markdown: readFileSync(file, 'utf8') });
+  });
+
+  app.delete('/api/interview-prep/:name', (req, res) => {
+    const safe = req.params.name.replace(/[^\w\-.]/g, '');
+    if (!safe || !safe.endsWith('.md')) return res.status(400).json({ error: 'invalid name' });
+    const file = projPath('interview-prep', safe);
+    if (!existsSync(file)) return res.status(404).json({ error: 'not found' });
+    unlinkSync(file);
+    res.json({ ok: true, deleted: safe });
   });
 
   app.post('/api/apply-helper', (req, res) => {

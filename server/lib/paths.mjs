@@ -49,6 +49,7 @@ export const PATHS = {
   jdsDir: path('jds'),
   outputDir: path('output'),
   modesDir: path('modes'),
+  interviewPrepDir: path('interview-prep'),
   cv: path('cv.md'),
   profile: path('config', 'profile.yml'),
   portals: path('portals.yml'),
