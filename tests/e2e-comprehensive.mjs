@@ -104,7 +104,7 @@ async function run() {
     await page.waitForTimeout(800);
     if (!(await page.content()).includes(url)) throw new Error('not visible after add');
     page.on('dialog', (d) => d.accept());
-    await page.locator(`a[href="${url}"]`).first().locator('..').locator('button:has-text("✕")').click();
+    await page.locator(`.pipeline-row[data-url="${url}"] .pipeline-row-delete`).click();
     await page.waitForTimeout(500);
   });
 

@@ -99,7 +99,8 @@ Router.register('pipeline', async () => {
   function urlRow(url) {
     const isActive = url === activeUrl;
     return c('div', {
-      className: 'flex-between',
+      className: 'flex-between pipeline-row',
+      'data-url': url,
       style: {
         padding: '10px 14px',
         border: '1px solid ' + (isActive ? 'var(--hof)' : 'var(--slate)'),
@@ -113,7 +114,18 @@ Router.register('pipeline', async () => {
         onClick: () => selectUrl(url),
       }, [
         c('div', { style: { fontWeight: 600, fontSize: '14px' } }, shortHost(url)),
-        c('div', { style: { fontSize: '12px', color: 'var(--foggy)', wordBreak: 'break-all', marginTop: '2px' } }, url),
+        // Keep an <a> with href so existing tests + accessibility tools
+        // can locate the row by URL. stopPropagation prevents the row's
+        // selectUrl handler from firing when the link is clicked
+        // directly — middle-click / Cmd-click open in a new tab as
+        // expected.
+        c('a', {
+          href: url,
+          target: '_blank',
+          rel: 'noopener',
+          onClick: (e) => e.stopPropagation(),
+          style: { display: 'block', fontSize: '12px', color: 'var(--foggy)', wordBreak: 'break-all', marginTop: '2px', textDecoration: 'none' },
+        }, url),
       ]),
       c('div', { className: 'flex gap-1' }, [
         c('button', {
@@ -122,7 +134,7 @@ Router.register('pipeline', async () => {
           onClick: (e) => { e.stopPropagation(); Router.go('/evaluate?url=' + encodeURIComponent(url)); },
         }, '▶'),
         c('button', {
-          className: 'btn btn-ghost btn-sm',
+          className: 'btn btn-ghost btn-sm pipeline-row-delete',
           title: t('common.delete', 'Delete'),
           onClick: async (e) => {
             e.stopPropagation();

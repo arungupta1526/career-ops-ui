@@ -110,9 +110,9 @@ async function run() {
     if (!txt.includes(testUrl)) throw new Error('URL not visible after add');
     console.log('  ✓ url added & visible');
 
-    // cleanup
+    // cleanup — find the row by its data-url (stable across UI refactors)
     page.on('dialog', (d) => d.accept());
-    await page.locator(`a[href="${testUrl}"]`).first().locator('..').locator('button:has-text("✕")').click();
+    await page.locator(`.pipeline-row[data-url="${testUrl}"] .pipeline-row-delete`).click();
     await page.waitForTimeout(400);
     passed++;
   } catch (err) {
