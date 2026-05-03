@@ -29,6 +29,14 @@ Router.register('apply', async () => {
         c('p', { className: 'page-subtitle' }, t('apply.subtitle')),
       ]),
     ]),
+    c('div', {
+      className: 'card mb-3',
+      style: { background: '#eef5ff', borderColor: '#9bb6e0', color: '#1f3b6e' },
+    }, [
+      c('strong', null, 'ℹ ' + t('apply.bannerTitle', 'Checklist only')),
+      c('p', { style: { margin: '6px 0 0', fontSize: '14px' } },
+        t('apply.bannerBody', 'This page generates a checklist + paste-ready text. Real Playwright form-fill (with a final-confirm) lives in Claude Code: /career-ops apply <url>')),
+    ]),
     c('div', { className: 'card' }, [
       c('div', { className: 'field' }, [c('label', null, t('apply.urlLbl')), url]),
       c('div', { className: 'field' }, [c('label', null, t('apply.jdLbl')), jd]),
