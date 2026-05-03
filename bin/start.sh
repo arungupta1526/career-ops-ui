@@ -60,12 +60,36 @@ fi
 
 cd "$WEB_UI"
 
-# 2. install deps if missing
+# 2. install web-ui deps if missing
 if [ ! -d "node_modules" ]; then
-  echo "  installing dependencies (one-time)…"
+  echo "  installing web-ui dependencies (one-time)…"
   npm install --silent --no-audit --no-fund
   echo "  done."
   echo ""
+fi
+
+# 2b. install parent project deps if needed (FIX-C12)
+#     scan.mjs / generate-pdf.mjs / check-liveness.mjs all need
+#     parent's node_modules (js-yaml, playwright, jsdom, …).
+if [ -f "$PROJECT_ROOT/package.json" ] && [ ! -d "$PROJECT_ROOT/node_modules" ]; then
+  echo "  installing parent project dependencies (one-time)…"
+  ( cd "$PROJECT_ROOT" && npm install --silent --no-audit --no-fund )
+  echo "  done."
+  echo ""
+fi
+
+# 2c. install Playwright Chromium if missing (FIX-C4 / C9)
+#     Required for /api/stream/pdf and /api/stream/liveness streams.
+if [ -d "$PROJECT_ROOT/node_modules/playwright" ]; then
+  if ! ( cd "$PROJECT_ROOT" && npx --no-install playwright --version >/dev/null 2>&1 ); then
+    :  # playwright resolved but CLI not callable — skip silently
+  fi
+  if [ ! -d "$HOME/Library/Caches/ms-playwright" ] && [ ! -d "$HOME/.cache/ms-playwright" ]; then
+    echo "  installing Playwright Chromium (~150 MB, one-time)…"
+    ( cd "$PROJECT_ROOT" && npx playwright install chromium ) || \
+      echo "  warning: Playwright install failed — PDF + liveness streams will error until fixed"
+    echo ""
+  fi
 fi
 
 # 3. open browser when port responds
