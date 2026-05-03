@@ -7,10 +7,10 @@
  *   NODE_PATH=$CAREER_OPS_ROOT/node_modules \
  *     node web-ui/tests/e2e-comprehensive.mjs
  */
-import { createApp } from '../server/index.mjs';
 import { chromium } from 'playwright';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -21,6 +21,28 @@ let server;
 let baseUrl;
 
 async function bootServer() {
+  // Build a fixture project root so the e2e suite is self-contained —
+  // works on CI where the parent project isn't checked out and on
+  // dev machines without depending on the user's real cv.md.
+  const fixture = mkdtempSync(resolve(tmpdir(), 'e2e-comp-'));
+  mkdirSync(resolve(fixture, 'config'), { recursive: true });
+  mkdirSync(resolve(fixture, 'data'), { recursive: true });
+  mkdirSync(resolve(fixture, 'modes'), { recursive: true });
+  writeFileSync(resolve(fixture, 'cv.md'), '# Test CV\n\nE2E fixture content.\n');
+  writeFileSync(resolve(fixture, 'config', 'profile.yml'),
+    'candidate:\n  full_name: "E2E Tester"\n  email: e2e@example.com\n');
+  writeFileSync(resolve(fixture, 'portals.yml'), 'tracked_companies: []\n');
+  writeFileSync(resolve(fixture, 'data', 'applications.md'), '');
+  writeFileSync(resolve(fixture, 'data', 'pipeline.md'), '# pipeline\n');
+  // Templates for each mode the suite exercises.
+  const modes = ['oferta', 'project', 'training', 'followup', 'batch', 'contacto', 'interview-prep', 'patterns', 'deep'];
+  for (const m of modes) {
+    writeFileSync(resolve(fixture, 'modes', `${m}.md`),
+      `# ${m} mode\n\nRead cv.md and config/profile.yml.\nProduce a structured Markdown response with at least three sections.\n`);
+  }
+  process.env.CAREER_OPS_ROOT = fixture;
+  // Import AFTER setting env so paths.mjs picks it up.
+  const { createApp } = await import('../server/index.mjs');
   const app = createApp();
   await new Promise((res) => {
     server = app.listen(0, '127.0.0.1', () => {
@@ -28,7 +50,7 @@ async function bootServer() {
       res();
     });
   });
-  console.log(`▶ server: ${baseUrl}`);
+  console.log(`▶ server: ${baseUrl} · root: ${fixture}`);
 }
 
 async function shutdown() { return new Promise((r) => server.close(r)); }

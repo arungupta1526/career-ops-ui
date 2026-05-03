@@ -9,10 +9,10 @@
  *
  * Requires: playwright (already a dep of the parent project).
  */
-import { createApp } from '../server/index.mjs';
 import { chromium } from 'playwright';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -21,8 +21,27 @@ mkdirSync(SHOTS_DIR, { recursive: true });
 
 let server;
 let baseUrl;
+let createApp;
 
 async function bootServer() {
+  // Self-contained fixture root: the e2e suite has to work on CI
+  // where the parent project isn't checked out alongside web-ui.
+  const fixture = mkdtempSync(resolve(tmpdir(), 'e2e-smoke-'));
+  mkdirSync(resolve(fixture, 'config'), { recursive: true });
+  mkdirSync(resolve(fixture, 'data'), { recursive: true });
+  mkdirSync(resolve(fixture, 'modes'), { recursive: true });
+  writeFileSync(resolve(fixture, 'cv.md'), '# Test CV\n\nE2E fixture.\n');
+  writeFileSync(resolve(fixture, 'config', 'profile.yml'),
+    'candidate:\n  full_name: "E2E Tester"\n');
+  writeFileSync(resolve(fixture, 'portals.yml'), 'tracked_companies: []\n');
+  writeFileSync(resolve(fixture, 'data', 'applications.md'), '');
+  writeFileSync(resolve(fixture, 'data', 'pipeline.md'), '# pipeline\n');
+  for (const m of ['oferta', 'deep', 'apply']) {
+    writeFileSync(resolve(fixture, 'modes', `${m}.md`),
+      `# ${m} mode template — sufficient body length so /api/modes content tests pass.\n`);
+  }
+  process.env.CAREER_OPS_ROOT = fixture;
+  ({ createApp } = await import('../server/index.mjs'));
   const app = createApp();
   await new Promise((resolve) => {
     server = app.listen(0, '127.0.0.1', () => {
@@ -31,7 +50,7 @@ async function bootServer() {
       resolve();
     });
   });
-  console.log(`▶ server: ${baseUrl}`);
+  console.log(`▶ server: ${baseUrl} · root: ${fixture}`);
 }
 
 async function shutdownServer() {
