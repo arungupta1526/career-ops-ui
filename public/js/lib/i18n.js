@@ -33,6 +33,16 @@ window.I18n = (function () {
     'nav.cv':         { en: 'CV', es: 'CV', 'pt-BR': 'CV', ko: '이력서', ja: '履歴書', ru: 'CV', 'zh-CN': '简历', 'zh-TW': '履歷' },
     'nav.settings':   { en: 'Profile', es: 'Perfil', 'pt-BR': 'Perfil', ko: '프로필', ja: 'プロフィール', ru: 'Профиль', 'zh-CN': '个人资料', 'zh-TW': '個人資料' },
     'nav.health':     { en: 'Health', es: 'Estado', 'pt-BR': 'Saúde', ko: '상태', ja: 'ヘルス', ru: 'Health', 'zh-CN': '健康', 'zh-TW': '健康' },
+    'nav.activity':   { en: 'Activity', es: 'Actividad', 'pt-BR': 'Atividade', ko: '활동', ja: 'アクティビティ', ru: 'История', 'zh-CN': '活动', 'zh-TW': '活動' },
+    'activity.title': { en: 'Activity log', es: 'Registro de actividad', 'pt-BR': 'Registro de atividade', ko: '활동 로그', ja: 'アクティビティログ', ru: 'Журнал действий', 'zh-CN': '活动日志', 'zh-TW': '活動日誌' },
+    'activity.subtitle': { en: 'Every action you trigger through the UI — newest first.', es: 'Cada acción ejecutada desde la UI — más recientes primero.', 'pt-BR': 'Cada ação acionada pela UI — mais recentes primeiro.', ko: 'UI에서 실행한 모든 동작 — 최신순.', ja: 'UI から実行されたすべての操作 — 新着順。', ru: 'Каждое действие, выполненное через UI — новые сверху.', 'zh-CN': '通过 UI 触发的每个操作 — 最新优先。', 'zh-TW': '透過 UI 觸發的每個操作 — 最新優先。' },
+    'activity.filter.all': { en: 'All actions', es: 'Todas las acciones', 'pt-BR': 'Todas as ações', ko: '모든 동작', ja: 'すべての操作', ru: 'Все действия', 'zh-CN': '所有操作', 'zh-TW': '所有操作' },
+    'activity.col.time': { en: 'Time', es: 'Hora', 'pt-BR': 'Hora', ko: '시간', ja: '時刻', ru: 'Время', 'zh-CN': '时间', 'zh-TW': '時間' },
+    'activity.col.action': { en: 'Action', es: 'Acción', 'pt-BR': 'Ação', ko: '동작', ja: '操作', ru: 'Действие', 'zh-CN': '操作', 'zh-TW': '操作' },
+    'activity.col.target': { en: 'Target', es: 'Objetivo', 'pt-BR': 'Alvo', ko: '대상', ja: '対象', ru: 'Цель', 'zh-CN': '目标', 'zh-TW': '目標' },
+    'activity.col.result': { en: 'Result', es: 'Resultado', 'pt-BR': 'Resultado', ko: '결과', ja: '結果', ru: 'Результат', 'zh-CN': '结果', 'zh-TW': '結果' },
+    'activity.empty': { en: 'No activity yet — try adding a URL or running a scan.', es: 'Sin actividad aún — añade una URL o ejecuta un scan.', 'pt-BR': 'Sem atividade ainda — adicione uma URL ou execute um scan.', ko: '아직 활동이 없습니다 — URL 추가 또는 스캔 실행을 시도해 보세요.', ja: 'まだアクティビティはありません — URL を追加するかスキャンを実行してみてください。', ru: 'Пока пусто — добавьте URL или запустите скан.', 'zh-CN': '暂无活动 — 试试添加 URL 或运行扫描。', 'zh-TW': '尚無活動 — 試試新增 URL 或執行掃描。' },
+    'activity.refresh': { en: 'Refresh', es: 'Actualizar', 'pt-BR': 'Atualizar', ko: '새로고침', ja: '更新', ru: 'Обновить', 'zh-CN': '刷新', 'zh-TW': '重新整理' },
 
     // Top bar
     'top.search':     { en: 'Find a company, role or URL…', es: 'Buscar empresa, rol o URL…', 'pt-BR': 'Buscar empresa, vaga ou URL…', ko: '회사, 직무 또는 URL 검색…', ja: '会社、役割、URL を検索…', ru: 'Найти компанию, роль или URL…', 'zh-CN': '查找公司、职位或 URL…', 'zh-TW': '查找公司、職位或 URL…' },

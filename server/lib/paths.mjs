@@ -44,6 +44,7 @@ export const PATHS = {
   pipeline: path('data', 'pipeline.md'),
   scanHistory: path('data', 'scan-history.tsv'),
   followUps: path('data', 'follow-ups.md'),
+  activityLog: path('data', 'activity.jsonl'),
   reportsDir: path('reports'),
   jdsDir: path('jds'),
   outputDir: path('output'),

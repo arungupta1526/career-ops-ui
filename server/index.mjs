@@ -28,6 +28,7 @@ import {
 import { runNodeScript, streamNodeScript } from './lib/runner.mjs';
 import { runRuScan, loadConfig as loadRuConfig } from './lib/ru-scanner.mjs';
 import { runEnScan, loadLastScan } from './lib/en-scanner.mjs';
+import { activityMiddleware, readActivity, logActivity } from './lib/activity-log.mjs';
 
 export function createApp() {
   const app = express();
@@ -70,7 +71,20 @@ export function createApp() {
     next();
   });
 
+  // Activity log — records every state-changing request so the UI can show
+  // a history page. Must come BEFORE express.static so the same middleware
+  // covers both API and asset routes (asset GETs are filtered out).
+  app.use(activityMiddleware);
+
   app.use(express.static(PUBLIC_DIR));
+
+  // ───────────────────────────── Activity log ─────────────────────────────
+
+  app.get('/api/activity', (req, res) => {
+    const limit = Number.parseInt(req.query.limit, 10) || 200;
+    const prefix = typeof req.query.type === 'string' ? req.query.type : undefined;
+    res.json({ events: readActivity({ limit, actionPrefix: prefix }) });
+  });
 
   // ───────────────────────────── Health & Dashboard ─────────────────────────────
 
