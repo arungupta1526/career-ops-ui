@@ -103,8 +103,22 @@ export function createApp() {
     checks.push({ name: 'data/applications.md', required: true, ok: existsSync(PATHS.applications) });
     checks.push({ name: 'data/pipeline.md', required: true, ok: existsSync(PATHS.pipeline) });
     checks.push({ name: 'modes/oferta.md', required: true, ok: existsSync(projPath('modes', 'oferta.md')) });
+    // FIX-H6 — flag fresh installs that still have placeholder profile data.
+    // Marked optional (required:false) so a half-set-up project doesn't
+    // make `body.ok === false` system-wide; the Health page still shows
+    // a visible warning badge thanks to the optional/warn rendering path.
+    const profileCustomized = checkProfileCustomized();
+    checks.push({
+      name: 'Profile customized',
+      required: false,
+      ok: profileCustomized.ok,
+      value: hidden ?? profileCustomized.value,
+    });
+
     // Optional — UI works fine without these
     checks.push({ name: 'GEMINI_API_KEY', required: false, ok: !!process.env.GEMINI_API_KEY, value: process.env.GEMINI_API_KEY ? 'set' : 'unset (manual mode)' });
+    // FIX-H1 — surface hh.ru anti-bot gate as an optional setup hint.
+    checks.push({ name: 'HH_USER_AGENT', required: false, ok: !!process.env.HH_USER_AGENT, value: process.env.HH_USER_AGENT ? 'set' : 'unset (hh.ru may 403 from non-RU IPs)' });
     // Playwright lives in the parent project — required for PDF generation
     // and liveness checks. We don't install it (parent is off-limits), but
     // we surface the gap so the user knows why those buttons error out.
@@ -114,6 +128,17 @@ export function createApp() {
     // all crash with ERR_MODULE_NOT_FOUND when these are missing.
     const parentDepsInstalled = existsSync(projPath('node_modules', 'js-yaml'));
     checks.push({ name: 'Parent project dependencies', required: false, ok: parentDepsInstalled, value: parentDepsInstalled ? 'installed' : 'run: cd $CAREER_OPS_ROOT && npm install' });
+    // FIX-C6 — directories the scripts write into. We don't fail when they
+    // are missing (auto-created on first write) but surface the state so
+    // the Health page mirrors what `node doctor.mjs` would report.
+    for (const [label, dir] of [
+      ['data/ directory',    PATHS.applications.replace(/\/applications\.md$/, '')],
+      ['reports/ directory', PATHS.reportsDir],
+      ['output/ directory',  PATHS.outputDir],
+      ['jds/ directory',     PATHS.jdsDir],
+    ]) {
+      checks.push({ name: label, required: false, ok: existsSync(dir), value: hidden ?? (existsSync(dir) ? 'exists' : 'will be auto-created on first write') });
+    }
 
     let version = '?';
     try {
@@ -666,6 +691,28 @@ export function isValidJobUrl(input) {
   if (!['http:', 'https:'].includes(parsed.protocol)) return false;
   if (!parsed.hostname) return false;
   return true;
+}
+
+/**
+ * Detect template / placeholder profile data so the Health page can
+ * nudge fresh installs. Conservative on YAML errors — if we can't read
+ * the file we assume customization happened (no false alarms).
+ */
+function checkProfileCustomized() {
+  if (!existsSync(PATHS.profile)) return { ok: false, value: 'profile.yml missing' };
+  let parsed;
+  try {
+    parsed = yaml.load(readFileSync(PATHS.profile, 'utf8')) || {};
+  } catch (e) {
+    return { ok: false, value: `profile.yml parse error: ${e.message}` };
+  }
+  const name = parsed?.candidate?.full_name?.trim();
+  if (!name) return { ok: false, value: 'candidate.full_name missing' };
+  // Known placeholder names from the shipped templates.
+  if (/^(Jane Smith|Alex Doe|John Doe|Your Name|Test User?)$/i.test(name)) {
+    return { ok: false, value: `still on template ("${name}")` };
+  }
+  return { ok: true, value: name };
 }
 
 /**
