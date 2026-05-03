@@ -718,6 +718,48 @@ export function createApp() {
     res.json({ ok: true, deleted: safe });
   });
 
+  // ───────────────────────── Generic mode prompts (FIX-C8) ─────────────────────────
+  // Single endpoint per mode in `modes/`. Reads the prompt template from
+  // `modes/{slug}.md`, prepends the user-supplied context as a JSON block,
+  // and returns either the assembled prompt (manual mode) or — when the
+  // caller passes { run: true } AND GEMINI_API_KEY is set — the actual
+  // Gemini output for live in-browser viewing.
+  //
+  // Allowed slugs are an explicit list — we don't want users browsing the
+  // entire modes/ directory through this endpoint.
+  const MODE_ALLOWLIST = ['batch', 'contacto', 'followup', 'interview-prep', 'patterns', 'project', 'training'];
+
+  app.post('/api/mode/:slug', async (req, res) => {
+    const slug = req.params.slug;
+    if (!MODE_ALLOWLIST.includes(slug)) {
+      return res.status(404).json({ error: `unknown mode "${slug}"` });
+    }
+    const modeFile = projPath('modes', `${slug}.md`);
+    if (!existsSync(modeFile)) {
+      return res.status(404).json({ error: `modes/${slug}.md not found in parent project` });
+    }
+    const template = readFileSync(modeFile, 'utf8');
+    const context = (req.body && typeof req.body === 'object') ? req.body : {};
+    const prompt = buildModePrompt(template, slug, context);
+
+    if (context.run && process.env.GEMINI_API_KEY) {
+      const tmp = projPath('output', `web-${slug}-${Date.now()}.txt`);
+      mkdirSync(PATHS.outputDir, { recursive: true });
+      writeFileSync(tmp, prompt);
+      const result = await runNodeScript('gemini-eval.mjs', ['--file', tmp], { timeoutMs: 180_000 });
+      const markdown = (result.stdout || '').trim();
+      return res.json({ mode: 'gemini', slug, prompt, markdown, code: result.code });
+    }
+    res.json({
+      mode: 'manual',
+      slug,
+      prompt,
+      message: process.env.GEMINI_API_KEY
+        ? 'Set { run: true } to execute via Gemini, or copy this prompt into Claude Code.'
+        : 'Copy this prompt into Claude Code (it has WebFetch/WebSearch, Gemini does not).',
+    });
+  });
+
   app.post('/api/apply-helper', (req, res) => {
     const { url, jd } = req.body || {};
     if (!url) return res.status(400).json({ error: 'url required' });
@@ -881,6 +923,36 @@ export function stripDangerousMarkdown(text) {
     .replace(/vbscript\s*:/gi, '')
     .replace(/data\s*:\s*text\/html/gi, '');
   return s;
+}
+
+/**
+ * Glue the user-supplied context onto a parent-project mode template.
+ * The mode file is the canonical prompt; we just decorate it with the
+ * fields the user filled in. Strips any { run: ... } toggle so it
+ * doesn't leak into the rendered prompt.
+ */
+function buildModePrompt(template, slug, context) {
+  const ctx = { ...context };
+  delete ctx.run;
+  const parts = [
+    `You are career-ops in ${slug} mode.`,
+    '',
+    'Read these files first (they exist in the project root):',
+    '  • cv.md',
+    '  • config/profile.yml',
+    '  • modes/_shared.md',
+    `  • modes/${slug}.md`,
+    '',
+    'User-supplied context:',
+    '```json',
+    JSON.stringify(ctx, null, 2),
+    '```',
+    '',
+    '─── modes/' + slug + '.md ───',
+    '',
+    template,
+  ];
+  return parts.join('\n');
 }
 
 function buildEvaluationPrompt(jd) {
