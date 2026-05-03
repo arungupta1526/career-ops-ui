@@ -46,7 +46,7 @@ const ROUTES = [
   { name: 'pipeline',  selector: 'h1.page-title', expectAny: ['Pipeline'] },
   { name: 'evaluate',  selector: 'h1.page-title', expectAny: ['Evaluate vacancy', 'Оценить вакансию', 'Evaluar vacante'] },
   { name: 'deep',      selector: 'h1.page-title', expectAny: ['Deep research'] },
-  { name: 'apply',     selector: 'h1.page-title', expectAny: ['Apply helper'] },
+  { name: 'apply',     selector: 'h1.page-title', expectAny: ['Apply checklist', 'Checklist de aplicación', 'Чек-лист отклика', '応募チェックリスト', '지원 체크리스트', '申请清单', '申請清單'] },
   { name: 'tracker',   selector: 'h1.page-title', expectAny: ['Application tracker', 'Трекер заявок', 'Tracker de aplicaciones'] },
   { name: 'reports',   selector: 'h1.page-title', expectAny: ['Reports', 'Отчёты', 'Reportes'] },
   { name: 'cv',        selector: 'h1.page-title', expectAny: ['CV'] },

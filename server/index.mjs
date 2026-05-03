@@ -29,6 +29,11 @@ import { runNodeScript, streamNodeScript } from './lib/runner.mjs';
 import { runRuScan, loadConfig as loadRuConfig } from './lib/ru-scanner.mjs';
 import { runEnScan, loadLastScan } from './lib/en-scanner.mjs';
 import { activityMiddleware, readActivity, logActivity } from './lib/activity-log.mjs';
+import { loadEnvFile } from './lib/dotenv.mjs';
+
+// Load parent's .env (HH_USER_AGENT, GEMINI_API_KEY, …) BEFORE createApp
+// runs so health checks and scanner config see the real values.
+loadEnvFile(PATHS.envFile);
 
 /**
  * FIX-H2 — first-boot bootstrap. If portals.yml exists but lacks the
