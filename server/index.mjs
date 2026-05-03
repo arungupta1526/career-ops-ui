@@ -105,6 +105,15 @@ export function createApp() {
     checks.push({ name: 'modes/oferta.md', required: true, ok: existsSync(projPath('modes', 'oferta.md')) });
     // Optional — UI works fine without these
     checks.push({ name: 'GEMINI_API_KEY', required: false, ok: !!process.env.GEMINI_API_KEY, value: process.env.GEMINI_API_KEY ? 'set' : 'unset (manual mode)' });
+    // Playwright lives in the parent project — required for PDF generation
+    // and liveness checks. We don't install it (parent is off-limits), but
+    // we surface the gap so the user knows why those buttons error out.
+    const playwrightInstalled = existsSync(projPath('node_modules', 'playwright'));
+    checks.push({ name: 'Playwright (parent node_modules)', required: false, ok: playwrightInstalled, value: playwrightInstalled ? 'installed' : 'run: cd $CAREER_OPS_ROOT && npm install && npx playwright install chromium' });
+    // Same gate for the parent's own deps — scan.mjs / pdf-gen / liveness
+    // all crash with ERR_MODULE_NOT_FOUND when these are missing.
+    const parentDepsInstalled = existsSync(projPath('node_modules', 'js-yaml'));
+    checks.push({ name: 'Parent project dependencies', required: false, ok: parentDepsInstalled, value: parentDepsInstalled ? 'installed' : 'run: cd $CAREER_OPS_ROOT && npm install' });
 
     let version = '?';
     try {
@@ -354,6 +363,30 @@ export function createApp() {
 
   app.get('/api/stream/pdf', (_req, res) => {
     streamNodeScript(res, 'generate-pdf.mjs', []);
+  });
+
+  // ─── List + download generated PDFs (output/*.pdf) ───
+  app.get('/api/output/pdfs', (_req, res) => {
+    if (!existsSync(PATHS.outputDir)) return res.json({ files: [] });
+    const files = readdirSync(PATHS.outputDir)
+      .filter((f) => f.endsWith('.pdf'))
+      .map((f) => {
+        const stat = statSync(projPath('output', f));
+        return { name: f, size: stat.size, mtime: stat.mtime };
+      })
+      .sort((a, b) => new Date(b.mtime) - new Date(a.mtime));
+    res.json({ files });
+  });
+
+  app.get('/api/output/pdfs/:name', (req, res) => {
+    const safe = req.params.name.replace(/[^\w\-.]/g, '');
+    if (!safe || !safe.endsWith('.pdf')) return res.status(400).json({ error: 'invalid name' });
+    const file = projPath('output', safe);
+    if (!existsSync(file)) return res.status(404).json({ error: 'not found' });
+    // Trigger a real download with the original filename intact.
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${safe}"`);
+    res.sendFile(file);
   });
 
   // ─── RU portal scanner (in-process, hh.ru + Habr Career) ───
