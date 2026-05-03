@@ -49,14 +49,42 @@ export function loadConfig() {
   const ru = portals.russian_portals || {};
   const titleFilter = portals.title_filter || {};
 
+  const queries = ru.queries || DEFAULT_QUERIES;
+  const negative = (titleFilter.negative || DEFAULT_NEGATIVE).map((s) => s.toLowerCase());
+  // FIX-H3 — surface the most common config mistake: a query keyword
+  // also appears in the negative list, so every result is filtered out.
+  // Caller can ignore `warnings` if it doesn't care.
+  const warnings = collisionWarnings(queries, negative);
+
   return {
-    queries: ru.queries || DEFAULT_QUERIES,
-    negative: (titleFilter.negative || DEFAULT_NEGATIVE).map((s) => s.toLowerCase()),
+    queries,
+    negative,
     sources: ru.sources || ['hh', 'habr'],
     area: ru.area ?? 113, // Russia
     perPage: ru.per_page ?? 50,
     onlyRemote: ru.only_remote ?? false,
+    warnings,
   };
+}
+
+/**
+ * Detect query↔negative collisions that would silently zero out scan
+ * results. Returns one warning string per offending overlap.
+ */
+function collisionWarnings(queries, negative) {
+  const negSet = new Set(negative);
+  const seen = new Set();
+  const out = [];
+  for (const q of queries) {
+    for (const w of String(q).toLowerCase().split(/\s+/)) {
+      if (!w || seen.has(w)) continue;
+      if (negSet.has(w)) {
+        out.push(`query "${q}" contains "${w}" which is in the negative list — results will be filtered out`);
+        seen.add(w);
+      }
+    }
+  }
+  return out;
 }
 
 /**
@@ -108,6 +136,9 @@ export async function runRuScan(opts = {}) {
   log('stdout', '━'.repeat(60));
   log('stdout', `RU Portal Scan — ${new Date().toISOString().slice(0, 10)}`);
   log('stdout', '━'.repeat(60));
+  // FIX-H3 — surface query/negative collisions before running so the user
+  // can see WHY their PHP scan returns nothing instead of staring at "0 NEW".
+  for (const w of cfg.warnings || []) log('stderr', `⚠ config: ${w}`);
   log('stdout', `Sources: ${cfg.sources.join(', ')}`);
   log('stdout', `Queries: ${cfg.queries.length}`);
   log('stdout', `Negatives: ${cfg.negative.length}`);

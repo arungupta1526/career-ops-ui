@@ -1,7 +1,56 @@
-import { test } from 'node:test';
+import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
 import { searchHH } from '../server/lib/sources/hh.mjs';
 import { searchHabr, parseHabrCards } from '../server/lib/sources/habr.mjs';
+
+// ───────────────────────── FIX-H3 — defaults must work for PHP scans ─────────────────────────
+
+let loadRuConfig;
+
+before(async () => {
+  // Build a project root with portals.yml that has NO title_filter override,
+  // so loadConfig() falls through to DEFAULT_NEGATIVE / DEFAULT_QUERIES. The
+  // user's actual portals.yml is allowed to disagree (it's their choice),
+  // but the shipped defaults must produce non-empty PHP scans out of the box.
+  const dir = mkdtempSync(resolve(tmpdir(), 'ru-defaults-'));
+  writeFileSync(resolve(dir, 'portals.yml'), '# defaults only, no overrides\n');
+  process.env.CAREER_OPS_ROOT = dir;
+  ({ loadConfig: loadRuConfig } = await import('../server/lib/ru-scanner.mjs'));
+});
+
+after(() => {
+  delete process.env.CAREER_OPS_ROOT;
+});
+
+test('RU defaults: no query word collides with the default negative list', () => {
+  // If a default query contains "php" / "go" / "senior" and that same
+  // word lives in DEFAULT_NEGATIVE, every result gets filtered out before
+  // the user sees anything. This regression killed Senior PHP scans in
+  // the past — we keep the invariant locked.
+  const cfg = loadRuConfig();
+  const negativeWords = new Set(cfg.negative);
+  for (const q of cfg.queries) {
+    for (const w of q.toLowerCase().split(/\s+/)) {
+      assert.ok(
+        !negativeWords.has(w),
+        `query "${q}" word "${w}" appears in negative list — every match would be filtered out`
+      );
+    }
+  }
+});
+
+test('RU defaults: default negative list has no PHP-killer entries', () => {
+  const cfg = loadRuConfig();
+  for (const n of cfg.negative) {
+    assert.ok(
+      !/^(php|symfony|laravel|composer|wordpress)$/i.test(n),
+      `default negative list contains PHP-killer "${n}"`
+    );
+  }
+});
 
 // ───────────────────────── HH ─────────────────────────
 
