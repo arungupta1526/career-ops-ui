@@ -8,7 +8,7 @@
 
 ## [1.7.0] — 2026-05-03
 
-基于 QA r5 的 28 次提交的安全加固 + UX + 功能完善。三层安全落地,所有缺失的 CRUD 端点补齐,父项目 bootstrap 完全自动化,UI 新增 **9 个页面** — Activity、重新设计的 Deep Research,以及 7 个分组侧边栏模式 (project / training / followup / batch / outreach / interview-prep / patterns) 覆盖父 `modes/` 的 100%。测试覆盖率从 **73** 增加到 **209**,**24 个测试文件** + **23 步综合 Playwright e2e**。Coverage: **93.5 % 行 / 82.6 % 分支**。
+基于 QA r5 的 35 次提交的安全加固 + UX + 功能完善。三层安全落地,所有缺失的 CRUD 端点补齐,父项目 bootstrap 完全自动化,UI 新增 **9 个页面** — Activity、重新设计的 Deep Research,以及 7 个分组侧边栏模式 (project / training / followup / batch / outreach / interview-prep / patterns) 覆盖父 `modes/` 的 100%。测试覆盖率从 **73** 增加到 **209**,**24 个测试文件** + **23 步综合 Playwright e2e**。Coverage: **93.5 % 行 / 82.6 % 分支**。
 
 ### 🔒 安全
 
@@ -47,7 +47,7 @@
 
 ### ⚙️ DevOps
 
-- **测试数:** 73 → **209**(+136 个测试,24 个文件)。Coverage: 93.5% 行 / 82.6% 分支。
+- **测试数:** 73 → **225**(+152 个测试,25 个文件)。Coverage: 93.5% 行 / 82.6% 分支。
 - **综合 Playwright e2e**(`tests/e2e-comprehensive.mjs`,23 步)。
 - **GitHub Actions:** `ci.yml`、`ai-review.yml`(Claude Code 审查每个 PR)、`release.yml`。
 - **CSP 友好 UI:** 移除所有内联 `onclick`。

@@ -8,7 +8,7 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ## [1.7.0] — 2026-05-03
 
-Pase de 28 commits de hardening + UX + completitud de features guiado por QA r5. Aterrizaron tres capas de seguridad, se completaron todos los endpoints CRUD, el bootstrap del proyecto padre quedó automatizado, y la UI ganó **9 páginas nuevas**: Activity, Deep Research rediseñado y 7 modos agrupados en sidebar (project / training / followup / batch / outreach / interview-prep / patterns) que cubren el 100% de `modes/` del padre. Cobertura: **73** → **209** tests en **24 archivos** + **23 pasos de Playwright e2e comprehensivo**. Coverage: **93.5 % líneas / 82.6 % ramas**.
+Pase de 35 commits de hardening + UX + completitud de features guiado por QA r5. Aterrizaron tres capas de seguridad, se completaron todos los endpoints CRUD, el bootstrap del proyecto padre quedó automatizado, y la UI ganó **9 páginas nuevas**: Activity, Deep Research rediseñado y 7 modos agrupados en sidebar (project / training / followup / batch / outreach / interview-prep / patterns) que cubren el 100% de `modes/` del padre. Cobertura: **73** → **209** tests en **25 archivos** + **23 pasos de Playwright e2e comprehensivo**. Coverage: **93.5 % líneas / 82.6 % ramas**.
 
 ### 🔒 Seguridad
 
@@ -47,7 +47,7 @@ Pase de 28 commits de hardening + UX + completitud de features guiado por QA r5.
 
 ### ⚙️ DevOps
 
-- **Tests:** 73 → **209** (+136 tests en 24 archivos). Coverage: 93.5% líneas / 82.6% ramas / 93.7% funcs. Único test fallando (`runEnScan: dry-run end-to-end`) es un flake preexistente.
+- **Tests:** 73 → **225** (+136 tests en 25 archivos). Coverage: 93.5% líneas / 82.6% ramas / 93.7% funcs. Único test fallando (`runEnScan: dry-run end-to-end`) es un flake preexistente.
 - **Playwright e2e completo** (`tests/e2e-comprehensive.mjs`, 23 pasos): recorre el flujo completo de usuario.
 - **GitHub Actions:** `ci.yml` (matrix Node 18/20/22 + i18n gate + e2e), `ai-review.yml` (Claude Code revisa cada PR), `release.yml` (auto-publica releases en push de tag).
 - **UI compatible con CSP:** todos los `onclick` inline removidos.

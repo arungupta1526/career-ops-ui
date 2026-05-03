@@ -8,7 +8,7 @@
 
 ## [1.7.0] — 2026-05-03
 
-28 коммитов безопасности, UX и feature-completion по QA-отчёту r5. Закрыты три слоя защиты (XSS-санитизация, CSP, валидация ввода), добавлены все недостающие CRUD-эндпоинты, parent-проект полностью bootstraps автоматически, появились **9 новых страниц** — Активность, переработанный Deep Research плюс 7 sgrouped sidebar modes (project / training / followup / batch / outreach / interview-prep / patterns), покрывающие 100% parent's `modes/`. Покрытие тестов выросло с **73** до **201** в **23 тест-файлах**, плюс **23 шага comprehensive Playwright e2e**.
+35 коммитов безопасности, UX и feature-completion по QA-отчёту r5. Закрыты три слоя защиты (XSS-санитизация, CSP, валидация ввода), добавлены все недостающие CRUD-эндпоинты, parent-проект полностью bootstraps автоматически, появились **9 новых страниц** — Активность, переработанный Deep Research плюс 7 sgrouped sidebar modes (project / training / followup / batch / outreach / interview-prep / patterns), покрывающие 100% parent's `modes/`. Покрытие тестов выросло с **73** до **201** в **23 тест-файлах**, плюс **23 шага comprehensive Playwright e2e**.
 
 ### 🔒 Безопасность
 
@@ -48,7 +48,7 @@
 
 ### ⚙️ DevOps
 
-- **Тестов:** 73 → **177** (+104 теста в 14 новых файлах). Единственный падающий тест (`runEnScan: dry-run end-to-end across multiple sources`) — pre-existing flake, зависит от живых API Greenhouse/Ashby/Lever.
+- **Тестов:** 73 → **225** (+104 теста в 14 новых файлах). Единственный падающий тест (`runEnScan: dry-run end-to-end across multiple sources`) — pre-existing flake, зависит от живых API Greenhouse/Ashby/Lever.
 - **CSP-friendly UI:** все inline `onclick`-обработчики удалены из `index.html` и `router.js`. Строгая политика `script-src 'self'` теперь обеспечивается без поломки функционала.
 
 ### 📦 Новые REST-эндпоинты

@@ -8,7 +8,7 @@
 
 ## [1.7.0] — 2026-05-03
 
-QA r5 를 기반으로 한 28 커밋의 보안 + UX + 기능 완성 강화. 세 가지 보안 계층 적용, 모든 누락된 CRUD 엔드포인트 보충, 부모 프로젝트 부트스트랩 자동화, **9 개의 새 페이지** 추가 — Activity, 재설계된 Deep Research, 그리고 7 개의 sidebar-그룹 모드 (project / training / followup / batch / outreach / interview-prep / patterns) — 부모 `modes/` 의 100% 커버. 테스트 커버리지는 **73** 에서 **209** 로 증가, **24 개 테스트 파일** + **23 단계 종합 Playwright e2e**. Coverage: **93.5 % 라인 / 82.6 % 브랜치**.
+QA r5 를 기반으로 한 35 커밋의 보안 + UX + 기능 완성 강화. 세 가지 보안 계층 적용, 모든 누락된 CRUD 엔드포인트 보충, 부모 프로젝트 부트스트랩 자동화, **9 개의 새 페이지** 추가 — Activity, 재설계된 Deep Research, 그리고 7 개의 sidebar-그룹 모드 (project / training / followup / batch / outreach / interview-prep / patterns) — 부모 `modes/` 의 100% 커버. 테스트 커버리지는 **73** 에서 **209** 로 증가, **25 개 테스트 파일** + **23 단계 종합 Playwright e2e**. Coverage: **93.5 % 라인 / 82.6 % 브랜치**.
 
 ### 🔒 보안
 
@@ -47,7 +47,7 @@ QA r5 를 기반으로 한 28 커밋의 보안 + UX + 기능 완성 강화. 세 
 
 ### ⚙️ DevOps
 
-- **테스트:** 73 → **209** (+136 테스트, 24 개 파일). Coverage: 93.5% 라인 / 82.6% 브랜치.
+- **테스트:** 73 → **225** (+136 테스트, 25 개 파일). Coverage: 93.5% 라인 / 82.6% 브랜치.
 - **종합 Playwright e2e** (`tests/e2e-comprehensive.mjs`, 23 단계).
 - **GitHub Actions:** `ci.yml`, `ai-review.yml` (Claude Code 가 모든 PR 리뷰), `release.yml`.
 - **CSP-friendly UI:** 모든 인라인 `onclick` 제거.
