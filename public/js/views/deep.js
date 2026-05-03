@@ -7,15 +7,20 @@ Router.register('deep', async () => {
   const role = c('input', { className: 'input', placeholder: t('deep.roleExample') });
   const out = c('div');
   const archive = c('div');
-  let geminiAvailable = false;
+  let liveAvailable = false;
+  let liveEngine = '';
 
-  // Probe whether Gemini is wired up so we know whether to show "Run live"
-  // alongside "Copy prompt" or only the manual flow.
+  // Probe whether Gemini OR Anthropic is wired up so we know whether to
+  // show "Run live" alongside "Copy prompt" or only the manual flow.
+  // Anthropic preferred (better at structured deep-research output).
   try {
     const h = await API.get('/api/health');
-    geminiAvailable = h.checks?.find((x) => x.name === 'GEMINI_API_KEY')?.ok === true;
+    const anth = h.checks?.find((x) => x.name === 'ANTHROPIC_API_KEY')?.ok === true;
+    const gem = h.checks?.find((x) => x.name === 'GEMINI_API_KEY')?.ok === true;
+    if (anth) { liveAvailable = true; liveEngine = 'Anthropic'; }
+    else if (gem) { liveAvailable = true; liveEngine = 'Gemini'; }
   } catch {
-    geminiAvailable = false;
+    liveAvailable = false;
   }
 
   function renderArchive(files) {
@@ -160,15 +165,15 @@ Router.register('deep', async () => {
         c('div', { className: 'field' }, [c('label', null, t('deep.roleLbl')), role]),
       ]),
       c('div', { className: 'flex gap-3' }, [
-        geminiAvailable
-          ? c('button', { className: 'btn btn-primary', onClick: (e) => runLive(e.currentTarget) }, '⚡ ' + t('deep.runLive', 'Run live (Gemini)'))
+        liveAvailable
+          ? c('button', { className: 'btn btn-primary', onClick: (e) => runLive(e.currentTarget) }, '⚡ ' + t('deep.runLive', 'Run live') + ' (' + liveEngine + ')')
           : null,
-        c('button', { className: 'btn btn-ghost', onClick: (e) => runManual(e.currentTarget) }, geminiAvailable ? t('deep.copyPrompt', 'Copy prompt') : t('deep.run')),
+        c('button', { className: 'btn btn-ghost', onClick: (e) => runManual(e.currentTarget) }, liveAvailable ? t('deep.copyPrompt', 'Copy prompt') : t('deep.run')),
       ]),
-      geminiAvailable
+      liveAvailable
         ? null
         : c('p', { style: { color: 'var(--foggy)', fontSize: '13px', marginTop: '8px' } },
-          t('deep.tipManual', 'Tip: set GEMINI_API_KEY in .env to run research live in the browser. Without it, the prompt is generated for you to paste into Claude Code.')),
+          t('deep.tipManual', 'Tip: set ANTHROPIC_API_KEY (or GEMINI_API_KEY) in .env to run research live in the browser. Without it, the prompt is generated for you to paste into Claude Code.')),
     ]),
 
     c('div', { className: 'mt-5' }, archive),

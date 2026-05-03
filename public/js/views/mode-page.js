@@ -93,12 +93,19 @@
     const c = UI.el;
     const t = (k, f) => I18n.t(k, f);
     const fields = {};
-    let geminiAvailable = false;
+    let liveAvailable = false;
+    let liveEngine = '';
 
-    // Probe Gemini availability without blocking initial render.
+    // Probe Anthropic OR Gemini availability without blocking initial render.
     API.get('/api/health').then((h) => {
-      geminiAvailable = h.checks?.find((x) => x.name === 'GEMINI_API_KEY')?.ok === true;
-      if (geminiAvailable && runLiveBtn) runLiveBtn.style.display = '';
+      const anth = h.checks?.find((x) => x.name === 'ANTHROPIC_API_KEY')?.ok === true;
+      const gem = h.checks?.find((x) => x.name === 'GEMINI_API_KEY')?.ok === true;
+      if (anth) { liveAvailable = true; liveEngine = 'Anthropic'; }
+      else if (gem) { liveAvailable = true; liveEngine = 'Gemini'; }
+      if (liveAvailable && runLiveBtn) {
+        runLiveBtn.style.display = '';
+        runLiveBtn.textContent = '⚡ ' + t('mode.runLive', 'Run live') + ' (' + liveEngine + ')';
+      }
     }).catch(() => {});
 
     function field(spec) {

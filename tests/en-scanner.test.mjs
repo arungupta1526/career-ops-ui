@@ -1,9 +1,47 @@
-import { test } from 'node:test';
+import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
 import { fetchGreenhouse } from '../server/lib/sources/greenhouse.mjs';
 import { fetchAshby } from '../server/lib/sources/ashby.mjs';
 import { fetchLever } from '../server/lib/sources/lever.mjs';
-import { detectApi, runEnScan } from '../server/lib/en-scanner.mjs';
+
+// runEnScan reads portals.yml from PROJECT_ROOT to know which companies
+// to fan out to. Spin up an isolated root with two API entries and a
+// title filter so the test is deterministic (no live network, no
+// dependency on the user's actual portals.yml).
+let runEnScan;
+let detectApi;
+
+before(async () => {
+  const dir = mkdtempSync(resolve(tmpdir(), 'en-scan-test-'));
+  mkdirSync(resolve(dir, 'config'), { recursive: true });
+  mkdirSync(resolve(dir, 'data'), { recursive: true });
+  writeFileSync(resolve(dir, 'cv.md'), '# placeholder\n');
+  writeFileSync(resolve(dir, 'config', 'profile.yml'), 'candidate:\n  full_name: Test\n');
+  writeFileSync(resolve(dir, 'data', 'applications.md'), '');
+  writeFileSync(resolve(dir, 'data', 'pipeline.md'), '# pipeline\n');
+  writeFileSync(resolve(dir, 'portals.yml'), [
+    'tracked_companies:',
+    '  - name: GH-Co',
+    '    careers_url: https://job-boards.greenhouse.io/ghco',
+    '    api: https://boards-api.greenhouse.io/v1/boards/ghco/jobs',
+    '    enabled: true',
+    '  - name: Ash-Co',
+    '    careers_url: https://jobs.ashbyhq.com/ashco',
+    '    enabled: true',
+    'title_filter:',
+    '  positive: ["Senior", "Lead"]',
+    '  negative: ["Junior"]',
+  ].join('\n'));
+  process.env.CAREER_OPS_ROOT = dir;
+  ({ runEnScan, detectApi } = await import('../server/lib/en-scanner.mjs'));
+});
+
+after(() => {
+  delete process.env.CAREER_OPS_ROOT;
+});
 
 // ───────────────────────── Greenhouse ─────────────────────────
 

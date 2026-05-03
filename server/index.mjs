@@ -30,6 +30,7 @@ import { runRuScan, loadConfig as loadRuConfig } from './lib/ru-scanner.mjs';
 import { runEnScan, loadLastScan } from './lib/en-scanner.mjs';
 import { activityMiddleware, readActivity, logActivity } from './lib/activity-log.mjs';
 import { loadEnvFile } from './lib/dotenv.mjs';
+import { runAnthropic, hasAnthropicKey } from './lib/anthropic.mjs';
 
 // Load parent's .env (HH_USER_AGENT, GEMINI_API_KEY, …) BEFORE createApp
 // runs so health checks and scanner config see the real values.
@@ -170,6 +171,7 @@ export function createApp() {
 
     // Optional — UI works fine without these
     checks.push({ name: 'GEMINI_API_KEY', required: false, ok: !!process.env.GEMINI_API_KEY, value: process.env.GEMINI_API_KEY ? 'set' : 'unset (manual mode)' });
+    checks.push({ name: 'ANTHROPIC_API_KEY', required: false, ok: !!process.env.ANTHROPIC_API_KEY, value: process.env.ANTHROPIC_API_KEY ? 'set' : 'unset (set to enable live "Run" buttons)' });
     // FIX-H1 — surface hh.ru anti-bot gate as an optional setup hint.
     checks.push({ name: 'HH_USER_AGENT', required: false, ok: !!process.env.HH_USER_AGENT, value: process.env.HH_USER_AGENT ? 'set' : 'unset (hh.ru may 403 from non-RU IPs)' });
     // Playwright lives in the parent project — required for PDF generation
@@ -667,28 +669,40 @@ export function createApp() {
     // Gemini has no web-search tool, so the result is shallower than what
     // Claude Code can produce, but it's directly viewable. We persist
     // every successful run into interview-prep/ for future browsing.
-    if (run && process.env.GEMINI_API_KEY) {
-      const tmp = projPath('output', `web-deep-${Date.now()}.txt`);
-      mkdirSync(PATHS.outputDir, { recursive: true });
-      writeFileSync(tmp, prompt);
-      const result = await runNodeScript('gemini-eval.mjs', ['--file', tmp], { timeoutMs: 180_000 });
-      const markdown = (result.stdout || '').trim();
-      let saved = null;
-      if (markdown) {
-        const slug = `${slugify(company)}-${role ? slugify(role) : 'general'}.md`;
-        mkdirSync(PATHS.interviewPrepDir, { recursive: true });
-        writeFileSync(projPath('interview-prep', slug), markdown);
-        saved = slug;
+    if (run) {
+      let result = null;
+      let mode = null;
+      if (hasAnthropicKey()) {
+        mode = 'anthropic';
+        const r = await runAnthropic(prompt, { maxTokens: 8192 });
+        if (r.error) return res.status(502).json({ mode, prompt, error: r.error });
+        result = { markdown: r.markdown, code: 0 };
+      } else if (process.env.GEMINI_API_KEY) {
+        mode = 'gemini';
+        const tmp = projPath('output', `web-deep-${Date.now()}.txt`);
+        mkdirSync(PATHS.outputDir, { recursive: true });
+        writeFileSync(tmp, prompt);
+        const sub = await runNodeScript('gemini-eval.mjs', ['--file', tmp], { timeoutMs: 180_000 });
+        result = { markdown: (sub.stdout || '').trim(), code: sub.code };
       }
-      return res.json({ mode: 'gemini', prompt, markdown, saved, code: result.code });
+      if (result) {
+        let saved = null;
+        if (result.markdown) {
+          const slug = `${slugify(company)}-${role ? slugify(role) : 'general'}.md`;
+          mkdirSync(PATHS.interviewPrepDir, { recursive: true });
+          writeFileSync(projPath('interview-prep', slug), result.markdown);
+          saved = slug;
+        }
+        return res.json({ mode, prompt, markdown: result.markdown, saved, code: result.code });
+      }
     }
 
     res.json({
       mode: 'manual',
       prompt,
-      message: process.env.GEMINI_API_KEY
-        ? 'Set { run: true } to execute via Gemini, or copy the prompt into Claude Code.'
-        : 'Paste this into Claude Code for full deep research with WebFetch.',
+      message: (hasAnthropicKey() || process.env.GEMINI_API_KEY)
+        ? 'Set { run: true } to execute via Anthropic/Gemini, or copy the prompt into Claude Code.'
+        : 'No API key set. Paste this into Claude Code for full deep research with WebFetch.',
     });
   });
 
@@ -747,21 +761,31 @@ export function createApp() {
     const context = (req.body && typeof req.body === 'object') ? req.body : {};
     const prompt = buildModePrompt(template, slug, context);
 
-    if (context.run && process.env.GEMINI_API_KEY) {
-      const tmp = projPath('output', `web-${slug}-${Date.now()}.txt`);
-      mkdirSync(PATHS.outputDir, { recursive: true });
-      writeFileSync(tmp, prompt);
-      const result = await runNodeScript('gemini-eval.mjs', ['--file', tmp], { timeoutMs: 180_000 });
-      const markdown = (result.stdout || '').trim();
-      return res.json({ mode: 'gemini', slug, prompt, markdown, code: result.code });
+    if (context.run) {
+      // Prefer Anthropic for live execution (better at long-form
+      // structured output than Gemini for these modes); fall back to
+      // Gemini if no Anthropic key. Either path produces the same
+      // response shape so the UI doesn't care which engine ran.
+      if (hasAnthropicKey()) {
+        const r = await runAnthropic(prompt);
+        if (r.error) return res.status(502).json({ mode: 'anthropic', slug, prompt, error: r.error });
+        return res.json({ mode: 'anthropic', slug, prompt, markdown: r.markdown, usage: r.usage });
+      }
+      if (process.env.GEMINI_API_KEY) {
+        const tmp = projPath('output', `web-${slug}-${Date.now()}.txt`);
+        mkdirSync(PATHS.outputDir, { recursive: true });
+        writeFileSync(tmp, prompt);
+        const result = await runNodeScript('gemini-eval.mjs', ['--file', tmp], { timeoutMs: 180_000 });
+        return res.json({ mode: 'gemini', slug, prompt, markdown: (result.stdout || '').trim(), code: result.code });
+      }
     }
     res.json({
       mode: 'manual',
       slug,
       prompt,
-      message: process.env.GEMINI_API_KEY
-        ? 'Set { run: true } to execute via Gemini, or copy this prompt into Claude Code.'
-        : 'Copy this prompt into Claude Code (it has WebFetch/WebSearch, Gemini does not).',
+      message: (hasAnthropicKey() || process.env.GEMINI_API_KEY)
+        ? 'Set { run: true } to execute via Anthropic/Gemini, or copy this prompt into Claude Code.'
+        : 'No API key set. Copy this prompt into Claude Code (it has WebFetch/WebSearch).',
     });
   });
 

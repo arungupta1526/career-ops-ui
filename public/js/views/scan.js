@@ -322,38 +322,10 @@ Router.register('scan', async () => {
       ]),
     ]),
 
-    (() => {
-      // FIX-H1 banner: shows once when HH_USER_AGENT is unset, dismissible
-      // forever via the ✕ button (persisted in localStorage). Users on RU
-      // IPs don't need this and can hide it; users who actually hit a 403
-      // can re-show it by clearing the flag in DevTools.
-      if (hhUaSet) return null;
-      let dismissed = false;
-      try { dismissed = localStorage.getItem('careerOpsHhUaWarningDismissed') === '1'; } catch {}
-      if (dismissed) return null;
-      const banner = c('div', {
-        className: 'card mb-3',
-        style: { background: '#fff8e6', borderColor: '#f0c674', color: '#8a6300', position: 'relative' },
-      }, [
-        c('button', {
-          'aria-label': t('common.close', 'Close'),
-          title: t('common.close', 'Close'),
-          style: {
-            position: 'absolute', top: '8px', right: '12px',
-            background: 'transparent', border: 0, cursor: 'pointer',
-            fontSize: '20px', lineHeight: 1, color: '#8a6300',
-          },
-          onClick: () => {
-            try { localStorage.setItem('careerOpsHhUaWarningDismissed', '1'); } catch {}
-            banner.remove();
-          },
-        }, '×'),
-        c('strong', null, 'ℹ HH_USER_AGENT'),
-        c('p', { style: { margin: '6px 0 0', fontSize: '14px', paddingRight: '24px' } },
-          t('scan.hhWarning', 'hh.ru returns 403 from non-RU IPs without a real-browser User-Agent. Set HH_USER_AGENT in .env to enable. Habr Career still works either way.')),
-      ]);
-      return banner;
-    })(),
+    // HH_USER_AGENT diagnostics moved to the Health page only — having
+    // it as a card here was loud, persistent, and irrelevant to anyone
+    // not hitting a 403 from hh.ru. The Health check still surfaces it.
+    null,
 
     c('div', { className: 'card mb-3' }, [
       c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap', alignItems: 'flex-end' } }, [
@@ -382,30 +354,94 @@ Router.register('scan', async () => {
       resultsEl,
     ]),
 
-    c('div', { className: 'card mt-5' }, [
-      c('h3', { style: { marginTop: 0 } }, `${t('scan.activeCo')} ${companies.length}/${apiCompanies.length}`),
-      portalsErr
-        ? c('div', { className: 'empty' }, [
-            c('strong', null, t('scan.failedPortals')),
-            c('p', { style: { color: 'var(--foggy)', marginTop: '8px' } }, portalsErr.message),
-          ])
-        : companies.length === 0
-        ? c('div', { className: 'empty' }, t('scan.allDisabled'))
-        : c('div', { className: 'flex', style: { flexWrap: 'wrap', gap: '8px' } },
-            companies.map((co) => {
-              const hasApi = apiCompanies.includes(co);
-              return c('span', {
-                className: 'tag',
-                style: {
-                  fontSize: '13px',
-                  background: hasApi ? 'rgba(0,138,5,.10)' : 'var(--beach)',
-                  color: hasApi ? 'var(--kazan)' : 'var(--foggy)',
-                },
-                title: hasApi ? t('scan.scanResultsApi') : t('scan.websearchOnly'),
-              }, (hasApi ? '✓ ' : '○ ') + (co.name || co));
-            })
-          ),
-    ]),
+    (() => {
+      // Companies list — collapsed by default, expand on click, with a
+      // search filter + visual grouping by API support. 87 entries flat
+      // is overwhelming; this lets the user dive in only when needed.
+      const list = c('div', {
+        className: 'flex',
+        style: { flexWrap: 'wrap', gap: '8px', marginTop: '12px' },
+      });
+      const filterIn = c('input', {
+        className: 'input',
+        placeholder: t('scan.companiesFilter', 'Filter companies…'),
+        style: { maxWidth: '320px', marginTop: '12px', display: 'none' },
+      });
+      let expanded = false;
+      let query = '';
+
+      function rerender() {
+        list.innerHTML = '';
+        const q = query.trim().toLowerCase();
+        const matched = q
+          ? companies.filter((co) => (co.name || '').toLowerCase().includes(q))
+          : companies;
+        // Group: API-backed first, websearch-only second.
+        const apiSet = new Set(apiCompanies);
+        const apis = matched.filter((co) => apiSet.has(co));
+        const others = matched.filter((co) => !apiSet.has(co));
+        const tag = (co, hasApi) => c('span', {
+          className: 'tag',
+          style: {
+            fontSize: '13px',
+            background: hasApi ? 'rgba(0,138,5,.10)' : 'var(--beach)',
+            color: hasApi ? 'var(--kazan)' : 'var(--foggy)',
+          },
+          title: hasApi ? t('scan.scanResultsApi') : t('scan.websearchOnly'),
+        }, (hasApi ? '✓ ' : '○ ') + (co.name || co));
+        if (apis.length) {
+          const head = c('div', {
+            style: { width: '100%', fontSize: '12px', fontWeight: 600,
+              textTransform: 'uppercase', letterSpacing: '.04em',
+              color: 'var(--kazan)' },
+          }, '✓ ' + t('scan.apiBacked', 'Direct API') + ` · ${apis.length}`);
+          list.appendChild(head);
+          apis.forEach((co) => list.appendChild(tag(co, true)));
+        }
+        if (others.length) {
+          const head = c('div', {
+            style: { width: '100%', fontSize: '12px', fontWeight: 600,
+              textTransform: 'uppercase', letterSpacing: '.04em',
+              color: 'var(--foggy)', marginTop: apis.length ? '12px' : 0 },
+          }, '○ ' + t('scan.websearchBacked', 'Web-search only') + ` · ${others.length}`);
+          list.appendChild(head);
+          others.forEach((co) => list.appendChild(tag(co, false)));
+        }
+        if (matched.length === 0) {
+          list.appendChild(c('div', { style: { color: 'var(--foggy)' } }, t('common.empty', 'No results')));
+        }
+      }
+
+      const toggleBtn = c('button', {
+        className: 'btn btn-ghost btn-sm',
+        onClick: () => {
+          expanded = !expanded;
+          list.style.display = expanded ? '' : 'none';
+          filterIn.style.display = expanded ? '' : 'none';
+          toggleBtn.textContent = (expanded ? '▾ ' : '▸ ')
+            + t('scan.activeCo')
+            + ` ${companies.length}/${apiCompanies.length}`;
+          if (expanded) rerender();
+        },
+      }, '▸ ' + t('scan.activeCo') + ` ${companies.length}/${apiCompanies.length}`);
+
+      filterIn.addEventListener('input', (e) => {
+        query = e.target.value;
+        rerender();
+      });
+      list.style.display = 'none';
+
+      return c('div', { className: 'card mt-5' }, [
+        portalsErr
+          ? c('div', { className: 'empty' }, [
+              c('strong', null, t('scan.failedPortals')),
+              c('p', { style: { color: 'var(--foggy)', marginTop: '8px' } }, portalsErr.message),
+            ])
+          : companies.length === 0
+          ? c('div', { className: 'empty' }, t('scan.allDisabled'))
+          : c('div', null, [toggleBtn, filterIn, list]),
+      ]);
+    })(),
   ]);
 });
 

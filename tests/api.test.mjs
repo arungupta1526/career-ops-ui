@@ -1,11 +1,32 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { createApp } from '../server/index.mjs';
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
 
 let server;
 let baseUrl;
+let createApp;
 
 before(async () => {
+  // Build a throwaway career-ops project root so api tests don't depend on
+  // the user's real cv.md / portals.yml or CI's lack of a parent project.
+  const dir = mkdtempSync(resolve(tmpdir(), 'api-test-'));
+  mkdirSync(resolve(dir, 'config'), { recursive: true });
+  mkdirSync(resolve(dir, 'data'), { recursive: true });
+  mkdirSync(resolve(dir, 'modes'), { recursive: true });
+  writeFileSync(resolve(dir, 'cv.md'), '# placeholder\n');
+  writeFileSync(resolve(dir, 'config', 'profile.yml'), 'candidate:\n  full_name: "Customized Name"\n');
+  writeFileSync(resolve(dir, 'portals.yml'), 'tracked_companies: []\n');
+  writeFileSync(resolve(dir, 'data', 'applications.md'), '');
+  writeFileSync(resolve(dir, 'data', 'pipeline.md'), '# pipeline\n');
+  writeFileSync(resolve(dir, 'modes', 'oferta.md'),
+    '# Oferta evaluation mode\n\n' +
+    'Read cv.md and config/profile.yml. Evaluate the offer across\n' +
+    'A-G blocks: Role Summary, CV Match, Risks, Compensation,\n' +
+    'Application Strategy, Verdict, Posting Legitimacy.\n');
+  process.env.CAREER_OPS_ROOT = dir;
+  ({ createApp } = await import('../server/index.mjs'));
   const app = createApp();
   await new Promise((resolve) => {
     server = app.listen(0, '127.0.0.1', () => {
@@ -17,6 +38,7 @@ before(async () => {
 });
 
 after(() => {
+  delete process.env.CAREER_OPS_ROOT;
   return new Promise((resolve) => server.close(resolve));
 });
 
