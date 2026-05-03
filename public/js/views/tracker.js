@@ -60,9 +60,9 @@ Router.register('tracker', async () => {
         c('p', { className: 'page-subtitle' }, `${rows.length} ${t('track.entriesIn')} data/applications.md`),
       ]),
       c('div', { className: 'flex gap-3' }, [
-        c('button', { className: 'btn btn-ghost', onClick: () => runFix('/api/run/normalize', t) }, t('track.normalize')),
-        c('button', { className: 'btn btn-ghost', onClick: () => runFix('/api/run/dedup', t) }, t('track.dedup')),
-        c('button', { className: 'btn btn-ghost', onClick: () => runFix('/api/run/merge', t) }, t('track.merge')),
+        c('button', { className: 'btn btn-ghost', onClick: (e) => runFix(e.currentTarget, '/api/run/normalize', t) }, t('track.normalize')),
+        c('button', { className: 'btn btn-ghost', onClick: (e) => runFix(e.currentTarget, '/api/run/dedup', t) }, t('track.dedup')),
+        c('button', { className: 'btn btn-ghost', onClick: (e) => runFix(e.currentTarget, '/api/run/merge', t) }, t('track.merge')),
       ]),
     ]),
 
@@ -83,10 +83,10 @@ Router.register('tracker', async () => {
   ]);
 });
 
-async function runFix(path, t) {
+async function runFix(btn, path, t) {
   UI.toast(t('track.runStart'));
   try {
-    const r = await API.post(path);
+    const r = await UI.withSpinner(btn, () => API.post(path));
     UI.toast(t('track.done') + ' · exit ' + r.code, r.code === 0 ? 'success' : 'error');
     UI.modal('Output', UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n\n' + r.stderr : '')));
   } catch (e) {

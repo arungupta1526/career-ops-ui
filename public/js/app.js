@@ -60,13 +60,13 @@ I18n.onChange(() => {
   Router.render();
 
   // top-bar buttons
-  document.getElementById('btn-doctor').addEventListener('click', async () => {
+  document.getElementById('btn-doctor').addEventListener('click', async (e) => {
     UI.toast(I18n.t('app.runDoctor', 'Running doctor.mjs…'));
     try {
-      const r = await API.post('/api/run/doctor');
+      const r = await UI.withSpinner(e.currentTarget, () => API.post('/api/run/doctor'));
       UI.modal('doctor', UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n' + r.stderr : '')));
-    } catch (e) {
-      UI.toast(e.message, 'error');
+    } catch (err) {
+      UI.toast(err.message, 'error');
     }
   });
   document.getElementById('btn-quick-scan').addEventListener('click', () => Router.go('/scan'));
@@ -102,6 +102,14 @@ I18n.onChange(() => {
       const m = document.getElementById('modal');
       if (!m.hidden) UI.closeModal();
     }
+  });
+
+  // FIX-M4 — clear the global search input on every route change so
+  // typed queries don't bleed into the next page. We skip the clear
+  // when the user is actively typing (focus is in the input) — that
+  // keeps Ctrl+K → type → Enter → navigate flows uninterrupted.
+  window.addEventListener('hashchange', () => {
+    if (document.activeElement !== search) search.value = '';
   });
 
   // modal close handlers

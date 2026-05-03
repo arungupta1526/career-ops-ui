@@ -205,6 +205,7 @@ input, textarea, select {
 }
 .btn:active { transform: scale(.98); }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.is-loading { opacity: .7; cursor: wait; pointer-events: none; }
 
 .btn-primary {
   background: linear-gradient(135deg, var(--rausch) 0%, var(--rausch-dark) 100%);

@@ -34,17 +34,17 @@ Router.register('cv', async () => {
           onClick: () => fileInput.click(),
           title: 'Load CV from a local .md / .txt file (still requires Save afterwards)',
         }, '📁 ' + t('cv.upload', 'Upload CV')),
-        c('button', { className: 'btn btn-ghost', onClick: async () => {
+        c('button', { className: 'btn btn-ghost', onClick: async (e) => {
           UI.toast('sync-check…');
-          const r = await API.post('/api/run/sync-check');
+          const r = await UI.withSpinner(e.currentTarget, () => API.post('/api/run/sync-check'));
           UI.modal('sync-check', UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n' + r.stderr : '')));
         }}, 'sync-check'),
-        c('button', { className: 'btn btn-primary', onClick: async () => {
+        c('button', { className: 'btn btn-primary', onClick: async (e) => {
           if (!ta.value.trim()) {
             UI.toast('CV is empty', 'error');
             return;
           }
-          await API.put('/api/cv', { markdown: ta.value });
+          await UI.withSpinner(e.currentTarget, () => API.put('/api/cv', { markdown: ta.value }));
           UI.toast(t('cv.saved', 'Saved'), 'success');
         }}, '💾 ' + t('common.save')),
       ]),

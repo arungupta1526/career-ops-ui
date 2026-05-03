@@ -11,14 +11,14 @@ Router.register('health', async () => {
         c('p', { className: 'page-subtitle' }, `career-ops v${data.version}`),
       ]),
       c('div', { className: 'flex gap-3' }, [
-        c('button', { className: 'btn btn-ghost', onClick: async () => {
+        c('button', { className: 'btn btn-ghost', onClick: async (e) => {
           UI.toast('doctor.mjs…');
-          const r = await API.post('/api/run/doctor');
+          const r = await UI.withSpinner(e.currentTarget, () => API.post('/api/run/doctor'));
           UI.modal('doctor', UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n' + r.stderr : '')));
         }}, t('health.runDoctor')),
-        c('button', { className: 'btn btn-ghost', onClick: async () => {
+        c('button', { className: 'btn btn-ghost', onClick: async (e) => {
           UI.toast('verify-pipeline.mjs…');
-          const r = await API.post('/api/run/verify');
+          const r = await UI.withSpinner(e.currentTarget, () => API.post('/api/run/verify'));
           UI.modal('verify', UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n' + r.stderr : '')));
         }}, t('health.verify')),
       ]),
