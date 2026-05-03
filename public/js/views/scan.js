@@ -20,11 +20,18 @@ Router.register('scan', async () => {
   const t = (k, f) => I18n.t(k, f);
   let portalsData = null;
   let portalsErr = null;
+  let healthData = null;
   try {
     portalsData = await API.get('/api/portals');
   } catch (e) {
     portalsErr = e;
   }
+  // Probe the HH_USER_AGENT setup so we can warn before the user clicks
+  // RU scan and discovers the 403 the hard way.
+  try {
+    healthData = await API.get('/api/health');
+  } catch {}
+  const hhUaSet = healthData?.checks?.find((x) => x.name === 'HH_USER_AGENT')?.ok === true;
   const p = portalsData?.portals || {};
   const companies = (p.tracked_companies || p.companies || []).filter((c) => c.enabled !== false);
   const apiCompanies = companies.filter((co) =>
@@ -313,6 +320,15 @@ Router.register('scan', async () => {
         c('p', { className: 'page-subtitle' },
           `EN: ${apiCompanies.length} · RU: hh.ru + Habr Career`),
       ]),
+    ]),
+
+    hhUaSet ? null : c('div', {
+      className: 'card mb-3',
+      style: { background: '#fff8e6', borderColor: '#f0c674', color: '#8a6300' },
+    }, [
+      c('strong', null, '⚠ HH_USER_AGENT'),
+      c('p', { style: { margin: '6px 0 0', fontSize: '14px' } },
+        t('scan.hhWarning', 'hh.ru returns 403 from non-RU IPs without a real-browser User-Agent. Set HH_USER_AGENT in .env to enable. Habr Career still works either way.')),
     ]),
 
     c('div', { className: 'card mb-3' }, [
