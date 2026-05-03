@@ -97,14 +97,27 @@
     let liveEngine = '';
 
     // Probe Anthropic OR Gemini availability without blocking initial render.
+    // When a key is available, we flip "▶ Run" to be the PRIMARY button
+    // (executes via API, returns Markdown to the browser) and demote the
+    // prompt-only flow to a ghost button. The user's expectation on
+    // /#/contacto, /#/interview-prep, /#/project, etc. is "do the thing",
+    // not "give me a prompt to paste somewhere else".
     API.get('/api/health').then((h) => {
       const anth = h.checks?.find((x) => x.name === 'ANTHROPIC_API_KEY')?.ok === true;
       const gem = h.checks?.find((x) => x.name === 'GEMINI_API_KEY')?.ok === true;
       if (anth) { liveAvailable = true; liveEngine = 'Anthropic'; }
       else if (gem) { liveAvailable = true; liveEngine = 'Gemini'; }
-      if (liveAvailable && runLiveBtn) {
+      if (liveAvailable) {
+        // Promote runLive → primary, demote manualBtn → ghost.
         runLiveBtn.style.display = '';
+        runLiveBtn.classList.remove('btn-ghost');
+        runLiveBtn.classList.add('btn-primary');
         runLiveBtn.textContent = '⚡ ' + t('mode.runLive', 'Run live') + ' (' + liveEngine + ')';
+        manualBtn.classList.remove('btn-primary');
+        manualBtn.classList.add('btn-ghost');
+        manualBtn.textContent = t('mode.runManual', 'Generate prompt');
+        // Re-order so Run live appears first in the row.
+        if (runLiveBtn.parentNode) runLiveBtn.parentNode.insertBefore(runLiveBtn, manualBtn);
       }
     }).catch(() => {});
 

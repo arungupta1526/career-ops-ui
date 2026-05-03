@@ -321,6 +321,48 @@ export function createApp() {
     res.json({ ok: true, deduped, urls: parsePipeline(updated) });
   });
 
+  // Server-side fetch proxy for the pipeline preview pane. Most ATS
+  // boards (Greenhouse, Ashby, Lever) don't send CORS headers, so the
+  // browser can't read them directly; we fetch on the server and return
+  // a stripped text snippet (script/style removed, whitespace squashed).
+  // The validator in isValidJobUrl() already gates inputs to http(s)
+  // non-loopback hosts, so SSRF surface is small.
+  app.get('/api/pipeline/preview', async (req, res) => {
+    const url = (req.query.url || '').toString();
+    if (!isValidJobUrl(url)) return res.status(400).json({ error: 'invalid url' });
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 15_000);
+      const upstream = await fetch(url, {
+        signal: ctrl.signal,
+        redirect: 'follow',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (career-ops-ui preview) AppleWebKit/537.36',
+          Accept: 'text/html,application/xhtml+xml',
+        },
+      });
+      clearTimeout(timer);
+      if (!upstream.ok) {
+        return res.json({ status: upstream.status, text: '(HTTP ' + upstream.status + ')' });
+      }
+      const html = await upstream.text();
+      // Strip scripts, styles, and HTML tags; cap at 8 KB so big pages
+      // don't bloat the response.
+      const text = html
+        .replace(/<script[\s\S]*?<\/script>/gi, '')
+        .replace(/<style[\s\S]*?<\/style>/gi, '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&[a-z]+;/gi, ' ')
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n\s*\n+/g, '\n\n')
+        .trim()
+        .slice(0, 8000);
+      res.json({ status: upstream.status, text });
+    } catch (e) {
+      res.json({ status: 0, text: '(' + (e.name === 'AbortError' ? 'timeout' : e.message) + ')' });
+    }
+  });
+
   app.delete('/api/pipeline', (req, res) => {
     const url = (req.query.url || '').toString();
     if (!url) return res.status(400).json({ error: 'url required' });
