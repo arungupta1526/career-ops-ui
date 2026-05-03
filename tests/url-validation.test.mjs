@@ -91,6 +91,44 @@ test('isValidJobUrl: rejects malformed URL strings', () => {
   assert.equal(isValidJobUrl('../../etc/passwd'), false);
 });
 
+// ───────────────────────── FIX-M7 ─────────────────────────
+
+test('FIX-M7: bare "not-a-url" string is rejected', () => {
+  assert.equal(isValidJobUrl('not-a-url'), false);
+  assert.equal(isValidJobUrl('hello world'), false);
+  assert.equal(isValidJobUrl('justastring'), false);
+});
+
+test('FIX-M7: rejects loopback hostnames (no SSRF / job boards on laptop)', () => {
+  assert.equal(isValidJobUrl('http://localhost/job/1'), false);
+  assert.equal(isValidJobUrl('https://127.0.0.1/job/1'), false);
+  assert.equal(isValidJobUrl('http://[::1]/job/1'), false);
+  // Subdomains of localhost (some browsers resolve these) are NOT loopback
+  // by themselves — the hostname check is exact-match. Allowed.
+  assert.equal(isValidJobUrl('https://app.localhost.example.com/job/1'), true);
+});
+
+test('FIX-M7: rejects too-short / too-long inputs', () => {
+  assert.equal(isValidJobUrl('http://x'), false);  // 8 chars < min 10
+  assert.equal(isValidJobUrl('https://example.com/' + 'x'.repeat(2000)), false);
+});
+
+test('FIX-M7: rejects whitespace-containing inputs', () => {
+  assert.equal(isValidJobUrl('https://example.com/with space'), false);
+  assert.equal(isValidJobUrl('https://example.com/\twith-tab'), false);
+});
+
+test('POST /api/pipeline {url:"not-a-url"} → 400 (was 200, FIX-M7)', async () => {
+  const r = await post({ url: 'not-a-url' });
+  assert.equal(r.status, 400);
+  assert.match(r.body.error, /invalid url/i);
+});
+
+test('POST /api/pipeline {url:"http://localhost/job"} → 400', async () => {
+  const r = await post({ url: 'http://localhost/job' });
+  assert.equal(r.status, 400);
+});
+
 // ───────────────────────── HTTP integration ─────────────────────────
 
 test('POST /api/pipeline {url:"<script>"} → 400', async () => {

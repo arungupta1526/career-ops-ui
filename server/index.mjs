@@ -672,16 +672,23 @@ export function sanitizeJobDescription(input) {
 }
 
 /**
- * Validate a string as a job-posting URL. Allowed: http(s) URL with no
- * angle brackets, quotes, or backticks (which signal template injection
- * or markup attempts). Used by POST /api/pipeline so malformed payloads
- * fail loudly with 400 instead of getting silently dropped on the floor.
+ * Validate a string as a job-posting URL. Defends against:
+ *   - bare strings ("not-a-url") that slip past scheme checks because
+ *     they have no scheme to reject (FIX-M7)
+ *   - templating chars < > " ' ` \\ that hint at injection attempts
+ *   - non-http(s) schemes (javascript:, data:, file:, ftp:, vbscript:)
+ *   - loopback hostnames (localhost / 127.0.0.1 / ::1) — a job board
+ *     is never on the user's laptop, so anything pointing inward is
+ *     almost certainly a misconfig or SSRF probe
+ *   - obviously bogus length: <10 chars (a real URL needs at least
+ *     "http://x.x") or >2000 chars (typical browser cap, anything
+ *     longer is a paste mistake or a tracking-blob explosion)
  */
 export function isValidJobUrl(input) {
   if (typeof input !== 'string') return false;
   const url = input.trim();
-  if (!url) return false;
-  if (/[<>"'`\\]/.test(url)) return false;
+  if (url.length < 10 || url.length > 2000) return false;
+  if (/[<>"'`\\\s]/.test(url)) return false;
   let parsed;
   try {
     parsed = new URL(url);
@@ -690,6 +697,8 @@ export function isValidJobUrl(input) {
   }
   if (!['http:', 'https:'].includes(parsed.protocol)) return false;
   if (!parsed.hostname) return false;
+  const host = parsed.hostname.toLowerCase();
+  if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]') return false;
   return true;
 }
 
