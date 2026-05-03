@@ -32,6 +32,10 @@ jobs:
           scope: '@fighter90'
 
       - name: Verify version matches release tag
+        # Only enforce on actual release events (where GITHUB_REF_NAME is a
+        # v*.*.* tag). workflow_dispatch from main publishes whatever
+        # version package.json says — that's the maintainer's call.
+        if: github.event_name == 'release'
         run: |
           pkg=$(node -p "require('./package.json').version")
           tag="${GITHUB_REF_NAME#v}"

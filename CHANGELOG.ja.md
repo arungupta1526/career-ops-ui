@@ -6,6 +6,44 @@
 
 ---
 
+## [1.7.1] — 2026-05-04
+
+Patch release stacking the post-v1.7.0 work: pipeline preview pane, Anthropic API integration, scrollable sidebar, dotenv loader, dynamic Active-companies list, CI workflow hardening.
+
+### ✨ Pipeline preview pane
+
+- `/#/pipeline` overhaul — left list + right preview pane. Click any URL to fetch a server-side proxied snapshot (`GET /api/pipeline/preview` strips scripts/styles/tags, caps at 8 KB, validated through `isValidJobUrl`). Live filter input, "In queue" counter, ⚡ "Evaluate first" header button. Inline ▶/✕ on every row plus full Evaluate / Open in tab / Delete on the preview pane. **8 new tests** in `tests/pipeline-preview.test.mjs`.
+
+### ✨ Anthropic API integration — "Run live" everywhere
+
+- `server/lib/anthropic.mjs` — zero-dependency client for Anthropic Messages API. When `ANTHROPIC_API_KEY` is set, every mode page (`/#/deep`, `/#/project`, `/#/training`, `/#/batch`, `/#/contacto`, `/#/interview-prep`, `/#/patterns`) renders **⚡ Run live (Anthropic)** as the primary action — clicking executes the prompt and renders Markdown back into the browser. Gemini stays as fallback when only its key is set. **8 new tests** in `tests/anthropic.test.mjs`.
+
+### 🐛 CI / pipeline / UX fixes
+
+- `fix(api): tighten pipeline URL validator` (FIX-M7) — rejects loopback hostnames, length <10 or >2000, whitespace inside URLs.
+- `fix(server): actually load .env so HH_USER_AGENT / GEMINI_API_KEY hints work` — added `server/lib/dotenv.mjs` (35-line zero-dep loader). 6 new tests.
+- `fix(ui): scrollable sidebar` — `.sidebar` now has `overflow-y: auto`. 18 nav items always reach the footer.
+- `fix(ui): make HH_USER_AGENT banner dismissible`, then removed entirely from `/scan`. Health page check still surfaces it.
+- `fix(scan): Active companies list collapsible + filterable + grouped` (✓ API-backed first, ○ websearch second).
+- `fix(test): isolate api.test.mjs + en-scanner.test.mjs from parent project` — both now spin up tmp project roots so CI works without parent checked out alongside web-ui.
+- `fix(workflow): publish-package version-match only on release events` — `workflow_dispatch` from main no longer fails the tag/version check.
+- `fix(e2e): stable selector for pipeline row delete` — `.pipeline-row[data-url=…] .pipeline-row-delete`.
+
+### 📦 New REST endpoint
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/api/pipeline/preview?url=…` | Server-side proxy: visible-text snapshot (scripts/styles stripped, 8 KB cap), gated by `isValidJobUrl`. |
+
+### 📊 Stats
+
+- **Tests:** 225 → **233** (+8 on top of v1.7.0).
+- **Test files:** 25 → **26**.
+- **E2E:** 20 + 23 = 43 Playwright steps, all green.
+- **Coverage:** 93.5% line · 82.6% branch · 93.7% funcs.
+
+---
+
 ## [1.7.0] — 2026-05-03
 
 QA r5 に基づく 35 コミットのハードニング + UX + 機能完成パス。3 つのセキュリティレイヤーが着地し、欠けていた CRUD エンドポイントが全て埋められ、親プロジェクトのブートストラップが完全自動化、UI に **9 つの新ページ** — Activity、リデザインされた Deep Research、そして 7 つのサイドバーグループモード (project / training / followup / batch / outreach / interview-prep / patterns) が追加され親の `modes/` を 100% カバー。テストカバレッジは **73** から **209** に増加、**24 個のテストファイル** + **23 ステップの包括的 Playwright e2e**。Coverage: **93.5 % 行 / 82.6 % ブランチ**。
