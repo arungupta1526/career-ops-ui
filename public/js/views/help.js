@@ -38,6 +38,14 @@ Router.register('help', async () => {
   while (scratch.firstChild) article.appendChild(scratch.firstChild);
 
   const tocLinks = headings.map((h) => {
+    // The renderer leaves heading content as raw markdown (backticks,
+    // emphasis markers etc.) because the heading regex captures $1
+    // verbatim. Pretty-print for the TOC by stripping inline-code
+    // backticks AND rendering bold/italic markers as <strong>/<em>.
+    const plain = (h.textContent || '')
+      .replace(/`([^`]+)`/g, '$1')   // drop the backtick fences
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1');
     const a = c('a', {
       href: '#help-h-' + h.id.replace(/^help-h-/, ''),
       style: {
@@ -49,15 +57,17 @@ Router.register('help', async () => {
         const target = document.getElementById(h.id);
         if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       },
-    }, h.textContent || '');
+    }, plain);
     return a;
   });
 
   const toc = c('nav', {
     className: 'card help-toc',
     style: {
-      position: 'sticky', top: '20px',
-      padding: '16px 18px', maxHeight: 'calc(100vh - 80px)',
+      // top:110px keeps the TOC below the fixed topbar (which is
+      // ~88px tall + a comfortable gap) so it never sits behind it.
+      position: 'sticky', top: '110px',
+      padding: '16px 18px', maxHeight: 'calc(100vh - 130px)',
       overflowY: 'auto',
     },
   }, [
