@@ -1,5 +1,5 @@
 {
-  "name": "career-ops-ui",
+  "name": "@fighter90/career-ops-ui",
   "version": "1.7.0",
   "description": "Airbnb-styled web interface for the career-ops AI job-search pipeline — search, evaluate, deep-dive, apply, track every offer from a single browser tab.",
   "type": "module",
@@ -13,6 +13,19 @@
   "bugs": {
     "url": "https://github.com/Fighter90/career-ops-ui/issues"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
+  },
+  "files": [
+    "bin/",
+    "server/",
+    "public/",
+    "scripts/",
+    "README*.md",
+    "CHANGELOG*.md",
+    "LICENSE"
+  ],
   "keywords": [
     "career-ops",
     "job-search",

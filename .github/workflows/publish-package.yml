@@ -1,0 +1,51 @@
+name: Publish to GitHub Packages
+
+# Publishes the npm package to GitHub Packages whenever a release is
+# created. Users can then install with:
+#   npm install @fighter90/career-ops-ui --registry=https://npm.pkg.github.com
+#   # or via npx:
+#   npx @fighter90/career-ops-ui
+#
+# Requires no extra secrets — GITHUB_TOKEN is auto-provisioned by Actions
+# and has packages:write permission for the repo's package registry.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: npm publish → npm.pkg.github.com
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: https://npm.pkg.github.com
+          scope: '@fighter90'
+
+      - name: Verify version matches release tag
+        run: |
+          pkg=$(node -p "require('./package.json').version")
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$pkg" != "$tag" ]; then
+            echo "package.json version $pkg ≠ tag $tag — refusing to publish"
+            exit 1
+          fi
+
+      - name: Run tests before publishing
+        run: |
+          npm ci --no-audit --no-fund
+          npm test
+
+      - name: Publish
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
