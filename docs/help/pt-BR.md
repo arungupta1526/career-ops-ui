@@ -11,32 +11,70 @@ para a seção que precisar via TOC.
 
 ---
 
-## 1. Início rápido (5 minutos do zero)
+## 1. Início rápido — passo-a-passo de "criar CV" até "candidatado e mensagem enviada"
 
-O ciclo completo:
+Playbook canônico botão-a-botão. Siga em ordem na primeira vez.
 
-1. **Health** (`#/health`) — confirme que cada checagem requerida
-   está verde. Se `cv.md`, `config/profile.yml` ou `portals.yml`
-   estiverem faltando, a página diz exatamente qual criar.
-2. **App settings** (`#/config`) — cole `ANTHROPIC_API_KEY` e
-   (opcional) `GEMINI_API_KEY`. Pressione **Save**. As chaves vão
-   ao `.env` do projeto pai, então scripts career-ops também leem.
-3. **Profile** (`#/profile`) — revise `config/profile.yml` e
-   substitua o nome de template (`Jane Smith`).
-4. **CV** (`#/cv`) — cole ou suba seu currículo. **💾 Save** — o
-   sanitizador remove `<script>`, URLs `javascript:` e handlers
-   `on*=` antes de gravar.
-5. **Scan** (`#/scan`) — **🌐 Scan** percorre cada fonte habilitada
-   (Greenhouse / Ashby / Lever para EN, hh.ru / Habr Career para RU).
-6. **Pipeline** (`#/pipeline`) — revise URLs em fila. Click mostra
-   prévia do JD à direita.
-7. **Evaluate** (`#/evaluate`) — cole um JD (ou clique em
-   **▶ Evaluate** do pipeline). Com chave Anthropic / Gemini, o
-   modelo pontua 0–5 e salva em `reports/`.
-8. **Tracker** (`#/tracker`) — cada avaliação ganha uma linha.
-9. **Apply checklist** (`#/apply`) — gera checklist de envio.
-10. **Deep research** (`#/deep`) — ao decidir candidatar-se, gere o
-    briefing da empresa. Salva em `interview-prep/`.
+**A. Setup (uma vez, ~5 min)**
+
+1. Abrir `http://127.0.0.1:4317` (ou `bash bin/start.sh` da raiz).
+2. Sidebar **❤ Health** → todas checagens em verde.
+3. Sidebar **⚒ App settings** → aba *API keys & runtime* → cole
+   `ANTHROPIC_API_KEY` e/ou `GEMINI_API_KEY` → **💾 Save** →
+   **▶ Test Anthropic / Gemini**.
+4. Mesma página → aba *Profile* → editar `candidate.full_name`,
+   `email`, `target.roles`, `target.comp_total_min_usd`,
+   `target.archetypes` → **💾 Save**.
+
+**B. CV (uma vez, ~10 min)**
+
+5. Sidebar **✎ CV** — abrir o editor.
+6. **📁 Upload CV** → enviar `.docx/.doc/.odt/.rtf/.pdf/.html/.txt
+   /.md` (servidor converte e sanitiza) ou colar markdown.
+7. **💾 Save** (top-right) — toast "Saved".
+8. (Opcional) **📄 Generate PDF** — o PDF mais novo baixa
+   automaticamente quando termina.
+
+**C. Encontrar vagas (~2 min por scan)**
+
+9. Sidebar **🌐 Scan** → **🌐 Scan now** → log SSE ao vivo.
+10. Click em tag de empresa filtra; ↗ abre a página de carreiras.
+
+**D. Pontuar (~30 s por JD)**
+
+11. Sidebar **Pipeline** — click em uma entrada para preview do JD.
+12. **▶ Evaluate** ao lado do JD → modelo pontua 0–5 → relatório
+    em `reports/<data>-<slug>.md`.
+13. Sidebar **Reports** — revisar relatório; pursuables = short-list.
+
+**E. Decidir + pesquisar a fundo (~3 min)**
+
+14. Sidebar **Deep research** → empresa + cargo → briefing de 7
+    seções, salvo em `interview-prep/<empresa>-<cargo>.md`.
+
+**F. Candidatar (~5 min por candidatura)**
+
+15. Sidebar **Apply checklist** → URL + JD → checklist (cover letter,
+    keywords, arquivos, **NUNCA auto-submit**).
+16. Abrir a página de carreiras em nova aba → enviar manualmente.
+17. Sidebar **Outreach** (`#/contacto`) → mensagem LinkedIn / email
+    a partir do briefing do passo 14 → personalizar e enviar.
+
+**G. Tracking e follow-up (contínuo)**
+
+18. Sidebar **Tracker** → linha: empresa, cargo, score, status
+    `Applied`, links para o relatório e briefing.
+19. Uma semana depois: modo **Follow-up** → check-in → status
+    `Followed up`.
+20. Convite de entrevista: modo **Interview prep** → preparação
+    para system design / behavioral / coding.
+21. Oferta: atualizar Tracker para `Offer` e revisar a seção comp
+    do relatório.
+
+**TL;DR — a ordem do sidebar coincide com o workflow:**
+Health → App settings → Profile → CV → Scan → Pipeline → Evaluate →
+Reports → Deep research → Apply checklist → Outreach → Tracker →
+Follow-up → Interview prep → Activity log.
 
 ---
 

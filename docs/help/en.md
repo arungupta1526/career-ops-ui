@@ -12,35 +12,164 @@ help sidebar.
 
 ---
 
-## 1. Quick start (5 minutes from zero)
+## 1. Quick start — full step-by-step from "create CV" to "applied & messaged"
 
-The whole loop, end-to-end, in five minutes:
+This is the canonical, button-by-button playbook. Follow it in order
+the first time. Every step names the exact route, the exact button,
+and what you'll see on success. Sections 2–16 below dive deeper into
+each phase.
 
-1. **Health** (`#/health`) — confirm every required check is green. If
-   `cv.md`, `config/profile.yml`, or `portals.yml` are missing, the
-   page tells you exactly which file to create.
-2. **App settings** (`#/config`) — paste your `ANTHROPIC_API_KEY` and
-   (optionally) `GEMINI_API_KEY`. Click **Save**. The keys are written
-   to the parent project's `.env` so career-ops scripts pick them up
-   too.
-3. **Profile** (`#/profile`) — review `config/profile.yml` and replace
-   the template name (`Jane Smith`) with your real one.
-4. **CV** (`#/cv`) — paste or upload your résumé. Click **💾 Save** —
-   the server-side sanitizer strips `<script>`, `javascript:` URLs,
-   and `on*=` handlers before writing.
-5. **Scan** (`#/scan`) — click **🌐 Scan** to crawl every enabled
-   board (Greenhouse / Ashby / Lever for EN, hh.ru / Habr Career for
-   RU). Live SSE log streams while it runs.
-6. **Pipeline** (`#/pipeline`) — review the URLs the scanner queued.
-   Click any entry to preview the JD on the right.
-7. **Evaluate** (`#/evaluate`) — paste a JD (or click **▶ Evaluate**
-   from the pipeline). With an Anthropic / Gemini key set, the model
-   scores it 0–5 against your CV and the result lands in `reports/`.
-8. **Tracker** (`#/tracker`) — every evaluation gets a row.
-9. **Apply helper** (`#/apply`) — generates a submission checklist for
-   the actual application step.
-10. **Deep research** (`#/deep`) — once you decide to apply, run a
-    company brief. Saved to `interview-prep/`.
+### A. Setup (do these once, ~5 minutes)
+
+**Step 1 — Open the app at `http://127.0.0.1:4317`.** If it isn't
+running, in a terminal run `bash bin/start.sh` from the repo root.
+The Dashboard (`#/dashboard`) loads.
+
+**Step 2 — Click `❤ Health` in the left sidebar.** Every required
+check must be green:
+
+- `cv.md`, `config/profile.yml`, `portals.yml` exist
+- API key set (at least one of `ANTHROPIC_API_KEY` / `GEMINI_API_KEY`)
+- Playwright installed (only required if you'll use Generate PDF)
+
+If anything is red, the page tells you the exact file or env var to
+fix. Don't proceed until Health is green.
+
+**Step 3 — Click `⚒ App settings` in the sidebar.** You land on the
+**API keys & runtime** tab.
+- Paste `ANTHROPIC_API_KEY` (preferred — better long-form scoring)
+  and/or `GEMINI_API_KEY`. Get keys from
+  <https://console.anthropic.com/settings/keys> or
+  <https://aistudio.google.com/apikey>.
+- Click **💾 Save**. Then click **▶ Test Anthropic** (or Gemini) — a
+  tiny round-trip confirms the key works.
+
+**Step 4 — Switch to the `Profile` tab on the same page.** This is the
+direct YAML editor for `config/profile.yml`. Edit at minimum:
+- `candidate.full_name` — replace any placeholder ("Jane Smith") with
+  your real name
+- `candidate.email`, `linkedin`, `github` — used in cover letters
+- `target.roles` — the job titles you'll apply to
+- `target.comp_total_min_usd` — minimum total comp; offers below this
+  get flagged in section D of every evaluation
+- `target.archetypes` — the career patterns you accept (single
+  most-impactful field)
+
+Click **💾 Save**. Server validates the YAML and stamps the canonical
+`# Career-Ops Profile Configuration` header.
+
+### B. CV (do this once, ~10 minutes)
+
+**Step 5 — Click `✎ CV` in the sidebar.** Two columns: editor on the
+left, live preview on the right.
+
+**Step 6 — Pick one path to fill the editor:**
+- **Upload an existing résumé** — click **📁 Upload CV**, pick any of
+  `.docx / .doc / .odt / .rtf / .pdf / .html / .txt / .md`. The
+  server converts to markdown via pandoc or pdftotext, sanitizes XSS,
+  and drops the result in the editor. **Review the conversion** —
+  PDFs especially can lose layout fidelity.
+- **Paste markdown directly** — the textarea is a markdown editor;
+  the right pane is what the LLM (and your future recruiter) will see.
+- **Tone tips:** one bullet = one accomplishment with a metric. Keep
+  under 1500 words. Sections in this order: Summary, Experience,
+  Projects, Education, Skills.
+
+**Step 7 — Click `💾 Save` (top-right of CV page).** The server
+sanitizes (`<script>` / `javascript:` / inline handlers stripped) and
+writes `cv.md`. Toast: *"Saved"*.
+
+**Step 8 (optional) — Click `📄 Generate PDF`.** Runs
+`generate-pdf.mjs` in the parent (Playwright required) and **the new
+PDF auto-downloads** to your browser when done. The list at the
+bottom of the page keeps every previously generated file.
+
+### C. Find vacancies (~2 minutes per scan)
+
+**Step 9 — Click `🌐 Scan` in the sidebar.** Confirm `portals.yml`
+lists the boards you care about (sections 5 of this help). Press the
+**🌐 Scan now** button. A live SSE log streams while the scanner
+walks Greenhouse / Ashby / Lever (English boards) and hh.ru / Habr
+Career (Russian boards if enabled).
+
+**Step 10 — When the scan finishes, review results.** Click any
+company tag to filter; click the ↗ icon to open the company's
+careers page in a new tab. Every vacancy that survived the
+title-filter is queued in the Pipeline.
+
+### D. Score the offers (~30 seconds per JD)
+
+**Step 11 — Click `Pipeline` in the sidebar.** You see every URL
+the scanner queued. Click an entry to preview the JD inline.
+
+**Step 12 — Click `▶ Evaluate` next to any JD.** This jumps to
+`#/evaluate`. With an API key set, it runs live; without one, you
+get a manual prompt to paste into your own LLM. Live mode produces a
+**0–5 score** against your CV across sections A–G (Role / Company /
+Compensation / Risk / Stretch / Cultural fit / Verdict). Save lands
+in `reports/<date>-<slug>.md`.
+
+**Step 13 — Click `Reports` in the sidebar** and review the latest
+evaluation. Anything below your `comp_total_min_usd` is flagged red
+in section D. Anything with `Verdict: pursue` is your shortlist.
+
+### E. Decide & deeply research the shortlisted company (~3 minutes)
+
+**Step 14 — Pick a vacancy worth pursuing. Click `Deep research`
+in the sidebar.** Enter the company name and role. The model
+produces a 7-section company brief (mission, recent news, tech
+stack, hiring signals, comp benchmarks, risks, recommended angle).
+Save lands in `interview-prep/<company>-<role>.md`.
+
+### F. Apply (~5 minutes per application)
+
+**Step 15 — Click `Apply checklist` in the sidebar.** Paste the
+vacancy URL + JD. The helper generates a step-by-step submission
+checklist:
+- Tailored cover-letter draft (uses your `cv.md` + `profile.yml`)
+- Specific keywords to mirror from the JD
+- Files to attach (CV PDF — see step 8)
+- Where to apply (the canonical careers URL, not aggregator
+  redirects)
+- Reminder: **NEVER auto-submit** — final review and submission is
+  always manual.
+
+**Step 16 — Open the careers page in a new tab.** Use the apply
+checklist as your todo list. Submit through the company's actual
+form. Attach the PDF you generated in step 8.
+
+**Step 17 — Reach out to a real human.** Open the **Outreach** mode
+(`#/contacto` in the sidebar). The model drafts a short LinkedIn /
+email message tailored to the company brief from step 14. Personalize
+the opener (one specific detail from your deep-research brief).
+Send it.
+
+### G. Track & follow up (continuous)
+
+**Step 18 — Click `Tracker` in the sidebar** and add a row for
+the application: company, role, score, status `Applied`, link to the
+report, link to the deep-research brief. Date is auto-filled.
+
+**Step 19 — A week later: open `Follow-up` mode** (`#/followup`).
+Drafts a polite check-in email referencing the original application.
+Send. Update tracker status to `Followed up`.
+
+**Step 20 — When you get an interview invite, run `Interview prep`
+mode** (`#/interview-prep`). Generates targeted prep for the
+specific company + stage (system design / behavioral / coding).
+Pulls from the deep-research brief automatically.
+
+**Step 21 — Got the offer? Update Tracker status to `Offer`** and
+revisit the comp section of your evaluation report — your minimum
+acceptance number is right there.
+
+### TL;DR — sidebar order matches the workflow
+
+`Health → App settings → Profile → CV → Scan → Pipeline → Evaluate
+→ Reports → Deep research → Apply checklist → Outreach → Tracker
+→ Follow-up → Interview prep → Activity log`
+
+That's it. 21 steps, button-by-button, from zero to offer.
 
 ---
 

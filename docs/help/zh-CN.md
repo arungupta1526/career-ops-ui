@@ -9,33 +9,67 @@
 
 ---
 
-## 1. 快速入门 (5 分钟从零开始)
+## 1. 快速入门 — 从「创建 CV」到「申请 + 发送消息」的逐步指南
 
-完整循环:
+按钮级官方流程。第一次请按顺序进行。
 
-1. **Health** (`#/health`) — 确认每项必需检查为绿色。如果缺少
-   `cv.md`、`config/profile.yml` 或 `portals.yml`,页面会准确告诉你
-   该创建哪个文件。
-2. **App settings** (`#/config`) — 粘贴 `ANTHROPIC_API_KEY` 和
-   (可选) `GEMINI_API_KEY`。点击 **Save**。密钥写入父项目的
-   `.env`,以便 career-ops 脚本也读取。
-3. **Profile** (`#/profile`) — 检查 `config/profile.yml`,把模板
-   姓名 (`Jane Smith`) 替换为你的真实姓名。
-4. **CV** (`#/cv`) — 粘贴或上传你的简历。点击 **💾 Save** —
-   服务端净化器在写入前会去除 `<script>`、`javascript:` URL 和
-   `on*=` 处理器。
-5. **Scan** (`#/scan`) — 点击 **🌐 Scan** 一次性扫描所有启用的源
-   (Greenhouse / Ashby / Lever 用于 EN,hh.ru / Habr Career 用于
-   RU)。
-6. **Pipeline** (`#/pipeline`) — 检查扫描器排队的 URL。点击任何
-   条目以在右侧预览 JD。
-7. **Evaluate** (`#/evaluate`) — 粘贴 JD (或从 pipeline 点击
-   **▶ Evaluate**)。如果设置了 Anthropic / Gemini 密钥,模型会以
-   0–5 分对照你的 CV 评分,结果保存到 `reports/`。
-8. **Tracker** (`#/tracker`) — 每次评估都会得到一行。
-9. **Apply checklist** (`#/apply`) — 生成提交清单。
-10. **Deep research** (`#/deep`) — 决定申请后,运行公司简报。保存到
-    `interview-prep/`。
+**A. 设置 (一次性,~5 分钟)**
+
+1. 打开 `http://127.0.0.1:4317` (或在根目录 `bash bin/start.sh`)。
+2. 侧栏 **❤ Health** → 所有必需检查为绿色。
+3. 侧栏 **⚒ App settings** → *API keys & runtime* 标签 → 粘贴
+   `ANTHROPIC_API_KEY` 和/或 `GEMINI_API_KEY` → **💾 Save** →
+   **▶ Test Anthropic / Gemini**。
+4. 同一页 → *Profile* 标签 → 编辑 `candidate.full_name`、`email`、
+   `target.roles`、`target.comp_total_min_usd`、`target.archetypes`
+   → **💾 Save**。
+
+**B. CV (一次性,~10 分钟)**
+
+5. 侧栏 **✎ CV** — 打开编辑器。
+6. **📁 Upload CV** 上传 `.docx/.doc/.odt/.rtf/.pdf/.html/.txt/.md`
+   (服务器转换 + 净化),或直接粘贴 markdown。
+7. **💾 Save** (右上角) — 提示「Saved」。
+8. (可选) **📄 Generate PDF** — 完成时最新 PDF 自动下载。
+
+**C. 找职位 (每次扫描 ~2 分钟)**
+
+9. 侧栏 **🌐 Scan** → **🌐 Scan now** → 实时 SSE 日志。
+10. 点击公司标签筛选; ↗ 在新标签打开招聘页。
+
+**D. 评分 (每个 JD ~30 秒)**
+
+11. 侧栏 **Pipeline** — 点击条目预览 JD。
+12. JD 旁的 **▶ Evaluate** → 模型 0–5 评分 →
+    `reports/<日期>-<slug>.md`。
+13. 侧栏 **Reports** — 检查报告; pursue = 候选清单。
+
+**E. 决策 + 深入研究 (~3 分钟)**
+
+14. 侧栏 **Deep research** → 公司 + 职位 → 7 节简报 →
+    `interview-prep/<公司>-<职位>.md`。
+
+**F. 申请 (每次申请 ~5 分钟)**
+
+15. 侧栏 **Apply checklist** → URL + JD → 清单 (cover letter、
+    关键词、附件、**绝不自动提交**)。
+16. 在新标签打开招聘页 → 手动提交 (附上第 8 步的 PDF)。
+17. 侧栏 **Outreach** (`#/contacto`) → 基于第 14 步简报的
+    LinkedIn / 邮件 → 个性化后发送。
+
+**G. 跟踪 + 跟进 (持续)**
+
+18. 侧栏 **Tracker** → 添加行: 公司、职位、得分、状态 `Applied`、
+    报告链接、简报链接。
+19. 一周后: **Follow-up** 模式 → check-in → 状态 `Followed up`。
+20. 收到面试邀请: **Interview prep** 模式 → 系统设计 / 行为面 /
+    编码的针对性准备。
+21. 拿到 offer: 把 Tracker 改为 `Offer` + 重看报告 comp 节。
+
+**TL;DR — 侧栏顺序就是工作流顺序:**
+Health → App settings → Profile → CV → Scan → Pipeline → Evaluate
+→ Reports → Deep research → Apply checklist → Outreach → Tracker
+→ Follow-up → Interview prep → Activity log。
 
 ---
 

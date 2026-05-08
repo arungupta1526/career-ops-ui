@@ -9,33 +9,71 @@
 
 ---
 
-## 1. クイックスタート (5 分でゼロから)
+## 1. クイックスタート — 「CV 作成」から「応募 + メッセージ送信」までステップごとに
 
-ループ全体:
+ボタン単位の正規プレイブック。初回は順番通りに進めてください。
 
-1. **Health** (`#/health`) — すべての必須チェックが緑であることを
-   確認。`cv.md`、`config/profile.yml`、`portals.yml` が無い場合、
-   ページがどのファイルを作るべきか正確に教えます。
-2. **App settings** (`#/config`) — `ANTHROPIC_API_KEY` と
-   (オプション) `GEMINI_API_KEY` を貼り付け、**Save** をクリック。
-   キーは親プロジェクトの `.env` に書き込まれ、career-ops スクリプト
-   も同じ値を読みます。
-3. **Profile** (`#/profile`) — `config/profile.yml` を確認し、
-   テンプレート名 (`Jane Smith`) を本名に置き換えます。
-4. **CV** (`#/cv`) — 履歴書を貼り付けまたはアップロード。**💾 Save**
-   をクリック — サーバ側のサニタイザが `<script>`、`javascript:`
-   URL、`on*=` ハンドラを書き込み前に削除します。
-5. **Scan** (`#/scan`) — **🌐 Scan** で有効なすべてのソースを
-   一括スキャン (Greenhouse / Ashby / Lever、hh.ru / Habr Career)。
-6. **Pipeline** (`#/pipeline`) — スキャナがキューに入れた URL を
-   レビュー。クリックで右に JD プレビュー。
-7. **Evaluate** (`#/evaluate`) — JD を貼り付け (または pipeline
-   から **▶ Evaluate**)。Anthropic / Gemini キーがあれば 0–5 で採点
-   され `reports/` に保存。
-8. **Tracker** (`#/tracker`) — すべての評価が一行になります。
-9. **Apply checklist** (`#/apply`) — 提出チェックリスト生成。
-10. **Deep research** (`#/deep`) — 応募を決めたら会社ブリーフを実行。
-    `interview-prep/` に保存。
+**A. セットアップ (一度のみ、~5分)**
+
+1. `http://127.0.0.1:4317` を開く (またはルートで `bash bin/start.sh`)。
+2. サイドバー **❤ Health** → 必須チェックすべて緑。
+3. サイドバー **⚒ App settings** → *API keys & runtime* タブ →
+   `ANTHROPIC_API_KEY` および/または `GEMINI_API_KEY` を貼り付け →
+   **💾 Save** → **▶ Test Anthropic / Gemini**。
+4. 同じページ → *Profile* タブ → `candidate.full_name`、`email`、
+   `target.roles`、`target.comp_total_min_usd`、`target.archetypes`
+   を編集 → **💾 Save**。
+
+**B. CV (一度のみ、~10分)**
+
+5. サイドバー **✎ CV** — エディタを開く。
+6. **📁 Upload CV** で `.docx/.doc/.odt/.rtf/.pdf/.html/.txt/.md`
+   をアップロード (サーバが変換 + サニタイズ)、または markdown を
+   直接貼り付け。
+7. **💾 Save** (右上) — トースト「Saved」。
+8. (任意) **📄 Generate PDF** — 完了時に最新 PDF を自動ダウンロード。
+
+**C. 求人を探す (スキャンあたり ~2分)**
+
+9. サイドバー **🌐 Scan** → **🌐 Scan now** → 実時間 SSE ログ。
+10. 会社タグクリックでフィルタ; ↗ で採用ページを開く。
+
+**D. 採点 (JD あたり ~30秒)**
+
+11. サイドバー **Pipeline** — 項目クリックで JD プレビュー。
+12. JD 横の **▶ Evaluate** → モデルが 0–5 採点 →
+    `reports/<日付>-<slug>.md`。
+13. サイドバー **Reports** — レポートを確認; pursue =
+    ショートリスト。
+
+**E. 決定 + 深掘りリサーチ (~3分)**
+
+14. サイドバー **Deep research** → 会社名 + 職種 → 7 セクションの
+    ブリーフ → `interview-prep/<会社>-<職種>.md`。
+
+**F. 応募 (応募あたり ~5分)**
+
+15. サイドバー **Apply checklist** → URL + JD → チェックリスト
+    (カバーレター、キーワード、添付、**自動送信は絶対禁止**)。
+16. 採用ページを新タブで開き手動送信 (8 で生成した PDF を添付)。
+17. サイドバー **Outreach** (`#/contacto`) → 14 のブリーフから
+    LinkedIn / メール → カスタマイズして送信。
+
+**G. トラッキング + フォローアップ (継続的)**
+
+18. サイドバー **Tracker** → 行追加: 会社、役職、スコア、ステータス
+    `Applied`、レポート + ブリーフへのリンク。
+19. 1 週間後: **Follow-up** モード → チェックイン →
+    Tracker `Followed up`。
+20. 面接招待: **Interview prep** モード → システムデザイン /
+    行動面接 / コーディングのターゲット準備。
+21. オファー: Tracker を `Offer` に更新 + レポートの comp
+    セクション再確認。
+
+**TL;DR — サイドバー順 = ワークフロー順:**
+Health → App settings → Profile → CV → Scan → Pipeline → Evaluate
+→ Reports → Deep research → Apply checklist → Outreach → Tracker
+→ Follow-up → Interview prep → Activity log。
 
 ---
 

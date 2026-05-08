@@ -11,33 +11,70 @@ arranque; después salte a la sección que necesite mediante el TOC.
 
 ---
 
-## 1. Inicio rápido (5 minutos desde cero)
+## 1. Inicio rápido — paso a paso de "crear CV" hasta "postulado y mensajeado"
 
-El ciclo completo:
+Playbook canónico botón-por-botón. Sígalo en orden la primera vez.
 
-1. **Health** (`#/health`) — confirme que cada chequeo requerido está
-   verde. Si falta `cv.md`, `config/profile.yml` o `portals.yml`, la
-   página le dice exactamente qué archivo crear.
-2. **App settings** (`#/config`) — pegue `ANTHROPIC_API_KEY` y (si
-   quiere) `GEMINI_API_KEY`. Las claves se escriben al `.env` del
-   proyecto padre, así los scripts career-ops también las leen.
-3. **Profile** (`#/profile`) — revise `config/profile.yml` y
-   reemplace el nombre de plantilla (`Jane Smith`) por el suyo real.
-4. **CV** (`#/cv`) — pegue o suba su currículum. Pulse **💾 Save** —
-   el sanitizador del servidor remueve `<script>`, URLs `javascript:`
-   y manejadores `on*=` antes de escribir.
-5. **Scan** (`#/scan`) — pulse **🌐 Scan** para recorrer cada fuente
-   habilitada (Greenhouse / Ashby / Lever para EN, hh.ru / Habr
-   Career para RU). El log SSE se transmite en vivo.
-6. **Pipeline** (`#/pipeline`) — revise las URLs en cola. Cualquier
-   click muestra una vista previa del JD a la derecha.
-7. **Evaluate** (`#/evaluate`) — pegue un JD (o pulse **▶ Evaluate**
-   desde el pipeline). Con clave Anthropic / Gemini, el modelo lo
-   puntúa 0–5 contra su CV y guarda en `reports/`.
-8. **Tracker** (`#/tracker`) — cada evaluación obtiene una fila.
-9. **Apply checklist** (`#/apply`) — genera una checklist de envío.
-10. **Deep research** (`#/deep`) — al decidir aplicar, ejecute el
-    informe de la empresa. Se guarda en `interview-prep/`.
+**A. Configuración (una sola vez, ~5 min)**
+
+1. Abrir `http://127.0.0.1:4317` (o `bash bin/start.sh` desde la raíz).
+2. Sidebar **❤ Health** → todos los chequeos requeridos en verde.
+3. Sidebar **⚒ App settings** → pestaña *API keys & runtime* → pegar
+   `ANTHROPIC_API_KEY` y/o `GEMINI_API_KEY` → **💾 Save** →
+   **▶ Test Anthropic / Gemini**.
+4. Misma página → pestaña *Profile* → editar `candidate.full_name`,
+   `email`, `target.roles`, `target.comp_total_min_usd`,
+   `target.archetypes` → **💾 Save**.
+
+**B. CV (una sola vez, ~10 min)**
+
+5. Sidebar **✎ CV** — abrir el editor.
+6. Botón **📁 Upload CV** → subir `.docx/.doc/.odt/.rtf/.pdf/.html
+   /.txt/.md` (servidor convierte y sanitiza); o pegar markdown.
+7. **💾 Save** (top-right) — toast "Saved".
+8. (Opcional) **📄 Generate PDF** — el PDF más reciente se descarga
+   automáticamente al terminar.
+
+**C. Encontrar vacantes (~2 min por scan)**
+
+9. Sidebar **🌐 Scan** → **🌐 Scan now** → log SSE en vivo.
+10. Click en un tag de empresa filtra; ↗ abre la página de carreras.
+
+**D. Puntuar (~30 s por JD)**
+
+11. Sidebar **Pipeline** — click en una entrada para preview del JD.
+12. **▶ Evaluate** junto al JD → modelo puntúa 0–5 → reporte en
+    `reports/<fecha>-<slug>.md`.
+13. Sidebar **Reports** — revisar el reporte; pursuables = short-list.
+
+**E. Decidir + investigar a fondo (~3 min)**
+
+14. Sidebar **Deep research** → empresa + rol → brief de 7 secciones,
+    guardado en `interview-prep/<empresa>-<rol>.md`.
+
+**F. Postular (~5 min por aplicación)**
+
+15. Sidebar **Apply checklist** → URL + JD → checklist (cover letter,
+    keywords, archivos, **NUNCA auto-submit**).
+16. Abrir la página de carreras en pestaña nueva → enviar manualmente.
+17. Sidebar **Outreach** (`#/contacto`) → mensaje LinkedIn / email
+    desde el brief de paso 14 → personalizar y enviar.
+
+**G. Trackear y follow-up (continuo)**
+
+18. Sidebar **Tracker** → fila: empresa, rol, score, status `Applied`,
+    enlaces al reporte y al brief.
+19. Una semana después: modo **Follow-up** → check-in → status
+    `Followed up`.
+20. Invitación a entrevista: modo **Interview prep** → preparación
+    para system design / behavioral / coding.
+21. Oferta: actualizar Tracker a `Offer` y revisar la sección comp del
+    reporte.
+
+**TL;DR — el orden del sidebar coincide con el workflow:**
+Health → App settings → Profile → CV → Scan → Pipeline → Evaluate →
+Reports → Deep research → Apply checklist → Outreach → Tracker →
+Follow-up → Interview prep → Activity log.
 
 ---
 

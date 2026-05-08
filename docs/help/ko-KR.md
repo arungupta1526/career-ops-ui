@@ -10,32 +10,68 @@
 
 ---
 
-## 1. 빠른 시작 (5분 안에)
+## 1. 빠른 시작 — "CV 만들기"부터 "지원 + 메시지 발송"까지 단계별 가이드
 
-전체 사이클:
+버튼별 정식 플레이북. 처음 한 번은 순서대로 진행하세요.
 
-1. **Health** (`#/health`) — 모든 필수 검사가 초록인지 확인. `cv.md`,
-   `config/profile.yml`, `portals.yml`이 없으면 페이지가 정확히 어떤
-   파일을 만들어야 하는지 알려줍니다.
-2. **App settings** (`#/config`) — `ANTHROPIC_API_KEY`와 (선택)
-   `GEMINI_API_KEY`를 붙여넣고 **Save**. 키는 부모 프로젝트의 `.env`에
-   저장되어 career-ops 스크립트도 같은 값을 읽습니다.
-3. **Profile** (`#/profile`) — `config/profile.yml`을 검토하고
-   템플릿 이름(`Jane Smith`)을 실제 이름으로 교체.
-4. **CV** (`#/cv`) — 이력서를 붙여넣거나 업로드하고 **💾 Save**.
-   서버 sanitizer가 `<script>`, `javascript:` URL, `on*=` 핸들러를
-   기록 전에 제거합니다.
-5. **Scan** (`#/scan`) — **🌐 Scan** 클릭으로 모든 활성 소스를 한 번에
-   스캔(Greenhouse / Ashby / Lever, hh.ru / Habr Career).
-6. **Pipeline** (`#/pipeline`) — 스캐너가 큐에 넣은 URL을 검토.
-   클릭하면 오른쪽에 JD 미리보기.
-7. **Evaluate** (`#/evaluate`) — JD를 붙여넣음(또는 pipeline의
-   **▶ Evaluate** 클릭). Anthropic / Gemini 키가 있으면 모델이 0–5
-   점수를 매기고 결과는 `reports/`에 저장.
-8. **Tracker** (`#/tracker`) — 모든 평가는 한 행을 받습니다.
-9. **Apply checklist** (`#/apply`) — 제출 체크리스트 생성.
-10. **Deep research** (`#/deep`) — 지원을 결정한 후 회사 브리프 실행.
-    `interview-prep/`에 저장.
+**A. 설정 (한 번, ~5분)**
+
+1. `http://127.0.0.1:4317` 열기 (또는 루트에서 `bash bin/start.sh`).
+2. 사이드바 **❤ Health** → 모든 필수 체크가 초록.
+3. 사이드바 **⚒ App settings** → *API keys & runtime* 탭 →
+   `ANTHROPIC_API_KEY` 및/또는 `GEMINI_API_KEY` 붙여넣기 →
+   **💾 Save** → **▶ Test Anthropic / Gemini**.
+4. 같은 페이지 → *Profile* 탭 → `candidate.full_name`,
+   `email`, `target.roles`, `target.comp_total_min_usd`,
+   `target.archetypes` 편집 → **💾 Save**.
+
+**B. CV (한 번, ~10분)**
+
+5. 사이드바 **✎ CV** — 에디터 열기.
+6. **📁 Upload CV** → `.docx/.doc/.odt/.rtf/.pdf/.html/.txt/.md`
+   업로드 (서버가 변환·정화) 또는 markdown 직접 붙여넣기.
+7. **💾 Save** (오른쪽 상단) — 토스트 "Saved".
+8. (선택) **📄 Generate PDF** — 완료 시 가장 새 PDF가 자동 다운로드.
+
+**C. 채용공고 찾기 (스캔당 ~2분)**
+
+9. 사이드바 **🌐 Scan** → **🌐 Scan now** → 실시간 SSE 로그.
+10. 회사 태그 클릭으로 필터; ↗ 아이콘으로 채용 페이지 열기.
+
+**D. 점수화 (JD당 ~30초)**
+
+11. 사이드바 **Pipeline** — 항목 클릭으로 JD 미리보기.
+12. JD 옆 **▶ Evaluate** → 모델이 0–5 점수 →
+    `reports/<날짜>-<slug>.md`.
+13. 사이드바 **Reports** — 보고서 검토; pursue = 쇼트리스트.
+
+**E. 결정 + 심층 조사 (~3분)**
+
+14. 사이드바 **Deep research** → 회사명 + 직무 → 7섹션 브리프 →
+    `interview-prep/<회사>-<직무>.md`.
+
+**F. 지원 (지원당 ~5분)**
+
+15. 사이드바 **Apply checklist** → URL + JD → 체크리스트 (커버레터,
+    키워드, 첨부파일, **자동 제출 절대 금지**).
+16. 채용 페이지를 새 탭에서 열고 직접 제출 (8단계 PDF 첨부).
+17. 사이드바 **Outreach** (`#/contacto`) → 14단계 브리프 기반의
+    LinkedIn / 이메일 메시지 → 개인화 후 발송.
+
+**G. 추적 + 팔로업 (지속)**
+
+18. 사이드바 **Tracker** → 행 추가: 회사, 직무, 점수, 상태
+    `Applied`, 보고서·브리프 링크.
+19. 일주일 뒤: **Follow-up** 모드 → 정중한 체크인 →
+    Tracker `Followed up`.
+20. 인터뷰 초대: **Interview prep** 모드 → 시스템 디자인 /
+    행동 / 코딩 단계별 준비.
+21. 오퍼: Tracker를 `Offer`로 업데이트 + 보고서 comp 섹션 재확인.
+
+**TL;DR — 사이드바 순서가 워크플로 순서:**
+Health → App settings → Profile → CV → Scan → Pipeline → Evaluate
+→ Reports → Deep research → Apply checklist → Outreach → Tracker
+→ Follow-up → Interview prep → Activity log.
 
 ---
 
