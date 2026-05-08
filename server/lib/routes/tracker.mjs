@@ -26,11 +26,18 @@ export function registerTrackerRoutes(app) {
     if (!company || !role) {
       return res.status(400).json({ error: 'company and role are required' });
     }
+    // BF-1 — escape pipes + collapse newlines in every cell value, not
+    // just notes. A pipe in company / role would break the markdown
+    // table layout (the parser would split the cell into two), and a
+    // newline would terminate the row mid-build.
+    const cell = (s) => String(s || '').replace(/\|/g, '\\|').replace(/[\r\n]+/g, ' ').trim();
+    const safeCompany = cell(company);
+    const safeRole = cell(role);
     const safeStatus = ALLOWED_STATUSES.includes(status) ? status : 'Evaluated';
     const safeScore = (score && /^[\d.]+\/?5?$/.test(String(score))) ? String(score).replace(/\/5$/, '') + '/5' : '—';
     const safeDate = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : today();
-    const safeReport = reportSlug ? `[${reportSlug}](reports/${reportSlug.replace(/^reports\//, '').replace(/\.md$/, '')}.md)` : '';
-    const safeNotes = String(notes || '').replace(/\|/g, '\\|').slice(0, 200) || (url ? url : '');
+    const safeReport = reportSlug ? `[${cell(reportSlug)}](reports/${cell(reportSlug).replace(/^reports\//, '').replace(/\.md$/, '')}.md)` : '';
+    const safeNotes = cell(notes).slice(0, 200) || (url ? cell(url) : '');
 
     let content = '';
     try { content = readFileSync(PATHS.applications, 'utf8'); } catch { content = ''; }
@@ -47,7 +54,7 @@ export function registerTrackerRoutes(app) {
 
     // Build the row using the existing column order:
     //   # | Date | Company | Role | Score | Status | PDF | Report | Notes
-    const row = `| ${nextNum} | ${safeDate} | ${company} | ${role} | ${safeScore} | ${safeStatus} | ❌ | ${safeReport} | ${safeNotes} |`;
+    const row = `| ${nextNum} | ${safeDate} | ${safeCompany} | ${safeRole} | ${safeScore} | ${safeStatus} | ❌ | ${safeReport} | ${safeNotes} |`;
 
     let updated;
     if (!content || !/^\|\s*#/m.test(content)) {

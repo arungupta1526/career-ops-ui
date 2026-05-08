@@ -51,7 +51,18 @@ export function registerConfigRoutes(app) {
     try {
       mkdirSync(dirname(PATHS.envFile), { recursive: true });
     } catch {}
-    const written = updateEnvFile(PATHS.envFile, safe);
+    // BF-2 — wrap updateEnvFile so a permission-denied or read-only
+    // filesystem returns a clean 500 with a useful message instead of
+    // an unhandled rejection bubbling to the default Express handler.
+    let written;
+    try {
+      written = updateEnvFile(PATHS.envFile, safe);
+    } catch (e) {
+      return res.status(500).json({
+        error: 'failed to write parent .env',
+        details: [e.message],
+      });
+    }
     // Apply to the running process so the change takes effect immediately
     // (no restart needed). Iterate the SAFE map (not just written) so
     // empty-string requests delete the corresponding process.env var

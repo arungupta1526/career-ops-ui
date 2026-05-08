@@ -5,6 +5,31 @@
  */
 
 /**
+ * Split `s` on `delim` but ignore occurrences preceded by a backslash.
+ * Used by parseMarkdownTable so `\|` inside a cell stays inside the cell.
+ */
+function splitUnescaped(s, delim) {
+  const out = [];
+  let buf = '';
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (c === '\\' && s[i + 1] === delim) {
+      buf += '\\' + delim;
+      i += 1;
+      continue;
+    }
+    if (c === delim) {
+      out.push(buf);
+      buf = '';
+      continue;
+    }
+    buf += c;
+  }
+  out.push(buf);
+  return out;
+}
+
+/**
  * Parse a markdown table (GFM). Returns { headers: string[], rows: string[][] }.
  * Empty input or no table → { headers: [], rows: [] }.
  */
@@ -22,10 +47,13 @@ export function parseMarkdownTable(text) {
       if (inTable) break; // table ended
       continue;
     }
-    const cells = line
-      .split('|')
+    // BF-1 — split on unescaped `|` only. GFM lets writers escape a
+    // literal pipe inside a cell as `\|`; without this, a company name
+    // like "Acme | Co" would explode into two cells and corrupt the
+    // table parse. Restore the literal `|` after splitting.
+    const cells = splitUnescaped(line, '|')
       .slice(1, -1)
-      .map((c) => c.trim());
+      .map((c) => c.replace(/\\\|/g, '|').trim());
 
     if (!inTable) {
       headers = cells;

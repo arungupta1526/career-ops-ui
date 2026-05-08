@@ -41,6 +41,13 @@ const MODE_ALLOWLIST = ['batch', 'contacto', 'followup', 'interview-prep', 'patt
 // passes the same gate as real /api/evaluate calls.
 const SMOKE_JD = 'Smoke test: Senior Backend Engineer with PHP and Go responsibilities, including microservice ownership and code review duties.';
 
+// BF-3 — soft cap on combined prompt size before we hit the LLM. Even
+// the largest Anthropic models (1M-token context for Sonnet 4.6) charge
+// per input token and the bundleProjectContext output + huge JD could
+// stack up. 200 KB ≈ ~50K tokens, comfortably below any current ceiling
+// while flagging clearly when something is off.
+const PROMPT_SIZE_SOFT_CAP = 200 * 1024;
+
 export function registerLlmRoutes(app) {
   // ─── /api/evaluate ──────────────────────────────────────────────────
   app.post('/api/evaluate', async (req, res) => {
@@ -66,7 +73,17 @@ export function registerLlmRoutes(app) {
     // oferta so the model has the files the prompt references.
     if (hasAnthropicKey()) {
       const ctx = bundleProjectContext({ modeSlugs: ['_shared', 'oferta'] });
-      const r = await runAnthropic(ctx + promptText, { maxTokens: 8192 });
+      const fullPrompt = ctx + promptText;
+      // BF-3 — bail fast when the assembled prompt would exceed the
+      // soft cap. Otherwise we'd burn a multi-second roundtrip + tokens
+      // before Anthropic complains about context size.
+      if (fullPrompt.length > PROMPT_SIZE_SOFT_CAP) {
+        return res.status(413).json({
+          error: 'prompt too large',
+          details: [`assembled prompt is ${fullPrompt.length} bytes; soft cap is ${PROMPT_SIZE_SOFT_CAP}. Truncate the JD or shrink your CV.`],
+        });
+      }
+      const r = await runAnthropic(fullPrompt, { maxTokens: 8192 });
       if (r.error) return res.status(502).json({ mode: 'anthropic', prompt: promptText, error: r.error, saved });
       return res.json({ mode: 'anthropic', prompt: promptText, markdown: r.markdown, usage: r.usage, saved });
     }
@@ -145,7 +162,14 @@ export function registerLlmRoutes(app) {
         // REVIEW-A1 — Anthropic has no filesystem; inline cv/profile/mode
         // content so "Read these files first" actually has files to read.
         const ctx = bundleProjectContext({ modeSlugs: ['_shared', 'deep'] });
-        const r = await runAnthropic(ctx + prompt, { maxTokens: 8192 });
+        const fullPrompt = ctx + prompt;
+        if (fullPrompt.length > PROMPT_SIZE_SOFT_CAP) {
+          return res.status(413).json({
+            error: 'prompt too large',
+            details: [`assembled prompt is ${fullPrompt.length} bytes; soft cap is ${PROMPT_SIZE_SOFT_CAP}.`],
+          });
+        }
+        const r = await runAnthropic(fullPrompt, { maxTokens: 8192 });
         if (r.error) return res.status(502).json({ mode, prompt, error: r.error });
         result = { markdown: r.markdown, code: 0 };
       } else if (hasGeminiKey()) {
@@ -231,7 +255,14 @@ export function registerLlmRoutes(app) {
         // here we add cv.md + profile.yml + modes/_shared.md so Anthropic
         // has the same context that Claude Code would read locally.
         const ctx = bundleProjectContext({ modeSlugs: ['_shared'] });
-        const r = await runAnthropic(ctx + prompt);
+        const fullPrompt = ctx + prompt;
+        if (fullPrompt.length > PROMPT_SIZE_SOFT_CAP) {
+          return res.status(413).json({
+            error: 'prompt too large',
+            details: [`assembled prompt is ${fullPrompt.length} bytes; soft cap is ${PROMPT_SIZE_SOFT_CAP}.`],
+          });
+        }
+        const r = await runAnthropic(fullPrompt);
         if (r.error) return res.status(502).json({ mode: 'anthropic', slug, prompt, error: r.error });
         return res.json({ mode: 'anthropic', slug, prompt, markdown: r.markdown, usage: r.usage });
       }
