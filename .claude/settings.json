@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash bin/run_all.sh --quick)",
+      "Bash(node --test tests/help-ui.test.mjs tests/help.test.mjs)"
+    ]
+  }
+}
