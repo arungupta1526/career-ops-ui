@@ -35,7 +35,12 @@ Router.register('reports', async (params) => {
     ]);
   }
 
-  const cards = reports.map((rep) => {
+  // 12 reports per page → 3 rows × 4-card grid on a wide screen
+  const cardsWrap = c('div', { className: 'card-row' });
+  const pgWrap = c('div');
+  const pager = UI.paginate({ pageSize: 12, onChange: () => render() });
+
+  function makeCard(rep) {
     const cls = rep.scoreNum >= 4 ? 'score-high' : rep.scoreNum >= 3 ? 'score-mid' : 'score-low';
     return c('div', {
       className: 'card',
@@ -53,7 +58,16 @@ Router.register('reports', async (params) => {
         rep.scoreNum != null && c('span', { className: 'score-pill ' + cls }, rep.score),
       ]),
     ]);
-  });
+  }
+
+  function render() {
+    const page = pager.slice(reports);
+    cardsWrap.innerHTML = '';
+    pgWrap.innerHTML = '';
+    page.forEach((rep) => cardsWrap.appendChild(makeCard(rep)));
+    pgWrap.appendChild(pager.controls(page.length, reports.length));
+  }
+  render();
 
   return c('div', null, [
     c('header', { className: 'page-header' }, [
@@ -62,6 +76,7 @@ Router.register('reports', async (params) => {
         c('p', { className: 'page-subtitle' }, `${reports.length} ${t('rep.inDir')} reports/`),
       ]),
     ]),
-    c('div', { className: 'card-row' }, cards),
+    cardsWrap,
+    pgWrap,
   ]);
 });

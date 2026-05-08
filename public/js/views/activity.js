@@ -36,17 +36,33 @@ Router.register('activity', async () => {
     ]);
   }
 
-  async function load() {
+  // Pagination — server returns up to 200 events; show 25 per page
+  // (paginator clamps automatically on filter change). The activity
+  // log can grow unbounded over time so this matters more here than
+  // anywhere else.
+  let allEvents = [];
+  const pgWrap = c('div');
+  const pager = UI.paginate({ pageSize: 25, onChange: () => render() });
+
+  function render() {
     tableBody.innerHTML = '';
-    const params = activeFilter ? `?type=${encodeURIComponent(activeFilter)}` : '';
-    const data = await API.get('/api/activity' + params);
-    const events = data.events || [];
-    if (!events.length) {
+    pgWrap.innerHTML = '';
+    if (allEvents.length === 0) {
       empty.hidden = false;
       return;
     }
     empty.hidden = true;
-    for (const evt of events) tableBody.appendChild(renderRow(evt));
+    const page = pager.slice(allEvents);
+    for (const evt of page) tableBody.appendChild(renderRow(evt));
+    pgWrap.appendChild(pager.controls(page.length, allEvents.length));
+  }
+
+  async function load() {
+    const params = activeFilter ? `?type=${encodeURIComponent(activeFilter)}&limit=500` : '?limit=500';
+    const data = await API.get('/api/activity' + params);
+    allEvents = data.events || [];
+    pager.reset();
+    render();
   }
 
   const filterRow = c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap' } },
@@ -88,5 +104,6 @@ Router.register('activity', async () => {
         tableBody,
       ])
     ),
+    pgWrap,
   ]);
 });

@@ -18,10 +18,15 @@ Router.register('tracker', async () => {
   const filterText = c('input', { className: 'input', placeholder: t('track.search') });
 
   const tbody = c('tbody');
+  const pgWrap = c('div'); // paginator container, re-rendered on each filter change
 
-  function applyFilters() {
-    tbody.innerHTML = '';
-    let visible = 0;
+  // 25 rows per page — same default the activity log uses. The paginator
+  // auto-clamps when the filter narrows the list so the user can't land
+  // on an empty page after typing in the search.
+  const pager = UI.paginate({ pageSize: 25, onChange: () => applyFilters() });
+
+  function filtered() {
+    const out = [];
     for (const r of rows) {
       if (filterStatus.value && r.status !== filterStatus.value) continue;
       if (filterScore.value === '4' && (r.scoreNum ?? -1) < 4) continue;
@@ -29,13 +34,27 @@ Router.register('tracker', async () => {
       if (filterScore.value === '0' && (r.scoreNum ?? 0) >= 3) continue;
       const q = filterText.value.toLowerCase().trim();
       if (q && !((r.company + ' ' + r.role).toLowerCase().includes(q))) continue;
-      tbody.appendChild(row(r));
-      visible++;
+      out.push(r);
     }
-    if (visible === 0) {
-      tbody.appendChild(c('tr', null, c('td', { colspan: 8, style: { textAlign: 'center', padding: '40px', color: 'var(--foggy)' } }, t('track.noMatch'))));
-    }
+    return out;
   }
+
+  function applyFilters() {
+    const all = filtered();
+    const page = pager.slice(all);
+    tbody.innerHTML = '';
+    pgWrap.innerHTML = '';
+    if (all.length === 0) {
+      tbody.appendChild(c('tr', null, c('td', { colspan: 8, style: { textAlign: 'center', padding: '40px', color: 'var(--foggy)' } }, t('track.noMatch'))));
+      return;
+    }
+    for (const r of page) tbody.appendChild(row(r));
+    pgWrap.appendChild(pager.controls(page.length, all.length));
+  }
+  // Resetting the pager when filter inputs change keeps page-1 sticky.
+  ;[filterStatus, filterScore, filterText].forEach((el) =>
+    el.addEventListener('input', () => { pager.reset(); applyFilters(); })
+  );
   function row(r) {
     const scoreCls = r.scoreNum >= 4 ? 'score-high' : r.scoreNum >= 3 ? 'score-mid' : 'score-low';
     return c('tr', null, [
@@ -50,7 +69,6 @@ Router.register('tracker', async () => {
     ]);
   }
 
-  ;[filterStatus, filterScore, filterText].forEach((el) => el.addEventListener('input', applyFilters));
   applyFilters();
 
   return c('div', null, [
@@ -80,6 +98,7 @@ Router.register('tracker', async () => {
         tbody,
       ])
     ),
+    pgWrap,
   ]);
 });
 
