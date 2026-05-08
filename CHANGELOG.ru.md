@@ -6,6 +6,61 @@
 
 ---
 
+## [1.9.0] — 2026-05-08
+
+P-6 → P-10 из бэклога v1.8.0 — все вошли в один релиз. Главное: `server/index.mjs` теперь 130-строчный orchestrator (было 762, итого 1230 → 130 = -89 %); каждая тема роутов в своём модуле. Anthropic-парность для `/api/evaluate`, multi-CLI шимы, расширенный i18n parity-тест и Playwright browser-смок в CI.
+
+### 🏗️ P-6 — фаза 2 split server/index.mjs
+
+Продолжение P-2. Извлечены оставшиеся 9 тем роутов в `server/lib/routes/<topic>.mjs`. `index.mjs` теперь чистый orchestrator: middleware (security headers + activity log + static), 12 вызовов `register<Topic>Routes(app)` и SPA catch-all.
+
+- `activity.mjs`, `config.mjs`, `health.mjs` (+ dashboard), `help.mjs`, `jds.mjs`, `llm.mjs`, `pipeline.mjs` (+ preview), `reports.mjs`, `tracker.mjs`.
+
+Поведение не изменилось. 283/283 unit-теста зелёные на каждом шаге. Импорт-секция уменьшилась с 47 до 22 строк.
+
+### 🔌 P-7 — Anthropic-парность для /api/evaluate
+
+`/api/evaluate` раньше был Gemini-or-manual. v1.9.0 добавляет ветку Anthropic (предпочтительна при наличии обоих ключей). Маршрутизирует через `bundleProjectContext({ modeSlugs: ['_shared', 'oferta'] })` — REVIEW-A1 распространён.
+
+Новый эндпоинт **`POST /api/evaluate/test-anthropic`** — smoke-проверка для `ANTHROPIC_API_KEY`, аналогично существующему gemini-smoke. ≤256 output-токенов, стоит копейки.
+
+Цепочка фолбэка: Anthropic → Gemini → manual.
+
+### 🌐 P-8 — Help-центр i18n parity
+
+Все 8 локалей `docs/help/<lang>.md` уже покрывают одни и те же 14 канонических h2-секций. Тесты усилены:
+
+- `tests/help-ui.test.mjs` теперь итерирует все 8 локалей (раньше — только en + ru).
+- Новый тест: каждая локаль не короче 30 % `en.md` — защита от стаб-локалей.
+
+Структурный parity теперь enforced в CI.
+
+### 🤖 P-9 — Playwright browser smoke в CI
+
+`tests/playwright-smoke.mjs` (добавлен в v1.8.0 как opt-in) теперь часть CI workflow. Один новый шаг (`npm run test:e2e:browser`) запускает 5 browser-smoke тестов после comprehensive node E2E.
+
+### 🌍 P-10 — Multi-CLI совместимость
+
+Родитель v1.7.0 ввёл multi-CLI / Open Agent Skill standard. UI следует той же конвенции:
+
+- `web-ui/AGENTS.md` — Codex / Aider / generic.
+- `web-ui/GEMINI.md` — Gemini CLI.
+
+Оба шима ссылаются на канонический `CLAUDE.md`. Развёрнутый UI всегда CLI-agnostic в runtime.
+
+### 🧪 Тесты
+
+- **284 unit-теста** (было 283): +1 новый i18n parity-тест.
+- **5 Playwright browser-смок-тестов** теперь часть CI.
+
+### 📦 Новые REST-эндпоинты
+
+| Метод | Путь | Назначение |
+|---|---|---|
+| `POST` | `/api/evaluate/test-anthropic` | Smoke-проверка `ANTHROPIC_API_KEY` (P-7). Зеркало `/api/evaluate/test-gemini`. |
+
+---
+
 ## [1.8.0] — 2026-05-08
 
 Хардненинг, рефакторинг и SDD-фундамент. Три критичных фикса (A1, A2, A3), четыре среднего уровня (B1–B4), шесть мелких чисток, аудит родительского career-ops v1.7.0, разделение `server/index.mjs` (P-2 фаза 1), Playwright browser-смок и полная SDD-инфраструктура в `docs/` и `.claude/`.

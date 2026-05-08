@@ -6,6 +6,50 @@
 
 ---
 
+## [1.9.0] — 2026-05-08
+
+v1.8.0 待办列表中的 P-6 → P-10 全部一次性发布。要点:`server/index.mjs` 现在是 130 行的编排器(原 762 行,累计 1230 → 130 = -89 %),每个路由主题各自一个模块。`/api/evaluate` 的 Anthropic 对等支持、多 CLI 桥接文件、扩展的 i18n 对等测试,以及 CI 中的 Playwright 浏览器烟雾测试。
+
+### 🏗️ P-6 — server/index.mjs 拆分第二阶段
+
+P-2 的延续。剩下的 9 个路由主题已抽到 `server/lib/routes/<topic>.mjs`。`index.mjs` 现在是纯编排器:中间件、12 个 `register<Topic>Routes(app)` 调用、SPA 兜底路由。
+
+模块:`activity`、`config`、`health`(含 dashboard)、`help`、`jds`、`llm`、`pipeline`(含 preview)、`reports`、`tracker`。行为不变。每一步 283/283 unit tests 全绿。
+
+### 🔌 P-7 — `/api/evaluate` 的 Anthropic 对等
+
+`/api/evaluate` 之前是 Gemini 或 manual。v1.9.0 加入 Anthropic 分支(两把 key 同时存在时优先)。通过 `bundleProjectContext({ modeSlugs: ['_shared', 'oferta'] })` — REVIEW-A1 扩展。回退顺序:Anthropic → Gemini → manual。
+
+新端点 **`POST /api/evaluate/test-anthropic`** — 针对 `ANTHROPIC_API_KEY` 的烟雾检测。
+
+### 🌐 P-8 — Help 中心 i18n 对等
+
+8 个 locale 都已覆盖同样的 14 个规范 h2 段落。测试加强:
+
+- `tests/help-ui.test.mjs` 现在遍历全部 8 个 locale(此前只有 en + ru)。
+- 新增:每个 locale 不少于 `en.md` 的 30 % — 防止 stub。
+
+### 🤖 P-9 — CI 加入 Playwright 浏览器烟雾测试
+
+`tests/playwright-smoke.mjs`(v1.8.0 的 opt-in)现在已是 CI 工作流的一部分。
+
+### 🌍 P-10 — 多 CLI 兼容
+
+新增 `web-ui/AGENTS.md`(Codex / Aider / 通用)与 `web-ui/GEMINI.md` 作为指向规范 `CLAUDE.md` 的桥接文件。
+
+### 🧪 测试
+
+- **284 unit tests**(原 283):新增 1 个 i18n 对等测试。
+- **5 个 Playwright 烟雾测试** 现已纳入 CI。
+
+### 📦 新端点
+
+| 方法 | 路径 | 用途 |
+|---|---|---|
+| `POST` | `/api/evaluate/test-anthropic` | `ANTHROPIC_API_KEY` 烟雾检测 (P-7)。 |
+
+---
+
 ## [1.8.0] — 2026-05-08
 
 加固、重构与 SDD 基础。三项高严重性修复(A1、A2、A3)、四项中等(B1–B4)、六项轻微清理、父项目 career-ops v1.7.0 审计、`server/index.mjs` 拆分(P-2 第 1 阶段)、Playwright 浏览器烟雾测试,以及 `docs/` 与 `.claude/` 中的完整 SDD 基础。

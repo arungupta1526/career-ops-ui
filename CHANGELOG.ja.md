@@ -6,6 +6,50 @@
 
 ---
 
+## [1.9.0] — 2026-05-08
+
+v1.8.0 バックログの P-6 → P-10 を一括リリース。要点: `server/index.mjs` は 130 行のオーケストレータ (762 行から、累計 1230 → 130 = -89 %) になり、各ルートトピックは独立モジュール。`/api/evaluate` の Anthropic パリティ、マルチ CLI シム、i18n パリティテスト拡張、Playwright ブラウザスモーク CI 統合。
+
+### 🏗️ P-6 — server/index.mjs 分割フェーズ 2
+
+P-2 の継続。残り 9 ルートトピックを `server/lib/routes/<topic>.mjs` に抽出。`index.mjs` は純粋オーケストレータ: ミドルウェア、12 件の `register<Topic>Routes(app)`、SPA キャッチオール。
+
+モジュール: `activity`、`config`、`health` (+ dashboard)、`help`、`jds`、`llm`、`pipeline` (+ preview)、`reports`、`tracker`。挙動変更なし。各ステップで 283/283 unit tests グリーン。
+
+### 🔌 P-7 — /api/evaluate の Anthropic パリティ
+
+`/api/evaluate` は以前 Gemini-or-manual。v1.9.0 で Anthropic 経路を追加 (両キー存在時は優先)。`bundleProjectContext({ modeSlugs: ['_shared', 'oferta'] })` 経由 — REVIEW-A1 拡張。フォールバック順: Anthropic → Gemini → manual。
+
+新規エンドポイント **`POST /api/evaluate/test-anthropic`** — `ANTHROPIC_API_KEY` のスモークチェック。
+
+### 🌐 P-8 — Help センター i18n パリティ
+
+8 ロケールすべてが同じ 14 個の正規 h2 セクションをカバー済み。テスト強化:
+
+- `tests/help-ui.test.mjs` が全 8 ロケールを反復 (以前は en + ru のみ)。
+- 新規: 各ロケール ≥ `en.md` の 30 % — スタブ防止。
+
+### 🤖 P-9 — Playwright ブラウザスモーク CI
+
+`tests/playwright-smoke.mjs` (v1.8.0 で opt-in) が CI ワークフローに統合。
+
+### 🌍 P-10 — マルチ CLI 互換性
+
+`web-ui/AGENTS.md` (Codex / Aider / generic) と `web-ui/GEMINI.md` をシムとして追加し、正規の `CLAUDE.md` を指す。
+
+### 🧪 テスト
+
+- **284 unit tests** (以前は 283): +1 件 (i18n パリティ)。
+- **5 件の Playwright スモーク** が CI に統合。
+
+### 📦 新規エンドポイント
+
+| メソッド | パス | 目的 |
+|---|---|---|
+| `POST` | `/api/evaluate/test-anthropic` | `ANTHROPIC_API_KEY` のスモークチェック (P-7)。 |
+
+---
+
 ## [1.8.0] — 2026-05-08
 
 ハードニング、リファクタリング、SDD 基盤の構築。重要度高の修正 3 件 (A1、A2、A3)、中程度 4 件 (B1–B4)、軽微なクリーンアップ 6 件、親プロジェクト career-ops v1.7.0 の監査、`server/index.mjs` 分割 (P-2 フェーズ 1)、Playwright ブラウザスモーク、`docs/` と `.claude/` への完全な SDD 基盤。

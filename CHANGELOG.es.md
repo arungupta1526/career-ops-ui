@@ -6,6 +6,50 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.9.0] — 2026-05-08
+
+P-6 → P-10 del backlog v1.8.0 — todo en un solo release. Titular: `server/index.mjs` ahora es un orquestador de 130 líneas (era 762, total 1230 → 130 = -89 %); cada tema de rutas en su propio módulo. Paridad Anthropic para `/api/evaluate`, shims multi-CLI, test ampliado de paridad i18n, Playwright browser-smoke en CI.
+
+### 🏗️ P-6 — fase 2 división de server/index.mjs
+
+Continuación de P-2. Las 9 rutas restantes movidas a `server/lib/routes/<topic>.mjs`. `index.mjs` ahora es un orquestador puro: middleware, 12 llamadas `register<Topic>Routes(app)`, catch-all SPA.
+
+Módulos: `activity`, `config`, `health` (+ dashboard), `help`, `jds`, `llm`, `pipeline` (+ preview), `reports`, `tracker`. Comportamiento sin cambios. 283/283 unit tests verdes en cada paso.
+
+### 🔌 P-7 — Paridad Anthropic para /api/evaluate
+
+`/api/evaluate` antes era Gemini-or-manual. v1.9.0 añade rama Anthropic (preferida cuando ambas claves presentes). Pasa por `bundleProjectContext({ modeSlugs: ['_shared', 'oferta'] })` — REVIEW-A1 extendido. Cadena de fallback: Anthropic → Gemini → manual.
+
+Nuevo endpoint **`POST /api/evaluate/test-anthropic`** — smoke-check para `ANTHROPIC_API_KEY`.
+
+### 🌐 P-8 — Paridad i18n del help-center
+
+Las 8 locales ya cubren las 14 secciones h2 canónicas. Tests reforzados:
+
+- `tests/help-ui.test.mjs` ahora itera las 8 locales (antes solo en + ru).
+- Nuevo: cada locale ≥ 30 % de `en.md` — protección contra stubs.
+
+### 🤖 P-9 — Playwright browser smoke en CI
+
+`tests/playwright-smoke.mjs` (opt-in en v1.8.0) ahora forma parte del workflow CI.
+
+### 🌍 P-10 — Compatibilidad multi-CLI
+
+`web-ui/AGENTS.md` (Codex / Aider / generic) y `web-ui/GEMINI.md` añadidos como shims que apuntan al canónico `CLAUDE.md`.
+
+### 🧪 Tests
+
+- **284 unit tests** (era 283): +1 nuevo de paridad i18n.
+- **5 smoke tests Playwright** ahora en CI.
+
+### 📦 Nuevo endpoint
+
+| Método | Ruta | Propósito |
+|---|---|---|
+| `POST` | `/api/evaluate/test-anthropic` | Smoke check para `ANTHROPIC_API_KEY` (P-7). |
+
+---
+
 ## [1.8.0] — 2026-05-08
 
 Endurecimiento, refactor y base de SDD. Tres correcciones de severidad alta (A1, A2, A3), cuatro medias (B1–B4), seis limpiezas, auditoría del padre career-ops v1.7.0, división de `server/index.mjs` (P-2 fase 1), smoke con Playwright y fundamento SDD completo en `docs/` y `.claude/`.

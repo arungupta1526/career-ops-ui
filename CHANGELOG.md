@@ -6,6 +6,98 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.9.0] — 2026-05-08
+
+P-6 → P-10 from the v1.8.0 backlog all shipped in one bundle. Headline: `server/index.mjs` is now a 130-LOC orchestrator (down from 762, total 1230 → 130 = -89%); every route topic has its own module. Anthropic parity for `/api/evaluate`, multi-CLI shims, expanded i18n parity test, and Playwright browser-smoke wired into CI.
+
+### 🏗️ P-6 — server split-by-concern (phase 2)
+
+Continuation of P-2. Extracted the remaining 9 route topics out of `server/index.mjs` into `server/lib/routes/<topic>.mjs` modules. `index.mjs` is now a pure orchestrator: middleware (security headers + activity log + static), 12 `register<Topic>Routes(app)` calls, and the SPA catch-all.
+
+- `server/lib/routes/activity.mjs` — `/api/activity`.
+- `server/lib/routes/config.mjs` — `/api/config` GET/POST (parent .env round-trip).
+- `server/lib/routes/health.mjs` — `/api/health` + `/api/dashboard`.
+- `server/lib/routes/help.mjs` — `/api/help/:lang`.
+- `server/lib/routes/jds.mjs` — full CRUD for `jds/*.txt`.
+- `server/lib/routes/llm.mjs` — every LLM-bound endpoint (evaluate, deep, mode, apply-helper, interview-prep).
+- `server/lib/routes/pipeline.mjs` — `/api/pipeline*` including the SSRF-safe preview proxy with named constants for timeout / max-redirects / max-body.
+- `server/lib/routes/reports.mjs` — `/api/reports*`.
+- `server/lib/routes/tracker.mjs` — `/api/tracker` GET + dedup-aware POST.
+
+Behavior unchanged. 283/283 unit tests stayed green at every step. The orchestrator's import surface dropped from 47 lines to 22.
+
+### 🔌 P-7 — Anthropic parity for `/api/evaluate`
+
+`/api/evaluate` previously was Gemini-or-manual. v1.9.0 adds an Anthropic branch (preferred when both keys present), mirroring the routing rule already used by `/api/deep` and `/api/mode/:slug`. Routes through `bundleProjectContext({ modeSlugs: ['_shared', 'oferta'] })` so the model has the cv / profile / mode templates inlined (REVIEW-A1).
+
+New endpoint: **`POST /api/evaluate/test-anthropic`** — smoke check for `ANTHROPIC_API_KEY`, mirrors the existing Gemini smoke. Sends a tiny prompt (≤256 output tokens) so it costs essentially nothing; returns a 200-char sample.
+
+Fallback chain is now: Anthropic → Gemini → manual.
+
+### 🌐 P-8 — Help-center i18n parity (audit + test hardening)
+
+Audited every `docs/help/<lang>.md` for structure parity. All 8 locales already cover the same 14 canonical h2 sections. Tests upgraded:
+
+- `tests/help-ui.test.mjs::every help doc covers the same 14 sections` was checking only en + ru. Now iterates **all 8 locales** (en, es, pt-BR, ko-KR, ja, ru, zh-CN, zh-TW) and asserts the section count for each.
+- New test: `tests/help-ui.test.mjs::every help locale has substantive content` — guards against locale stubs by asserting each non-EN locale is at least 30% of `en.md`'s byte length. Compact translations naturally hit 40-50%; a stub would be in single-digit %.
+
+Result: structural parity is now CI-enforced.
+
+### 🤖 P-9 — Playwright browser smoke in CI matrix
+
+`tests/playwright-smoke.mjs` (added in v1.8.0 as opt-in) is now part of the CI workflow. The existing `e2e` job already installs Playwright + Chromium; one new step (`npm run test:e2e:browser`) runs the 5 browser-smoke tests right after the comprehensive node E2E.
+
+Order in CI: unit (Node 18/20/22 matrix) → smoke node E2E → comprehensive node E2E → **Playwright browser smoke** → screenshot artifact upload on failure.
+
+### 🌍 P-10 — Multi-CLI compatibility
+
+Parent career-ops v1.7.0 introduced multi-CLI / Open Agent Skill standard support. The UI sub-project follows the same convention with thin shims pointing at the canonical `CLAUDE.md`:
+
+- `web-ui/AGENTS.md` — Codex / Aider / generic CLI entry point.
+- `web-ui/GEMINI.md` — Gemini CLI entry point.
+
+Both shims re-state the hard rules and quick reference but defer to `CLAUDE.md` for the full project-level instructions, so non-Claude CLIs land on the same orientation as Claude Code sessions. The deployed UI itself remains CLI-agnostic at runtime.
+
+### 🧪 Tests
+
+- **284 unit tests** (was 283): +1 new help-locale parity test.
+- **5 Playwright browser-smoke tests** — now part of CI, not just opt-in.
+- Coverage held.
+
+### 🔧 Files touched
+
+```
++ server/lib/routes/activity.mjs              + server/lib/routes/config.mjs
++ server/lib/routes/health.mjs                + server/lib/routes/help.mjs
++ server/lib/routes/jds.mjs                   + server/lib/routes/llm.mjs
++ server/lib/routes/pipeline.mjs              + server/lib/routes/reports.mjs
++ server/lib/routes/tracker.mjs
++ AGENTS.md                                   + GEMINI.md
+
+~ server/index.mjs (762 → 130 LOC, -83%)
+~ .github/workflows/ci.yml (Playwright smoke step)
+~ tests/help-ui.test.mjs (all-8-locales section parity + content-floor)
+~ docs/{ROADMAP,architecture/{OVERVIEW,SERVER}}.md
+~ docs/sdd/CONVENTIONS.md
+~ CLAUDE.md
+~ package.json (1.8.0 → 1.9.0)
+```
+
+### 📦 New REST endpoints
+
+| Method | Path | Purpose |
+|---|---|---|
+| `POST` | `/api/evaluate/test-anthropic` | Smoke check for `ANTHROPIC_API_KEY` (P-7). Mirrors `/api/evaluate/test-gemini`. |
+
+### 🤖 New CLI entry points
+
+| File | CLI | Notes |
+|---|---|---|
+| `AGENTS.md` | Codex / Aider / generic | Points at `CLAUDE.md` for the full instructions. |
+| `GEMINI.md` | Gemini CLI | Auto-loaded by Gemini at session start. |
+
+---
+
 ## [1.8.0] — 2026-05-08
 
 Hardening, refactor, and SDD bootstrap. Three high-severity correctness/security fixes (A1, A2, A3), four medium ones (B1–B4), six cleanups, audit of the parent career-ops v1.7.0 surface, server split-by-concern (P-2 phase 1), Playwright browser smoke harness, and a full SDD foundation under `docs/` and `.claude/`.

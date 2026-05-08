@@ -6,6 +6,50 @@
 
 ---
 
+## [1.9.0] — 2026-05-08
+
+v1.8.0 백로그의 P-6 → P-10 모두 한 번에 릴리스. 핵심: `server/index.mjs`는 이제 130줄 오케스트레이터(이전 762줄, 누적 1230 → 130 = -89 %)이며 각 라우트 토픽이 자체 모듈에 있습니다. `/api/evaluate` Anthropic 패리티, 멀티 CLI 심, i18n 패리티 테스트 확장, Playwright 브라우저 스모크 CI 통합.
+
+### 🏗️ P-6 — server/index.mjs 분할 페이즈 2
+
+P-2의 연속. 남은 9개 라우트 토픽을 `server/lib/routes/<topic>.mjs`로 추출. `index.mjs`는 순수 오케스트레이터: 미들웨어, 12개의 `register<Topic>Routes(app)` 호출, SPA 캐치올.
+
+모듈: `activity`, `config`, `health` (+ dashboard), `help`, `jds`, `llm`, `pipeline` (+ preview), `reports`, `tracker`. 동작 변경 없음. 모든 단계에서 283/283 unit tests 그린.
+
+### 🔌 P-7 — /api/evaluate의 Anthropic 패리티
+
+`/api/evaluate`는 이전에 Gemini-or-manual이었습니다. v1.9.0은 Anthropic 분기 추가(양쪽 키 존재 시 우선). `bundleProjectContext({ modeSlugs: ['_shared', 'oferta'] })`를 통과 — REVIEW-A1 확장. 폴백 체인: Anthropic → Gemini → manual.
+
+새 엔드포인트 **`POST /api/evaluate/test-anthropic`** — `ANTHROPIC_API_KEY`용 스모크 체크.
+
+### 🌐 P-8 — Help-center i18n 패리티
+
+8개 로케일 모두 이미 동일한 14개 정규 h2 섹션을 커버. 테스트 강화:
+
+- `tests/help-ui.test.mjs`가 이제 8개 로케일 모두 반복(이전에는 en + ru만).
+- 신규: 각 로케일 ≥ `en.md`의 30 % — 스텁 방지.
+
+### 🤖 P-9 — CI에 Playwright 브라우저 스모크
+
+`tests/playwright-smoke.mjs`(v1.8.0의 opt-in)가 이제 CI 워크플로의 일부.
+
+### 🌍 P-10 — 멀티 CLI 호환성
+
+`web-ui/AGENTS.md`(Codex / Aider / generic)와 `web-ui/GEMINI.md`를 정규 `CLAUDE.md`를 가리키는 심으로 추가.
+
+### 🧪 테스트
+
+- **284 unit tests**(이전 283): i18n 패리티 +1.
+- **5개 Playwright 스모크 테스트**가 이제 CI에 포함.
+
+### 📦 새 엔드포인트
+
+| 메서드 | 경로 | 용도 |
+|---|---|---|
+| `POST` | `/api/evaluate/test-anthropic` | `ANTHROPIC_API_KEY` 스모크 체크 (P-7). |
+
+---
+
 ## [1.8.0] — 2026-05-08
 
 하드닝, 리팩토링, SDD 기반 구축. 심각도 높음 3건(A1, A2, A3), 중간 4건(B1–B4), 경미 6건, 부모 프로젝트 career-ops v1.7.0 감사, `server/index.mjs` 분할(P-2 페이즈 1), Playwright 브라우저 스모크, `docs/`와 `.claude/`에 SDD 기반.
