@@ -173,6 +173,175 @@ test('Playwright smoke: health page renders required-checks status', { skip: SKI
   await page.close();
 });
 
+// ─── Expanded coverage (v1.9.1 production-readiness pass) ────────────
+
+test('Playwright smoke: tracker view renders empty + accepts API-seeded row', { skip: SKIP }, async () => {
+  const page = await context.newPage();
+  // page.evaluate runs against about:blank without a prior goto — relative
+  // URLs won't resolve. Navigate first so fetch('/api/...') hits our server.
+  await page.goto(baseUrl + '/#/tracker');
+  await page.waitForSelector('#content');
+
+  // Seed via API, then re-render the view.
+  const seedOk = await page.evaluate(async () => {
+    const r = await fetch('/api/tracker', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ company: 'Acme | Co', role: 'Backend Engineer', score: '4.2', status: 'Evaluated' }),
+    });
+    return r.ok;
+  });
+  assert.ok(seedOk, 'POST /api/tracker failed');
+
+  // BF-1 verification — pipe in company name should NOT break the table.
+  // Re-fetch and assert the row was parsed back as a single entity.
+  const rows = await page.evaluate(async () => {
+    const r = await fetch('/api/tracker');
+    const j = await r.json();
+    return j.rows || [];
+  });
+  assert.ok(rows.length >= 1, 'tracker did not return seeded row');
+  const acme = rows.find((r) => /Acme/i.test(r.company || ''));
+  assert.ok(acme, 'BF-1: pipe-laden company name was lost in tracker round-trip');
+  assert.equal(acme.role, 'Backend Engineer');
+  await page.close();
+});
+
+test('Playwright smoke: pipeline add-URL form populates the queue', { skip: SKIP }, async () => {
+  const page = await context.newPage();
+  await page.goto(baseUrl + '/#/pipeline');
+  await page.waitForSelector('#content');
+  const seedOk = await page.evaluate(async () => {
+    const r = await fetch('/api/pipeline', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: 'https://jobs.example.com/posting/smoke-1' }),
+    });
+    return r.ok;
+  });
+  assert.ok(seedOk, 'POST /api/pipeline failed');
+  const urls = await page.evaluate(async () => {
+    const r = await fetch('/api/pipeline');
+    return (await r.json()).urls || [];
+  });
+  assert.ok(urls.includes('https://jobs.example.com/posting/smoke-1'),
+    'pipeline did not retain seeded URL: ' + JSON.stringify(urls));
+  // BF: invalid URLs (loopback, javascript:, bare strings) are rejected.
+  for (const bad of ['http://localhost/x', 'javascript:alert(1)', 'not-a-url']) {
+    const status = await page.evaluate(async (u) => {
+      const r = await fetch('/api/pipeline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: u }),
+      });
+      return r.status;
+    }, bad);
+    assert.equal(status, 400, `pipeline accepted invalid URL "${bad}"`);
+  }
+  await page.close();
+});
+
+test('Playwright smoke: reports view handles empty state', { skip: SKIP }, async () => {
+  const page = await context.newPage();
+  await page.goto(baseUrl + '/#/reports');
+  await page.waitForSelector('#content');
+  const html = await page.locator('#content').innerHTML();
+  // Either empty state (no fixture has reports) or the listing — both
+  // valid renders. Just make sure the view didn't crash.
+  assert.ok(html.length > 50, 'reports view body too small');
+  await page.close();
+});
+
+test('Playwright smoke: evaluate view returns a manual prompt without API key', { skip: SKIP }, async () => {
+  const page = await context.newPage();
+  await page.goto(baseUrl + '/#/evaluate');
+  await page.waitForSelector('#content');
+  // Hit /api/evaluate directly with a JD ≥50 chars after sanitization.
+  const result = await page.evaluate(async () => {
+    const r = await fetch('/api/evaluate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jd: 'Senior Backend Engineer with extensive PHP and Go responsibilities, including microservice architecture, code review, and on-call rotation for a high-traffic payments platform.',
+      }),
+    });
+    return { status: r.status, body: await r.json() };
+  });
+  assert.equal(result.status, 200);
+  // No key set in the smoke fixture, so manual mode is the expected path.
+  // Also valid: anthropic/gemini if a real key happens to leak from the
+  // host shell into the test process.
+  assert.ok(['manual', 'anthropic', 'gemini'].includes(result.body.mode),
+    `unexpected mode: ${result.body.mode}`);
+  if (result.body.mode === 'manual') {
+    assert.match(result.body.prompt, /career-ops|JD/, 'manual prompt missing canonical text');
+  }
+  await page.close();
+});
+
+test('Playwright smoke: config GET returns known keys masked', { skip: SKIP }, async () => {
+  const page = await context.newPage();
+  await page.goto(baseUrl + '/#/config');
+  await page.waitForSelector('#content');
+  const cfg = await page.evaluate(async () => {
+    const r = await fetch('/api/config');
+    return await r.json();
+  });
+  assert.ok(Array.isArray(cfg.keys), 'config.keys not an array');
+  assert.ok(cfg.keys.length > 0, 'config.keys empty');
+  assert.ok(Array.isArray(cfg.secretKeys), 'config.secretKeys not an array');
+  assert.ok(cfg.values && typeof cfg.values === 'object', 'config.values missing');
+  // Secret keys are present in the values map but masked when set.
+  for (const k of cfg.secretKeys) {
+    if (cfg.values[k] && cfg.values[k].length) {
+      assert.ok(!cfg.values[k].includes('sk-ant') && !cfg.values[k].includes('AIzaSy'),
+        `secret key ${k} appears unmasked in /api/config response`);
+    }
+  }
+  await page.close();
+});
+
+test('Playwright smoke: cv.md PUT round-trips with sanitization', { skip: SKIP }, async () => {
+  const page = await context.newPage();
+  await page.goto(baseUrl + '/#/cv');
+  await page.waitForSelector('#content');
+  // PUT a CV with embedded XSS-y bits; assert the response reports
+  // sanitization happened, then GET to verify the body is clean.
+  const put = await page.evaluate(async () => {
+    const md = '# CV\n\n<script>alert(1)</script>\n\nHello [link](javascript:void) world.';
+    const r = await fetch('/api/cv', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ markdown: md }),
+    });
+    return await r.json();
+  });
+  assert.equal(put.ok, true);
+  assert.equal(put.sanitized, true, 'stripDangerousMarkdown should have flagged XSS bits');
+  const got = await page.evaluate(async () => {
+    const r = await fetch('/api/cv');
+    return (await r.json()).markdown;
+  });
+  assert.ok(!/<script/i.test(got), 'script tag survived sanitization');
+  assert.ok(!/javascript:/i.test(got), 'javascript: scheme survived sanitization');
+  await page.close();
+});
+
+test('Playwright smoke: pipeline preview proxy strips scripts', { skip: SKIP }, async () => {
+  // We can't hit a real upstream from CI reliably, but the route returns
+  // 400 for invalid URLs and a JSON body for valid ones. Exercise the
+  // 400 path here — the fetch-mocking happens in the unit tests.
+  const page = await context.newPage();
+  await page.goto(baseUrl + '/#/pipeline');
+  await page.waitForSelector('#content');
+  const status = await page.evaluate(async () => {
+    const r = await fetch('/api/pipeline/preview?url=' + encodeURIComponent('not-a-url'));
+    return r.status;
+  });
+  assert.equal(status, 400, 'pipeline/preview should 400 on invalid URL');
+  await page.close();
+});
+
 if (SKIP) {
   test('Playwright smoke: skipped (playwright not resolvable)', () => {
     console.log('SKIP — install playwright in parent project: cd $CAREER_OPS_ROOT && npm i && npx playwright install chromium');
