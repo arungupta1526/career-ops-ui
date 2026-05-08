@@ -6,6 +6,22 @@
 
 ---
 
+## [1.9.1] — 2026-05-08
+
+프로덕션 준비 패스. 4건의 표적 수정(BF-1..BF-4), Playwright 스모크 5 → 12개 확장.
+
+### 🐛 버그 수정
+
+- **BF-1 (tracker)**: `|`와 개행 이스케이프를 notes뿐 아니라 모든 셀에 적용. `"Acme | Co"` 같은 이름이 더 이상 테이블을 깨뜨리지 않습니다. `parseMarkdownTable`가 GFM `\|` 이스케이프 지원 — 무손실 round-trip.
+- **BF-2 (config)**: `updateEnvFile`을 try/catch로 감쌈 — permission-denied 시 unhandled rejection 대신 깔끔한 500.
+- **BF-3/BF-4 (llm)**: `/api/evaluate`, `/api/deep`, `/api/mode/:slug`의 Anthropic 분기에서 조립된 프롬프트에 200 KB 소프트 캡 — 타임아웃 대신 413.
+
+### 🧪 Playwright 스모크 — 5 → 12개
+
+Tracker(BF-1 round-trip 포함), pipeline 추가 + 잘못된 URL 일소, reports 빈 상태, evaluate 수동 폴백, config 키 마스킹, CV PUT 새니타이즈, pipeline preview 400.
+
+---
+
 ## [1.9.0] — 2026-05-08
 
 v1.8.0 백로그의 P-6 → P-10 모두 한 번에 릴리스. 핵심: `server/index.mjs`는 이제 130줄 오케스트레이터(이전 762줄, 누적 1230 → 130 = -89 %)이며 각 라우트 토픽이 자체 모듈에 있습니다. `/api/evaluate` Anthropic 패리티, 멀티 CLI 심, i18n 패리티 테스트 확장, Playwright 브라우저 스모크 CI 통합.

@@ -6,6 +6,22 @@
 
 ---
 
+## [1.9.1] — 2026-05-08
+
+Production-readiness pass. 4 точечных фикса (BF-1..BF-4), Playwright smoke расширен с 5 до 12 тестов.
+
+### 🐛 Фиксы
+
+- **BF-1 (tracker)**: экранирование `|` и переноса строки во всех ячейках, не только notes. Имена вроде `"Acme | Co"` теперь не ломают таблицу. `parseMarkdownTable` поддерживает GFM-escape `\|` — round-trip без потерь.
+- **BF-2 (config)**: `updateEnvFile` обёрнут в try/catch — на permission-denied возвращает 500 с понятным сообщением вместо unhandled rejection.
+- **BF-3/BF-4 (llm)**: soft cap 200 KB на assembled prompt в `/api/evaluate`, `/api/deep`, `/api/mode/:slug` Anthropic-ветках — 413 вместо timeout.
+
+### 🧪 Playwright smoke — 5 → 12 тестов
+
+Tracker (включая BF-1 round-trip), pipeline add + invalid-URL sweep, reports empty state, evaluate manual fallback, config keys-masked, CV PUT XSS sanitization, pipeline preview 400.
+
+---
+
 ## [1.9.0] — 2026-05-08
 
 P-6 → P-10 из бэклога v1.8.0 — все вошли в один релиз. Главное: `server/index.mjs` теперь 130-строчный orchestrator (было 762, итого 1230 → 130 = -89 %); каждая тема роутов в своём модуле. Anthropic-парность для `/api/evaluate`, multi-CLI шимы, расширенный i18n parity-тест и Playwright browser-смок в CI.

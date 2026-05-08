@@ -6,6 +6,40 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.9.1] — 2026-05-08
+
+Production-readiness pass. Four targeted bug fixes (BF-1..BF-4), Playwright smoke expanded from 5 to 12 tests covering tracker / pipeline / reports / evaluate / config / cv save round-trips. All green in CI.
+
+### 🐛 Bug fixes
+
+- **`fix(tracker): escape pipes + collapse newlines in every cell, not just notes (BF-1)`** — a company name like `"Acme | Co"` previously broke the markdown table layout (parser split the cell into two). Cell sanitizer now applied uniformly to company / role / reportSlug / notes; companion fix in `parsers.mjs::parseMarkdownTable` adds GFM-compliant `\|` escape support so the round-trip is lossless.
+- **`fix(config): wrap updateEnvFile in try/catch (BF-2)`** — `POST /api/config` previously bubbled an unhandled rejection on permission-denied / read-only filesystem. Now returns a clean 500 `{ error: 'failed to write parent .env', details: [...] }`.
+- **`fix(llm): soft cap on assembled prompt size for Anthropic SDK calls (BF-3 + BF-4)`** — `/api/evaluate`, `/api/deep`, and `/api/mode/:slug` Anthropic branches now bail with 413 when `bundleProjectContext + prompt` exceeds 200 KB (≈50K tokens). Saves a multi-second roundtrip + tokens vs letting the API complain about context size. The cap is well below any current model ceiling (Sonnet 4.6 = 1M context).
+
+### 🧪 Playwright smoke — expanded coverage
+
+5 → **12** tests. New cases:
+
+- `tracker view renders empty + accepts API-seeded row` — exercises BF-1 by seeding a row with a literal pipe in the company name and asserting the round-trip preserves it.
+- `pipeline add-URL form populates the queue` + invalid-URL rejection sweep (loopback, `javascript:`, bare strings).
+- `reports view handles empty state` — non-crash assertion.
+- `evaluate view returns a manual prompt without API key` — verifies the fallback chain.
+- `config GET returns known keys masked` — secrets never leak through `/api/config`.
+- `cv.md PUT round-trips with sanitization` — XSS-y bits (script tags, `javascript:` schemes) get stripped end-to-end.
+- `pipeline preview proxy strips scripts` — invalid-URL rejection path.
+
+### 📦 Behavior changes (no API contract changes)
+
+- Tracker writes are now lossless against pipe-laden company / role names. Existing rows with raw pipes will start parsing correctly on the next read.
+- `/api/{evaluate,deep,mode/:slug}` will now return 413 instead of 502/timeout when the prompt is unreasonably large (200 KB+).
+
+### 🧪 Tests
+
+- **284 unit tests** (no change in count; existing tests still all green after parser update).
+- **12 Playwright browser-smoke tests** (was 5).
+
+---
+
 ## [1.9.0] — 2026-05-08
 
 P-6 → P-10 from the v1.8.0 backlog all shipped in one bundle. Headline: `server/index.mjs` is now a 130-LOC orchestrator (down from 762, total 1230 → 130 = -89%); every route topic has its own module. Anthropic parity for `/api/evaluate`, multi-CLI shims, expanded i18n parity test, and Playwright browser-smoke wired into CI.

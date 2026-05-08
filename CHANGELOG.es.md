@@ -6,6 +6,22 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.9.1] — 2026-05-08
+
+Pase de production-readiness. 4 correcciones puntuales (BF-1..BF-4), Playwright smoke ampliado de 5 a 12 tests.
+
+### 🐛 Correcciones
+
+- **BF-1 (tracker)**: escape de `|` y salto de línea en todas las celdas, no solo notes. Nombres como `"Acme | Co"` ya no rompen la tabla. `parseMarkdownTable` soporta el escape GFM `\|` — round-trip sin pérdidas.
+- **BF-2 (config)**: `updateEnvFile` envuelto en try/catch — devuelve 500 limpio en lugar de rejection no manejada.
+- **BF-3/BF-4 (llm)**: tope blando de 200 KB sobre el prompt ensamblado en las ramas Anthropic de `/api/evaluate`, `/api/deep`, `/api/mode/:slug` — 413 en vez de timeout.
+
+### 🧪 Playwright smoke — 5 → 12 tests
+
+Tracker (incl. round-trip BF-1), pipeline add + barrido de URLs inválidas, reports estado vacío, evaluate fallback manual, config keys enmascaradas, CV PUT con sanitización, pipeline preview 400.
+
+---
+
 ## [1.9.0] — 2026-05-08
 
 P-6 → P-10 del backlog v1.8.0 — todo en un solo release. Titular: `server/index.mjs` ahora es un orquestador de 130 líneas (era 762, total 1230 → 130 = -89 %); cada tema de rutas en su propio módulo. Paridad Anthropic para `/api/evaluate`, shims multi-CLI, test ampliado de paridad i18n, Playwright browser-smoke en CI.

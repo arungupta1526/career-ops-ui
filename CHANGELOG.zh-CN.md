@@ -6,6 +6,22 @@
 
 ---
 
+## [1.9.1] — 2026-05-08
+
+生产就绪通过。4 项定向修复(BF-1..BF-4),Playwright 烟雾测试从 5 个扩展到 12 个。
+
+### 🐛 修复
+
+- **BF-1 (tracker)**: `|` 和换行的转义现在应用于所有单元格,不仅是 notes。`"Acme | Co"` 这样的名称不会再破坏表格。`parseMarkdownTable` 支持 GFM 的 `\|` 转义 — 无损 round-trip。
+- **BF-2 (config)**: `updateEnvFile` 包裹在 try/catch 中 — 权限拒绝时返回干净的 500 而不是未处理的 rejection。
+- **BF-3/BF-4 (llm)**: 在 `/api/evaluate`、`/api/deep`、`/api/mode/:slug` 的 Anthropic 分支上对组装的 prompt 设 200 KB 软上限 — 返回 413 而不是超时。
+
+### 🧪 Playwright 烟雾测试 — 5 → 12 个
+
+Tracker(含 BF-1 round-trip)、pipeline 添加 + 无效 URL 扫除、reports 空状态、evaluate 手动回退、config 密钥掩码、CV PUT 净化、pipeline preview 400。
+
+---
+
 ## [1.9.0] — 2026-05-08
 
 v1.8.0 待办列表中的 P-6 → P-10 全部一次性发布。要点:`server/index.mjs` 现在是 130 行的编排器(原 762 行,累计 1230 → 130 = -89 %),每个路由主题各自一个模块。`/api/evaluate` 的 Anthropic 对等支持、多 CLI 桥接文件、扩展的 i18n 对等测试,以及 CI 中的 Playwright 浏览器烟雾测试。

@@ -6,6 +6,22 @@
 
 ---
 
+## [1.9.1] — 2026-05-08
+
+Production-readiness パス。4 件の的を絞った修正 (BF-1..BF-4)、Playwright スモークを 5 → 12 件に拡充。
+
+### 🐛 バグ修正
+
+- **BF-1 (tracker)**: `|` と改行のエスケープを notes だけでなく全セルに適用。`"Acme | Co"` のような名前でテーブルが壊れなくなりました。`parseMarkdownTable` が GFM の `\|` エスケープをサポート — 損失のない round-trip。
+- **BF-2 (config)**: `updateEnvFile` を try/catch でラップ — permission-denied 時に未処理 rejection ではなくクリーンな 500 を返します。
+- **BF-3/BF-4 (llm)**: `/api/evaluate`、`/api/deep`、`/api/mode/:slug` の Anthropic 経路で組み立てプロンプトに 200 KB のソフトキャップ — タイムアウトではなく 413。
+
+### 🧪 Playwright スモーク — 5 → 12 件
+
+Tracker (BF-1 round-trip 含む)、pipeline 追加 + 無効 URL 一掃、reports 空状態、evaluate 手動フォールバック、config 秘匿マスキング、CV PUT のサニタイズ、pipeline preview 400。
+
+---
+
 ## [1.9.0] — 2026-05-08
 
 v1.8.0 バックログの P-6 → P-10 を一括リリース。要点: `server/index.mjs` は 130 行のオーケストレータ (762 行から、累計 1230 → 130 = -89 %) になり、各ルートトピックは独立モジュール。`/api/evaluate` の Anthropic パリティ、マルチ CLI シム、i18n パリティテスト拡張、Playwright ブラウザスモーク CI 統合。
