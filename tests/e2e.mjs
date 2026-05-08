@@ -359,20 +359,28 @@ async function run() {
     console.log(`  ✗ ${err.message}`);
   }
 
-  console.log('\n  Flow 5: #/profile alias → settings (FIX-C2)');
+  console.log('\n  Flow 5: /#/profile (canonical) + /#/settings alias');
   try {
+    // Canonical route: /#/profile is the new canonical (since v1.10.0).
     await page.goto(`${baseUrl}/#/profile`, { waitUntil: 'networkidle' });
     await page.waitForSelector('h1.page-title', { timeout: 5000 });
     const title = (await page.locator('h1.page-title').first().textContent()).trim();
-    // Profile/Settings page title across 8 languages
     const expected = ['Profile', 'Perfil', 'Профиль', 'プロフィール', '프로필', '个人资料', '個人資料'];
     if (!expected.some((s) => title.includes(s))) {
-      throw new Error('expected Profile-like title, got: ' + title);
+      throw new Error('expected Profile-like title at /#/profile, got: ' + title);
     }
-    // Sidebar Profile nav item should be highlighted
-    const active = await page.locator('.nav-item[data-route="settings"]').evaluate((el) => el.classList.contains('active'));
-    if (!active) throw new Error('Profile sidebar item not highlighted at #/profile');
-    console.log('  ✓ #/profile resolves to Profile view');
+    const activeProfile = await page.locator('.nav-item[data-route="profile"]')
+      .evaluate((el) => el.classList.contains('active'));
+    if (!activeProfile) throw new Error('Profile sidebar item not highlighted at /#/profile');
+
+    // Back-compat: old /#/settings hash should resolve to the same view
+    // and still highlight the Profile nav (router alias sets rawName).
+    await page.goto(`${baseUrl}/#/settings`, { waitUntil: 'networkidle' });
+    await page.waitForSelector('h1.page-title', { timeout: 5000 });
+    const activeAlias = await page.locator('.nav-item[data-route="profile"]')
+      .evaluate((el) => el.classList.contains('active'));
+    if (!activeAlias) throw new Error('Profile sidebar not highlighted from legacy /#/settings');
+    console.log('  ✓ /#/profile is canonical; /#/settings still resolves');
     passed++;
   } catch (err) {
     failed++;

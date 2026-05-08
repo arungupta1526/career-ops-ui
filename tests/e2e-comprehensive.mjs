@@ -244,12 +244,17 @@ async function run() {
     if (back !== '#/dashboard') throw new Error(`back href is "${back}"`);
   });
 
-  // ─── Profile alias ─────────────────────────
-  await step('Profile alias: #/profile renders Profile view (FIX-C2)', async () => {
+  // ─── Profile route + legacy alias ─────────────────────────
+  await step('Profile: #/profile is canonical, #/settings still resolves', async () => {
     await page.goto(`${baseUrl}/#/profile`, { waitUntil: 'networkidle' });
     await page.waitForSelector('h1.page-title');
-    const active = await page.locator('.nav-item[data-route="settings"].active').count();
-    if (!active) throw new Error('Profile sidebar item not highlighted');
+    const activeCanonical = await page.locator('.nav-item[data-route="profile"].active').count();
+    if (!activeCanonical) throw new Error('Profile sidebar item not highlighted at /#/profile');
+    // Legacy hash still resolves through the alias table.
+    await page.goto(`${baseUrl}/#/settings`, { waitUntil: 'networkidle' });
+    await page.waitForSelector('h1.page-title');
+    const activeAlias = await page.locator('.nav-item[data-route="profile"].active').count();
+    if (!activeAlias) throw new Error('Legacy /#/settings did not light up Profile nav');
   });
 
   // ─── Language persistence ─────────────────────────
