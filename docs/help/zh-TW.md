@@ -41,8 +41,11 @@ TOC 跳轉到所需部分。
 
 ## 2. 應用設定和 API 金鑰 (`#/config`)
 
-從瀏覽器編輯父專案的 `.env`。career-ops Node 腳本啟動時讀取相同的
-檔案,因此這裡儲存會立即傳播到兩邊。
+兩個分頁:**API keys & runtime** 從瀏覽器編輯父專案的 `.env`(與
+career-ops Node 腳本啟動時讀取的同一檔案);**Profile** 是
+`config/profile.yml` 的直接 YAML 編輯器,自動加入正規檔頭
+`# Career-Ops Profile Configuration` 並驗證 `candidate` 鍵存在。
+任一分頁的儲存都立即生效——無需重啟。
 
 ### 識別的金鑰
 
@@ -101,7 +104,10 @@ customized**。
 ### 編輯選項
 
 - **直接貼上** — 左側 textarea 是 markdown 編輯器。
-- **📁 Upload CV** — `.md`、`.txt`、`.html`;**💾 Save** 持久化。
+- **📁 Upload CV** — `.md/.markdown/.txt/.html/.htm`(文字)、
+  `.docx/.doc/.odt/.rtf`(經 pandoc — `brew install pandoc`)、
+  `.pdf`(經 pdftotext — `brew install poppler`)。伺服器轉為
+  markdown 並清理後載入編輯器,**💾 Save** 持久化。上限 10 MB。
 - **從 LinkedIn** — 在父專案中開啟 Claude Code,執行 `/career-ops`,
   貼上 LinkedIn URL,要求 `extract my CV from this and write it to
   cv.md`。

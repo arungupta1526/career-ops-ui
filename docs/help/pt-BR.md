@@ -42,8 +42,11 @@ O ciclo completo:
 
 ## 2. App settings & API keys (`#/config`)
 
-Edite o `.env` do projeto pai do navegador. Mesmo arquivo que os
-scripts Node leem; um save aqui propaga imediato.
+Duas abas: **API keys & runtime** edita o `.env` do projeto pai
+(mesmo arquivo que os scripts Node leem); **Profile** é um editor
+YAML direto de `config/profile.yml` que adiciona o cabeçalho canônico
+`# Career-Ops Profile Configuration` e valida que exista um
+`candidate`. Save em qualquer aba propaga imediato — sem reinicio.
 
 ### Chaves reconhecidas
 
@@ -101,7 +104,11 @@ Vive em `cv.md` na raiz do pai.
 ### Edição
 
 - **Colar direto** — textarea esquerda é editor markdown.
-- **📁 Upload CV** — `.md`, `.txt`, `.html`; **💾 Save** persiste.
+- **📁 Upload CV** — `.md/.markdown/.txt/.html/.htm` (texto puro),
+  `.docx/.doc/.odt/.rtf` (via pandoc — `brew install pandoc`),
+  ou `.pdf` (via pdftotext — `brew install poppler`). O servidor
+  converte para markdown, sanitiza e carrega no editor;
+  **💾 Save** persiste. Limite: 10 MB.
 - **Do LinkedIn** — Claude Code no pai, `/career-ops`, cole URL,
   peça `extract my CV from this and write it to cv.md`.
 

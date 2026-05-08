@@ -339,7 +339,65 @@ test('full-cycle [13/14] Apply helper checklist generation', { skip: SKIP }, asy
   await page.close();
 });
 
-test('full-cycle [14/14] Activity log captured every state-change + Help loaded', { skip: SKIP }, async () => {
+test('full-cycle [14/16] CV import — html upload converts and sanitizes', { skip: SKIP }, async () => {
+  const page = await context.newPage();
+  await page.goto(baseUrl + '/#/cv');
+  await page.waitForSelector('#content');
+  const r = await page.evaluate(async () => {
+    const html = '<h1>Imported CV</h1><script>window.__pwn=1</script><p>Body paragraph.</p>';
+    const res = await fetch('/api/cv/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/octet-stream', 'X-Filename': 'cv.html' },
+      body: html,
+    });
+    return { status: res.status, body: await res.json() };
+  });
+  // pandoc may not be installed in CI — accept either a 200 with markdown
+  // OR a 422 saying pandoc is missing. Both are valid lifecycle states.
+  if (r.status === 200) {
+    assert.equal(r.body.ok, true);
+    assert.equal(r.body.sourceFormat, 'html');
+    assert.match(r.body.markdown, /Imported CV/);
+    assert.ok(!/window\.__pwn/.test(r.body.markdown), 'script content must be sanitized');
+    assert.ok(!/<script/i.test(r.body.markdown));
+  } else {
+    assert.equal(r.status, 422);
+    assert.match(r.body.error || '', /pandoc/i);
+  }
+  await page.close();
+});
+
+test('full-cycle [15/16] PUT /api/profile updates config/profile.yml', { skip: SKIP }, async () => {
+  const page = await context.newPage();
+  await page.goto(baseUrl + '/#/config');
+  await page.waitForSelector('#content');
+  const yamlBody = [
+    'candidate:',
+    '  full_name: Lifecycle Tester',
+    '  email: lifecycle@example.com',
+    'target:',
+    '  roles: [Backend Engineer]',
+    '',
+  ].join('\n');
+  const r = await page.evaluate(async (y) => {
+    const res = await fetch('/api/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ yaml: y }),
+    });
+    return await res.json();
+  }, yamlBody);
+  assert.equal(r.ok, true);
+  assert.equal(r.candidate, 'Lifecycle Tester');
+  // Round-trip via GET to confirm the file is what we think.
+  const after = await page.evaluate(async () => (await fetch('/api/profile')).json());
+  assert.equal(after.profile.candidate.full_name, 'Lifecycle Tester');
+  // The header sentinel should be present.
+  assert.match(after.raw, /^# Career-Ops Profile Configuration/);
+  await page.close();
+});
+
+test('full-cycle [16/16] Activity log captured every state-change + Help loaded', { skip: SKIP }, async () => {
   const page = await context.newPage();
   await page.goto(baseUrl + '/#/activity');
   await page.waitForSelector('#content');

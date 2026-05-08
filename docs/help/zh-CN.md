@@ -41,8 +41,11 @@
 
 ## 2. 应用设置和 API 密钥 (`#/config`)
 
-从浏览器编辑父项目的 `.env`。career-ops Node 脚本启动时读取相同的
-文件,因此这里保存会立即传播到两边。
+两个标签页:**API keys & runtime** 从浏览器编辑父项目的 `.env`(与
+career-ops Node 脚本启动时读取的同一文件);**Profile** 是
+`config/profile.yml` 的直接 YAML 编辑器,自动添加规范文件头
+`# Career-Ops Profile Configuration` 并验证 `candidate` 键存在。
+任一标签页的保存都立即生效——无需重启。
 
 ### 识别的密钥
 
@@ -101,7 +104,10 @@ customized**。
 ### 编辑选项
 
 - **直接粘贴** — 左侧 textarea 是 markdown 编辑器。
-- **📁 Upload CV** — `.md`、`.txt`、`.html`;**💾 Save** 持久化。
+- **📁 Upload CV** — `.md/.markdown/.txt/.html/.htm`(文本)、
+  `.docx/.doc/.odt/.rtf`(经 pandoc — `brew install pandoc`)、
+  `.pdf`(经 pdftotext — `brew install poppler`)。服务器转为
+  markdown 并清理后载入编辑器,**💾 Save** 持久化。上限 10 MB。
 - **从 LinkedIn** — 在父项目中打开 Claude Code,运行 `/career-ops`,
   粘贴 LinkedIn URL,要求 `extract my CV from this and write it to
   cv.md`。

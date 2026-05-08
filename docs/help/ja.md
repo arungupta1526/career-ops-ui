@@ -41,8 +41,11 @@
 
 ## 2. アプリ設定と API キー (`#/config`)
 
-ブラウザから親プロジェクトの `.env` を編集。career-ops Node スクリプ
-トが起動時に読む同じファイル。ここでの保存は両方に伝播します。
+タブが 2 つ:**API keys & runtime** は親プロジェクトの `.env` を
+ブラウザから編集 (career-ops Node スクリプトが起動時に読む同じファイル)。
+**Profile** は `config/profile.yml` の直接 YAML エディタで、正規
+ヘッダ `# Career-Ops Profile Configuration` を自動付与し、`candidate`
+キーの存在を検証します。どちらのタブの保存も再起動なしで即時反映。
 
 ### 認識されるキー
 
@@ -101,7 +104,11 @@ customized** チェックを出します。
 ### 編集オプション
 
 - **直接貼り付け** — 左の textarea は markdown エディタ。
-- **📁 Upload CV** — `.md`、`.txt`、`.html`; **💾 Save** で永続化。
+- **📁 Upload CV** — `.md/.markdown/.txt/.html/.htm`(テキスト)、
+  `.docx/.doc/.odt/.rtf`(pandoc 経由 — `brew install pandoc`)、
+  `.pdf`(pdftotext 経由 — `brew install poppler`)。サーバが
+  markdown に変換・サニタイズしてエディタへロード。**💾 Save** で
+  永続化。アップロード上限: 10 MB。
 - **LinkedIn から** — 親で Claude Code を開き `/career-ops` 実行、
   LinkedIn URL を貼り付け、`extract my CV from this and write it to
   cv.md` と要求。

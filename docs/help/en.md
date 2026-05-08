@@ -46,9 +46,22 @@ The whole loop, end-to-end, in five minutes:
 
 ## 2. App settings & API keys (`#/config`)
 
-Edit the parent project's `.env` from the browser. Same file career-ops
-Node scripts read on startup, so a save here propagates immediately to
-both `gemini-eval.mjs` and the live server's `process.env`.
+Two tabs:
+
+1. **API keys & runtime** — edit the parent project's `.env` from
+   the browser (same file the career-ops Node scripts read on startup).
+2. **Profile** — direct YAML editor for `config/profile.yml`. Save
+   stamps the canonical `# Career-Ops Profile Configuration` header.
+
+A save in either tab propagates immediately — no server restart.
+
+### Profile tab
+
+- The textarea shows the current `config/profile.yml` verbatim.
+- Edit and click **💾 Save**. The server validates the YAML
+  (must be a mapping, must contain `candidate`) and writes the file.
+- A `# Career-Ops Profile Configuration` header is added if missing.
+- The read-only summary at `#/profile` is the visual companion.
 
 ### Recognized keys
 
@@ -84,8 +97,9 @@ nothing while confirming the key is wired up correctly. Returns a
 
 ## 3. Profile (`#/profile` — also reachable as `#/settings`)
 
-A read-only view of `config/profile.yml`. Edit the file directly on
-disk; the page re-parses on reload.
+A read-only summary card view of `config/profile.yml`. **To edit**,
+go to **App settings → Profile tab** (`#/config` → Profile). Saves
+land in the same file; this page re-parses on reload.
 
 The fields that matter most:
 
@@ -118,8 +132,18 @@ letter. Lives in `cv.md` at the parent project root.
 - **Paste it directly** — the textarea on the left is a markdown
   editor. The right-hand pane mirrors what the LLM (and your future
   recruiter) sees.
-- **📁 Upload CV** — pick a local `.md`, `.txt`, or `.html` file. The
-  contents replace the textarea; click **💾 Save** to persist.
+- **📁 Upload CV** — pick a local file in any of these formats and
+  the server converts it to markdown for you:
+  - **Text formats** — `.md`, `.markdown`, `.txt`, `.html`, `.htm`
+    are passed through (HTML goes via pandoc → GFM markdown).
+  - **Office formats** — `.docx`, `.doc`, `.odt`, `.rtf` are
+    converted via **pandoc** (`brew install pandoc` on macOS,
+    `apt install pandoc` on Linux).
+  - **PDF** — `.pdf` is extracted via **pdftotext** from Poppler
+    (`brew install poppler` / `apt install poppler-utils`).
+  - The converted markdown lands in the editor; click **💾 Save**
+    to persist. The result is sanitized (same XSS strip as paste).
+  - Hard cap: **10 MB** per upload. Larger files → 413.
 - **From LinkedIn** — easiest path: open Claude Code in the parent
   project, run `/career-ops`, paste your LinkedIn URL, and ask
   `extract my CV from this and write it to cv.md`.
@@ -145,7 +169,9 @@ Max body size: 1 MB. Anything larger returns 413.
   `data/applications.md` archetypes, etc.
 - **📄 Generate PDF** — streams `generate-pdf.mjs`. Output lands in
   `output/*.pdf`. Requires Playwright (Health page shows whether it's
-  installed in the parent's `node_modules`).
+  installed in the parent's `node_modules`). When generation finishes,
+  the **newest** PDF is auto-downloaded to your default Downloads
+  folder; the on-page list keeps every previously generated file.
 
 ### Tone / format tips
 

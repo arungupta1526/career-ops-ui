@@ -41,8 +41,11 @@
 
 ## 2. 앱 설정 & API 키 (`#/config`)
 
-브라우저에서 부모 프로젝트의 `.env`를 편집. career-ops Node 스크립트가
-부팅 시 읽는 같은 파일이므로 여기서 저장하면 즉시 양쪽에 반영됩니다.
+두 개의 탭: **API keys & runtime** 은 부모 프로젝트의 `.env` 를 편집
+(career-ops Node 스크립트가 부팅 시 읽는 동일 파일). **Profile** 은
+`config/profile.yml` 의 직접 YAML 편집기로, 정규 헤더
+`# Career-Ops Profile Configuration` 을 자동으로 추가하고 `candidate`
+키 존재를 검증합니다. 어느 탭에서 저장하든 재시작 없이 즉시 반영.
 
 ### 인식되는 키
 
@@ -101,7 +104,11 @@ Health는 `full_name`이 알려진 placeholder일 때 **Profile customized**
 ### 편집 옵션
 
 - **직접 붙여넣기** — 왼쪽 textarea는 markdown 에디터.
-- **📁 Upload CV** — `.md`, `.txt`, `.html`; **💾 Save**로 저장.
+- **📁 Upload CV** — `.md/.markdown/.txt/.html/.htm` (텍스트),
+  `.docx/.doc/.odt/.rtf` (pandoc 경유 — `brew install pandoc`),
+  `.pdf` (pdftotext 경유 — `brew install poppler`). 서버가 markdown
+  으로 변환·정화 후 에디터에 로드합니다. **💾 Save** 로 저장.
+  업로드 한도: 10 MB.
 - **LinkedIn에서** — 부모에서 Claude Code 열고 `/career-ops` 실행,
   LinkedIn URL 붙여넣고 `extract my CV from this and write it to
   cv.md` 요청.

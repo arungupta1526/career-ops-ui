@@ -45,10 +45,24 @@
 
 ## 2. Настройки приложения и API-ключи (`#/config`)
 
-Редактируйте `.env` родительского проекта прямо из браузера. Это тот
-же файл, который читают Node-скрипты career-ops при старте, поэтому
-сохранение здесь распространяется и на `gemini-eval.mjs`, и на
-`process.env` живого сервера.
+Две вкладки:
+
+1. **API keys & runtime** — редактирование `.env` родительского
+   проекта (тот же файл, что читают Node-скрипты career-ops).
+2. **Profile** — прямой YAML-редактор `config/profile.yml`. Save
+   проставляет канонический заголовок
+   `# Career-Ops Profile Configuration`.
+
+Сохранение в любой вкладке применяется мгновенно — рестарт не нужен.
+
+### Вкладка Profile
+
+- Textarea показывает текущий `config/profile.yml` дословно.
+- Отредактируйте и нажмите **💾 Save**. Сервер валидирует YAML
+  (должен быть mapping и содержать `candidate`) и пишет файл.
+- Заголовок `# Career-Ops Profile Configuration` добавляется
+  автоматически если его нет.
+- Read-only сводка на `#/profile` — визуальный компаньон.
 
 ### Распознаваемые ключи
 
@@ -82,8 +96,9 @@
 
 ## 3. Profile (`#/profile` — также доступно как `#/settings`)
 
-Read-only view `config/profile.yml`. Редактируйте файл напрямую на
-диске; страница перепарсит на reload.
+Read-only сводка-карточка `config/profile.yml`. **Чтобы редактировать**,
+перейдите в **App settings → вкладка Profile** (`#/config` → Profile).
+Save пишет в тот же файл; эта страница перепарсит на reload.
 
 Ключевые поля:
 
@@ -115,8 +130,18 @@ Health-страница флагит **Profile customized** пока `full_name`
 
 - **Вставить напрямую** — textarea слева markdown-редактор. Правая
   панель показывает то, что увидит LLM (и будущий рекрутер).
-- **📁 Upload CV** — выберите локальный `.md`, `.txt` или `.html`
-  файл. Содержимое заменит textarea; **💾 Save** сохранит.
+- **📁 Upload CV** — выберите локальный файл в любом из этих
+  форматов, сервер сам сконвертирует его в markdown:
+  - **Текстовые** — `.md`, `.markdown`, `.txt`, `.html`, `.htm`
+    (HTML идёт через pandoc → GFM markdown).
+  - **Office** — `.docx`, `.doc`, `.odt`, `.rtf` через **pandoc**
+    (`brew install pandoc` / `apt install pandoc`).
+  - **PDF** — `.pdf` через **pdftotext** из Poppler
+    (`brew install poppler` / `apt install poppler-utils`).
+  - Сконвертированный markdown появляется в редакторе; нажмите
+    **💾 Save** чтобы сохранить. Результат санитизируется
+    (тот же XSS-страйп, что и для paste).
+  - Лимит: **10 MB** на загрузку. Больше — 413.
 - **Из LinkedIn** — самый простой путь: откройте Claude Code в
   родительском проекте, запустите `/career-ops`, вставьте
   LinkedIn URL и попросите `extract my CV from this and write it
@@ -142,6 +167,9 @@ Max body size: 1 MB. Больше — 413.
   несоответствия между CV и tracker.
 - **📄 Generate PDF** — стримит `generate-pdf.mjs`. Output идёт в
   `output/*.pdf`. Требует Playwright (Health показывает статус).
+  По окончании генерации **самый свежий** PDF автоматически
+  скачивается в Downloads; список на странице сохраняет все ранее
+  сгенерированные файлы.
 
 ### Советы по форматированию
 
