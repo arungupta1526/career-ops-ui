@@ -1,0 +1,130 @@
+# career-ops-ui — Agent Instructions
+
+> Project-level CLAUDE.md. Loaded automatically by Claude Code (and equivalently by Codex via AGENTS.md, Gemini CLI via GEMINI.md). User instructions and `~/.claude/CLAUDE.md` still take precedence.
+
+## What this repo is
+
+`career-ops-ui` is an **Express + vanilla-JS SPA** that puts a polished web interface on top of [`santifer/career-ops`](https://github.com/santifer/career-ops) — a Claude-Code-driven AI job-search pipeline. It does **not** replace career-ops; it sits inside it as `career-ops/web-ui/` and reads/writes the same files (`cv.md`, `data/applications.md`, `reports/`, `portals.yml`, …).
+
+Stack at a glance:
+
+| Layer | Tech | Files |
+|---|---|---|
+| Server | Node ≥18, Express 4, js-yaml | `server/index.mjs` (~760 lines), `server/lib/*.mjs`, `server/lib/routes/*.mjs` |
+| SPA | Vanilla JS, hash-router, no framework | `public/index.html`, `public/js/{app,router,api}.js`, `public/js/views/*.js` |
+| Styling | Hand-written CSS, Airbnb-inspired tokens | `public/css/app.css` |
+| Tests | `node --test` (TAP), in-process Express, fetch | `tests/*.test.mjs`, `tests/e2e*.mjs` |
+| Build | None — files served as-is from `public/` | — |
+
+**Read the docs before editing.** Start with `docs/architecture/OVERVIEW.md`, then dive into the layer you're touching.
+
+---
+
+## Spec-Driven Development (GSD flavour)
+
+This project uses the **GSD pipeline** (`gsd-*` skills shipped via `superpowers@claude-plugins-official`). The cardinal rule: **no non-trivial code change without a written spec and plan first.**
+
+```
+discuss → spec → plan → execute → verify → review
+   (gsd-discuss-phase)  (gsd-spec-phase)  (gsd-plan-phase)
+   (gsd-execute-phase)  (gsd-verify-work) (gsd-code-review)
+```
+
+| Trigger | Skill / Command |
+|---|---|
+| New feature, system, or refactor | `gsd-explore` → `gsd-plan-phase` |
+| Implementing an approved plan | `gsd-execute-phase` (with TDD discipline) |
+| Bug with multiple hypotheses | `superpowers:systematic-debugging` |
+| AI integration phase | `gsd-ai-integration-phase` |
+| UI design contract | `gsd-ui-phase` |
+| Code review on a phase | `gsd-code-review` (or `gsd-ns-review`) |
+| Security audit on a phase | `gsd-secure-phase` |
+| Wrap a milestone | `gsd-complete-milestone` |
+
+**Trivial changes (single-file fix, comment update, README typo, version bump) skip the pipeline.** Use `gsd-quick` if you want the atomic-commit / state-tracking guarantees without the planning ceremony.
+
+GSD writes its planning artifacts under `.planning/`. The `docs/` tree is the **public contract** — long-lived architecture, conventions, and ADRs that ship with the repo. Specs that graduate from `.planning/` and become permanent reference live under `docs/specs/` and `docs/adr/`.
+
+See `docs/sdd/SDD-GUIDE.md` for the full workflow.
+
+---
+
+## Hard rules — do NOT violate
+
+1. **Never edit anything outside `web-ui/`.** The parent career-ops project (`../cv.md`, `../config/`, `../modes/`, `../data/`, `../reports/`, …) is **off-limits** to this repo. The user owns those files. The server reads them at runtime and writes only when an explicit user action triggers it (e.g. POST `/api/tracker`). Code changes never touch them.
+2. **Never load real user data into context.** `cv.md`, `data/applications.md`, salary numbers in `config/profile.yml`, contents of `reports/` — these may contain a live job search. The `.aiignore` file already excludes them; honor it. If you need to test against realistic data, write a fixture under `tests/fixtures/`.
+3. **Never weaken security headers.** `server/index.mjs` sets CSP / `X-Content-Type-Options` / `X-Frame-Options` / `Referrer-Policy`. CSP excludes `'unsafe-inline'` from `script-src` on purpose — every event handler is `addEventListener`, never inline `onclick=`. Don't add inline scripts; don't add `'unsafe-eval'`; don't relax `frame-ancestors 'none'`.
+4. **Never bypass URL validation.** `isValidJobUrl()` gates `/api/pipeline` and `/api/pipeline/preview` against SSRF (no loopback, no file://, no script chars). Any new endpoint that fetches user-supplied URLs MUST go through the same validator.
+5. **Never sanitize CV markdown to a different schema than `stripDangerousMarkdown()` defines.** XSS hardening lives in one function; route every CV/markdown ingress through it.
+6. **Never commit `.env`.** `.env.local`, `.env.*.local`, and `.env` are gitignored. Use `.env.example` placeholders only.
+7. **Never use `--no-verify`, `--force`, or `git reset --hard` without explicit user approval.** Pre-commit hooks fail for a reason — fix the cause, don't skip the check.
+8. **Tests must be CI-isolated.** Tests cannot assume the parent career-ops project is present. Build fixtures under `tests/fixtures/` or set `CAREER_OPS_ROOT=$(mktemp -d)` and bootstrap the minimal layout the test needs.
+
+---
+
+## Coding conventions
+
+- **ESM only** — `"type": "module"`, `.mjs` for server, `.js` (ESM-by-convention, browser-loaded as classic scripts) for the SPA. No CommonJS.
+- **Node ≥ 18.** Use `node:` prefix for built-ins (`node:fs`, `node:path`, `node:url`, …).
+- **No bundlers, no transpilers, no TypeScript.** The SPA loads scripts via `<script src="…">` in `public/index.html`. Adding a build step is a ROADMAP-level decision, not a unilateral one.
+- **No new runtime deps lightly.** Current production deps: `express` and `js-yaml`. Anything else needs justification in a spec.
+- **File size targets** (from `~/.claude/rules/coding-style.md`): <400 lines per file. `server/index.mjs` was 1230 LOC; phase **P-2 phase 1** (v1.8.0) split it to 762 LOC by extracting `lib/{security,prompts,store}.mjs` and `lib/routes/{scan,runners,content}.mjs`. Phase 2 will pull tracker / pipeline / reports / jds / llm / health into route modules — target <500 LOC for the orchestrator. Until then, do not grow `index.mjs` further; new routes go into `server/lib/routes/<topic>.mjs` exporting `register<Topic>Routes(app)`.
+- **Routes follow REST norms:** `GET /api/<resource>`, `POST /api/<resource>` (create/append), `PUT /api/<resource>` (replace), `DELETE /api/<resource>/:id`. Streaming uses `GET /api/stream/<verb>` with SSE.
+- **Conventional commits:** `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`. Optional scope: `feat(scan): …`, `fix(api): …`. Breaking change: `feat!:`.
+- **Versioning:** `package.json` is the source of truth (currently 1.8.0). The footer reads it via `/api/health`. The parent's `VERSION` file is reported separately as `parentVersion` — they drift independently.
+
+See `docs/sdd/CONVENTIONS.md` for the complete list (CSS, i18n keys, error handling, logging).
+
+---
+
+## Testing discipline
+
+- **Unit / integration:** `node --test tests/*.test.mjs`. Spawn `createApp()` in-process, hit it with `fetch` against an ephemeral port. Never hardcode `4317`.
+- **E2E:** `tests/e2e.mjs` and `tests/e2e-comprehensive.mjs` run the real server end-to-end. They're long but they catch SPA regressions the unit tests can't.
+- **Coverage floor:** 80 % on non-trivial logic. Current baseline is ~93 % line / ~83 % branch — keep it there or above. Run `npm run test:coverage`.
+- **TDD when adding behavior:** red → green → refactor. Skip TDD only for pure refactors with full coverage already present.
+- **No mocks of internal collaborators.** If you need to fake the parent project, point `CAREER_OPS_ROOT` at a `mktemp -d` and write the minimal files (`cv.md`, `portals.yml`, …) the path under test needs.
+
+---
+
+## Working with the parent career-ops project
+
+This repo is a **viewer + thin write-through** for career-ops. The contract is documented in `docs/architecture/DATA-FLOWS.md`. Key invariants:
+
+- `server/lib/paths.mjs::resolveProjectRoot()` finds the parent via `CAREER_OPS_ROOT` env, then `..`, then `cwd()`. Use `PATHS.*` everywhere — never hardcode `../cv.md`.
+- Reads are always safe. Writes happen only on explicit user actions: `POST /api/pipeline`, `POST /api/tracker`, `PUT /api/cv`, `POST /api/jds`, `DELETE /api/{jds,interview-prep}/:name`, `POST /api/config`, and the streaming script runners.
+- The Russian portal scanner (`server/lib/ru-scanner.mjs`) and English portal scanner (`server/lib/en-scanner.mjs`) run **in-process** — they don't shell out to `scan.mjs` in the parent. The buffered runners (`/api/run/*`) DO shell out via `runner.mjs`.
+
+---
+
+## When in doubt
+
+1. Re-read `docs/architecture/OVERVIEW.md`.
+2. Run `npm test` — the suite documents existing invariants better than any prose.
+3. Search the changelog (`CHANGELOG.md`) for the feature area — recent entries explain why things are the way they are.
+4. Ask the user. Don't guess at security-sensitive code.
+
+---
+
+## Quick reference
+
+| Command | Purpose |
+|---|---|
+| `npm start` | Run the server on `127.0.0.1:4317` |
+| `npm run dev` | Run with `--watch` |
+| `npm test` | Full test suite (`node --test`) |
+| `npm run test:coverage` | Same, with V8 coverage |
+| `npm run test:e2e` | Smoke E2E |
+| `npm run test:e2e:full` | Comprehensive E2E |
+| `bash bin/start.sh` | One-shot launcher (installs deps if missing, opens browser) |
+| `node scripts/portals-health-check.mjs` | Audit `portals.yml` reachability |
+
+| Directory | Owner |
+|---|---|
+| `server/` | This repo. Express + lib modules. Edit freely under conventions. |
+| `public/` | This repo. SPA. Edit freely under conventions. |
+| `tests/` | This repo. Keep CI-isolated. |
+| `docs/` | This repo. Architecture, SDD, conventions, help. |
+| `.claude/` | This repo. Agent config (subagents, commands, settings). |
+| `.planning/` | GSD scratch (gitignored). Specs/plans/state per phase. |
+| `..` (parent career-ops) | **NOT this repo.** Do not edit. |
