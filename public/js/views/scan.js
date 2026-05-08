@@ -387,15 +387,62 @@ Router.register('scan', async () => {
         const apiSet = new Set(apiCompanies);
         const apis = matched.filter((co) => apiSet.has(co));
         const others = matched.filter((co) => !apiSet.has(co));
-        const tag = (co, hasApi) => c('span', {
-          className: 'tag',
-          style: {
-            fontSize: '13px',
-            background: hasApi ? 'rgba(0,138,5,.10)' : 'var(--beach)',
-            color: hasApi ? 'var(--kazan)' : 'var(--foggy)',
-          },
-          title: hasApi ? t('scan.scanResultsApi') : t('scan.websearchOnly'),
-        }, (hasApi ? '✓ ' : '○ ') + (co.name || co));
+        // Each company tag is a flex-row of two buttons:
+        //   1. Name button — clicking it pre-fills the results-table
+        //      filter with the company name (so the user immediately
+        //      sees that company's hits in the table above).
+        //   2. ↗ link button — only shown when careers_url is set;
+        //      opens the careers page in a new tab.
+        const tag = (co, hasApi) => {
+          const name = co.name || co;
+          const careersUrl = co.careers_url || co.careersUrl || (co._api && co._api.url);
+          const wrap = c('span', {
+            className: 'tag',
+            style: {
+              fontSize: '13px',
+              background: hasApi ? 'rgba(0,138,5,.10)' : 'var(--beach)',
+              color: hasApi ? 'var(--kazan)' : 'var(--foggy)',
+              padding: '4px 6px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            },
+          });
+          const filterBtn = c('button', {
+            type: 'button',
+            title: t('scan.tagClickToFilter', 'Click to filter results by this company'),
+            style: {
+              background: 'transparent',
+              border: 'none',
+              color: 'inherit',
+              font: 'inherit',
+              padding: '2px 4px',
+              cursor: 'pointer',
+            },
+            onClick: () => {
+              filterText.value = name;
+              filterText.dispatchEvent(new Event('input', { bubbles: true }));
+              filterText.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            },
+          }, (hasApi ? '✓ ' : '○ ') + name);
+          wrap.appendChild(filterBtn);
+          if (careersUrl) {
+            const link = c('a', {
+              href: careersUrl,
+              target: '_blank',
+              rel: 'noopener noreferrer',
+              title: t('scan.tagOpenCareers', 'Open careers page in a new tab'),
+              style: {
+                textDecoration: 'none',
+                color: 'inherit',
+                opacity: 0.7,
+                padding: '0 2px',
+              },
+            }, '↗');
+            wrap.appendChild(link);
+          }
+          return wrap;
+        };
         if (apis.length) {
           const head = c('div', {
             style: { width: '100%', fontSize: '12px', fontWeight: 600,
