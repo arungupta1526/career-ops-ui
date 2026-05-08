@@ -56,6 +56,11 @@ jobs:
         run: node tests/e2e.mjs
       - name: Run comprehensive e2e
         run: node tests/e2e-comprehensive.mjs
+      # P-9 — browser-driven smoke harness (node --test tests/playwright-smoke.mjs).
+      # Resolves Playwright via CAREER_OPS_ROOT/node_modules in production;
+      # CI uses the local `npm install --no-save playwright` above.
+      - name: Run Playwright browser smoke
+        run: npm run test:e2e:browser
       - name: Upload screenshots on failure
         if: failure()
         uses: actions/upload-artifact@v4

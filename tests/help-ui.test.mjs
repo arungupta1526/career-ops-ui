@@ -87,16 +87,36 @@ test('docs/help/{lang}.md exists for every supported locale', () => {
   }
 });
 
-test('every help doc covers the same 14 sections', () => {
-  // Sanity: each locale should follow the canonical structure so a
-  // user switching language gets parity, not a different document.
+test('every help doc covers the same 14 sections (all 8 locales — P-8)', () => {
+  // P-8 — verify section parity across every shipped locale, not just
+  // en + ru. A user switching language should land on the same
+  // structural document, not a stub. Content can be shorter (compact
+  // translations are fine) but the 14-section skeleton is mandatory.
   const helpDir = resolve(ROOT, 'docs', 'help');
   const SECTION_COUNT = 14;
-  for (const fname of ['en.md', 'ru.md']) {
+  const ALL_LOCALES = ['en', 'es', 'pt-BR', 'ko-KR', 'ja', 'ru', 'zh-CN', 'zh-TW'];
+  for (const lang of ALL_LOCALES) {
+    const fname = `${lang}.md`;
     const text = readFileSync(resolve(helpDir, fname), 'utf8');
     const headings = (text.match(/^## /gm) || []).length;
     assert.equal(headings, SECTION_COUNT,
       `${fname}: expected ${SECTION_COUNT} ## headings, got ${headings}`);
+  }
+});
+
+test('every help locale has substantive content (P-8 floor)', () => {
+  // P-8 — guard against locale stubs that only translate headings while
+  // dropping the body. Each locale must be at least 30% of en.md's
+  // length. Compact translations naturally hit ~40-50%; a stub would
+  // be in single-digit %.
+  const helpDir = resolve(ROOT, 'docs', 'help');
+  const en = readFileSync(resolve(helpDir, 'en.md'), 'utf8');
+  const FLOOR = en.length * 0.3;
+  const ALL_LOCALES = ['es', 'pt-BR', 'ko-KR', 'ja', 'ru', 'zh-CN', 'zh-TW'];
+  for (const lang of ALL_LOCALES) {
+    const text = readFileSync(resolve(helpDir, `${lang}.md`), 'utf8');
+    assert.ok(text.length >= FLOOR,
+      `${lang}.md: ${text.length} bytes < floor ${FLOOR.toFixed(0)} (30% of en.md=${en.length}). Likely a stub — backfill needed.`);
   }
 });
 
