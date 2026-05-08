@@ -53,7 +53,7 @@
     "test:coverage": "node --test --experimental-test-coverage tests/*.test.mjs",
     "test:e2e": "node tests/e2e.mjs",
     "test:e2e:full": "node tests/e2e-comprehensive.mjs",
-    "test:e2e:browser": "node --test tests/playwright-smoke.mjs"
+    "test:e2e:browser": "node --test tests/playwright-smoke.mjs tests/playwright-full-cycle.mjs"
   },
   "dependencies": {
     "express": "^4.21.0",
