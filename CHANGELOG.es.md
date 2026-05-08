@@ -6,6 +6,67 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.8.0] — 2026-05-08
+
+Endurecimiento, refactor y base de SDD. Tres correcciones de severidad alta (A1, A2, A3), cuatro medias (B1–B4), seis limpiezas, auditoría del padre career-ops v1.7.0, división de `server/index.mjs` (P-2 fase 1), smoke con Playwright y fundamento SDD completo en `docs/` y `.claude/`.
+
+### 🔥 Severidad alta
+
+- **`fix(deep): inlinear cv/profile/mode en llamadas Anthropic SDK (REVIEW-A1)`** — `/api/deep` y `/api/mode/:slug` instruían "lee estos archivos primero", pero el SDK de Anthropic no tiene sistema de archivos. La salida era hueca. `bundleProjectContext` lee `cv.md`, `config/profile.yml`, `modes/_shared.md` y la plantilla del modo, los recorta a 16 KB y antepone un bloque `<project_context>`. Verificado en vivo: 26 KB de markdown fundamentado de `claude-sonnet-4-6`.
+- **`fix(runner): escalada SIGTERM → SIGKILL tras período de gracia (REVIEW-A2)`** — un hijo atascado en una llamada al sistema podía colgar la conexión SSE. Ahora ambos caminos arman un watchdog de 5 s que escala a `SIGKILL`.
+- **`fix(runner): tope máximo de tiempo en endpoints streaming (REVIEW-A3)`** — `/api/stream/{scan,liveness,pdf}` tienen techo de 30 minutos.
+
+### 🛡️ Severidad media
+
+- **`fix(preview): validación por hop en /api/pipeline/preview (REVIEW-B1)`** — paso de `redirect: 'follow'` a recorrido manual. Cada `Location` se revalida con `isValidJobUrl`; tope de 3 saltos. Boards hostiles ya no pueden redirigirnos a loopback / IP privada / `file://`.
+- **`refactor(keys): hasGeminiKey unifica chequeos de claves LLM (REVIEW-B2)`**.
+- **`feat(scanners): AbortSignal a través de hh.ru, Habr, Greenhouse, Ashby, Lever (REVIEW-B3)`** — al desconectarse el cliente, los fetch en vuelo se cancelan.
+- **`test(anthropic): log-guard impide futuros leaks de la API key por console (REVIEW-B4)`**.
+
+### 🧹 Limpiezas
+
+- **`fix(parsers): puerta URL en addPipelineUrl como defensa en profundidad (REVIEW-C4)`**.
+- **`docs(readme): badge 88 → 277 tests (REVIEW-C3)`**.
+- **`test(i18n): mensajes de claves faltantes agrupados por locale (REVIEW-C6)`**.
+
+### 🏗️ P-2 fase 1 — división de server/index.mjs (1230 → 762 LOC, −38 %)
+
+Sin cambio de comportamiento. 283/283 unit tests verdes en cada paso.
+
+- `server/lib/security.mjs` — sanitizadores y trust-checks.
+- `server/lib/prompts.mjs` — constructores de prompt para LLM.
+- `server/lib/store.mjs` — lectores defensivos + bootstrap inicial.
+- `server/lib/routes/{scan,runners,content}.mjs` — `registerXxxRoutes(app)`.
+
+Fase 2 extraerá tracker / pipeline / reports / jds / llm / health.
+
+### 🔍 Auditoría del padre career-ops v1.7.0
+
+UI compatible. Catálogo de modos: 7 → 19 (UI expone 7 a propósito). `portals.yml` usa `tracked_companies` (96 entradas, 87 habilitadas, 71 con API). Documentado en `docs/architecture/DATA-FLOWS.md`.
+
+### 🤖 Fundamento SDD / GSD
+
+- `CLAUDE.md` (raíz), `.aiignore`, `.claude/agents/*` (3), `.claude/commands/*` (2).
+- Árbol `docs/`: PROJECT, ROADMAP, sdd/{SDD-GUIDE, CONVENTIONS}, architecture/{OVERVIEW, SERVER, FRONTEND, API, DATA-FLOWS}, reviews/REVIEW-2026-05-07.
+
+### 🔒 Seguridad e higiene del repo
+
+- **`chore(.gitignore): patrones defense-in-depth ampliados`** — variantes de env, IDE, scratch GSD, configs privadas del agente, artefactos Playwright, patrones genéricos de secretos.
+
+### 🧪 Tests
+
+- **283 unit tests** (eran 277): +6 nuevos.
+- **5 smoke tests con Playwright** (nuevos, opt-in vía `npm run test:e2e:browser`).
+- Cobertura ~93 % línea / ~83 % rama.
+
+### 📝 Nuevos scripts npm
+
+| Script | Propósito |
+|---|---|
+| `npm run test:e2e:browser` | Playwright smoke contra el servidor in-process (5 tests). |
+
+---
+
 ## [1.7.2] — 2026-05-04
 
 Centro de ayuda, configuración en la UI, sidebar móvil, botón único Scan, atajo "Mostrar resultado".

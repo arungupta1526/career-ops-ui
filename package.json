@@ -1,6 +1,6 @@
 {
   "name": "@fighter90/career-ops-ui",
-  "version": "1.7.2",
+  "version": "1.8.0",
   "description": "Airbnb-styled web interface for the career-ops AI job-search pipeline — search, evaluate, deep-dive, apply, track every offer from a single browser tab.",
   "type": "module",
   "license": "MIT",
@@ -52,7 +52,8 @@
     "test": "node --test tests/*.test.mjs",
     "test:coverage": "node --test --experimental-test-coverage tests/*.test.mjs",
     "test:e2e": "node tests/e2e.mjs",
-    "test:e2e:full": "node tests/e2e-comprehensive.mjs"
+    "test:e2e:full": "node tests/e2e-comprehensive.mjs",
+    "test:e2e:browser": "node --test tests/playwright-smoke.mjs"
   },
   "dependencies": {
     "express": "^4.21.0",

@@ -6,6 +6,67 @@
 
 ---
 
+## [1.8.0] — 2026-05-08
+
+Хардненинг, рефакторинг и SDD-фундамент. Три критичных фикса (A1, A2, A3), четыре среднего уровня (B1–B4), шесть мелких чисток, аудит родительского career-ops v1.7.0, разделение `server/index.mjs` (P-2 фаза 1), Playwright browser-смок и полная SDD-инфраструктура в `docs/` и `.claude/`.
+
+### 🔥 Критичные фиксы
+
+- **`fix(deep): инлайнить cv/profile/mode-файлы в Anthropic-вызовы (REVIEW-A1)`** — `/api/deep` и `/api/mode/:slug` ранее писали модели «прочитай эти файлы», но Anthropic SDK не имеет файловой системы. Ответы получались пустые. `bundleProjectContext` читает `cv.md`, `config/profile.yml`, `modes/_shared.md` и шаблон mode-файла, обрезает до 16 KB и вставляет блок `<project_context>` перед промптом. Проверено вживую: 26 KB осмысленного markdown от `claude-sonnet-4-6`.
+- **`fix(runner): эскалация SIGTERM → SIGKILL после grace-периода (REVIEW-A2)`** — дочерние процессы, застрявшие в системном вызове, могли подвешивать SSE-соединение. Теперь оба пути взводят 5-секундный watchdog с эскалацией к `SIGKILL`.
+- **`fix(runner): жёсткий лимит времени для streaming-эндпоинтов (REVIEW-A3)`** — `/api/stream/{scan,liveness,pdf}` имеют 30-минутный потолок.
+
+### 🛡️ Среднего уровня
+
+- **`fix(preview): валидация каждого редиректа в /api/pipeline/preview (REVIEW-B1)`** — переход с `redirect: 'follow'` на ручной обход. Каждый `Location` валидируется через `isValidJobUrl`, лимит 3 хопа. Враждебные борды больше не могут перенаправить на loopback / private IP / `file://`.
+- **`refactor(keys): hasGeminiKey унифицирует проверки LLM-ключей (REVIEW-B2)`**.
+- **`feat(scanners): AbortSignal через hh.ru, Habr, Greenhouse, Ashby, Lever (REVIEW-B3)`** — при разрыве клиента fetch-запросы прерываются.
+- **`test(anthropic): log-guard защищает от утечки API-ключа в console (REVIEW-B4)`**.
+
+### 🧹 Мелочи
+
+- **`fix(parsers): URL-валидатор внутри addPipelineUrl (REVIEW-C4)`**.
+- **`docs(readme): значок «tests-88 passed» → «tests-277 passed» (REVIEW-C3)`**.
+- **`test(i18n): пропущенные ключи сгруппированы по локали (REVIEW-C6)`**.
+
+### 🏗️ P-2 фаза 1 — split server/index.mjs (1230 → 762 LOC, −38 %)
+
+Без изменения поведения. Все 283 unit-теста зелёные на каждом шаге.
+
+- `server/lib/security.mjs` — `isValidJobUrl`, `stripDangerousMarkdown`, `sanitizeJobDescription`, `isPubliclyExposed`.
+- `server/lib/prompts.mjs` — `bundleProjectContext`, `build*Prompt`, `buildApplyChecklist`.
+- `server/lib/store.mjs` — `safeRead*`, `checkProfileCustomized`, `ensureRussianPortalsDefaults`.
+- `server/lib/routes/{scan,runners,content}.mjs` — `registerXxxRoutes(app)`.
+
+Фаза 2 вытянет tracker / pipeline / reports / jds / llm / health — цель < 500 LOC для оркестратора.
+
+### 🔍 Аудит родителя career-ops v1.7.0
+
+UI совместим. Каталог mode-файлов вырос с 7 до 19 (UI намеренно покрывает 7). `portals.yml` использует `tracked_companies` (96 записей, 87 enabled, 71 with API). Новые поверхности парента (`dashboard/` Go-программа, `update-system.mjs`, `generate-latex.mjs`, локализованные mode-подкаталоги) пока не используются — задокументированы в `docs/architecture/DATA-FLOWS.md`.
+
+### 🤖 SDD / GSD-фундамент
+
+- `CLAUDE.md` (root), `.aiignore`, `.claude/agents/{web-ui-route-reviewer,spa-view-reviewer,test-isolation-reviewer}.md`, `.claude/commands/{sdd-status,codebase-tour}.md`.
+- `docs/`: `PROJECT.md`, `ROADMAP.md`, `sdd/{SDD-GUIDE,CONVENTIONS}.md`, `architecture/{OVERVIEW,SERVER,FRONTEND,API,DATA-FLOWS}.md`, `reviews/REVIEW-2026-05-07.md`.
+
+### 🔒 Безопасность и гигиена репо
+
+- **`chore(.gitignore): расширенные defense-in-depth паттерны`** — env-варианты, IDE-папки, GSD scratch (`.planning/`), приватные настройки агента, Playwright-артефакты, секрет-паттерны (`*.pem`, `*.key`, `secrets.json`).
+
+### 🧪 Тесты
+
+- **283 unit-теста** (было 277): +6 новых.
+- **5 Playwright browser-смок-тестов** (новые, opt-in через `npm run test:e2e:browser`).
+- Покрытие держится на ~93 % line / ~83 % branch.
+
+### 📝 Новые npm-скрипты
+
+| Скрипт | Назначение |
+|---|---|
+| `npm run test:e2e:browser` | Playwright smoke против in-process сервера (5 тестов). |
+
+---
+
 ## [1.7.2] — 2026-05-04
 
 Help-центр, App settings в UI, мобильный sidebar, единая кнопка Scan, "Показать результат" на каждом prompt-builder.

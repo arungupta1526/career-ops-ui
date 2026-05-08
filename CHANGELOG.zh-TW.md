@@ -6,6 +6,67 @@
 
 ---
 
+## [1.8.0] — 2026-05-08
+
+加固、重構與 SDD 基礎。三項高嚴重性修復(A1、A2、A3)、四項中等(B1–B4)、六項輕微清理、父專案 career-ops v1.7.0 稽核、`server/index.mjs` 拆分(P-2 第 1 階段)、Playwright 瀏覽器煙霧測試,以及 `docs/` 與 `.claude/` 中的完整 SDD 基礎。
+
+### 🔥 高嚴重性修復
+
+- **`fix(deep): 在 Anthropic SDK 呼叫中內聯 cv/profile/mode 檔案 (REVIEW-A1)`** — `/api/deep` 與 `/api/mode/:slug` 之前指示模型「先讀取這些檔案」,但 Anthropic SDK 沒有檔案系統。輸出空洞。`bundleProjectContext` 讀取 `cv.md`、`config/profile.yml`、`modes/_shared.md` 與模式範本,各截取至 16 KB,在提示前插入 `<project_context>` 區塊。實測:`claude-sonnet-4-6` 回傳 26 KB 有依據的 markdown。
+- **`fix(runner): 寬限期後 SIGTERM → SIGKILL 升級 (REVIEW-A2)`** — 卡在系統呼叫的子行程會無限掛起 SSE 連線。兩條路徑都啟動 5 秒 watchdog 升級到 `SIGKILL`。
+- **`fix(runner): streaming 端點的最大執行時間上限 (REVIEW-A3)`** — `/api/stream/{scan,liveness,pdf}` 設 30 分鐘上限。
+
+### 🛡️ 中等嚴重性
+
+- **`fix(preview): /api/pipeline/preview 的逐跳驗證 (REVIEW-B1)`** — 從 `redirect: 'follow'` 切換到手動重定向遍歷。每個 `Location` 都透過 `isValidJobUrl` 重新驗證,3 跳上限。敵意板不能再將我們重定向到 loopback / 私有 IP / `file://`。
+- **`refactor(keys): hasGeminiKey 統一 LLM 金鑰檢查 (REVIEW-B2)`**。
+- **`feat(scanners): 透過 hh.ru、Habr、Greenhouse、Ashby、Lever 傳遞 AbortSignal (REVIEW-B3)`** — 客戶端中斷時,飛行中 fetch 被中止。
+- **`test(anthropic): log-guard 防止 API 金鑰未來透過 console 洩漏 (REVIEW-B4)`**。
+
+### 🧹 輕微清理
+
+- **`fix(parsers): addPipelineUrl 內部的 URL 閘門作為縱深防禦 (REVIEW-C4)`**。
+- **`docs(readme): 徽章 88 → 277 tests (REVIEW-C3)`**。
+- **`test(i18n): 缺失鍵訊息按 locale 分組 (REVIEW-C6)`**。
+
+### 🏗️ P-2 第 1 階段 — server/index.mjs 拆分 (1230 → 762 LOC, −38 %)
+
+行為不變。每一步 283/283 unit tests 全綠。
+
+- `server/lib/security.mjs` — 淨化器與信任檢查。
+- `server/lib/prompts.mjs` — LLM 提示建構器。
+- `server/lib/store.mjs` — 防禦性讀取器 + 首次啟動引導。
+- `server/lib/routes/{scan,runners,content}.mjs` — `registerXxxRoutes(app)`。
+
+第 2 階段將提取 tracker / pipeline / reports / jds / llm / health。
+
+### 🔍 父專案 career-ops v1.7.0 稽核
+
+UI 相容。模式目錄:7 → 19(UI 故意只暴露 7 個)。`portals.yml` 使用 `tracked_companies`(96 條目,87 啟用,71 含 API)。在 `docs/architecture/DATA-FLOWS.md` 中記錄。
+
+### 🤖 SDD / GSD 基礎
+
+- `CLAUDE.md`(根)、`.aiignore`、`.claude/agents/*`(3 個)、`.claude/commands/*`(2 個)。
+- `docs/` 樹:PROJECT、ROADMAP、sdd/{SDD-GUIDE, CONVENTIONS}、architecture/{OVERVIEW, SERVER, FRONTEND, API, DATA-FLOWS}、reviews/REVIEW-2026-05-07。
+
+### 🔒 安全與儲存庫衛生
+
+- **`chore(.gitignore): 擴展縱深防禦模式`** — env 變體、IDE、GSD scratch、代理私有設定、Playwright 產物、通用密鑰模式。
+
+### 🧪 測試
+
+- **283 unit tests**(原為 277):新增 6 個。
+- **5 個 Playwright 瀏覽器煙霧測試**(新增,透過 `npm run test:e2e:browser` opt-in)。
+- 覆蓋率 ~93 % line / ~83 % branch。
+
+### 📝 新增 npm 指令
+
+| 指令 | 用途 |
+|---|---|
+| `npm run test:e2e:browser` | 針對 in-process 伺服器的 Playwright smoke(5 個測試)。 |
+
+---
+
 ## [1.7.2] — 2026-05-04
 
 說明中心、UI 內應用設定、行動端側邊欄、單一 Scan 按鈕、所有 prompt-builder 的「顯示結果」捷徑。

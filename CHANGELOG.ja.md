@@ -6,6 +6,67 @@
 
 ---
 
+## [1.8.0] — 2026-05-08
+
+ハードニング、リファクタリング、SDD 基盤の構築。重要度高の修正 3 件 (A1、A2、A3)、中程度 4 件 (B1–B4)、軽微なクリーンアップ 6 件、親プロジェクト career-ops v1.7.0 の監査、`server/index.mjs` 分割 (P-2 フェーズ 1)、Playwright ブラウザスモーク、`docs/` と `.claude/` への完全な SDD 基盤。
+
+### 🔥 重要度高
+
+- **`fix(deep): Anthropic SDK 呼び出しに cv/profile/mode を埋め込み (REVIEW-A1)`** — `/api/deep` と `/api/mode/:slug` は「これらのファイルを先に読め」と指示していたが、Anthropic SDK にはファイルシステムがない。出力が空虚だった。`bundleProjectContext` が `cv.md`、`config/profile.yml`、`modes/_shared.md`、モードテンプレートを読み、各 16 KB に切り詰め、`<project_context>` ブロックをプロンプト前に挿入する。実機検証: `claude-sonnet-4-6` から 26 KB の根拠ある markdown。
+- **`fix(runner): grace 期間後に SIGTERM → SIGKILL エスカレーション (REVIEW-A2)`** — システムコールでハングした子プロセスが SSE 接続を保持し続ける問題を解消。両経路で 5 秒の watchdog を起動し `SIGKILL` にエスカレートする。
+- **`fix(runner): streaming エンドポイントに最大ランタイム上限 (REVIEW-A3)`** — `/api/stream/{scan,liveness,pdf}` は 30 分の上限を持つ。
+
+### 🛡️ 重要度中
+
+- **`fix(preview): /api/pipeline/preview のホップごと検証 (REVIEW-B1)`** — `redirect: 'follow'` から手動リダイレクト追跡へ。各 `Location` を `isValidJobUrl` で再検証、3 ホップ上限。敵対的な掲示板が loopback / プライベート IP / `file://` にリダイレクトすることを防止。
+- **`refactor(keys): hasGeminiKey が LLM キー検査を統一 (REVIEW-B2)`**。
+- **`feat(scanners): hh.ru、Habr、Greenhouse、Ashby、Lever に AbortSignal を伝搬 (REVIEW-B3)`** — クライアント切断時、進行中の fetch を中止。
+- **`test(anthropic): API キーが console に漏れないことを保証する log-guard (REVIEW-B4)`**。
+
+### 🧹 軽微なクリーンアップ
+
+- **`fix(parsers): defense-in-depth として addPipelineUrl 内に URL ゲート (REVIEW-C4)`**。
+- **`docs(readme): バッジ 88 → 277 tests (REVIEW-C3)`**。
+- **`test(i18n): 不足キーをロケール別にグループ化 (REVIEW-C6)`**。
+
+### 🏗️ P-2 フェーズ 1 — server/index.mjs 分割 (1230 → 762 LOC, −38 %)
+
+挙動変更なし。各ステップで 283/283 unit tests グリーン。
+
+- `server/lib/security.mjs` — サニタイザと信頼性チェック。
+- `server/lib/prompts.mjs` — LLM 向けプロンプトビルダ。
+- `server/lib/store.mjs` — 防御的リーダ + 初回ブート。
+- `server/lib/routes/{scan,runners,content}.mjs` — `registerXxxRoutes(app)`。
+
+フェーズ 2 で tracker / pipeline / reports / jds / llm / health を抽出。
+
+### 🔍 親プロジェクト career-ops v1.7.0 の監査
+
+UI 互換性確認済み。モードカタログ: 7 → 19 (UI は意図的に 7 のみ公開)。`portals.yml` は `tracked_companies` を使用 (96 エントリ、87 有効、71 API あり)。`docs/architecture/DATA-FLOWS.md` に文書化。
+
+### 🤖 SDD / GSD 基盤
+
+- `CLAUDE.md` (ルート)、`.aiignore`、`.claude/agents/*` (3)、`.claude/commands/*` (2)。
+- `docs/` ツリー: PROJECT、ROADMAP、sdd/{SDD-GUIDE, CONVENTIONS}、architecture/{OVERVIEW, SERVER, FRONTEND, API, DATA-FLOWS}、reviews/REVIEW-2026-05-07。
+
+### 🔒 セキュリティとリポジトリ衛生
+
+- **`chore(.gitignore): defense-in-depth パターン拡張`** — env バリアント、IDE、GSD scratch、エージェント私的設定、Playwright 成果物、汎用シークレットパターン。
+
+### 🧪 テスト
+
+- **283 unit tests** (以前は 277): +6 件追加。
+- **5 件の Playwright ブラウザスモーク** (新規、`npm run test:e2e:browser` で opt-in)。
+- カバレッジ ~93 % line / ~83 % branch。
+
+### 📝 新規 npm スクリプト
+
+| スクリプト | 目的 |
+|---|---|
+| `npm run test:e2e:browser` | in-process サーバに対して Playwright smoke (5 テスト)。 |
+
+---
+
 ## [1.7.2] — 2026-05-04
 
 ヘルプセンター、UI 内アプリ設定、モバイルサイドバー、単一 Scan ボタン、すべての prompt-builder に "結果を表示" ショートカット。

@@ -6,6 +6,67 @@
 
 ---
 
+## [1.8.0] — 2026-05-08
+
+하드닝, 리팩토링, SDD 기반 구축. 심각도 높음 3건(A1, A2, A3), 중간 4건(B1–B4), 경미 6건, 부모 프로젝트 career-ops v1.7.0 감사, `server/index.mjs` 분할(P-2 페이즈 1), Playwright 브라우저 스모크, `docs/`와 `.claude/`에 SDD 기반.
+
+### 🔥 심각도 높음
+
+- **`fix(deep): Anthropic SDK 호출에 cv/profile/mode 인라인 (REVIEW-A1)`** — `/api/deep`와 `/api/mode/:slug`는 모델에게 "이 파일들을 먼저 읽어라"라고 했지만 Anthropic SDK는 파일시스템이 없습니다. 출력이 비어 있었습니다. `bundleProjectContext`가 `cv.md`, `config/profile.yml`, `modes/_shared.md`, 모드 템플릿을 읽어 각 16 KB로 잘라 `<project_context>` 블록을 프롬프트 앞에 삽입합니다. 라이브 검증: `claude-sonnet-4-6`에서 26 KB의 근거 있는 markdown.
+- **`fix(runner): grace 기간 후 SIGTERM → SIGKILL 에스컬레이션 (REVIEW-A2)`** — 시스템 콜에 멈춘 자식 프로세스가 SSE 연결을 무한정 잡고 있을 수 있었습니다. 양 경로 모두 5초 watchdog을 걸어 `SIGKILL`로 에스컬레이션합니다.
+- **`fix(runner): streaming 엔드포인트의 최대 런타임 상한 (REVIEW-A3)`** — `/api/stream/{scan,liveness,pdf}`에 30분 상한.
+
+### 🛡️ 심각도 중간
+
+- **`fix(preview): /api/pipeline/preview의 hop별 검증 (REVIEW-B1)`** — `redirect: 'follow'`에서 수동 리다이렉트 추적으로 전환. 각 `Location`을 `isValidJobUrl`로 재검증, 3홉 상한. 적대적 보드가 loopback/사설 IP/`file://`로 우리를 리다이렉트할 수 없습니다.
+- **`refactor(keys): hasGeminiKey가 LLM 키 체크를 통일 (REVIEW-B2)`**.
+- **`feat(scanners): hh.ru, Habr, Greenhouse, Ashby, Lever에 AbortSignal 전파 (REVIEW-B3)`** — 클라이언트 연결 끊김 시 진행 중인 fetch 중단.
+- **`test(anthropic): API 키가 console로 누출되지 않도록 보장하는 log-guard (REVIEW-B4)`**.
+
+### 🧹 경미한 정리
+
+- **`fix(parsers): addPipelineUrl 내부에 URL 게이트로 defense-in-depth (REVIEW-C4)`**.
+- **`docs(readme): 배지 88 → 277 tests (REVIEW-C3)`**.
+- **`test(i18n): 누락된 키 메시지를 로케일별로 그룹화 (REVIEW-C6)`**.
+
+### 🏗️ P-2 페이즈 1 — server/index.mjs 분할 (1230 → 762 LOC, −38 %)
+
+동작 변경 없음. 모든 단계에서 283/283 unit tests 그린.
+
+- `server/lib/security.mjs` — 새니타이저와 신뢰 검사.
+- `server/lib/prompts.mjs` — LLM용 프롬프트 빌더.
+- `server/lib/store.mjs` — 방어적 리더 + 첫 부팅 부트스트랩.
+- `server/lib/routes/{scan,runners,content}.mjs` — `registerXxxRoutes(app)`.
+
+페이즈 2에서 tracker / pipeline / reports / jds / llm / health 추출.
+
+### 🔍 부모 프로젝트 career-ops v1.7.0 감사
+
+UI 호환. 모드 카탈로그: 7 → 19 (UI는 의도적으로 7만 노출). `portals.yml`은 `tracked_companies` 사용 (96개 엔트리, 87개 활성, 71개 API 보유). `docs/architecture/DATA-FLOWS.md`에 문서화.
+
+### 🤖 SDD / GSD 기반
+
+- `CLAUDE.md` (루트), `.aiignore`, `.claude/agents/*` (3개), `.claude/commands/*` (2개).
+- `docs/` 트리: PROJECT, ROADMAP, sdd/{SDD-GUIDE, CONVENTIONS}, architecture/{OVERVIEW, SERVER, FRONTEND, API, DATA-FLOWS}, reviews/REVIEW-2026-05-07.
+
+### 🔒 보안 및 저장소 위생
+
+- **`chore(.gitignore): defense-in-depth 패턴 확장`** — env 변형, IDE, GSD scratch, 에이전트 사적 설정, Playwright 산출물, 일반 비밀 패턴.
+
+### 🧪 테스트
+
+- **283 unit tests** (이전 277): +6개 신규.
+- **5개 Playwright 브라우저 스모크** (신규, `npm run test:e2e:browser`로 opt-in).
+- 커버리지 ~93 % line / ~83 % branch.
+
+### 📝 새로운 npm 스크립트
+
+| 스크립트 | 용도 |
+|---|---|
+| `npm run test:e2e:browser` | in-process 서버 대상 Playwright smoke (5개 테스트). |
+
+---
+
 ## [1.7.2] — 2026-05-04
 
 도움말 센터, 인-UI 앱 설정, 모바일 사이드바, 단일 Scan 버튼, 모든 prompt-builder 의 "결과 보기" 단축.

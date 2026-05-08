@@ -6,6 +6,123 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.8.0] — 2026-05-08
+
+Hardening, refactor, and SDD bootstrap. Three high-severity correctness/security fixes (A1, A2, A3), four medium ones (B1–B4), six cleanups, audit of the parent career-ops v1.7.0 surface, server split-by-concern (P-2 phase 1), Playwright browser smoke harness, and a full SDD foundation under `docs/` and `.claude/`.
+
+### 🔥 High-severity fixes
+
+- **`fix(deep): inline cv/profile/mode files for Anthropic SDK calls (REVIEW-A1)`** — `/api/deep` and `/api/mode/:slug` previously told the model "read these files first" but the Anthropic SDK has no filesystem. Output was hollow. New `bundleProjectContext({ modeSlugs })` reads `cv.md`, `config/profile.yml`, `modes/_shared.md`, and the mode template, truncates each at 16 KB, and prepends a `<project_context>` block to the prompt. Verified live: 26 KB grounded markdown response from `claude-sonnet-4-6` for a deep-research call.
+- **`fix(runner): SIGKILL escalation after SIGTERM grace period (REVIEW-A2)`** — `runNodeScript` and `streamNodeScript` previously sent only `SIGTERM` on timeout / client-disconnect. A child stuck in a syscall (DNS, blocked socket) ignored it, hanging the SSE connection until Node's GC reaped. Now each path arms a 5 s watchdog that escalates to `SIGKILL`. Promises always resolve.
+- **`fix(runner): max-runtime cap on streaming endpoints (REVIEW-A3)`** — every SSE script runner (`/api/stream/{scan,liveness,pdf}`) now has a hard 30-minute ceiling. On expiry: emit `event: error { message: 'maximum runtime exceeded' }`, kill the child via the A2 watchdog, end the response.
+
+### 🛡️ Medium-severity fixes
+
+- **`fix(preview): per-hop redirect validation in /api/pipeline/preview (REVIEW-B1)`** — switched from `redirect: 'follow'` to manual redirect-walking. Each `Location` header is re-validated by `isValidJobUrl`; capped at 3 hops. Hostile boards can no longer bounce us to loopback / private IPs / `file://`. 4 new tests cover the rejection paths.
+- **`refactor(keys): hasGeminiKey helper unifies LLM-key checks (REVIEW-B2)`** — direct `process.env.GEMINI_API_KEY` reads in route handlers replaced with `hasGeminiKey()` from `lib/anthropic.mjs`. Mirrors `hasAnthropicKey()` shape for consistency and easier mocking.
+- **`feat(scanners): thread AbortSignal through hh.ru, Habr, Greenhouse, Ashby, Lever (REVIEW-B3)`** — when the SSE client disconnects mid-scan, in-flight HTTP fetches are now aborted instead of running every query to completion and dropping events. `runRuScan` and `runEnScan` accept `opts.signal`; SSE handlers in `/api/stream/scan-{ru,en}` create an `AbortController` and abort on `res.close`.
+- **`test(anthropic): log-guard test prevents future API-key leaks via console (REVIEW-B4)`** — captures every `console.{log,info,warn,error,debug}` call during `runAnthropic` happy + error paths, asserts zero output and that the canary key string never appears. Defense-in-depth against a future `console.log(opts)` regression.
+
+### 🧹 Low-severity polish
+
+- **`fix(parsers): defense-in-depth URL gate inside addPipelineUrl (REVIEW-C4)`** — parser-level rejection of non-http(s) values, complementing the route-level `isValidJobUrl`. Optional `opts.validate` for callers that want stricter rules.
+- **`docs(readme): badge "tests-88 passed" → "tests-277 passed" (REVIEW-C3)`** — was off by an order of magnitude.
+- **`test(i18n): missing-keys diff grouped by locale (REVIEW-C6)`** — when `tests/i18n-coverage.test.mjs` finds a gap, output is now `[ru] (3): foo, bar, baz` instead of mixed lines.
+- **`docs(review): C1 closed as resolved-on-inspection`** — sanitizer regexes were already in `\x00-\x08` hex form; review entry was a tool-rendering artifact.
+
+### 🏗️ P-2 phase 1 — server split-by-concern
+
+`server/index.mjs` was 1230 LOC, well past the 800-line ceiling. Split into focused modules without behavior change. All 283 unit tests stayed green at every step.
+
+- `server/lib/security.mjs` — `isValidJobUrl`, `stripDangerousMarkdown`, `sanitizeJobDescription`, `isPubliclyExposed`. Re-exported from `index.mjs` for backward-compat with external consumers.
+- `server/lib/prompts.mjs` — `bundleProjectContext`, `buildEvaluationPrompt`, `buildDeepPrompt`, `buildModePrompt`, `buildApplyChecklist`.
+- `server/lib/store.mjs` — `safeReadApps`, `safeReadPipeline`, `safeListReports`, `checkProfileCustomized`, `ensureRussianPortalsDefaults`.
+- `server/lib/routes/scan.mjs` — `registerScanRoutes(app)` for `/api/stream/scan-{ru,en}`, `/api/scan-ru/config`, `/api/scan-results`.
+- `server/lib/routes/runners.mjs` — `registerRunnerRoutes(app)` for buffered `/api/run/*` table, streaming `/api/stream/{scan,liveness,pdf}`, generated-PDF list/download.
+- `server/lib/routes/content.mjs` — `registerContentRoutes(app)` for CV / Profile / Portals / Modes.
+
+`index.mjs` is now 762 LOC (-38%, under the 800 cap). Phase 2 will extract tracker, pipeline, reports, jds, llm (evaluate/deep/mode), and health into route modules. Targeting <500 LOC for the orchestrator.
+
+### 🔍 Parent career-ops v1.7.0 audit
+
+The user updated the parent project to v1.7.0. Audited every consumed surface — UI is fully compatible. Notable findings documented in `docs/architecture/DATA-FLOWS.md`:
+
+- Modes catalog grew from 7 to 19 files. UI's `MODE_ALLOWLIST` deliberately surfaces only 7 (others are Claude-Code-only). Comment added explaining the intentional narrow scope.
+- `portals.yml` schema confirmed: `tracked_companies` (96 entries, 87 enabled, 71 with API). EN scanner reads it correctly; legacy `companies` key still supported.
+- New parent surfaces NOT consumed today: `dashboard/` (Go program), `update-system.mjs`, `generate-latex.mjs`, `analyze-patterns.mjs`, `liveness-core.mjs`, `followup-cadence.mjs`, `test-all.mjs`, localized mode subdirs (`de/fr/ja/pt/ru`).
+- Live `/api/dashboard`, `/api/health`, `/api/modes`, `/api/portals`, `/api/profile`, `/api/cv`, `/api/jds`, `/api/reports`, `/api/tracker`, `/api/pipeline`, `/api/evaluate`, `/api/deep`, `/api/stream/scan-en` all verified green.
+
+### 🤖 SDD / GSD bootstrap
+
+`career-ops-ui` now has a full Spec-Driven Development foundation aligned with the GSD pipeline (`gsd-*` skills from `superpowers@claude-plugins-official`).
+
+- `CLAUDE.md` (root) — project-level agent system prompt: stack, GSD pipeline, hard rules (parent contract, security envelope, no `--no-verify`), conventions, parent-project boundary.
+- `.aiignore` — exclusion list for AI agents: vendored, binaries, parent user data, `.planning/`, `.env`, locale duplicates.
+- `.claude/agents/` — three project-specific subagent definitions:
+  - `web-ui-route-reviewer.md` — gates new routes against SSRF, CSP, sanitizers, parent-write contract, conventions, tests.
+  - `spa-view-reviewer.md` — CSP-safe DOM, i18n, router registration, accessibility.
+  - `test-isolation-reviewer.md` — verifies tests are CI-isolated (no parent-project assumptions, no live network, no port collision).
+- `.claude/commands/` — slash-command stubs: `/sdd-status`, `/codebase-tour`.
+- `docs/` tree — all in English:
+  - `PROJECT.md` — what/why/for-whom, scope, constraints, success criteria.
+  - `ROADMAP.md` — current milestone + completed history + backlog.
+  - `sdd/SDD-GUIDE.md` — discuss → spec → plan → execute → verify → review pipeline mapped to `gsd-*` skills.
+  - `sdd/CONVENTIONS.md` — module system, naming, routes, sanitizers, client patterns, i18n, errors, logging, testing, commits, branches, CSS.
+  - `architecture/OVERVIEW.md` — top-level diagram, layers, boot sequence, invariants, "where to look first when…" cheat sheet.
+  - `architecture/SERVER.md` — per-file map for `server/lib/*.mjs` (updated for P-2 split).
+  - `architecture/FRONTEND.md` — SPA structure, view inventory, globals, "how to add a view".
+  - `architecture/API.md` — full inventory of every `/api/*` route.
+  - `architecture/DATA-FLOWS.md` — every parent-project read/write, with the explicit-user-action contract.
+  - `reviews/REVIEW-2026-05-07.md` — static review that produced this changelog's fixes.
+
+### 🔒 Security & repo hygiene
+
+- **`chore(.gitignore): comprehensive defense-in-depth patterns`** — covers env variants, IDE folders, GSD scratch (`.planning/`), per-user agent settings (`.claude/settings.local.json`, `.claude/cache/`, `.claude/state/`, `.claude/memory/`), Playwright artifacts (`playwright-report/`, `test-results/`, `.playwright/`, `trace.zip`), heap/CPU profiles, lockfiles for unshipped tooling, expanded macOS Finder noise, generic secret patterns (`secrets.json`, `credentials.json`, `*.pem`, `*.key`).
+
+### 🧪 Tests
+
+- **283 unit tests** (was 277): +6 new (4 for B1 redirect-rejection, 1 for `hasGeminiKey`, 1 for `runAnthropic` log-guard).
+- **5 Playwright browser-smoke tests** (new, opt-in via `npm run test:e2e:browser`): dashboard render + version footer, dashboard → scan → pipeline → cv navigation, language-switch persistence, 404 view, health-page render. Resolves Playwright via parent's `node_modules` — no new dependency.
+- Coverage held at ~93% line / ~83% branch.
+
+### 📝 New / updated package.json scripts
+
+| Script | Purpose |
+|---|---|
+| `npm run test:e2e:browser` | Run Playwright smoke harness against in-process server (5 tests). |
+
+### 🔧 Files touched
+
+```
++ CLAUDE.md                                    +  .aiignore
++ docs/PROJECT.md                              +  docs/ROADMAP.md
++ docs/sdd/SDD-GUIDE.md                        +  docs/sdd/CONVENTIONS.md
++ docs/architecture/OVERVIEW.md                +  docs/architecture/SERVER.md
++ docs/architecture/FRONTEND.md                +  docs/architecture/API.md
++ docs/architecture/DATA-FLOWS.md              +  docs/reviews/REVIEW-2026-05-07.md
++ .claude/agents/web-ui-route-reviewer.md      +  .claude/agents/spa-view-reviewer.md
++ .claude/agents/test-isolation-reviewer.md
++ .claude/commands/sdd-status.md               +  .claude/commands/codebase-tour.md
++ server/lib/security.mjs                      +  server/lib/prompts.mjs
++ server/lib/store.mjs
++ server/lib/routes/scan.mjs                   +  server/lib/routes/runners.mjs
++ server/lib/routes/content.mjs
++ tests/playwright-smoke.mjs
+
+~ .gitignore                                   ~  README.md (badge fix)
+~ package.json (1.7.2 → 1.8.0)
+~ server/index.mjs (1230 → 762 LOC)
+~ server/lib/runner.mjs (SIGKILL escalation, max-runtime cap)
+~ server/lib/anthropic.mjs (hasGeminiKey)
+~ server/lib/parsers.mjs (URL gate in addPipelineUrl)
+~ server/lib/ru-scanner.mjs                    ~  server/lib/en-scanner.mjs
+~ server/lib/sources/{hh,habr,greenhouse,ashby,lever}.mjs (signal threading)
+~ tests/anthropic.test.mjs                     ~  tests/i18n-coverage.test.mjs
+~ tests/pipeline-preview.test.mjs
+```
+
+---
+
 ## [1.7.2] — 2026-05-04
 
 Help center, in-UI App settings, mobile sidebar, single Scan button, and a "Show result" shortcut on every prompt-builder.
