@@ -112,7 +112,12 @@
         runLiveBtn.style.display = '';
         runLiveBtn.classList.remove('btn-ghost');
         runLiveBtn.classList.add('btn-primary');
-        runLiveBtn.textContent = '⚡ ' + t('mode.runLive', 'Run live') + ' (' + liveEngine + ')';
+        // Engine name (Anthropic / Gemini) is intentionally hidden — the
+        // user just wants "run it", not to think about which provider
+        // is wired up. The current engine still surfaces on /#/health
+        // for power users.
+        runLiveBtn.textContent = '⚡ ' + t('mode.runLive', 'Run live');
+        runLiveBtn.title = liveEngine; // hover tooltip keeps the info accessible
         manualBtn.classList.remove('btn-primary');
         manualBtn.classList.add('btn-ghost');
         manualBtn.textContent = t('mode.runManual', 'Generate prompt');
@@ -241,7 +246,7 @@
       className: 'btn btn-ghost',
       style: { display: 'none' },
       onClick: (e) => submit(e.currentTarget, true),
-    }, '⚡ ' + t('mode.runLive', 'Run live (Gemini)'));
+    }, '⚡ ' + t('mode.runLive', 'Run live'));
 
     return c('div', null, [
       c('header', { className: 'page-header' }, [

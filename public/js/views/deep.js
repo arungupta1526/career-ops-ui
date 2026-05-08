@@ -180,7 +180,11 @@ Router.register('deep', async () => {
       ]),
       c('div', { className: 'flex gap-3' }, [
         liveAvailable
-          ? c('button', { className: 'btn btn-primary', onClick: (e) => runLive(e.currentTarget) }, '⚡ ' + t('deep.runLive', 'Run live') + ' (' + liveEngine + ')')
+          ? c('button', {
+              className: 'btn btn-primary',
+              title: liveEngine, // engine name kept as hover tooltip; the label stays clean
+              onClick: (e) => runLive(e.currentTarget),
+            }, '⚡ ' + t('deep.runLive', 'Run live'))
           : null,
         c('button', { className: 'btn btn-ghost', onClick: (e) => runManual(e.currentTarget) }, liveAvailable ? t('deep.copyPrompt', 'Copy prompt') : t('deep.run')),
       ]),
