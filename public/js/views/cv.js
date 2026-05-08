@@ -31,14 +31,37 @@ Router.register('cv', async () => {
     pdfBox.appendChild(list);
   }
 
-  function streamPdf(btn) {
+  // Snapshot the latest PDF in the output dir so we can detect what
+  // generate-pdf.mjs produced and trigger a browser download for it.
+  async function latestPdfName() {
+    try {
+      const r = await API.get('/api/output/pdfs');
+      const files = r.files || [];
+      if (!files.length) return null;
+      // /api/output/pdfs returns files sorted newest-first.
+      return files[0].name;
+    } catch { return null; }
+  }
+
+  function triggerDownload(name) {
+    const a = document.createElement('a');
+    a.href = '/api/output/pdfs/' + encodeURIComponent(name);
+    a.download = name;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  async function streamPdf(btn) {
     UI.toast(t('cv.pdfRunning', 'Generating PDF…'));
     btn.classList.add('is-loading');
     btn.disabled = true;
+    const before = await latestPdfName();
     const lines = [];
     const console_ = c('pre', { className: 'console', style: { maxHeight: '320px', overflow: 'auto' } }, '');
     UI.modal(t('cv.pdfTitle', 'Generate PDF'), console_);
-    const es = API.stream('/api/stream/pdf', (event, data) => {
+    const es = API.stream('/api/stream/pdf', async (event, data) => {
       if (event === 'log' && data.line) {
         lines.push(data.line);
         console_.textContent = lines.join('\n');
@@ -47,7 +70,13 @@ Router.register('cv', async () => {
         lines.push(`✓ done (exit ${data.code})`);
         console_.textContent = lines.join('\n');
         UI.toast(t('cv.pdfDone', 'PDF generated'), 'success');
-        loadPdfList();
+        await loadPdfList();
+        const after = await latestPdfName();
+        // Only auto-download if generate-pdf produced a NEW file; otherwise
+        // a no-op rerun would silently re-download the same artifact.
+        if (after && after !== before) {
+          triggerDownload(after);
+        }
         btn.classList.remove('is-loading');
         btn.disabled = false;
       } else if (event === 'error') {
@@ -65,18 +94,47 @@ Router.register('cv', async () => {
   }
 
   // Hidden file input — we'll click() it from the visible "Upload CV" button.
+  // Accepts text formats; binary formats (pdf/docx/odt/rtf/doc) POST to
+  // /api/cv/import, which delegates to pandoc / pdftotext server-side.
   const fileInput = c('input', {
     type: 'file',
-    accept: '.md,.markdown,.txt,.html',
+    accept: '.md,.markdown,.txt,.html,.htm,.pdf,.docx,.doc,.odt,.rtf',
     style: { display: 'none' },
     onChange: async (e) => {
       const file = e.target.files?.[0];
       if (!file) return;
-      const text = await file.text();
-      ta.value = text;
-      const p = document.getElementById('cv-preview');
-      if (p) p.innerHTML = UI.md(text);
-      UI.toast(`Loaded ${file.name} (${(file.size / 1024).toFixed(1)} KB) — review then Save`, 'success');
+      const sizeKb = (file.size / 1024).toFixed(1);
+      UI.toast(t('cv.uploadConverting', 'Converting…') + ` ${file.name} (${sizeKb} KB)`);
+      try {
+        const buf = await file.arrayBuffer();
+        const res = await fetch('/api/cv/import', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/octet-stream',
+            'X-Filename': file.name,
+          },
+          body: buf,
+        });
+        let payload;
+        try { payload = await res.json(); }
+        catch { payload = { ok: false, error: `HTTP ${res.status}` }; }
+        if (!res.ok || !payload.ok) {
+          const hint = payload.hint ? '\n\n' + payload.hint : '';
+          UI.toast((payload.error || 'import failed') + hint, 'error');
+          return;
+        }
+        ta.value = payload.markdown;
+        const p = document.getElementById('cv-preview');
+        if (p) p.innerHTML = UI.md(payload.markdown);
+        UI.toast(t('cv.uploadDone', 'Loaded') +
+          ` ${file.name} (${payload.converter}) — ` + t('cv.reviewSave', 'review, then Save'),
+          'success');
+      } catch (err) {
+        UI.toast(err.message || 'upload failed', 'error');
+      } finally {
+        // Reset the input so re-selecting the same file fires onChange again.
+        e.target.value = '';
+      }
     },
   });
 
@@ -91,7 +149,8 @@ Router.register('cv', async () => {
         c('button', {
           className: 'btn btn-ghost',
           onClick: () => fileInput.click(),
-          title: 'Load CV from a local .md / .txt file (still requires Save afterwards)',
+          title: t('cv.uploadHint',
+            'Upload .md, .txt, .html, .pdf, .docx, .odt, .rtf or .doc — converted server-side, then review and Save.'),
         }, '📁 ' + t('cv.upload', 'Upload CV')),
         c('button', { className: 'btn btn-ghost', onClick: async (e) => {
           UI.toast('sync-check…');

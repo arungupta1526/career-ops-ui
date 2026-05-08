@@ -31,6 +31,7 @@ window.I18n = (function () {
     'nav.tracker':    { en: 'Tracker', es: 'Tracker', 'pt-BR': 'Tracker', ko: '트래커', ja: 'トラッカー', ru: 'Трекер', 'zh-CN': '跟踪器', 'zh-TW': '追蹤器' },
     'nav.reports':    { en: 'Reports', es: 'Reportes', 'pt-BR': 'Relatórios', ko: '보고서', ja: 'レポート', ru: 'Отчёты', 'zh-CN': '报告', 'zh-TW': '報告' },
     'nav.cv':         { en: 'CV', es: 'CV', 'pt-BR': 'CV', ko: '이력서', ja: '履歴書', ru: 'CV', 'zh-CN': '简历', 'zh-TW': '履歷' },
+    'nav.profile':    { en: 'Profile', es: 'Perfil', 'pt-BR': 'Perfil', ko: '프로필', ja: 'プロフィール', ru: 'Профиль', 'zh-CN': '个人资料', 'zh-TW': '個人資料' },
     'nav.settings':   { en: 'Profile', es: 'Perfil', 'pt-BR': 'Perfil', ko: '프로필', ja: 'プロフィール', ru: 'Профиль', 'zh-CN': '个人资料', 'zh-TW': '個人資料' },
     'nav.health':     { en: 'Health', es: 'Estado', 'pt-BR': 'Saúde', ko: '상태', ja: 'ヘルス', ru: 'Health', 'zh-CN': '健康', 'zh-TW': '健康' },
     // Sidebar groups
@@ -424,7 +425,18 @@ window.I18n = (function () {
 
     // Settings/Profile
     'set.title':      { en: 'Profile', es: 'Perfil', 'pt-BR': 'Perfil', ko: '프로필', ja: 'プロフィール', ru: 'Профиль', 'zh-CN': '个人资料', 'zh-TW': '個人資料' },
-    'set.subtitle':   { en: 'Read-only. Edit config/profile.yml in the project.', es: 'Solo lectura. Edita config/profile.yml en el proyecto.', 'pt-BR': 'Somente leitura. Edite config/profile.yml no projeto.', ko: '읽기 전용. 프로젝트에서 config/profile.yml 편집.', ja: '読み取り専用。プロジェクトの config/profile.yml を編集してください。', ru: 'Read-only. Редактируйте config/profile.yml в проекте.', 'zh-CN': '只读。在项目中编辑 config/profile.yml。', 'zh-TW': '唯讀。在專案中編輯 config/profile.yml。' },
+    'set.subtitle':   { en: 'Read-only summary. Use App settings → Profile tab to edit.', es: 'Resumen de solo lectura. Usa Ajustes → pestaña Perfil para editar.', 'pt-BR': 'Resumo somente leitura. Use Configurações → aba Perfil para editar.', ko: '읽기 전용 요약. 편집은 앱 설정 → 프로필 탭에서.', ja: '読み取り専用の概要。編集はアプリ設定 → プロフィールタブから。', ru: 'Read-only сводка. Редактирование — через App settings → вкладка Profile.', 'zh-CN': '只读摘要。编辑请使用「应用设置」→「个人资料」标签。', 'zh-TW': '唯讀摘要。編輯請使用「應用設定」→「個人資料」分頁。' },
+    'set.editLink':   { en: 'Edit profile in App settings →', es: 'Editar perfil en Ajustes →', 'pt-BR': 'Editar perfil em Configurações →', ko: '앱 설정에서 프로필 편집 →', ja: 'アプリ設定でプロフィールを編集 →', ru: 'Редактировать профиль в App settings →', 'zh-CN': '在应用设置中编辑资料 →', 'zh-TW': '在應用設定中編輯資料 →' },
+    // CV upload flow
+    'cv.uploadHint':       { en: 'Upload .md, .txt, .html, .pdf, .docx, .odt, .rtf or .doc — converted server-side, then review and Save.', es: 'Sube .md, .txt, .html, .pdf, .docx, .odt, .rtf o .doc — se convierten en el servidor y luego revisa y guarda.', 'pt-BR': 'Envie .md, .txt, .html, .pdf, .docx, .odt, .rtf ou .doc — convertidos no servidor; revise e salve.', ko: '.md, .txt, .html, .pdf, .docx, .odt, .rtf, .doc 업로드 — 서버에서 변환 후 검토하여 저장하세요.', ja: '.md, .txt, .html, .pdf, .docx, .odt, .rtf, .doc をアップロード — サーバーで変換後、確認して保存。', ru: 'Загрузите .md, .txt, .html, .pdf, .docx, .odt, .rtf или .doc — конвертируется на сервере, потом проверьте и сохраните.', 'zh-CN': '上传 .md, .txt, .html, .pdf, .docx, .odt, .rtf 或 .doc — 服务端转换后请检查并保存。', 'zh-TW': '上傳 .md, .txt, .html, .pdf, .docx, .odt, .rtf 或 .doc — 伺服器轉換後請檢查並儲存。' },
+    'cv.uploadConverting': { en: 'Converting…', es: 'Convirtiendo…', 'pt-BR': 'Convertendo…', ko: '변환 중…', ja: '変換中…', ru: 'Конвертирую…', 'zh-CN': '转换中…', 'zh-TW': '轉換中…' },
+    'cv.uploadDone':       { en: 'Loaded', es: 'Cargado', 'pt-BR': 'Carregado', ko: '불러옴', ja: '読み込み完了', ru: 'Загружено', 'zh-CN': '已加载', 'zh-TW': '已載入' },
+    'cv.reviewSave':       { en: 'review, then Save', es: 'revisa y luego Guarda', 'pt-BR': 'revise e salve', ko: '검토 후 저장', ja: '確認して保存', ru: 'проверьте и сохраните', 'zh-CN': '请检查后保存', 'zh-TW': '請檢查後儲存' },
+    // Config tabs
+    'config.tabApi':       { en: 'API keys & runtime', es: 'API y runtime', 'pt-BR': 'API e runtime', ko: 'API 키 & 런타임', ja: 'API キーとランタイム', ru: 'API-ключи и runtime', 'zh-CN': 'API 与运行时', 'zh-TW': 'API 與執行時' },
+    'config.tabProfile':   { en: 'Profile', es: 'Perfil', 'pt-BR': 'Perfil', ko: '프로필', ja: 'プロフィール', ru: 'Профиль', 'zh-CN': '个人资料', 'zh-TW': '個人資料' },
+    'config.profileHint':  { en: 'Edits write to config/profile.yml in the parent project. Header "# Career-Ops Profile Configuration" is added automatically.', es: 'Los cambios se escriben en config/profile.yml del proyecto padre. El encabezado se añade automáticamente.', 'pt-BR': 'As edições gravam em config/profile.yml do projeto pai. O cabeçalho é adicionado automaticamente.', ko: '편집 내용은 상위 프로젝트의 config/profile.yml에 저장됩니다. 헤더는 자동으로 추가됩니다.', ja: '編集内容は親プロジェクトの config/profile.yml に書き込まれます。ヘッダーは自動付与されます。', ru: 'Изменения пишутся в config/profile.yml родительского проекта. Заголовок добавляется автоматически.', 'zh-CN': '编辑保存到上级项目的 config/profile.yml。文件头会自动添加。', 'zh-TW': '編輯儲存到上層專案的 config/profile.yml。檔頭會自動加入。' },
+    'config.profileSaved': { en: 'Profile saved', es: 'Perfil guardado', 'pt-BR': 'Perfil salvo', ko: '프로필 저장됨', ja: 'プロフィール保存', ru: 'Профиль сохранён', 'zh-CN': '资料已保存', 'zh-TW': '資料已儲存' },
 
     // Connection banner
     'conn.down':      { en: 'Server is not responding.', es: 'El servidor no responde.', 'pt-BR': 'O servidor não está respondendo.', ko: '서버가 응답하지 않습니다.', ja: 'サーバーが応答していません。', ru: 'Сервер не отвечает.', 'zh-CN': '服务器未响应。', 'zh-TW': '伺服器未回應。' },
