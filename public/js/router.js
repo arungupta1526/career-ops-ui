@@ -3,10 +3,11 @@ window.Router = (function () {
   const routes = {};
 
   // Route aliases — kept for URL stability when an internal name changes
-  // and bookmarks/external links exist for the old form. The user-facing
-  // hash stays e.g. `#/profile`, but internally we resolve to `settings`.
+  // and bookmarks/external links exist for the old form. v1.10.0 renamed
+  // the canonical route from `settings` → `profile`; the old hash still
+  // resolves so existing bookmarks keep working.
   const ALIASES = {
-    profile: 'settings',
+    settings: 'profile',
   };
 
   function register(name, renderer) {

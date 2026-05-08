@@ -14,9 +14,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROUTER_PATH = resolve(__dirname, '..', 'public', 'js', 'router.js');
 const SRC = readFileSync(ROUTER_PATH, 'utf8');
 
-test('router: ALIASES table maps profile → settings (FIX-C2)', () => {
-  // Match the literal in the ALIASES object.
-  assert.match(SRC, /ALIASES\s*=\s*\{[^}]*profile\s*:\s*['"]settings['"]/s);
+test('router: ALIASES table maps settings → profile (v1.10.0 rename)', () => {
+  // The canonical route was renamed from `settings` to `profile` in
+  // v1.10.0. The old `settings` hash now aliases to the new route so
+  // existing bookmarks keep working.
+  assert.match(SRC, /ALIASES\s*=\s*\{[^}]*settings\s*:\s*['"]profile['"]/s);
 });
 
 test('router: nav highlight handles both alias name and resolved route', () => {

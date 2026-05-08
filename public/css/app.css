@@ -745,3 +745,24 @@ table.tbl tr:hover td { background: #fafafa; }
   .content { padding: var(--space-5) var(--space-4); }
   .page-title { font-size: 24px; }
 }
+
+/* Tab buttons (used on /#/config). Inline-styled fields would balloon
+   the view file; isolate the visual treatment here. */
+.tab-btn {
+  appearance: none;
+  border: 1px solid var(--cement, #d8d8d8);
+  background: var(--white, #fff);
+  color: var(--hof, #222);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+.tab-btn:hover { background: var(--bone, #f7f7f7); }
+.tab-btn.is-active {
+  background: var(--rausch, #ff385c);
+  border-color: var(--rausch, #ff385c);
+  color: #fff;
+}

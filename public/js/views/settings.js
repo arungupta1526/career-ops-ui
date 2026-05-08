@@ -1,5 +1,7 @@
 /* global Router, API, UI, I18n */
-Router.register('settings', async () => {
+// Route is now `profile` (was `settings` until v1.10.0). The router
+// aliases the old `settings` hash so existing bookmarks keep working.
+Router.register('profile', async () => {
   const c = UI.el;
   const t = (k, f) => I18n.t(k, f);
   const data = await API.get('/api/profile');

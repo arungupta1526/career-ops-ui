@@ -150,6 +150,99 @@ Router.register('config', async () => {
     }
   }
 
+  // ─── Profile tab — direct editor for config/profile.yml ───
+  const profileTextarea = c('textarea', {
+    className: 'textarea',
+    rows: 22,
+    style: { minHeight: '420px', fontFamily: 'ui-monospace,monospace', fontSize: '13px' },
+  });
+  let profileLoaded = false;
+
+  async function loadProfileTab() {
+    if (profileLoaded) return;
+    try {
+      const data = await API.get('/api/profile');
+      profileTextarea.value = (data && data.raw) || '';
+      profileLoaded = true;
+    } catch (e) {
+      profileTextarea.value = '# error: ' + (e.message || e);
+    }
+  }
+
+  async function saveProfile(btn) {
+    if (!profileTextarea.value.trim()) {
+      UI.toast(t('config.profileEmpty', 'Profile YAML is empty'), 'error');
+      return;
+    }
+    try {
+      const r = await UI.withSpinner(btn, () =>
+        API.put('/api/profile', { yaml: profileTextarea.value }));
+      UI.toast(t('config.profileSaved', 'Profile saved') +
+        (r.candidate ? ` · ${r.candidate}` : ''), 'success');
+      // Re-read so the user sees the canonical "# Career-Ops…" header.
+      const data = await API.get('/api/profile');
+      profileTextarea.value = data.raw || profileTextarea.value;
+    } catch (e) {
+      UI.toast(e.message || 'save failed', 'error');
+    }
+  }
+
+  // ─── Tab plumbing ───
+  const apiPanel = c('div', { className: 'card' }, [
+    ...FIELDS.map(fieldRow),
+    c('div', { className: 'flex gap-3' }, [
+      c('button', {
+        className: 'btn btn-primary',
+        onClick: (e) => save(e.currentTarget),
+      }, '💾 ' + t('common.save', 'Save')),
+      c('a', {
+        href: '#/health',
+        className: 'btn btn-ghost',
+      }, t('config.gotoHealth', 'Verify on Health')),
+    ]),
+  ]);
+
+  const profilePanel = c('div', { className: 'card' }, [
+    c('p', { style: { color: 'var(--foggy)', fontSize: '13px', margin: '0 0 12px' } },
+      t('config.profileHint',
+        'Edits write to config/profile.yml in the parent project. Header is added automatically.')),
+    profileTextarea,
+    c('div', { className: 'flex gap-3 mt-3' }, [
+      c('button', {
+        className: 'btn btn-primary',
+        onClick: (e) => saveProfile(e.currentTarget),
+      }, '💾 ' + t('common.save', 'Save')),
+      c('a', { href: '#/profile', className: 'btn btn-ghost' },
+        t('config.viewProfile', 'View read-only summary →')),
+    ]),
+  ]);
+
+  function tabBtn(label, panel, activate) {
+    return c('button', {
+      className: 'tab-btn',
+      onClick: () => activate(label, panel),
+    }, label);
+  }
+
+  const tabsHost = c('div', { className: 'card', style: { padding: '8px', marginBottom: '16px' } });
+  const panelHost = c('div');
+
+  function activate(label, panel) {
+    panelHost.innerHTML = '';
+    panelHost.appendChild(panel);
+    tabsHost.querySelectorAll('.tab-btn').forEach((b) => {
+      b.classList.toggle('is-active', b.textContent === label);
+    });
+    if (panel === profilePanel) loadProfileTab();
+  }
+
+  const apiLabel = t('config.tabApi', 'API keys & runtime');
+  const profileLabel = t('config.tabProfile', 'Profile');
+  tabsHost.appendChild(c('div', { className: 'flex gap-3' }, [
+    tabBtn(apiLabel, apiPanel, activate),
+    tabBtn(profileLabel, profilePanel, activate),
+  ]));
+
   return c('div', null, [
     c('header', { className: 'page-header' }, [
       c('div', null, [
@@ -166,18 +259,10 @@ Router.register('config', async () => {
           'Saved values land in the parent .env, so career-ops Node scripts AND web-ui (via dotenv loader) read the same source. No restart needed for the running process — env vars are also applied live.')),
     ]),
 
-    c('div', { className: 'card' }, [
-      ...FIELDS.map(fieldRow),
-      c('div', { className: 'flex gap-3' }, [
-        c('button', {
-          className: 'btn btn-primary',
-          onClick: (e) => save(e.currentTarget),
-        }, '💾 ' + t('common.save', 'Save')),
-        c('a', {
-          href: '#/health',
-          className: 'btn btn-ghost',
-        }, t('config.gotoHealth', 'Verify on Health')),
-      ]),
-    ]),
-  ]);
+    tabsHost,
+    panelHost,
+  ]).also((root) => {
+    // Default to the API-keys tab.
+    activate(apiLabel, apiPanel);
+  });
 });
