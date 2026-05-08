@@ -5,7 +5,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { runAnthropic, hasAnthropicKey } from '../server/lib/anthropic.mjs';
+import { runAnthropic, hasAnthropicKey, hasGeminiKey } from '../server/lib/anthropic.mjs';
 
 function jsonResponse(status, body) {
   return new Response(JSON.stringify(body), {
@@ -94,4 +94,45 @@ test('hasAnthropicKey: reflects current process.env', () => {
   process.env.ANTHROPIC_API_KEY = 'sk-x';
   assert.equal(hasAnthropicKey(), true);
   if (prev) process.env.ANTHROPIC_API_KEY = prev; else delete process.env.ANTHROPIC_API_KEY;
+});
+
+test('hasGeminiKey: reflects current process.env (REVIEW-B2)', () => {
+  const prev = process.env.GEMINI_API_KEY;
+  delete process.env.GEMINI_API_KEY;
+  assert.equal(hasGeminiKey(), false);
+  process.env.GEMINI_API_KEY = 'AIzaTEST';
+  assert.equal(hasGeminiKey(), true);
+  if (prev) process.env.GEMINI_API_KEY = prev; else delete process.env.GEMINI_API_KEY;
+});
+
+test('runAnthropic: never logs the API key on stdout (REVIEW-B4)', async () => {
+  // Defense-in-depth: future code changes inside runAnthropic must not
+  // call console.log/info/error/debug while the key is in scope. We
+  // capture every console call during a successful run and assert the
+  // captured output is empty.
+  const captured = [];
+  const orig = {};
+  for (const m of ['log', 'info', 'warn', 'error', 'debug']) {
+    orig[m] = console[m];
+    console[m] = (...args) => captured.push({ level: m, args });
+  }
+  try {
+    const fakeFetch = async () =>
+      jsonResponse(200, { content: [{ type: 'text', text: 'ok' }] });
+    const r = await runAnthropic('hi', { apiKey: 'sk-secret-canary-12345', fetchImpl: fakeFetch });
+    assert.equal(r.error, null);
+    // No console activity at all on the happy path.
+    assert.equal(captured.length, 0,
+      `console used during runAnthropic; output: ${JSON.stringify(captured)}`);
+    // Belt-and-suspenders: even on the error path we don't leak.
+    const fakeFail = async () => jsonResponse(500, { error: { message: 'boom' } });
+    captured.length = 0;
+    await runAnthropic('hi', { apiKey: 'sk-secret-canary-12345', fetchImpl: fakeFail });
+    assert.equal(captured.length, 0, 'console used during runAnthropic error path');
+    // Confirm the canary string never appeared anywhere we captured.
+    const canary = JSON.stringify(captured);
+    assert.equal(canary.includes('sk-secret-canary'), false);
+  } finally {
+    for (const m of ['log', 'info', 'warn', 'error', 'debug']) console[m] = orig[m];
+  }
 });

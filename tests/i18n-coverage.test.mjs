@@ -51,19 +51,32 @@ test('i18n: at least one key parsed (sanity)', () => {
 });
 
 test('i18n: every key covers all 8 languages', () => {
-  const missing = [];
+  // REVIEW-C6 — group by locale so the developer sees, in one glance,
+  // which locale needs which keys. The previous flat list mixed locales
+  // together which was hard to skim when many keys were missing.
+  /** @type {Record<string, string[]>} */
+  const missingByLocale = Object.fromEntries(REQUIRED_LANGS.map((c) => [c, []]));
+  let totalMissing = 0;
   for (const [key, langs] of Object.entries(DICT)) {
     for (const code of REQUIRED_LANGS) {
       if (!langs[code] || !langs[code].trim()) {
-        missing.push(`${key}: missing or empty for "${code}"`);
+        missingByLocale[code].push(key);
+        totalMissing += 1;
       }
     }
   }
-  if (missing.length) {
-    console.error('Missing translations:\n  ' + missing.slice(0, 20).join('\n  '));
-    if (missing.length > 20) console.error(`  …and ${missing.length - 20} more`);
+  if (totalMissing) {
+    const lines = ['Missing translations by locale:'];
+    for (const code of REQUIRED_LANGS) {
+      const keys = missingByLocale[code];
+      if (!keys.length) continue;
+      const head = keys.slice(0, 10);
+      const tail = keys.length > 10 ? ` …and ${keys.length - 10} more` : '';
+      lines.push(`  [${code}] (${keys.length}): ${head.join(', ')}${tail}`);
+    }
+    console.error(lines.join('\n'));
   }
-  assert.equal(missing.length, 0, `${missing.length} translations missing across the 8 locales`);
+  assert.equal(totalMissing, 0, `${totalMissing} translations missing across the 8 locales`);
 });
 
 test('i18n: notFound.* keys present (FIX-C7)', () => {

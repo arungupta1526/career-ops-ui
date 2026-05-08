@@ -128,7 +128,10 @@ function passesNegative(title, negativeKeywords) {
  *   fetchImpl   — override for tests (default: global fetch)
  */
 export async function runRuScan(opts = {}) {
-  const { writeFiles = true, onLog = () => {}, fetchImpl } = opts;
+  // REVIEW-B3 — `signal` lets the SSE handler abort in-flight fetches
+  // when the client disconnects, instead of running every query to
+  // completion and dropping the events on the floor.
+  const { writeFiles = true, onLog = () => {}, fetchImpl, signal } = opts;
   const cfg = loadConfig();
   const seen = loadSeenUrls();
 
@@ -152,8 +155,12 @@ export async function runRuScan(opts = {}) {
   let hhDisabled = false;
 
   for (const q of cfg.queries) {
+    if (signal?.aborted) {
+      log('stderr', `aborted — stopping after "${q}" was about to run`);
+      break;
+    }
     log('stdout', `▸ "${q}"`);
-    const results = await runQuery(q, cfg, fetchImpl, errors, sourceFailures, hhDisabled, log);
+    const results = await runQuery(q, cfg, fetchImpl, errors, sourceFailures, hhDisabled, log, signal);
     log('stdout', `  → ${results.length} hits`);
     allFound.push(...results);
     // First hh.ru 403 → disable for rest of run + log once
@@ -213,7 +220,7 @@ export async function runRuScan(opts = {}) {
   };
 }
 
-async function runQuery(query, cfg, fetchImpl, errors, sourceFailures, hhDisabled, log) {
+async function runQuery(query, cfg, fetchImpl, errors, sourceFailures, hhDisabled, log, signal) {
   const out = [];
   if (cfg.sources.includes('hh') && !hhDisabled) {
     try {
@@ -222,6 +229,7 @@ async function runQuery(query, cfg, fetchImpl, errors, sourceFailures, hhDisable
         perPage: cfg.perPage,
         onlyRemote: cfg.onlyRemote,
         fetchImpl,
+        signal,
       });
       out.push(...items);
       log('stdout', `    hh.ru:  ${items.length}`);
@@ -238,6 +246,7 @@ async function runQuery(query, cfg, fetchImpl, errors, sourceFailures, hhDisable
       const items = await searchHabr(query, {
         onlyRemote: cfg.onlyRemote,
         fetchImpl,
+        signal,
       });
       out.push(...items);
       log('stdout', `    habr:   ${items.length}`);

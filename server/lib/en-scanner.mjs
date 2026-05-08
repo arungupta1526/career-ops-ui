@@ -103,7 +103,9 @@ async function pMap(items, mapper, concurrency) {
  *   fetchImpl                 — for tests
  */
 export async function runEnScan(opts = {}) {
-  const { writeFiles = true, companyName, onLog = () => {}, fetchImpl } = opts;
+  // REVIEW-B3 — `signal` lets the SSE handler abort in-flight fetches
+  // when the client disconnects.
+  const { writeFiles = true, companyName, onLog = () => {}, fetchImpl, signal } = opts;
   const portals = loadPortals();
   const tf = portals.title_filter || {};
   const positives = tf.positive || [];
@@ -131,9 +133,10 @@ export async function runEnScan(opts = {}) {
 
   const errors = [];
   const fetchedPerCo = await pMap(withApi, async (c) => {
+    if (signal?.aborted) return [];
     const fetcher = FETCHERS[c._api.type];
     try {
-      const items = await fetcher(c._api.url, { fetchImpl });
+      const items = await fetcher(c._api.url, { fetchImpl, signal });
       // Stamp company name on each (Greenhouse fills its own; Ashby/Lever do not)
       const withCo = items.map((i) => ({ ...i, company: i.company || c.name }));
       log('stdout', `  ✓ ${c.name.padEnd(28)} ${c._api.type.padEnd(10)} ${items.length} jobs`);

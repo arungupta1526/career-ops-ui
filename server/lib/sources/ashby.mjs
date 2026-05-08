@@ -5,8 +5,8 @@
 const UA = 'career-ops-web-ui/1.0';
 
 export async function fetchAshby(apiUrl, opts = {}) {
-  const { fetchImpl = fetch } = opts;
-  const res = await fetchImpl(apiUrl, { headers: { 'User-Agent': UA, Accept: 'application/json' } });
+  const { fetchImpl = fetch, signal } = opts; // REVIEW-B3
+  const res = await fetchImpl(apiUrl, { signal, headers: { 'User-Agent': UA, Accept: 'application/json' } });
   if (!res.ok) {
     const err = new Error(`Ashby: HTTP ${res.status} (${apiUrl})`);
     err.status = res.status;

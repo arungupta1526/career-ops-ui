@@ -24,7 +24,7 @@ const UA =
  *   sort         — 'date' (default) or 'salary_desc'
  */
 export async function searchHabr(query, opts = {}) {
-  const { onlyRemote = false, experience, sort = 'date', fetchImpl = fetch } = opts;
+  const { onlyRemote = false, experience, sort = 'date', fetchImpl = fetch, signal } = opts;
 
   const params = new URLSearchParams({
     q: query,
@@ -36,6 +36,7 @@ export async function searchHabr(query, opts = {}) {
 
   const url = `${HABR_BASE}/vacancies?${params}`;
   const res = await fetchImpl(url, {
+    signal, // REVIEW-B3: propagate client-disconnect
     headers: { 'User-Agent': UA, Accept: 'text/html' },
   });
   if (!res.ok) {

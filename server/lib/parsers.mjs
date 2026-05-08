@@ -96,12 +96,28 @@ export function parsePipeline(text) {
 }
 
 /**
+ * Cheap default validator (REVIEW-C4). Route handlers gate inputs with
+ * `isValidJobUrl` from server/index.mjs; this is the parser-level
+ * defense-in-depth so future callers (CLI utilities, batch importers,
+ * scanners) can't accidentally pump a `javascript:` URL into pipeline.md.
+ */
+function defaultUrlGate(s) {
+  if (typeof s !== 'string') return false;
+  return /^https?:\/\//i.test(s);
+}
+
+/**
  * Add a URL to pipeline.md content. Returns updated content.
  * Preserves existing fence; creates one if missing.
+ *
+ * Optional `opts.validate` overrides the default `https?://` gate; pass
+ * a function returning boolean.
  */
-export function addPipelineUrl(text, url) {
+export function addPipelineUrl(text, url, opts = {}) {
   const trimmed = (url || '').trim();
   if (!trimmed) return text;
+  const validate = typeof opts.validate === 'function' ? opts.validate : defaultUrlGate;
+  if (!validate(trimmed)) return text; // refuse to write an invalid URL
   const existing = parsePipeline(text);
   if (existing.includes(trimmed)) return text; // dedup
 

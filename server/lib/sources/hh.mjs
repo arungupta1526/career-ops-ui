@@ -30,6 +30,7 @@ export async function searchHH(query, opts = {}) {
     onlyRemote = false,
     searchField = 'name',
     fetchImpl = fetch,
+    signal, // REVIEW-B3: propagate client-disconnect
   } = opts;
 
   const params = new URLSearchParams({
@@ -41,6 +42,7 @@ export async function searchHH(query, opts = {}) {
   if (onlyRemote) params.set('schedule', 'remote');
 
   const res = await fetchImpl(`${HH_API}?${params}`, {
+    signal,
     headers: {
       'User-Agent': DEFAULT_UA,
       Accept: 'application/json',

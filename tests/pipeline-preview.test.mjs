@@ -139,3 +139,70 @@ test('GET /api/pipeline/preview rejects empty url', async () => {
   const r = await get('/api/pipeline/preview');
   assert.equal(r.status, 400);
 });
+
+// ───────────────────────── REVIEW-B1 redirect hardening ─────────────────────────
+
+test('REVIEW-B1: rejects redirect to loopback', async () => {
+  upstreamHandler = async (url) => {
+    if (String(url) === SAMPLE) {
+      return new Response('', {
+        status: 302,
+        headers: { location: 'http://127.0.0.1:1/internal' },
+      });
+    }
+    return new Response('LEAKED', { status: 200, headers: { 'content-type': 'text/html' } });
+  };
+  const r = await get('/api/pipeline/preview?url=' + encodeURIComponent(SAMPLE));
+  assert.equal(r.status, 200);
+  assert.match(r.body.text, /unsafe redirect/i);
+  assert.ok(!/LEAKED/.test(r.body.text));
+});
+
+test('REVIEW-B1: rejects redirect to file:// scheme', async () => {
+  upstreamHandler = async (url) => {
+    if (String(url) === SAMPLE) {
+      return new Response('', {
+        status: 301,
+        headers: { location: 'file:///etc/passwd' },
+      });
+    }
+    return new Response('LEAKED', { status: 200, headers: { 'content-type': 'text/html' } });
+  };
+  const r = await get('/api/pipeline/preview?url=' + encodeURIComponent(SAMPLE));
+  assert.equal(r.status, 200);
+  assert.match(r.body.text, /unsafe redirect/i);
+});
+
+test('REVIEW-B1: caps redirect chain at 3 hops', async () => {
+  let count = 0;
+  upstreamHandler = async () => {
+    count += 1;
+    return new Response('', {
+      status: 302,
+      headers: { location: `https://jobs.example.com/hop-${count}` },
+    });
+  };
+  const r = await get('/api/pipeline/preview?url=' + encodeURIComponent(SAMPLE));
+  assert.equal(r.status, 200);
+  assert.match(r.body.text, /too many redirects/i);
+});
+
+test('REVIEW-B1: follows safe https redirect within cap', async () => {
+  let hop = 0;
+  upstreamHandler = async () => {
+    hop += 1;
+    if (hop === 1) {
+      return new Response('', {
+        status: 302,
+        headers: { location: 'https://careers.example.com/landing' },
+      });
+    }
+    return new Response('<p>Real Posting</p>', {
+      status: 200,
+      headers: { 'content-type': 'text/html' },
+    });
+  };
+  const r = await get('/api/pipeline/preview?url=' + encodeURIComponent(SAMPLE));
+  assert.equal(r.status, 200);
+  assert.match(r.body.text, /Real Posting/);
+});

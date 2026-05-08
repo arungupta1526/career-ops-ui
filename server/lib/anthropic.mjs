@@ -62,7 +62,17 @@ export async function runAnthropic(prompt, opts = {}) {
   }
 }
 
-/** Shorthand for "is the key set in process.env right now". */
+/** Shorthand for "is the Anthropic key set in process.env right now". */
 export function hasAnthropicKey() {
   return !!process.env.ANTHROPIC_API_KEY;
+}
+
+/**
+ * Shorthand for "is the Gemini key set in process.env right now"
+ * (REVIEW-B2). Standardizes the LLM-key check with `hasAnthropicKey`
+ * so route handlers don't drift between `process.env.GEMINI_API_KEY`
+ * and a helper.
+ */
+export function hasGeminiKey() {
+  return !!process.env.GEMINI_API_KEY;
 }
