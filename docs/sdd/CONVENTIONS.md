@@ -18,7 +18,7 @@
 
 Current outliers:
 
-- `server/index.mjs` (~760 LOC after **P-2 phase 1** in v1.8.0). Down from 1230 LOC. Phase 2 will drive it under 500. Do not grow further; new routes go into `server/lib/routes/<topic>.mjs`.
+- `server/index.mjs` (~130 LOC after **P-2 phase 2** in v1.9.0). Pure orchestrator now — middleware + register-route calls + SPA catch-all. New routes go into `server/lib/routes/<topic>.mjs` exporting `register<Topic>Routes(app)`.
 - `public/js/views/scan.js` (~461 LOC) — past the 400-LOC soft target. Flagged for split next time it is touched (extract Active Companies card → `views/scan/active-companies.js`).
 - `public/css/app.css` (~700 LOC) — borderline; split if a dedicated `views/<name>.css` would tighten the boundary.
 

@@ -51,7 +51,7 @@
 
 ### 2. Express server (`server/`)
 
-- **`index.mjs`** — `createApp()` factory (~760 LOC after P-2 phase 1). Wires middleware, registers route modules, holds the remaining inline route handlers (tracker, pipeline, reports, jds, llm, health). Phase 2 of P-2 will extract those into `lib/routes/*.mjs` too — targeting <500 LOC.
+- **`index.mjs`** — `createApp()` factory (~130 LOC after **P-2 phase 2** in v1.9.0). Pure orchestrator: wires middleware, calls `register<Topic>Routes(app)` for each route module, mounts the static `/public` serve and the SPA catch-all. No inline route handlers remain.
   - Middleware: JSON / text body parsing, security headers (CSP only when not on loopback), `activityMiddleware`, static file serving from `public/`.
   - Routes: see `API.md` for the full inventory.
   - Inline sanitizers: `isValidJobUrl`, `stripDangerousMarkdown`, `sanitizeJobDescription`, `buildEvaluationPrompt`, `buildDeepPrompt`, `buildModePrompt`, `safeReadApps/Pipeline/Reports`, `checkProfileCustomized`, `isPubliclyExposed`.
@@ -65,9 +65,18 @@
 - **`lib/security.mjs`** *(P-2)* — `isValidJobUrl`, `stripDangerousMarkdown`, `sanitizeJobDescription`, `isPubliclyExposed`. Single source of truth for project-wide sanitizers; re-exported from `index.mjs` for backward-compat.
 - **`lib/prompts.mjs`** *(P-2)* — `bundleProjectContext`, `buildEvaluationPrompt`, `buildDeepPrompt`, `buildModePrompt`, `buildApplyChecklist`. Inlines parent files into Anthropic prompts (REVIEW-A1).
 - **`lib/store.mjs`** *(P-2)* — defensive readers `safeReadApps/Pipeline/Reports`, `checkProfileCustomized`, plus the first-boot `ensureRussianPortalsDefaults`.
-- **`lib/routes/scan.mjs`** *(P-2)* — `registerScanRoutes(app)` for `/api/stream/scan-{ru,en}`, `/api/scan-ru/config`, `/api/scan-results`.
+- **`lib/routes/activity.mjs`** *(P-2 phase 2)* — `registerActivityRoutes(app)` for `GET /api/activity`.
+- **`lib/routes/config.mjs`** *(P-2 phase 2)* — `registerConfigRoutes(app)` for `GET/POST /api/config` (parent .env round-trip).
+- **`lib/routes/content.mjs`** *(P-2)* — `registerContentRoutes(app)` for CV / Profile / Portals / Modes.
+- **`lib/routes/health.mjs`** *(P-2 phase 2)* — `registerHealthRoutes(app)` for `/api/health` and `/api/dashboard`.
+- **`lib/routes/help.mjs`** *(P-2 phase 2)* — `registerHelpRoutes(app)` for `/api/help/:lang`.
+- **`lib/routes/jds.mjs`** *(P-2 phase 2)* — `registerJdsRoutes(app)` for the `/api/jds*` CRUD.
+- **`lib/routes/llm.mjs`** *(P-2 phase 2)* — `registerLlmRoutes(app)` for `/api/evaluate`, `/api/evaluate/test-{gemini,anthropic}`, `/api/deep`, `/api/mode/:slug`, `/api/apply-helper`, `/api/interview-prep*`. **P-7** added the Anthropic branch in `/api/evaluate` (preferred over Gemini when both keys present) and `/api/evaluate/test-anthropic` smoke endpoint.
+- **`lib/routes/pipeline.mjs`** *(P-2 phase 2)* — `registerPipelineRoutes(app)` for `/api/pipeline*` including the SSRF-safe preview proxy.
+- **`lib/routes/reports.mjs`** *(P-2 phase 2)* — `registerReportsRoutes(app)` for `/api/reports*`.
 - **`lib/routes/runners.mjs`** *(P-2)* — buffered `/api/run/*` table, streaming `/api/stream/{scan,liveness,pdf}`, generated-PDF list/download.
-- **`lib/routes/content.mjs`** *(P-2)* — CV / Profile / Portals / Modes routes.
+- **`lib/routes/scan.mjs`** *(P-2)* — `registerScanRoutes(app)` for `/api/stream/scan-{ru,en}`, `/api/scan-ru/config`, `/api/scan-results`.
+- **`lib/routes/tracker.mjs`** *(P-2 phase 2)* — `registerTrackerRoutes(app)` for `/api/tracker` GET + POST (dedup-aware).
 - **`lib/env-config.mjs`** — `KNOWN_KEYS`, `SECRET_KEYS`, `parseEnv`, `maskSecret`, `validateConfig`, `updateEnvFile`. Backs the `/api/config` endpoint that powers the App Settings page.
 - **`lib/dotenv.mjs`** — minimal dotenv loader (no quoting edge cases beyond what the parent's `.env` actually uses). Called once at server start.
 - **`lib/activity-log.mjs`** — Express middleware that records every state-changing request to `data/activity.jsonl`. Redacts secret keys.

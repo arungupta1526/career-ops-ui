@@ -2,9 +2,11 @@
 
 > Per-file purpose for `server/`. Pair with `OVERVIEW.md` (top-level) and `API.md` (route reference).
 
-## `server/index.mjs` (~760 LOC, post-P-2 split)
+## `server/index.mjs` (~130 LOC — pure orchestrator after P-2 phase 2)
 
-The Express app factory `createApp()`. Phase **P-2** (May 2026) extracted helpers into `lib/{security,prompts,store}.mjs` and three route modules into `lib/routes/{scan,runners,content}.mjs`. Remaining route topics in `index.mjs`:
+The Express app factory `createApp()`. **P-2 phase 2** (v1.9.0, May 2026) finished the split — every route topic now lives in `server/lib/routes/<topic>.mjs`. `index.mjs` is now: middleware (security headers + activity log + static), 12 `register<Topic>Routes(app)` calls, and the SPA catch-all. No inline route handlers remain.
+
+Route module manifest (alphabetical):
 
 ```
 Security headers
@@ -126,17 +128,53 @@ Defensive readers for parent-project Markdown / YAML, plus first-boot bootstrap.
 - `checkProfileCustomized()` — placeholder-name detector for the Health page nudge.
 - `ensureRussianPortalsDefaults()` — idempotent first-boot append of `russian_portals:` to `portals.yml` (FIX-H2).
 
-### `routes/scan.mjs` (post-P-2)
+### `routes/activity.mjs` *(P-2 phase 2)*
 
-`registerScanRoutes(app)` — `/api/stream/scan-{ru,en}`, `/api/scan-ru/config`, `/api/scan-results`. Uses the in-process scanners; honors `AbortSignal` from client disconnect (REVIEW-B3).
+`registerActivityRoutes(app)` — `GET /api/activity?limit=N&type=<prefix>` returns the tail of `data/activity.jsonl`.
 
-### `routes/runners.mjs` (post-P-2)
+### `routes/config.mjs` *(P-2 phase 2)*
+
+`registerConfigRoutes(app)` — `GET /api/config` (returns known env keys, secrets masked) and `POST /api/config` (validates + writes parent `.env`, applies live to `process.env`). Backs the `/#/config` page.
+
+### `routes/content.mjs` *(P-2)*
+
+`registerContentRoutes(app)` — CV (`GET /api/cv`, `PUT /api/cv` with `stripDangerousMarkdown`), Profile (`GET /api/profile`), Portals (`GET /api/portals`), Modes (`GET /api/modes`, `GET /api/modes/:name`).
+
+### `routes/health.mjs` *(P-2 phase 2)*
+
+`registerHealthRoutes(app)` — `GET /api/health` (the required + optional checks bundle, with LAN-fingerprinting redaction when `HOST` is non-loopback) and `GET /api/dashboard` (KPI summary).
+
+### `routes/help.mjs` *(P-2 phase 2)*
+
+`registerHelpRoutes(app)` — `GET /api/help/:lang`. Locales live in `web-ui/docs/help/<lang>.md`, falls back to `en.md` for unknown locales. `:lang` sanitized to `[a-zA-Z0-9_-]+`.
+
+### `routes/jds.mjs` *(P-2 phase 2)*
+
+`registerJdsRoutes(app)` — full CRUD for `jds/*.txt`: list, read, delete (`.txt` suffix required), append-with-slug.
+
+### `routes/llm.mjs` *(P-2 phase 2 + P-7)*
+
+`registerLlmRoutes(app)` — every LLM-bound endpoint: `/api/evaluate` (Anthropic preferred over Gemini, manual fallback), `/api/evaluate/test-{gemini,anthropic}` smoke, `/api/deep`, `/api/mode/:slug` (whitelisted), `/api/apply-helper`, `/api/interview-prep*` archive. Routes through `bundleProjectContext` for Anthropic SDK calls (REVIEW-A1).
+
+### `routes/pipeline.mjs` *(P-2 phase 2)*
+
+`registerPipelineRoutes(app)` — `GET/POST/DELETE /api/pipeline` plus the SSRF-safe `GET /api/pipeline/preview` (manual redirect-walking with per-hop `isValidJobUrl` check, capped at 3 hops, 15 s timeout, 8 KB body cap).
+
+### `routes/reports.mjs` *(P-2 phase 2)*
+
+`registerReportsRoutes(app)` — `GET /api/reports` and `GET /api/reports/:slug` (header parsed, full Markdown returned).
+
+### `routes/runners.mjs` *(P-2)*
 
 `registerRunnerRoutes(app)` — buffered `POST /api/run/*` table (doctor, verify, normalize, dedup, merge, sync-check), streaming `GET /api/stream/{scan,liveness,pdf}`, and `GET /api/output/pdfs[/:name]` for generated-PDF list/download.
 
-### `routes/content.mjs` (post-P-2)
+### `routes/scan.mjs` *(P-2)*
 
-`registerContentRoutes(app)` — CV (`GET /api/cv`, `PUT /api/cv` with `stripDangerousMarkdown`), Profile (`GET /api/profile`), Portals (`GET /api/portals`), Modes (`GET /api/modes`, `GET /api/modes/:name`).
+`registerScanRoutes(app)` — `/api/stream/scan-{ru,en}`, `/api/scan-ru/config`, `/api/scan-results`. Uses the in-process scanners; honors `AbortSignal` from client disconnect (REVIEW-B3).
+
+### `routes/tracker.mjs` *(P-2 phase 2)*
+
+`registerTrackerRoutes(app)` — `GET /api/tracker` (rows from `data/applications.md`) and `POST /api/tracker` (append with status whitelist, score format check, dedup by `company+role` case-insensitive, table bootstrap on first write).
 
 ### `dotenv.mjs` (40 LOC)
 
