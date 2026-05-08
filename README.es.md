@@ -5,9 +5,14 @@
 
 [English](README.md) | **Español** | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-88%20passed-brightgreen)](README.md#tests)
+[![tests](https://img.shields.io/badge/tests-284%20passed-brightgreen)](README.md#tests)
+[![playwright](https://img.shields.io/badge/playwright-12%20smoke-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![release](https://img.shields.io/badge/release-v1.9.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.9.1)
+
+> 📦 **v1.9.1** — Servidor refactorizado a un orquestador de 130 líneas + 12 módulos de rutas en `server/lib/routes/`. Paridad Anthropic en `/api/evaluate` (preferida sobre Gemini cuando ambas claves están presentes). Shims multi-CLI (`AGENTS.md`, `GEMINI.md`) para Codex / Aider / Cursor / Gemini CLI. **284 unit + 12 Playwright smoke tests**. Para la evaluación de production-readiness completa: [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md). Listo para deploy single-tenant loopback; el gate de auth para LAN llega en v2.0 (P-12).
+
 
 ![career-ops-ui — vacancy search](./screen_vacancy_found.png)
 

@@ -5,9 +5,11 @@
 
 **English** | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-277%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-284%20passed-brightgreen)](#tests)
+[![playwright](https://img.shields.io/badge/playwright-12%20smoke-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![release](https://img.shields.io/badge/release-v1.9.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.9.1)
 
 ![career-ops-ui — vacancy search](./screen_vacancy_found.png)
 
@@ -45,9 +47,11 @@ This clones both repos (career-ops + career-ops-ui), installs deps, and starts t
 
 - **Browse** the tracker, reports, and pipeline like a CRM.
 - **Trigger** scans (Greenhouse / Ashby / Lever **and** hh.ru / Habr Career) and watch live SSE logs.
-- **Evaluate** a JD via the Gemini API or get a copy-paste prompt for Claude.
-- **Edit** `cv.md` with side-by-side markdown preview.
+- **Evaluate** a JD live via Anthropic (preferred) or Gemini, or get a copy-paste prompt for Claude Code if no API key is set.
+- **Deep research** companies live via Anthropic SDK with cv / profile / mode files inlined automatically.
+- **Edit** `cv.md` with side-by-side markdown preview and server-side XSS sanitization.
 - **Maintain** the system: doctor, verify, normalize, dedup, merge — one click each.
+- **Multi-CLI:** drives identically from Claude Code, Codex, Cursor, Aider, or Gemini CLI — `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` shims point to a single source of truth.
 
 It's pure additions: nothing inside `career-ops/` changes. All your customizations stay yours.
 
@@ -134,16 +138,20 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 | Page             | What it does                                                                                                       |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------ |
 | **Dashboard**    | Aggregated counts (apps / pipeline / reports), avg score, status breakdown, latest 5 apps + latest report.         |
-| **Scan**         | **Three buttons:** 🌐 Scan all (chains EN + RU) · 🌍 EN scan (Greenhouse/Ashby/Lever, 24+ verified company boards) · 🇷🇺 RU scan (hh.ru API + Habr Career HTML scraping). Live SSE log streaming + clickable results table with location / Remote-Hybrid badge / relocation flag / salary / source filters and dynamic stack/level/keyword chips. |
-| **Pipeline**     | CRUD on `data/pipeline.md`. Jump straight from a URL to evaluate.                                                  |
-| **Evaluate**     | Paste JD → if `GEMINI_API_KEY` is set, runs `gemini-eval.mjs`; otherwise returns a ready-to-paste prompt for Claude. Save JD to `jds/` optional. |
-| **Deep research**| Generates the full `modes/deep.md` prompt for the named company / role.                                            |
+| **Scan**         | **🌐 Single Scan button** — runs every enabled source in one go (Greenhouse / Ashby / Lever for EN, hh.ru + Habr Career for RU). Live SSE log streaming + clickable results table with location / Remote-Hybrid badge / relocation flag / salary / source filters and dynamic stack / level / keyword chips. Active-Companies card lists every tracked board with its API health. |
+| **Pipeline**     | CRUD on `data/pipeline.md`. Server-side preview proxy (SSRF-safe, per-hop redirect validation, 8 KB body cap). Jump straight from a URL to evaluate.       |
+| **Evaluate**     | Paste JD → **Anthropic-first** (preferred when both keys present), then Gemini, then manual prompt fallback. Anthropic path inlines cv / profile / `_shared.md` / `oferta.md` automatically (REVIEW-A1). Save JD to `jds/` optional. |
+| **Deep research**| Same fallback chain as Evaluate. Live Anthropic returns ~10-30 KB of grounded markdown saved to `interview-prep/<company>-<role>.md`. |
+| **Modes**        | 7 generic mode pages (`/#/project`, `/#/training`, `/#/followup`, `/#/batch`, `/#/contacto`, `/#/interview-prep`, `/#/patterns`) with the same Anthropic / Gemini / manual fallback. |
 | **Apply helper** | Generates a submission checklist; the actual Playwright form-fill stays in `/career-ops apply` inside Claude Code. |
-| **Tracker**      | Filterable table over `data/applications.md` (status, score, free-text). One-click `node normalize-statuses.mjs` / `dedup-tracker.mjs` / `merge-tracker.mjs`. |
+| **Tracker**      | Filterable table over `data/applications.md` (status, score, free-text). One-click `normalize-statuses.mjs` / `dedup-tracker.mjs` / `merge-tracker.mjs`. Pipe + newline escapes are GFM-compliant — names like `"Acme \| Co"` round-trip losslessly. |
 | **Reports**      | Browse and read every report under `reports/` with parsed header (Score / Legitimacy / URL).                       |
-| **CV**           | Live markdown editor for `cv.md` with side-by-side preview + one-click `cv-sync-check.mjs` + 📁 Upload CV button.  |
+| **CV**           | Live markdown editor for `cv.md` with side-by-side preview + one-click `cv-sync-check.mjs` + 📁 Upload CV. Server-side XSS strip on save (`<script>`, `javascript:`, `on*=` handlers). |
 | **Profile**      | Read-only view of `config/profile.yml` + archetypes — UI-friendly summary.                                         |
+| **App settings** | In-UI editor for parent `.env` keys: `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `HH_USER_AGENT`, model overrides, port / host. Secrets masked on read. |
 | **Health**       | All setup checks in OK / OPTIONAL / FAIL badges + buttons to run `doctor.mjs` and `verify-pipeline.mjs`.           |
+| **Help**         | In-app Markdown user guide (`/#/help`), localized for all 8 supported languages (en / es / pt-BR / ko-KR / ja / ru / zh-CN / zh-TW). |
+| **Activity log** | Audit trail of every state-changing request (writes, runs, scans). Secrets redacted. |
 
 Global keyboard shortcuts:
 
@@ -199,41 +207,92 @@ Same normalization, dedup, and `last-scan.json` flow as the EN scanner.
 
 ```
 career-ops-ui/
+├─ CLAUDE.md                 # project-level agent instructions (canonical)
+├─ AGENTS.md                 # Codex / Aider / generic CLI shim → CLAUDE.md
+├─ GEMINI.md                 # Gemini CLI shim → CLAUDE.md
+├─ .aiignore                 # exclusion list for AI tools
+├─ .claude/                  # Claude Code agent config
+│  ├─ agents/                # 3 project-specific subagents (route, view, test isolation)
+│  └─ commands/               # slash-command stubs
 ├─ bin/start.sh              # one-shot launcher (Node check → npm install → server → open browser)
 ├─ package.json              # 2 runtime deps: express, js-yaml
 ├─ server/
-│  ├─ index.mjs              # Express app, 30+ routes, SSE streaming (createApp() exported for tests)
+│  ├─ index.mjs              # ~130 LOC orchestrator: middleware + 12 register<Topic>Routes(app) calls + SPA catch-all
 │  └─ lib/
 │     ├─ paths.mjs           # absolute paths to career-ops files (CAREER_OPS_ROOT aware)
-│     ├─ parsers.mjs         # markdown / pipeline / report parsers (pure functions)
-│     ├─ runner.mjs          # runNodeScript() + streamNodeScript() (SSE wrapper)
-│     ├─ en-scanner.mjs      # in-process Greenhouse/Ashby/Lever orchestrator
-│     ├─ ru-scanner.mjs      # in-process hh.ru + Habr orchestrator
-│     └─ sources/
-│        ├─ greenhouse.mjs   # boards-api.greenhouse.io client
-│        ├─ ashby.mjs        # api.ashbyhq.com client
-│        ├─ lever.mjs        # api.lever.co client
-│        ├─ hh.mjs           # api.hh.ru client (UA-aware)
-│        └─ habr.mjs         # career.habr.com HTML parser (no cheerio, regex only)
+│     ├─ parsers.mjs         # markdown / pipeline / report parsers (GFM-compliant pipe escapes)
+│     ├─ runner.mjs          # runNodeScript() + streamNodeScript() with SIGTERM→SIGKILL escalation + 30 min cap
+│     ├─ security.mjs        # isValidJobUrl, stripDangerousMarkdown, sanitizeJobDescription, isPubliclyExposed
+│     ├─ prompts.mjs         # bundleProjectContext, buildEvaluationPrompt, buildDeepPrompt, buildModePrompt
+│     ├─ store.mjs           # safeReadApps/Pipeline/Reports, checkProfileCustomized, ensureRussianPortalsDefaults
+│     ├─ anthropic.mjs       # minimal Anthropic SDK adapter (runAnthropic, hasAnthropicKey, hasGeminiKey)
+│     ├─ env-config.mjs      # .env round-trip with secret masking + validation
+│     ├─ activity-log.mjs    # JSONL audit trail middleware (secrets redacted)
+│     ├─ dotenv.mjs          # tiny dotenv loader
+│     ├─ en-scanner.mjs      # in-process Greenhouse/Ashby/Lever orchestrator (AbortSignal aware)
+│     ├─ ru-scanner.mjs      # in-process hh.ru + Habr orchestrator (AbortSignal aware)
+│     ├─ sources/
+│     │  ├─ greenhouse.mjs   # boards-api.greenhouse.io client
+│     │  ├─ ashby.mjs        # api.ashbyhq.com client
+│     │  ├─ lever.mjs        # api.lever.co client
+│     │  ├─ hh.mjs           # api.hh.ru client (UA-aware)
+│     │  └─ habr.mjs         # career.habr.com HTML parser (no cheerio, regex only)
+│     └─ routes/             # 12 route modules — one per topic (P-2)
+│        ├─ activity.mjs     # /api/activity
+│        ├─ config.mjs       # /api/config (parent .env round-trip)
+│        ├─ content.mjs      # /api/cv, /api/profile, /api/portals, /api/modes
+│        ├─ health.mjs       # /api/health, /api/dashboard
+│        ├─ help.mjs         # /api/help/:lang
+│        ├─ jds.mjs          # /api/jds CRUD
+│        ├─ llm.mjs          # /api/evaluate, /api/deep, /api/mode/:slug, /api/apply-helper, /api/interview-prep*
+│        ├─ pipeline.mjs     # /api/pipeline + SSRF-safe preview proxy
+│        ├─ reports.mjs      # /api/reports
+│        ├─ runners.mjs      # /api/run/* + /api/stream/{scan,liveness,pdf} + /api/output/pdfs
+│        ├─ scan.mjs         # /api/stream/scan-{ru,en} + /api/scan-results
+│        └─ tracker.mjs      # /api/tracker
 ├─ public/                   # static SPA — no build step
 │  ├─ index.html
 │  ├─ css/app.css            # design tokens (Airbnb-inspired)
 │  └─ js/
-│     ├─ api.js              # fetch wrapper + connection-banner state + UI helpers
-│     ├─ router.js           # hash-based router
-│     ├─ app.js              # boot + global keyboard handlers
-│     └─ views/              # one file per page (dashboard, scan, pipeline, evaluate, deep, apply, tracker, reports, cv, settings, health)
-└─ tests/
-   ├─ parsers.test.mjs       # 18 unit tests for parsers (pure functions)
-   ├─ api.test.mjs           # 22 integration tests against ephemeral server
-   ├─ ru-scanner.test.mjs    # 9 unit tests, mocked fetch
-   ├─ en-scanner.test.mjs    # 9 unit tests, mocked fetch
-   └─ e2e.mjs                # 11 routes + 4 functional flows (Playwright headless)
+│     ├─ api.js              # fetch wrapper + connection-banner state + UI helpers + safe markdown renderer
+│     ├─ router.js           # hash-based router with 404 fallback + alias support
+│     ├─ app.js              # boot + global keyboard handlers + mobile sidebar drawer
+│     ├─ lib/{i18n,skills}.js
+│     └─ views/              # one file per page (dashboard, scan, pipeline, evaluate, deep, apply, tracker, reports, cv, settings, health, config, help, activity, mode-page)
+├─ docs/                     # public reference: architecture, API, data-flows, SDD, conventions, reviews
+│  ├─ PROJECT.md             # what / why / for-whom
+│  ├─ ROADMAP.md             # current milestone + completed history
+│  ├─ PRODUCTION-READINESS.md # honest deployment-gate assessment
+│  ├─ sdd/{SDD-GUIDE,CONVENTIONS}.md
+│  ├─ architecture/{OVERVIEW,SERVER,FRONTEND,API,DATA-FLOWS}.md
+│  └─ reviews/REVIEW-*.md
+└─ tests/                    # 284 unit + 12 Playwright + 23 e2e:full + 20 e2e:smoke
+   ├─ parsers.test.mjs       # markdown / pipeline / report parsers (pure functions)
+   ├─ api.test.mjs           # every endpoint, ephemeral server, no network
+   ├─ {ru,en}-scanner.test.mjs   # mocked fetch
+   ├─ pipeline-preview.test.mjs   # per-hop redirect validation (REVIEW-B1)
+   ├─ anthropic.test.mjs     # SDK adapter + log-guard test (REVIEW-B4)
+   ├─ url-validation.test.mjs    # SSRF reject sweep (FIX-M3 + M6 + M7)
+   ├─ cv-xss.test.mjs        # stripDangerousMarkdown round-trip
+   ├─ jd-sanitize.test.mjs   # sanitizeJobDescription
+   ├─ help.test.mjs / help-ui.test.mjs    # i18n parity across all 8 locales
+   ├─ playwright-smoke.mjs   # 12 browser flows (CV save, tracker, pipeline, evaluate, config, etc.)
+   └─ e2e{,-comprehensive}.mjs   # full Playwright walkthrough
 ```
 
 ### Why no build step?
 
 Vanilla HTML/CSS/JS keeps the surface area tiny: one `npm install` of two deps and you're running. No Webpack, no Vite, no `node_modules` of doom. The whole UI is < 30 KB minified. If you want hot-reload during development, `npm run dev` uses Node's built-in `--watch`.
+
+### Spec-Driven Development
+
+Non-trivial changes go through the GSD pipeline (`gsd-*` skills from `superpowers@claude-plugins-official`):
+
+```
+discuss → spec → plan → execute → verify → review
+```
+
+Public reference: [`docs/sdd/SDD-GUIDE.md`](docs/sdd/SDD-GUIDE.md). All planning artifacts live under `.planning/` (gitignored). The `docs/` tree is the long-lived public contract.
 
 ---
 
@@ -245,29 +304,47 @@ All endpoints under `/api/*`. JSON in / JSON out unless noted.
 
 | Method | Path                     | Response                                                                    |
 | ------ | ------------------------ | --------------------------------------------------------------------------- |
-| GET    | `/api/health`            | `{ ok, warnings, version, checks: [{name, ok, required, value?}] }`         |
+| GET    | `/api/health`            | `{ ok, warnings, version, parentVersion, checks: [{name, ok, required, value?}] }` |
 | GET    | `/api/dashboard`         | `{ counts, avgScore, byStatus, recent, pipeline, lastReport }`              |
+| GET    | `/api/activity?limit&type` | tail of `data/activity.jsonl` audit trail                                 |
+| GET    | `/api/help/:lang`        | localized in-app user guide (fallback: `en.md`)                             |
+
+### App settings (parent .env round-trip)
+
+| Method | Path             | Purpose                                                                |
+| ------ | ---------------- | ---------------------------------------------------------------------- |
+| GET    | `/api/config`    | known env keys with secrets masked                                     |
+| POST   | `/api/config`    | validate + write parent `.env`; applies to `process.env` in-place      |
 
 ### Data files
 
-| Method | Path                     | Purpose                                                                     |
-| ------ | ------------------------ | --------------------------------------------------------------------------- |
-| GET    | `/api/tracker`           | `{ rows: [parsed applications.md] }`                                        |
-| GET    | `/api/pipeline`          | `{ urls: [...] }`                                                           |
-| POST   | `/api/pipeline`          | body `{ url }` → adds to `data/pipeline.md` with dedup                      |
-| DELETE | `/api/pipeline?url=…`    | removes a URL                                                               |
-| GET    | `/api/reports`           | parsed list of `reports/*.md`                                               |
-| GET    | `/api/reports/:slug`     | full markdown + parsed header                                               |
-| GET    | `/api/jds`               | list of saved JD files                                                      |
-| POST   | `/api/jds`               | body `{ text, slug? }` → saves to `jds/`                                    |
-| GET    | `/api/cv`                | `{ markdown }`                                                              |
-| PUT    | `/api/cv`                | body `{ markdown }` → writes `cv.md`                                        |
-| GET    | `/api/profile`           | `{ profile: yaml-parsed, raw: text }`                                       |
-| GET    | `/api/portals`           | `{ portals: yaml-parsed, raw: text }`                                       |
-| GET    | `/api/modes`             | list of mode files                                                          |
-| GET    | `/api/modes/:name`       | text/plain — raw mode prompt                                                |
+| Method | Path                                | Purpose                                                                |
+| ------ | ----------------------------------- | ---------------------------------------------------------------------- |
+| GET    | `/api/tracker`                      | `{ rows: [parsed applications.md] }`                                   |
+| POST   | `/api/tracker`                      | body `{ company, role, score?, status?, url?, notes?, date? }` — dedup-aware (case-insensitive on company + role) |
+| GET    | `/api/pipeline`                     | `{ urls: [...] }`                                                      |
+| POST   | `/api/pipeline`                     | body `{ url }` → adds to `data/pipeline.md` with dedup + `isValidJobUrl` |
+| GET    | `/api/pipeline/preview?url=…`       | server-side fetch proxy (per-hop SSRF check, ≤3 redirects, 8 KB cap) |
+| DELETE | `/api/pipeline?url=…`               | removes a URL                                                          |
+| GET    | `/api/reports`                      | parsed list of `reports/*.md`                                          |
+| GET    | `/api/reports/:slug`                | full markdown + parsed header                                          |
+| GET    | `/api/jds`                          | list of saved JD files                                                 |
+| GET    | `/api/jds/:name`                    | text/plain — raw JD                                                    |
+| POST   | `/api/jds`                          | body `{ text, slug? }` → saves to `jds/`                               |
+| DELETE | `/api/jds/:name`                    | unlink (`.txt` suffix required)                                        |
+| GET    | `/api/cv`                           | `{ markdown }`                                                         |
+| PUT    | `/api/cv`                           | body `{ markdown }` → writes `cv.md` (XSS-stripped, ≤1 MB)             |
+| GET    | `/api/profile`                      | `{ profile: yaml-parsed, raw: text }`                                  |
+| GET    | `/api/portals`                      | `{ portals: yaml-parsed, raw: text }`                                  |
+| GET    | `/api/modes`                        | list of mode files                                                     |
+| GET    | `/api/modes/:name`                  | text/plain — raw mode prompt                                           |
+| GET    | `/api/output/pdfs`                  | list of generated PDFs                                                 |
+| GET    | `/api/output/pdfs/:name`            | download (`Content-Disposition: attachment`)                          |
+| GET    | `/api/interview-prep`               | list of saved deep-research files                                      |
+| GET    | `/api/interview-prep/:name`         | `{ name, markdown }`                                                   |
+| DELETE | `/api/interview-prep/:name`         | unlink (`.md` suffix required)                                         |
 
-### Script runners (one-shot)
+### Script runners (buffered, one-shot)
 
 | Method | Path                    | Wraps                       |
 | ------ | ----------------------- | --------------------------- |
@@ -277,6 +354,8 @@ All endpoints under `/api/*`. JSON in / JSON out unless noted.
 | POST   | `/api/run/dedup`        | `node dedup-tracker.mjs`    |
 | POST   | `/api/run/merge`        | `node merge-tracker.mjs`    |
 | POST   | `/api/run/sync-check`   | `node cv-sync-check.mjs`    |
+
+All buffered runs cap at 60 s; SIGTERM → SIGKILL escalation after a 5 s grace period.
 
 ### Streams (SSE)
 
@@ -297,35 +376,46 @@ event: done     data: { code, counts?, errors? }
 event: error    data: { message }
 ```
 
-### Smart endpoints
+### LLM endpoints (Anthropic-first → Gemini → manual fallback)
 
-| Method | Path                  | Purpose                                                                |
-| ------ | --------------------- | ---------------------------------------------------------------------- |
-| POST   | `/api/evaluate`       | body `{ jd, save? }` → Gemini if key set, else manual prompt           |
-| POST   | `/api/deep`           | body `{ company, role? }` → deep research prompt                       |
-| POST   | `/api/apply-helper`   | body `{ url, jd? }` → application checklist                            |
-| GET    | `/api/scan-results`   | `{ en: {when, fresh[], filtered[], errors[]}, ru: { ... } }` — last scan |
-| GET    | `/api/scan-ru/config` | effective RU-scanner config (queries, negatives, sources)              |
+| Method | Path                                | Purpose                                                                          |
+| ------ | ----------------------------------- | -------------------------------------------------------------------------------- |
+| POST   | `/api/evaluate`                     | body `{ jd, save? }` → JD evaluation (A–G sections per `oferta.md`)              |
+| POST   | `/api/evaluate/test-gemini`         | smoke check `GEMINI_API_KEY`                                                     |
+| POST   | `/api/evaluate/test-anthropic`      | smoke check `ANTHROPIC_API_KEY`                                                  |
+| POST   | `/api/deep`                         | body `{ company, role?, run? }` → deep-research prompt or live grounded markdown |
+| POST   | `/api/mode/:slug`                   | generic mode runner; allowlist: `batch`, `contacto`, `followup`, `interview-prep`, `patterns`, `project`, `training` |
+| POST   | `/api/apply-helper`                 | body `{ url, jd? }` → application checklist                                      |
+| GET    | `/api/scan-results`                 | `{ en: {when, fresh[], filtered[], errors[]}, ru: { ... } }` — last scan         |
+| GET    | `/api/scan-ru/config`               | effective RU-scanner config (queries, negatives, sources)                        |
+
+When `run: true` is set on `/api/deep` or `/api/mode/:slug`, the server prefers Anthropic (when both keys present), inlines `cv.md` + `config/profile.yml` + `modes/_shared.md` + the relevant mode template into a `<project_context>` block, and returns the model's grounded markdown directly. Soft cap: 200 KB on the assembled prompt — overflow returns 413.
 
 ---
 
 ## Tests
 
 ```bash
-npm test                  # 58 unit/api tests
-node tests/e2e.mjs        # 15 Playwright e2e (boots own server)
+npm test                       # 284 unit/integration tests
+npm run test:e2e               # 20 smoke e2e (boots own server)
+npm run test:e2e:full          # 23 comprehensive e2e
+npm run test:e2e:browser       # 12 Playwright browser-smoke
+npm run test:coverage          # same as `npm test` plus V8 coverage
 ```
 
-| Suite                    | Tests | What                                                              |
-| ------------------------ | ----- | ----------------------------------------------------------------- |
-| `parsers.test.mjs`       | 18    | Markdown / pipeline / report parsers (pure functions)             |
-| `api.test.mjs`           | 22    | Every endpoint, ephemeral server, no network                      |
-| `ru-scanner.test.mjs`    | 9     | hh.ru + Habr clients with mocked `fetch`                          |
-| `en-scanner.test.mjs`    | 9     | Greenhouse + Ashby + Lever clients with mocked `fetch`            |
-| `e2e.mjs`                | 15    | Playwright headless: 11 routes + 4 flows (URL paste, connection banner kill+restart, real Habr scan, evaluate manual prompt) |
-| **Total**                | **73** | **0 fails, 0 flakes**                                            |
+| Suite                       | Tests | What                                                                                                       |
+| --------------------------- | ----- | ---------------------------------------------------------------------------------------------------------- |
+| `node --test tests/*.test.mjs` (unit + integration) | **284** | Every endpoint, ephemeral server, no network. Includes parser, scanner (mocked), runner, anthropic, security headers, XSS, JD sanitize, URL validation, i18n parity. |
+| `tests/e2e.mjs` (smoke)      | 20    | Playwright headless: every route renders, basic flows.                                                     |
+| `tests/e2e-comprehensive.mjs` | 23    | Full Playwright walkthrough: 11 routes + 12 functional flows.                                              |
+| `tests/playwright-smoke.mjs` (`npm run test:e2e:browser`) | **12** | Browser-driven smoke: dashboard render, navigation, language switch, 404, health, tracker round-trip (BF-1), pipeline add + invalid-URL sweep, reports empty, evaluate manual fallback, config keys masked, CV PUT XSS strip, pipeline preview 400. |
+| **Total**                   | **339** | **0 fails, 0 flakes**                                                                                    |
 
-Parsers are pure functions (no I/O) — tested against real data fragments from `applications.md`, `pipeline.md`, and `reports/*.md`. API tests boot the Express app on an ephemeral port and exercise every endpoint end-to-end. Scanner tests mock `fetch` so they pass even if hh.ru blocks your IP.
+Coverage: ~93% line / ~83% branch via `--experimental-test-coverage`.
+
+Parsers are pure functions (no I/O) — tested against real data fragments from `applications.md`, `pipeline.md`, and `reports/*.md`. API tests boot the Express app on an ephemeral port and exercise every endpoint end-to-end. Scanner tests mock `fetch` so they pass even if hh.ru blocks your IP. The Playwright browser smoke runs against the in-process server and resolves Playwright via the parent project's `node_modules` — no new dependency in `web-ui/`.
+
+CI runs the unit + e2e + Playwright matrix on every push to `main` against Node 18 / 20 / 22.
 
 ---
 
@@ -333,13 +423,16 @@ Parsers are pure functions (no I/O) — tested against real data fragments from 
 
 Environment variables (read at server start, all optional except where noted):
 
-| Var                | Default            | Purpose                                                          |
-| ------------------ | ------------------ | ---------------------------------------------------------------- |
-| `PORT`             | `4317`             | Express bind port                                                |
-| `HOST`             | `127.0.0.1`        | Express bind host                                                |
-| `CAREER_OPS_ROOT`  | `..` from script   | Where to find `cv.md`, `data/`, `portals.yml`, `modes/`, etc.    |
-| `GEMINI_API_KEY`   | unset              | Forwarded to `gemini-eval.mjs` for `/api/evaluate`               |
-| `HH_USER_AGENT`    | unset              | Override hh.ru User-Agent (helps reduce 403 from non-RU IPs)     |
+| Var                  | Default            | Purpose                                                                            |
+| -------------------- | ------------------ | ---------------------------------------------------------------------------------- |
+| `PORT`               | `4317`             | Express bind port                                                                  |
+| `HOST`               | `127.0.0.1`        | Express bind host. CSP attaches when non-loopback; auth gate planned for v2.0.0.   |
+| `CAREER_OPS_ROOT`    | `..` from script   | Where to find `cv.md`, `data/`, `portals.yml`, `modes/`, etc.                      |
+| `ANTHROPIC_API_KEY`  | unset              | Enables `/api/evaluate`, `/api/deep`, `/api/mode/:slug` live mode (preferred when both keys set). |
+| `ANTHROPIC_MODEL`    | `claude-sonnet-4-6` | Override Anthropic model.                                                         |
+| `GEMINI_API_KEY`     | unset              | Forwarded to `gemini-eval.mjs` and used as fallback for `/api/evaluate`.           |
+| `GEMINI_MODEL`       | `gemini-2.0-flash` | Override Gemini model.                                                             |
+| `HH_USER_AGENT`      | unset              | Override hh.ru User-Agent (helps reduce 403 from non-RU IPs)                       |
 
 `portals.yml` extension recognized by this UI (add to your existing file in the parent project):
 
@@ -369,21 +462,29 @@ You can also extend any company entry with an explicit `api:` URL. See [`docs/po
 
 ## Limitations
 
-The fully LLM-driven modes (`oferta`, `deep`, `contacto`, `apply`, `batch`, `patterns`, `followup`) need an LLM to actually run. The web UI gives you two options:
+The fully LLM-driven modes (`oferta`, `deep`, `contacto`, `apply`, `batch`, `patterns`, `followup`) need an LLM to actually run. The web UI gives you three options:
 
-1. **`gemini-eval.mjs`** for `oferta` (works out of the box if `GEMINI_API_KEY` is set in the parent project's `.env`).
-2. **Copy-paste prompt** for everything else — the UI generates a ready prompt formatted for Claude Code / ChatGPT / Gemini Web.
+1. **Anthropic (preferred)** — set `ANTHROPIC_API_KEY` in the parent project's `.env`. Routes through `runAnthropic` with `cv.md` / `config/profile.yml` / `modes/_shared.md` / mode template inlined automatically (REVIEW-A1). Verified live in v1.8.0+ with `claude-sonnet-4-6` returning 26 KB of grounded markdown for a deep-research call.
+2. **`gemini-eval.mjs`** as fallback — works out of the box when only `GEMINI_API_KEY` is set.
+3. **Copy-paste prompt** — when no key is set, the UI generates a ready prompt formatted for Claude Code / ChatGPT / Gemini Web.
 
 The existing `/career-ops apply` Playwright form-fill flow inside Claude Code remains the only way to truly auto-fill application forms — the UI's *Apply helper* generates a checklist instead.
+
+For the production-readiness assessment (deployment gates, risk register, deferred work), see [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md). TL;DR: ready for single-tenant loopback; LAN exposure waits on the v2.0 P-12 auth gate.
 
 ---
 
 ## Contributing
 
-Issues and PRs welcome. Two house rules:
+Issues and PRs welcome. House rules:
 
-- Run `npm test` before pushing — 73 checks green is the bar.
-- Don't modify anything in the parent `career-ops/` project from inside this repo. The whole point is that this is a non-invasive overlay.
+- Run `npm test` before pushing — **284 checks green** is the bar (plus 12 Playwright if you touch UI).
+- Non-trivial changes go through the GSD pipeline. See [`docs/sdd/SDD-GUIDE.md`](docs/sdd/SDD-GUIDE.md).
+- Don't modify anything in the parent `career-ops/` project from inside this repo. The whole point is that this is a non-invasive overlay. Hard rules in [`CLAUDE.md`](CLAUDE.md).
+- Conventional commits: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`. Optional scope: `feat(scan):`. Breaking change: `feat!:`.
+- Tests must be CI-isolated — bootstrap fixtures via `mkdtempSync` or `CAREER_OPS_ROOT=$(mktemp -d)`.
+
+Driving the repo from a non-Claude CLI (Codex, Aider, Cursor, Gemini)? Read [`AGENTS.md`](AGENTS.md) or [`GEMINI.md`](GEMINI.md) — both shim to the canonical `CLAUDE.md`.
 
 ---
 
@@ -442,31 +543,35 @@ If you want hh.ru / Habr Career scanning, edit the `russian_portals:` block
 that the setup script created — add your search queries (e.g. `"Senior PHP"`,
 `"Тимлид Go"`).
 
-### 4. (Optional) Gemini API key
+### 4. (Optional) LLM API keys
 
-For one-click JD evaluation, get a free key at
-[aistudio.google.com/apikey](https://aistudio.google.com/apikey), then:
+The UI prefers Anthropic over Gemini when both are present. Either or
+neither works — without a key, **Evaluate** returns a copy-paste prompt
+for Claude Code instead.
 
 ```bash
-echo "GEMINI_API_KEY=your-key-here" >> career-ops/.env
+# Anthropic (preferred)
+echo "ANTHROPIC_API_KEY=sk-ant-..." >> career-ops/.env
+# Gemini (fallback)
+echo "GEMINI_API_KEY=AIza..." >> career-ops/.env
 ```
 
-Without it, the **Evaluate** page returns a copy-paste prompt for Claude —
-still useful, just one extra click.
+Or set them via the **App settings** page in the UI (`/#/config`) — same
+file, masked-on-read, applied to `process.env` immediately.
 
 ### 5. Verify and start working
 
 Refresh the Health page — every required check should be green. Then:
 
-1. Click **🌍 EN scan** → wait ~5 seconds → Greenhouse / Ashby / Lever
-   companies are scanned, vacancies appear in the table below.
+1. Click **🌐 Scan** → wait ~5 seconds → Greenhouse / Ashby / Lever +
+   hh.ru / Habr Career are scanned, vacancies appear in the table below.
 2. Click any title → the original posting opens in a new tab.
 3. Filter by stack chips (PHP / Go / Backend / Senior) until you see
    something promising.
 4. Copy the URL → paste it into **Pipeline** → click **Evaluate** to
-   score it 0-5.
-5. Reports land in `reports/`, tracker in `data/applications.md`.
-   Both are visible in the UI.
+   score it 0-5 live (Anthropic / Gemini) or get a manual prompt.
+5. Reports land in `reports/`, tracker in `data/applications.md`,
+   live deep-research in `interview-prep/`. All visible in the UI.
 
 > Translations of this guide live in each language-specific README:
 > [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) ·

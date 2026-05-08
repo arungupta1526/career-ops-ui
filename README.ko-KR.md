@@ -5,9 +5,14 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | **한국어** | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-88%20passed-brightgreen)](README.md#tests)
+[![tests](https://img.shields.io/badge/tests-284%20passed-brightgreen)](README.md#tests)
+[![playwright](https://img.shields.io/badge/playwright-12%20smoke-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![release](https://img.shields.io/badge/release-v1.9.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.9.1)
+
+> 📦 **v1.9.1** — 서버를 130줄 오케스트레이터 + `server/lib/routes/`의 12개 라우트 모듈로 리팩터링. `/api/evaluate`의 Anthropic 패리티(두 키 모두 있을 때 우선). 멀티 CLI 심(`AGENTS.md`, `GEMINI.md`)으로 Codex / Aider / Cursor / Gemini CLI 지원. **unit 284개 + Playwright smoke 12개**. 전체 production-readiness 평가: [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md). 싱글 테넌트 loopback 배포 준비 완료; LAN 노출용 auth gate는 v2.0 (P-12)에서 제공.
+
 
 ![career-ops-ui — vacancy search](./screen_vacancy_found.png)
 

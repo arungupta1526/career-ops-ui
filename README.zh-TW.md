@@ -5,9 +5,14 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.cn.md) | **繁體中文**
 
-[![tests](https://img.shields.io/badge/tests-88%20passed-brightgreen)](README.md#tests)
+[![tests](https://img.shields.io/badge/tests-284%20passed-brightgreen)](README.md#tests)
+[![playwright](https://img.shields.io/badge/playwright-12%20smoke-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![release](https://img.shields.io/badge/release-v1.9.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.9.1)
+
+> 📦 **v1.9.1** — 伺服器精簡為 130 行的編排器 + `server/lib/routes/` 中的 12 個路由模組。`/api/evaluate` 的 Anthropic 對等(兩個 key 同時存在時優先)。多 CLI 橋接(`AGENTS.md`、`GEMINI.md`)支援 Codex / Aider / Cursor / Gemini CLI。**284 個 unit + 12 個 Playwright 煙霧測試**。完整 production-readiness 評估:[`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md)。可用於 single-tenant loopback 部署;LAN 暴露的 auth gate 在 v2.0 (P-12)。
+
 
 ![career-ops-ui — vacancy search](./screen_vacancy_found.png)
 
