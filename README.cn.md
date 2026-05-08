@@ -14,7 +14,17 @@
 > 📦 **v1.9.1** — 服务器精简为 130 行的编排器 + `server/lib/routes/` 中的 12 个路由模块。`/api/evaluate` 的 Anthropic 对等(两个 key 同时存在时优先)。多 CLI 桥接(`AGENTS.md`、`GEMINI.md`)支持 Codex / Aider / Cursor / Gemini CLI。**284 个 unit + 12 个 Playwright 烟雾测试**。完整 production-readiness 评估:[`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md)。可用于 single-tenant loopback 部署;LAN 暴露的 auth gate 在 v2.0 (P-12)。
 
 
-![career-ops-ui — vacancy search](./screen_vacancy_found.png)
+![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
+
+## v1.10.1 新增内容
+
+- **安全：SSRF 攻击面收紧。** `isValidJobUrl` 现在会拒绝 RFC1918、链路本地（包括 AWS IMDS `169.254.169.254`）、`0.0.0.0`、整个 127/8 回环范围、CGNAT `100.64/10` 和 IPv6 ULA / 链路本地。预览代理在每一跳进行 DNS 解析，地址落入私有范围时直接阻断 — 防御 DNS 重绑定。
+- **活动日志守纪。** 仅记录成功的状态变更 — 不再有 4xx 噪声。`profile.save`、`config.save`、`cv.import` 事件现已出现在动态中。
+- **韩语帮助正文修复。** `GET /api/help/ko` 现可正确提供 `ko-KR.md`（之前因文件名与语言代码不一致而静默回退到英文）。
+- **LLM 提示尊重 UI 语言。** `/api/evaluate`、`/api/deep`、`/api/mode/:slug` 与 apply-helper 会根据 `body.lang` / `Accept-Language` 注入 "Respond in X" 指令。SPA 自动为每次请求附上当前 locale。
+- **`/api/evaluate` 尊重 `mode:'manual'`** — 可将提示复制到 Claude Code，而不消耗 Anthropic 额度。
+- **`DELETE /api/pipeline`** 同时接受 `?url=` 与 `body.url`；当 URL 不在收件箱时返回 `404`（不再是静默 `200`）。
+- **`scripts/post-qa-cleanup.mjs`** — 重放 QA 回归后的清理清单；默认 dry-run，幂等。
 
 ## 一键安装
 

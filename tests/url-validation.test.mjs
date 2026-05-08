@@ -108,6 +108,49 @@ test('FIX-M7: rejects loopback hostnames (no SSRF / job boards on laptop)', () =
   assert.equal(isValidJobUrl('https://app.localhost.example.com/job/1'), true);
 });
 
+// ───────────────────────── PR-3 / F-003 ─────────────────────────
+// Expand the SSRF surface to cover RFC1918, link-local (incl. AWS IMDS
+// 169.254.169.254), 0.0.0.0, CGNAT, and IPv6 ULA/link-local.
+
+test('PR-3: rejects RFC1918 IPv4 ranges (10/8, 172.16/12, 192.168/16)', () => {
+  assert.equal(isValidJobUrl('http://10.0.0.1/job/1'), false);
+  assert.equal(isValidJobUrl('http://10.255.255.255/job/1'), false);
+  assert.equal(isValidJobUrl('http://172.16.0.1/job/1'), false);
+  assert.equal(isValidJobUrl('http://172.31.255.255/job/1'), false);
+  assert.equal(isValidJobUrl('http://192.168.0.1/job/1'), false);
+  // 172.32 is NOT in RFC1918 — should pass scheme-level checks.
+  assert.equal(isValidJobUrl('http://172.32.0.1/job/1'), true);
+});
+
+test('PR-3: rejects link-local + AWS IMDS (169.254/16) and 0.0.0.0', () => {
+  assert.equal(isValidJobUrl('http://169.254.169.254/latest/meta-data/'), false);
+  assert.equal(isValidJobUrl('http://169.254.0.1/'), false);
+  assert.equal(isValidJobUrl('http://0.0.0.0/'), false);
+  assert.equal(isValidJobUrl('http://0.0.0.0:8080/job/1'), false);
+});
+
+test('PR-3: rejects entire 127/8 loopback range, not just 127.0.0.1', () => {
+  assert.equal(isValidJobUrl('http://127.0.0.1/'), false);
+  assert.equal(isValidJobUrl('http://127.1.2.3/'), false);
+  assert.equal(isValidJobUrl('http://127.255.255.255/'), false);
+});
+
+test('PR-3: rejects CGNAT 100.64/10', () => {
+  assert.equal(isValidJobUrl('http://100.64.0.1/'), false);
+  assert.equal(isValidJobUrl('http://100.127.255.255/'), false);
+  // 100.63 and 100.128 are outside the CGNAT block.
+  assert.equal(isValidJobUrl('http://100.63.0.1/'), true);
+  assert.equal(isValidJobUrl('http://100.128.0.1/'), true);
+});
+
+test('PR-3: rejects IPv6 loopback / unspecified / ULA / link-local', () => {
+  assert.equal(isValidJobUrl('http://[::1]/'), false);
+  assert.equal(isValidJobUrl('http://[::]/'), false);
+  assert.equal(isValidJobUrl('http://[fc00::1]/'), false);
+  assert.equal(isValidJobUrl('http://[fd00::1]/'), false);
+  assert.equal(isValidJobUrl('http://[fe80::1]/'), false);
+});
+
 test('FIX-M7: rejects too-short / too-long inputs', () => {
   assert.equal(isValidJobUrl('http://x'), false);  // 8 chars < min 10
   assert.equal(isValidJobUrl('https://example.com/' + 'x'.repeat(2000)), false);

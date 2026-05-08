@@ -14,7 +14,17 @@
 > 📦 **v1.9.1** — サーバを 130 行のオーケストレータ + `server/lib/routes/` の 12 ルートモジュールに分割。`/api/evaluate` の Anthropic パリティ (両キー存在時は優先)。マルチ CLI シム (`AGENTS.md`、`GEMINI.md`) で Codex / Aider / Cursor / Gemini CLI に対応。**unit 284 + Playwright smoke 12**。Production-readiness 評価: [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md)。シングルテナント loopback デプロイ可能。LAN 公開用の auth gate は v2.0 (P-12)。
 
 
-![career-ops-ui — vacancy search](./screen_vacancy_found.png)
+![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
+
+## v1.10.1 の新機能
+
+- **セキュリティ: SSRF 表面の強化。** `isValidJobUrl` は RFC1918、リンクローカル (AWS IMDS `169.254.169.254` を含む)、`0.0.0.0`、127/8 ループバック全範囲、CGNAT `100.64/10`、IPv6 ULA / リンクローカルを拒否するようになりました。プレビュープロキシは各ホップで DNS を再解決し、アドレスがプライベート範囲に入る場合はブロックします — DNS リバインド対策。
+- **アクティビティログの規律。** 成功した状態変更のみが記録されます — 4xx ノイズなし。`profile.save`、`config.save`、`cv.import` イベントがフィードに表示されます。
+- **韓国語ヘルプ本文を修正。** `GET /api/help/ko` が `ko-KR.md` を正しく提供するようになりました (以前はファイル名とロケールの不一致により英語にフォールバックしていました)。
+- **LLM プロンプトが UI 言語を尊重します。** `/api/evaluate`、`/api/deep`、`/api/mode/:slug`、apply-helper は `body.lang` / `Accept-Language` に基づいて "Respond in X" ディレクティブを挿入します。SPA はすべてのリクエストに現在のロケールを自動的に添付します。
+- **`/api/evaluate` が `mode:'manual'` を尊重します** — Anthropic クレジットを消費せずにプロンプトを Claude Code にコピーできます。
+- **`DELETE /api/pipeline`** が `?url=` と `body.url` の両方を受け入れ、URL がインボックスにない場合は `404` (静かな `200` ではなく) を返します。
+- **`scripts/post-qa-cleanup.mjs`** — QA 回帰後のクリーンアップチェックリストを再実行します; デフォルトはドライラン、冪等。
 
 ## ワンコマンドインストール
 

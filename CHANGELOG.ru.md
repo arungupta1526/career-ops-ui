@@ -6,6 +6,52 @@
 
 ---
 
+## [1.10.1] — 2026-05-09
+
+Патч с критическими фиксами по итогам QA-регрессии v1.10.0 (`qa/reports/00-FINAL-SUMMARY.md`).
+
+### 🛡️ Безопасность
+
+- **`fix(security): затянули SSRF + защита от DNS-rebind (PR-3 / F-003)`** — `isValidJobUrl` теперь блокирует RFC1918 (`10/8`, `172.16/12`, `192.168/16`), всю петлю 127/8, link-local `169.254/16` (включая AWS IMDS), `0.0.0.0`, CGNAT `100.64/10` и IPv6 ULA / link-local. Хелпер `isPrivateOrLoopbackHost()` экспортирован из `server/lib/security.mjs`. Прокси `/api/pipeline/preview` делает `dns.lookup` на каждом редиректе и блокирует, если разрешённый адрес попадает в приватный диапазон — защита от DNS-rebind.
+
+### 🐛 Фиксы
+
+- **`fix(activity): записываем только успешные изменения (PR-5 / F-005)`** — мидлварь делает early-return на `res.statusCode >= 400`. Отвергнутые запросы больше не засоряют ленту аудита.
+- **`fix(activity): добавили события profile.save / config.save / cv.import (F-008)`** — успешные `PUT /api/profile` и `POST /api/config` теперь видны в `/api/activity`.
+- **`fix(help): алиас ko → ko-KR.md, корейская справка не падает на EN (F-002)`** — SPA шлёт `ko`, файл на диске `ko-KR.md`. Резолвер пробует 4 кандидата.
+- **`fix(llm): /api/evaluate уважает mode:'manual' (F-009)`** — повторяет поведение `/api/deep`. Не сжигает Anthropic-токены при manual-mode.
+- **`fix(api): DELETE /api/pipeline принимает ?url= И body.url, 404 на miss (PR-6 / F-017)`** — раньше молча возвращал 200.
+
+### ✨ Фичи
+
+- **`feat(llm): локаль пробрасывается во все промпты (PR-2 / F-012)`** — `resolveLocale(req)` берёт локаль из `body.lang` → `body.locale` → `Accept-Language` → `'en'`. `buildLocaleDirective(lang)` отдаёт однострочный заголовок "Respond in X". `buildEvaluationPrompt`, `buildDeepPrompt`, `buildModePrompt` принимают и встраивают `lang`. SPA `API.call()` автоматически прикрепляет `Accept-Language` и сливает `lang` в JSON-тела.
+- **`feat(scripts): post-qa-cleanup.mjs (PR-11)`** — повторяет чек-лист уборки после QA-регрессии; `--apply` пишет, по умолчанию dry-run, идемпотентен.
+
+### 🧪 Тесты
+
+- Новый `tests/critical-fixes.test.mjs` (15 кейсов): F-002 ko-алиас, F-009 manual-opt-out, PR-6 DELETE-форма (body / 404 / 400), PR-3 хелпер для IPv4 / IPv6 / bracketed, PR-2 `resolveLocale` + `buildLocaleDirective` + интеграция в prompt builders.
+- `tests/url-validation.test.mjs` расширен 5 тестами на RFC1918 / link-local / 0.0.0.0 / 127/8 / CGNAT / IPv6.
+- `tests/activity-log.test.mjs` тест 8 переписан под новый контракт "не логируем 4xx".
+- Итого: **318 unit-тестов** (было 298). Один pre-existing failure в `portals-dead.test.mjs` — это дрейф данных в parent `templates/portals.example.yml`, не связан с web-ui.
+
+### 📝 Документация
+
+- Новый `docs/reviews/REVIEW-2026-05-09-v1.10.1.md` — полный контекст сессии + список отложенного + команды верификации.
+- Все 8 README обновлены: badge-ы (тесты 298 → 318, релиз v1.10.0 → v1.10.1), путь скриншота `public/images/screen_vacancy_found.png`, секция "Что нового в v1.10.1" в каждой локали.
+- Все 8 CHANGELOG-ов получили эту запись.
+
+### За пределами слайса (отложено в будущие GSD-фазы)
+
+PR-1 (locale-agnostic adapter registry, +14 порталов, переписка фронта), PR-4 (multer + ConversionError + global error handler), PR-7 (Generate-PDF кнопки на reports/evaluate/deep/interview-prep), PR-8 (перегруппировка config UI), PR-9 (полная зачистка EN/RU framing в README/docs/help-bundles), PR-10 (button-by-button localization audit + jsdom CI gate), полный ретранслейт корейской справки.
+
+---
+
+## [1.10.0] — 2026-05-08
+
+> Полный текст в [CHANGELOG.md](CHANGELOG.md#1100--2026-05-08). Краткое содержание: CV-импорт (`.docx`/`.doc`/`.odt`/`.rtf`/`.pdf`/`.html`/`.txt`/`.md` через pandoc + pdftotext, лимит 10 MB), авто-даунлоад свежего PDF, двухвкладочный `#/config` (API keys & runtime + Profile), `#/profile` стал каноническим маршрутом, обновлены help-доки во всех 8 локалях.
+
+---
+
 ## [1.9.1] — 2026-05-08
 
 Production-readiness pass. 4 точечных фикса (BF-1..BF-4), Playwright smoke расширен с 5 до 12 тестов.

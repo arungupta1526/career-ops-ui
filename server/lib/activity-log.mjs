@@ -100,18 +100,23 @@ export function readActivity({ limit = 200, actionPrefix } = {}) {
  * Express middleware that auto-logs successful state-changing requests.
  * Reads-only (GET) and the activity endpoint itself are skipped to keep
  * the log signal-rich. Maps method+path to a stable `action` string.
+ *
+ * Per F-005 we now record only successful state changes (status < 400).
+ * Rejected attempts produced "audit-trail noise + spam vector" — the
+ * server still logs them via console for debugging, but the user-visible
+ * activity feed gets the validate→write→record contract: no log unless
+ * state actually changed.
  */
 export function activityMiddleware(req, res, next) {
   const action = mapAction(req);
   if (!action) return next();
   res.on('finish', () => {
-    const ok = res.statusCode < 400;
-    const target = pickTarget(req);
+    if (res.statusCode >= 400) return;
     logActivity({
       action,
-      target,
-      ok,
-      detail: ok ? null : `HTTP ${res.statusCode}`,
+      target: pickTarget(req),
+      ok: true,
+      detail: null,
     });
   });
   next();
@@ -129,6 +134,9 @@ function mapAction(req) {
   }
   if (p === '/api/pipeline')  return m === 'POST' ? 'pipeline.add' : 'pipeline.remove';
   if (p === '/api/cv')        return 'cv.save';
+  if (p === '/api/cv/import') return 'cv.import';
+  if (p === '/api/profile')   return 'profile.save';
+  if (p === '/api/config')    return 'config.save';
   if (p === '/api/jds')       return 'jd.save';
   if (p.startsWith('/api/jds/')) return m === 'DELETE' ? 'jd.delete' : 'jd.update';
   if (p.startsWith('/api/run/'))    return 'script.' + p.slice('/api/run/'.length);

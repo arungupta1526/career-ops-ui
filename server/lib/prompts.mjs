@@ -11,6 +11,55 @@ import { existsSync, readFileSync } from 'node:fs';
 import { PATHS, path as projPath } from './paths.mjs';
 import { slugify } from './parsers.mjs';
 
+// Locale code → English language name. Used by buildLocaleDirective so
+// every LLM call honors the user's UI locale (PR-2 / F-012). Codes match
+// the SPA's i18n bundle in public/js/lib/i18n.js.
+const LOCALE_NAMES = {
+  en: 'English',
+  es: 'Spanish',
+  'pt-BR': 'Brazilian Portuguese',
+  ko: 'Korean',
+  ja: 'Japanese',
+  ru: 'Russian',
+  'zh-CN': 'Simplified Chinese',
+  'zh-TW': 'Traditional Chinese',
+};
+
+/**
+ * Resolve and normalize a locale code from request inputs (body.lang,
+ * body.locale, Accept-Language header). Returns one of the known SPA
+ * locales, defaulting to 'en' if nothing matches.
+ */
+export function resolveLocale(req) {
+  const candidates = [
+    req?.body?.lang,
+    req?.body?.locale,
+    req?.headers?.['accept-language'],
+  ].filter((s) => typeof s === 'string' && s.trim());
+  for (const raw of candidates) {
+    const code = raw.split(',')[0].trim();
+    if (LOCALE_NAMES[code]) return code;
+    const base = code.split('-')[0];
+    if (LOCALE_NAMES[base]) return base;
+  }
+  return 'en';
+}
+
+/**
+ * One-line directive prepended to every LLM prompt so the response
+ * matches the UI locale. Code/identifiers stay English; prose is
+ * localized. Empty string for English (no directive needed).
+ */
+export function buildLocaleDirective(lang) {
+  if (!lang || lang === 'en' || !LOCALE_NAMES[lang]) return '';
+  return [
+    '# Output language',
+    `Respond in ${LOCALE_NAMES[lang]} (locale: ${lang}). Keep code and identifiers in English; translate prose, headings, and bullet points.`,
+    '',
+    '',
+  ].join('\n');
+}
+
 /**
  * Bundle parent-project files into a single `<project_context>` block
  * for Anthropic SDK calls (which have no filesystem). Each file is read
@@ -63,10 +112,13 @@ export function bundleProjectContext(opts = {}) {
  * fields the user filled in. Strips any { run: ... } toggle so it
  * doesn't leak into the rendered prompt.
  */
-export function buildModePrompt(template, slug, context) {
+export function buildModePrompt(template, slug, context, lang) {
   const ctx = { ...context };
   delete ctx.run;
+  delete ctx.lang;
+  delete ctx.locale;
   const parts = [
+    buildLocaleDirective(lang),
     `You are career-ops in ${slug} mode.`,
     '',
     'Read these files first (they exist in the project root):',
@@ -87,8 +139,8 @@ export function buildModePrompt(template, slug, context) {
   return parts.join('\n');
 }
 
-export function buildEvaluationPrompt(jd) {
-  return `You are career-ops. Evaluate this Job Description against the user's CV.
+export function buildEvaluationPrompt(jd, lang) {
+  return `${buildLocaleDirective(lang)}You are career-ops. Evaluate this Job Description against the user's CV.
 
 Read these files first (they exist in the project root):
   • cv.md
@@ -106,8 +158,8 @@ ${jd}
 `;
 }
 
-export function buildDeepPrompt(company, role) {
-  return `You are career-ops in deep-research mode. Produce a full company brief on ${company}${role ? ` for the role of ${role}` : ''}.
+export function buildDeepPrompt(company, role, lang) {
+  return `${buildLocaleDirective(lang)}You are career-ops in deep-research mode. Produce a full company brief on ${company}${role ? ` for the role of ${role}` : ''}.
 
 Read modes/deep.md for structure. Use WebFetch / WebSearch. Cover:
   1. Company snapshot (size, funding, runway, leadership)

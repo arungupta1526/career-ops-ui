@@ -5,11 +5,21 @@
 
 **English** | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-298%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-318%20passed-brightgreen)](#tests)
 [![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.10.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.10.0)
+[![release](https://img.shields.io/badge/release-v1.10.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.10.1)
+
+## What's new in v1.10.1
+
+- **Security: SSRF surface tightened.** `isValidJobUrl` now rejects RFC1918, link-local (incl. AWS IMDS `169.254.169.254`), `0.0.0.0`, the full 127/8 loopback range, CGNAT `100.64/10`, and IPv6 ULA / link-local. The pipeline-preview proxy DNS-resolves each hop and rejects when the address itself is private — defeats DNS-rebind.
+- **Audit log discipline.** Activity feed now records only successful state changes — no more 4xx-rejected attempts cluttering the timeline. `profile.save`, `config.save`, and `cv.import` events now appear in the feed.
+- **Korean Help body fixed.** `GET /api/help/ko` now correctly serves `ko-KR.md` (was silently falling back to English because of a filename-vs-locale mismatch).
+- **LLM prompts honor your UI language.** `/api/evaluate`, `/api/deep`, `/api/mode/:slug`, and the apply-helper inject a "Respond in X" directive based on `body.lang` / `Accept-Language`. The SPA's `API.call()` auto-attaches your current locale to every request.
+- **`/api/evaluate` honors `mode:'manual'`** so you can copy the prompt into Claude Code without burning Anthropic credits.
+- **`DELETE /api/pipeline`** now accepts `?url=` AND `body.url`, returns `404` (not silent `200`) when the URL isn't in the inbox.
+- **`scripts/post-qa-cleanup.mjs`** — replays the QA-regression cleanup checklist; dry-run by default, idempotent.
 
 ## What's new in v1.10.0
 
@@ -19,7 +29,7 @@
 - **`#/profile` is now the canonical route** (was `#/settings`). The old hash still resolves so bookmarks keep working.
 - **Help docs refreshed** in all 8 locales for every change above.
 
-![career-ops-ui — vacancy search](./screen_vacancy_found.png)
+![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
 
 ## One-command install
 

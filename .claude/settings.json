@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(bash bin/run_all.sh --quick)",
-      "Bash(node --test tests/help-ui.test.mjs tests/help.test.mjs)"
+      "Bash(node --test tests/help-ui.test.mjs tests/help.test.mjs)",
+      "Bash(node scripts/post-qa-cleanup.mjs)",
+      "Bash(node scripts/post-qa-cleanup.mjs --apply)",
+      "Bash(grep -A3 \"name: Ada$\" ../templates/portals.example.yml)",
+      "Bash(node --test tests/full-flow-acceptance.test.mjs)"
     ]
   }
 }

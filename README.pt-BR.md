@@ -14,7 +14,17 @@
 > 📦 **v1.9.1** — Servidor refatorado para um orquestrador de 130 linhas + 12 módulos de rotas em `server/lib/routes/`. Paridade Anthropic em `/api/evaluate` (preferida sobre Gemini quando ambas as chaves estão presentes). Shims multi-CLI (`AGENTS.md`, `GEMINI.md`) para Codex / Aider / Cursor / Gemini CLI. **284 unit + 12 Playwright smoke tests**. Para a avaliação completa de production-readiness: [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md). Pronto para deploy single-tenant loopback; o gate de auth para LAN chega em v2.0 (P-12).
 
 
-![career-ops-ui — vacancy search](./screen_vacancy_found.png)
+![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
+
+## Novidades em v1.10.1
+
+- **Segurança: superfície SSRF reforçada.** `isValidJobUrl` agora rejeita RFC1918, link-local (incluindo AWS IMDS `169.254.169.254`), `0.0.0.0`, toda a faixa 127/8, CGNAT `100.64/10` e IPv6 ULA / link-local. O proxy de preview resolve via DNS cada salto e bloqueia se o endereço cair em faixa privada — defesa contra DNS-rebind.
+- **Disciplina do log de atividade.** Só registra mudanças de estado bem-sucedidas — sem ruído 4xx. Os eventos `profile.save`, `config.save` e `cv.import` agora aparecem no feed.
+- **Help coreano corrigido.** `GET /api/help/ko` agora serve `ko-KR.md` corretamente (antes caía no inglês por um descompasso de nome de arquivo).
+- **Prompts LLM respeitam o idioma da UI.** `/api/evaluate`, `/api/deep`, `/api/mode/:slug` e o apply-helper injetam uma diretiva "Respond in X" via `body.lang` / `Accept-Language`. A SPA anexa seu locale em cada requisição.
+- **`/api/evaluate` respeita `mode:'manual'`** — copie o prompt no Claude Code sem queimar créditos do Anthropic.
+- **`DELETE /api/pipeline`** aceita `?url=` E `body.url`, retorna `404` (não `200` silencioso) quando a URL não estava na caixa de entrada.
+- **`scripts/post-qa-cleanup.mjs`** — repete a limpeza após regressão de QA; dry-run por padrão, idempotente.
 
 ## Instalação com um comando
 

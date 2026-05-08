@@ -12,9 +12,10 @@
  * loopback, file://, IP literals, etc.
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { lookup as dnsLookup } from 'node:dns/promises';
 import { PATHS, path as projPath } from '../paths.mjs';
 import { parsePipeline, addPipelineUrl, removePipelineUrl } from '../parsers.mjs';
-import { isValidJobUrl } from '../security.mjs';
+import { isValidJobUrl, isPrivateOrLoopbackHost } from '../security.mjs';
 import { safeReadPipeline } from '../store.mjs';
 
 const PREVIEW_TIMEOUT_MS = 15_000;
@@ -60,6 +61,22 @@ export function registerPipelineRoutes(app) {
       let upstream;
       let hops = 0;
       while (true) {
+        // Defeat DNS-rebind: re-resolve the host on every hop and reject if it
+        // points into private/loopback space. isValidJobUrl rejects literal
+        // private IPs in the URL string; this guard catches public-looking
+        // hostnames that resolve to private addresses (PR-3).
+        // Fail-OPEN when the lookup itself errors — fetch() does its own DNS
+        // and surfaces the error via the existing catch path. Failing closed
+        // here would break test stubs (and any sandboxed host without DNS)
+        // for no security gain.
+        try {
+          const host = new URL(current).hostname;
+          const { address } = await dnsLookup(host, { verbatim: true });
+          if (isPrivateOrLoopbackHost(address)) {
+            clearTimeout(timer);
+            return res.json({ status: 0, text: '(blocked: host resolves to private address)' });
+          }
+        } catch { /* lookup failed; fetch will produce a real error below */ }
         upstream = await fetch(current, {
           signal: ctrl.signal,
           redirect: 'manual',
@@ -102,15 +119,19 @@ export function registerPipelineRoutes(app) {
   });
 
   app.delete('/api/pipeline', (req, res) => {
-    const url = (req.query.url || '').toString();
-    if (!url) return res.status(400).json({ error: 'url required' });
+    const url = (req.query.url || (req.body && req.body.url) || '').toString().trim();
+    if (!url) return res.status(400).json({ error: 'url required (query ?url= or body.url)' });
     let content = '';
     try {
       content = readFileSync(PATHS.pipeline, 'utf8');
     } catch {
       return res.status(404).json({ error: 'pipeline not found' });
     }
+    const before = parsePipeline(content);
+    if (!before.includes(url)) {
+      return res.status(404).json({ error: 'url not found in pipeline', url });
+    }
     writeFileSync(PATHS.pipeline, removePipelineUrl(content, url));
-    res.json({ ok: true });
+    res.json({ ok: true, removed: 1, url });
   });
 }

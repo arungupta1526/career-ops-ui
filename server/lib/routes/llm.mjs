@@ -28,6 +28,7 @@ import {
   buildDeepPrompt,
   buildModePrompt,
   buildApplyChecklist,
+  resolveLocale,
 } from '../prompts.mjs';
 
 // Generic mode endpoints — kept narrow on purpose. Modes that have a
@@ -51,11 +52,12 @@ const PROMPT_SIZE_SOFT_CAP = 200 * 1024;
 export function registerLlmRoutes(app) {
   // ─── /api/evaluate ──────────────────────────────────────────────────
   app.post('/api/evaluate', async (req, res) => {
-    const { jd: rawJd, save } = req.body || {};
+    const { jd: rawJd, save, mode } = req.body || {};
     const jd = sanitizeJobDescription(rawJd);
     if (!jd || jd.length < 50) {
       return res.status(400).json({ error: 'JD text required (min 50 chars after sanitization)' });
     }
+    const lang = resolveLocale(req);
 
     let saved = null;
     if (save) {
@@ -65,7 +67,19 @@ export function registerLlmRoutes(app) {
       saved = name;
     }
 
-    const promptText = buildEvaluationPrompt(jd);
+    const promptText = buildEvaluationPrompt(jd, lang);
+
+    // F-009 — explicit manual mode mirrors /api/deep. Lets the user opt
+    // out of the live LLM call (and the Anthropic credit burn) even when
+    // a key is set — useful for offline copying into Claude Code.
+    if (mode === 'manual') {
+      return res.json({
+        mode: 'manual',
+        prompt: promptText,
+        message: 'Manual mode: copy this prompt into Claude/ChatGPT/Gemini.',
+        saved,
+      });
+    }
 
     // P-7 — Anthropic parity. Prefer Anthropic over Gemini when both keys
     // present (better long-form structured output for oferta-style A-G
@@ -148,7 +162,8 @@ export function registerLlmRoutes(app) {
   app.post('/api/deep', async (req, res) => {
     const { company, role, run } = req.body || {};
     if (!company) return res.status(400).json({ error: 'company required' });
-    const prompt = buildDeepPrompt(company, role);
+    const lang = resolveLocale(req);
+    const prompt = buildDeepPrompt(company, role, lang);
 
     // When run:true AND a key is configured, execute server-side and
     // return the rendered Markdown so the user sees real research output
@@ -243,7 +258,8 @@ export function registerLlmRoutes(app) {
     }
     const template = readFileSync(modeFile, 'utf8');
     const context = (req.body && typeof req.body === 'object') ? req.body : {};
-    const prompt = buildModePrompt(template, slug, context);
+    const lang = resolveLocale(req);
+    const prompt = buildModePrompt(template, slug, context, lang);
 
     if (context.run) {
       // Prefer Anthropic for live execution (better at long-form

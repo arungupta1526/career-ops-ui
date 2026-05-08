@@ -14,7 +14,17 @@
 > 📦 **v1.9.1** — Servidor refactorizado a un orquestador de 130 líneas + 12 módulos de rutas en `server/lib/routes/`. Paridad Anthropic en `/api/evaluate` (preferida sobre Gemini cuando ambas claves están presentes). Shims multi-CLI (`AGENTS.md`, `GEMINI.md`) para Codex / Aider / Cursor / Gemini CLI. **284 unit + 12 Playwright smoke tests**. Para la evaluación de production-readiness completa: [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md). Listo para deploy single-tenant loopback; el gate de auth para LAN llega en v2.0 (P-12).
 
 
-![career-ops-ui — vacancy search](./screen_vacancy_found.png)
+![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
+
+## Novedades en v1.10.1
+
+- **Seguridad: superficie SSRF reforzada.** `isValidJobUrl` ahora rechaza RFC1918, link-local (incluyendo AWS IMDS `169.254.169.254`), `0.0.0.0`, todo el rango 127/8, CGNAT `100.64/10` y IPv6 ULA / link-local. El proxy de preview resuelve por DNS cada salto y bloquea si la dirección cae en rango privado — defensa contra DNS-rebind.
+- **Disciplina del log de actividad.** Solo se registran cambios de estado exitosos — sin ruido 4xx. Los eventos `profile.save`, `config.save` y `cv.import` ya aparecen en el feed.
+- **Help en coreano arreglado.** `GET /api/help/ko` ahora sirve `ko-KR.md` correctamente (antes caía en inglés por un desajuste de nombre de archivo).
+- **Los prompts LLM respetan tu idioma de UI.** `/api/evaluate`, `/api/deep`, `/api/mode/:slug` y apply-helper inyectan una directiva "Respond in X" según `body.lang` / `Accept-Language`. La SPA adjunta tu locale en cada petición.
+- **`/api/evaluate` respeta `mode:'manual'`** — copia el prompt en Claude Code sin gastar créditos de Anthropic.
+- **`DELETE /api/pipeline`** acepta `?url=` Y `body.url`, devuelve `404` (no `200` silencioso) cuando la URL no estaba en la bandeja.
+- **`scripts/post-qa-cleanup.mjs`** — repite la limpieza tras una regresión de QA; dry-run por defecto, idempotente.
 
 ## Instalación con un solo comando
 

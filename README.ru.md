@@ -5,11 +5,21 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | **Русский** | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-298%20passed-brightgreen)](README.md#tests)
+[![tests](https://img.shields.io/badge/tests-318%20passed-brightgreen)](README.md#tests)
 [![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.10.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.10.0)
+[![release](https://img.shields.io/badge/release-v1.10.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.10.1)
+
+## Что нового в v1.10.1
+
+- **Безопасность: SSRF-защита затянута.** `isValidJobUrl` теперь отбрасывает RFC1918, link-local (включая AWS IMDS `169.254.169.254`), `0.0.0.0`, всю петлю 127/8, CGNAT `100.64/10` и IPv6 ULA / link-local. Прокси предпросмотра DNS-резолвит каждый прыжок и блокирует запрос, если адрес попадает в приватный диапазон — защита от DNS-rebind.
+- **Дисциплина аудит-лога.** В ленту активности теперь попадают только успешные изменения состояния — никакого 4xx-шума. События `profile.save`, `config.save` и `cv.import` наконец видны в ленте.
+- **Корейская справка.** `GET /api/help/ko` теперь корректно отдаёт `ko-KR.md` (раньше молча падал на английский фолбэк из-за расхождения имени файла и кода локали).
+- **LLM-промпты учитывают язык UI.** `/api/evaluate`, `/api/deep`, `/api/mode/:slug` и apply-helper подставляют директиву "Respond in X" по `body.lang` / `Accept-Language`. SPA автоматически прикрепляет текущую локаль ко всем запросам.
+- **`/api/evaluate` уважает `mode:'manual'`** — можно скопировать промпт в Claude Code, не сжигая Anthropic-токены.
+- **`DELETE /api/pipeline`** принимает `?url=` И `body.url`, возвращает `404` (а не молчаливый `200`), если URL не было в очереди.
+- **`scripts/post-qa-cleanup.mjs`** — повторяет чек-лист уборки после QA-регрессии; по умолчанию dry-run, идемпотентен.
 
 ## Что нового в v1.10.0
 
@@ -20,7 +30,7 @@
 - **Help-доки обновлены** во всех 8 локалях.
 
 
-![career-ops-ui — vacancy search](./screen_vacancy_found.png)
+![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
 
 ## Установка одной командой
 

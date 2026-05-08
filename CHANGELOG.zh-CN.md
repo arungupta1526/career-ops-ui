@@ -6,6 +6,42 @@
 
 ---
 
+## [1.10.1] — 2026-05-09
+
+基于 v1.10.0 QA 回归结果的关键修复补丁 (`qa/reports/00-FINAL-SUMMARY.md`)。
+
+### 🛡️ 安全
+
+- **`fix(security): SSRF 攻击面收紧 + DNS 重绑定防御 (PR-3 / F-003)`** — `isValidJobUrl` 现拒绝 RFC1918、整个 127/8 回环、链路本地 `169.254/16`（含 AWS IMDS）、`0.0.0.0`、CGNAT `100.64/10`、IPv6 ULA / 链路本地。新增辅助函数 `isPrivateOrLoopbackHost()`。预览代理在每一跳进行 `dns.lookup`,地址落入私有范围即阻断 — 防御 DNS 重绑定。
+
+### 🐛 修复
+
+- **`fix(activity)`**: 仅记录成功的状态变更 (PR-5 / F-005);4xx 拒绝的请求不再写日志。新增 `profile.save`、`config.save`、`cv.import` 事件 (F-008)。
+- **`fix(help)`**: 添加 `ko` → `ko-KR.md` 别名,使韩语正文不再回退到英文 (F-002)。
+- **`fix(llm): /api/evaluate 尊重 mode:'manual'`** — 与 `/api/deep` 行为一致,不消耗 Anthropic 额度 (F-009)。
+- **`fix(api): DELETE /api/pipeline`** 同时接受 `?url=` 与 `body.url`;URL 不存在时返回 404 (PR-6 / F-017)。
+
+### ✨ 功能
+
+- **`feat(llm): 所有提示注入 locale (PR-2 / F-012)`** — `resolveLocale(req)`、`buildLocaleDirective(lang)`。SPA 自动附加 `Accept-Language` + `lang`。
+- **`feat(scripts): post-qa-cleanup.mjs (PR-11)`** — 重放 QA 回归后清理清单;`--apply` 写入,默认 dry-run,幂等。
+
+### 🧪 测试
+
+- 新增 `tests/critical-fixes.test.mjs`(15 用例)。`tests/url-validation.test.mjs` 扩展 5 个用例。**单元测试 318 个**(原 298)。`portals-dead.test.mjs` 中已有失败源于 parent 的 `templates/portals.example.yml` 数据漂移 — 与 web-ui 代码无关。
+
+### 📝 文档
+
+- 新增 `docs/reviews/REVIEW-2026-05-09-v1.10.1.md`。所有 8 个 README 已更新(徽章 + 截图 + "v1.10.1 新增内容"章节)。所有 8 个 CHANGELOG 收录此条目。
+
+---
+
+## [1.10.0] — 2026-05-08
+
+> 完整文本见 [CHANGELOG.md](CHANGELOG.md#1100--2026-05-08)。摘要:CV 导入(`.docx`/`.doc`/`.odt`/`.rtf`/`.pdf`/`.html`/`.txt`/`.md`,经 pandoc + pdftotext,上限 10 MB)、Generate-PDF 后自动下载新 PDF、`#/config` 双标签页(API keys & runtime + Profile)、`#/profile` 正式成为规范路由、8 个 locale 帮助文档刷新。
+
+---
+
 ## [1.9.1] — 2026-05-08
 
 生产就绪通过。4 项定向修复(BF-1..BF-4),Playwright 烟雾测试从 5 个扩展到 12 个。

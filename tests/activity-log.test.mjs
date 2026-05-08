@@ -138,14 +138,16 @@ test('POST /api/pipeline gets logged with target=URL', async () => {
   assert.equal(hit.ok, true);
 });
 
-test('Failed mutation request is logged with ok:false', async () => {
+test('PR-5 / F-005: failed mutation requests are NOT logged (audit trail clean)', async () => {
   // Empty body → 400 from the validator.
+  // The audit log should record only successful state changes; 400-noise was
+  // confusing users and inflating the activity feed (qa/fixes/F-005).
+  const before = readActivity({ limit: 50 }).length;
   await postJson('/api/pipeline', {});
   await new Promise((r) => setTimeout(r, 50));
-  const evts = readActivity({ limit: 5 });
-  const hit = evts.find((e) => e.action === 'pipeline.add' && e.ok === false);
-  assert.ok(hit, 'expected ok:false event');
-  assert.match(hit.detail || '', /HTTP 4\d\d/);
+  const after = readActivity({ limit: 50 });
+  assert.equal(after.length, before, 'rejected request must not produce an event');
+  assert.ok(!after.some((e) => e.action === 'pipeline.add' && e.ok === false), 'no ok:false events from 4xx');
 });
 
 test('GET /api/activity exposes the events', async () => {

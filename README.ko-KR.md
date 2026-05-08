@@ -14,7 +14,17 @@
 > 📦 **v1.9.1** — 서버를 130줄 오케스트레이터 + `server/lib/routes/`의 12개 라우트 모듈로 리팩터링. `/api/evaluate`의 Anthropic 패리티(두 키 모두 있을 때 우선). 멀티 CLI 심(`AGENTS.md`, `GEMINI.md`)으로 Codex / Aider / Cursor / Gemini CLI 지원. **unit 284개 + Playwright smoke 12개**. 전체 production-readiness 평가: [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md). 싱글 테넌트 loopback 배포 준비 완료; LAN 노출용 auth gate는 v2.0 (P-12)에서 제공.
 
 
-![career-ops-ui — vacancy search](./screen_vacancy_found.png)
+![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
+
+## v1.10.1 새로운 변경사항
+
+- **보안: SSRF 표면 강화.** `isValidJobUrl`이 이제 RFC1918, 링크 로컬 (AWS IMDS `169.254.169.254` 포함), `0.0.0.0`, 전체 127/8 루프백 범위, CGNAT `100.64/10`, IPv6 ULA / 링크 로컬을 거부합니다. 프리뷰 프록시는 매 홉마다 DNS를 다시 조회하여 주소가 프라이빗 범위에 들어가면 차단합니다 — DNS 리바인딩 방어.
+- **활동 로그 정돈.** 이제 성공한 상태 변경만 기록됩니다 — 4xx 노이즈 없음. `profile.save`, `config.save`, `cv.import` 이벤트가 피드에 표시됩니다.
+- **한국어 도움말 본문 수정.** `GET /api/help/ko`가 이제 `ko-KR.md`를 정확히 제공합니다 (이전에는 파일명-로케일 불일치로 영어로 폴백되었음).
+- **LLM 프롬프트가 UI 언어를 따릅니다.** `/api/evaluate`, `/api/deep`, `/api/mode/:slug`, apply-helper가 `body.lang` / `Accept-Language`에 따라 "Respond in X" 지시문을 주입합니다. SPA가 모든 요청에 현재 로케일을 자동으로 첨부합니다.
+- **`/api/evaluate`가 `mode:'manual'`을 존중합니다** — Anthropic 크레딧을 소비하지 않고 프롬프트를 Claude Code에 복사할 수 있습니다.
+- **`DELETE /api/pipeline`**이 `?url=` 와 `body.url` 둘 다 받으며, URL이 인박스에 없을 때 `404` (조용한 `200` 아님)를 반환합니다.
+- **`scripts/post-qa-cleanup.mjs`** — QA 회귀 후 정리 체크리스트를 재실행합니다; 기본은 드라이런, 멱등적.
 
 ## 한 줄 설치
 

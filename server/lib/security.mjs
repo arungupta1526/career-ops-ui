@@ -22,14 +22,56 @@ export function isPubliclyExposed() {
 }
 
 /**
+ * Returns true when `host` resolves to a private/loopback/link-local space
+ * we never want to fetch. Covers (PR-3):
+ *   - RFC1918 ranges 10/8, 172.16/12, 192.168/16
+ *   - Loopback 127/8 (entire range, not just 127.0.0.1)
+ *   - Link-local 169.254/16 — the AWS IMDS endpoint 169.254.169.254 lives here
+ *   - 0.0.0.0 (any-address alias)
+ *   - CGNAT 100.64/10
+ *   - IPv6 loopback ::1, unspecified ::, ULA fc00::/7, link-local fe80::/10
+ *   - localhost / *.localhost suffix
+ * Used both by isValidJobUrl (string-level) and by the preview proxy
+ * after DNS resolution to defeat DNS-rebinding (PR-3).
+ */
+export function isPrivateOrLoopbackHost(host) {
+  if (!host || typeof host !== 'string') return false;
+  let h = host.toLowerCase().trim();
+  if (h.startsWith('[') && h.endsWith(']')) h = h.slice(1, -1);
+  if (h === 'localhost' || h.endsWith('.localhost')) return true;
+  if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(h)) {
+    const parts = h.split('.').map(Number);
+    if (parts.some((n) => n > 255 || Number.isNaN(n))) return true;
+    const [a, b] = parts;
+    if (a === 10) return true;
+    if (a === 127) return true;
+    if (a === 0) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 169 && b === 254) return true;
+    if (a === 100 && b >= 64 && b <= 127) return true;
+    return false;
+  }
+  if (h.includes(':')) {
+    if (h === '::1' || h === '::') return true;
+    if (/^fc[0-9a-f]{2}:/.test(h) || /^fd[0-9a-f]{2}:/.test(h)) return true;
+    if (/^fe[89ab][0-9a-f]:/.test(h)) return true;
+    return false;
+  }
+  return false;
+}
+
+/**
  * Validate a string as a job-posting URL. Defends against:
  *   - bare strings ("not-a-url") that slip past scheme checks because
  *     they have no scheme to reject (FIX-M7)
  *   - templating chars < > " ' ` \\ that hint at injection attempts
  *   - non-http(s) schemes (javascript:, data:, file:, ftp:, vbscript:)
- *   - loopback hostnames (localhost / 127.0.0.1 / ::1) — a job board
- *     is never on the user's laptop, so anything pointing inward is
- *     almost certainly a misconfig or SSRF probe
+ *   - loopback / RFC1918 / link-local / CGNAT hostnames — a public job
+ *     board is never on a private network, so anything pointing inward
+ *     is almost certainly a misconfig or SSRF probe (PR-3 expanded the
+ *     range from just localhost/::1 to the full private-IP set incl. AWS
+ *     IMDS 169.254.169.254 and 0.0.0.0)
  *   - obviously bogus length: <10 chars (a real URL needs at least
  *     "http://x.x") or >2000 chars (typical browser cap, anything
  *     longer is a paste mistake or a tracking-blob explosion)
@@ -47,8 +89,7 @@ export function isValidJobUrl(input) {
   }
   if (!['http:', 'https:'].includes(parsed.protocol)) return false;
   if (!parsed.hostname) return false;
-  const host = parsed.hostname.toLowerCase();
-  if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]') return false;
+  if (isPrivateOrLoopbackHost(parsed.hostname)) return false;
   return true;
 }
 

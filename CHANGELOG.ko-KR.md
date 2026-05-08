@@ -6,6 +6,42 @@
 
 ---
 
+## [1.10.1] — 2026-05-09
+
+v1.10.0 QA 회귀 결과를 반영한 중요 수정 패치 (`qa/reports/00-FINAL-SUMMARY.md`).
+
+### 🛡️ 보안
+
+- **`fix(security): SSRF 표면 강화 + DNS 리바인딩 방어 (PR-3 / F-003)`** — `isValidJobUrl`이 RFC1918, 전체 127/8 루프백, 링크 로컬 `169.254/16` (AWS IMDS 포함), `0.0.0.0`, CGNAT `100.64/10`, IPv6 ULA / 링크 로컬을 거부합니다. 새 헬퍼 `isPrivateOrLoopbackHost()`. 프리뷰 프록시는 매 홉마다 `dns.lookup`을 수행하고 주소가 프라이빗 범위면 차단합니다 — DNS 리바인딩 방어.
+
+### 🐛 버그 수정
+
+- **`fix(activity)`**: 성공한 상태 변경만 기록 (PR-5 / F-005); 4xx로 거부된 시도는 로그되지 않습니다. `profile.save`, `config.save`, `cv.import` 이벤트 추가 (F-008).
+- **`fix(help)`**: 한국어 본문이 영어로 폴백되지 않도록 `ko` → `ko-KR.md` 별칭 추가 (F-002).
+- **`fix(llm): /api/evaluate가 mode:'manual'을 존중`** — `/api/deep`과 동일한 동작, Anthropic 크레딧 미소비 (F-009).
+- **`fix(api): DELETE /api/pipeline`** `?url=` 와 `body.url` 둘 다 수용; URL이 없을 때 404 반환 (PR-6 / F-017).
+
+### ✨ 기능
+
+- **`feat(llm): 모든 프롬프트에 로케일 전파 (PR-2 / F-012)`** — `resolveLocale(req)`, `buildLocaleDirective(lang)`. SPA가 `Accept-Language` + `lang`을 자동으로 첨부합니다.
+- **`feat(scripts): post-qa-cleanup.mjs (PR-11)`** — QA 회귀 후 정리 체크리스트 재실행; `--apply`로 쓰기, 기본은 드라이런, 멱등적.
+
+### 🧪 테스트
+
+- 새 `tests/critical-fixes.test.mjs` (15 케이스). `tests/url-validation.test.mjs`에 5개 추가. **유닛 테스트 318개** (기존 298). `portals-dead.test.mjs`의 기존 실패는 parent의 `templates/portals.example.yml` 데이터 드리프트 — web-ui 코드와 무관.
+
+### 📝 문서
+
+- 새 `docs/reviews/REVIEW-2026-05-09-v1.10.1.md`. 8개 README 모두 업데이트 (배지 + 스크린샷 + "v1.10.1 새로운 변경사항" 섹션). 8개 CHANGELOG에 본 항목 반영.
+
+---
+
+## [1.10.0] — 2026-05-08
+
+> 전체 텍스트는 [CHANGELOG.md](CHANGELOG.md#1100--2026-05-08)에 있습니다. 요약: CV 임포트 (`.docx`/`.doc`/`.odt`/`.rtf`/`.pdf`/`.html`/`.txt`/`.md`, pandoc + pdftotext 경유, 10 MB 한도), Generate-PDF 후 새 PDF 자동 다운로드, `#/config` 두 탭 (API keys & runtime + Profile), `#/profile`이 표준 라우트로 승격, 8개 로케일 도움말 갱신.
+
+---
+
 ## [1.9.1] — 2026-05-08
 
 프로덕션 준비 패스. 4건의 표적 수정(BF-1..BF-4), Playwright 스모크 5 → 12개 확장.

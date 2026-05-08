@@ -6,6 +6,42 @@
 
 ---
 
+## [1.10.1] — 2026-05-09
+
+v1.10.0 QA 回帰結果に基づく重要修正パッチ (`qa/reports/00-FINAL-SUMMARY.md`)。
+
+### 🛡️ セキュリティ
+
+- **`fix(security): SSRF 表面の強化 + DNS リバインド対策 (PR-3 / F-003)`** — `isValidJobUrl` が RFC1918、127/8 全範囲、リンクローカル `169.254/16` (AWS IMDS を含む)、`0.0.0.0`、CGNAT `100.64/10`、IPv6 ULA / リンクローカルを拒否します。新しいヘルパー `isPrivateOrLoopbackHost()`。プレビュープロキシは各ホップで `dns.lookup` を行い、アドレスがプライベート範囲ならブロックします — DNS リバインド対策。
+
+### 🐛 バグ修正
+
+- **`fix(activity)`**: 成功した状態変更のみを記録 (PR-5 / F-005); 4xx で拒否されたリクエストはログされません。`profile.save`、`config.save`、`cv.import` イベントを追加 (F-008)。
+- **`fix(help)`**: 韓国語本文が英語にフォールバックしないよう `ko` → `ko-KR.md` のエイリアスを追加 (F-002)。
+- **`fix(llm): /api/evaluate が mode:'manual' を尊重`** — `/api/deep` と同じ動作、Anthropic クレジット非消費 (F-009)。
+- **`fix(api): DELETE /api/pipeline`** が `?url=` と `body.url` の両方を受け付け、URL がない場合は 404 を返します (PR-6 / F-017)。
+
+### ✨ 機能
+
+- **`feat(llm): すべてのプロンプトにロケール伝播 (PR-2 / F-012)`** — `resolveLocale(req)`、`buildLocaleDirective(lang)`。SPA が `Accept-Language` + `lang` を自動的に添付します。
+- **`feat(scripts): post-qa-cleanup.mjs (PR-11)`** — QA 回帰後のクリーンアップチェックリストを再実行; `--apply` で書き込み、デフォルトはドライラン、冪等。
+
+### 🧪 テスト
+
+- 新規 `tests/critical-fixes.test.mjs` (15 ケース)。`tests/url-validation.test.mjs` に 5 件追加。**ユニットテスト 318 件** (以前は 298)。`portals-dead.test.mjs` の既存の失敗は parent の `templates/portals.example.yml` データドリフト — web-ui コードとは無関係。
+
+### 📝 ドキュメント
+
+- 新規 `docs/reviews/REVIEW-2026-05-09-v1.10.1.md`。8 つの README 全てを更新 (バッジ + スクリーンショット + 「v1.10.1 の新機能」セクション)。8 つの CHANGELOG にこのエントリを反映。
+
+---
+
+## [1.10.0] — 2026-05-08
+
+> 全文は [CHANGELOG.md](CHANGELOG.md#1100--2026-05-08) を参照。要約: CV インポート (`.docx`/`.doc`/`.odt`/`.rtf`/`.pdf`/`.html`/`.txt`/`.md`、pandoc + pdftotext 経由、10 MB 上限)、Generate-PDF 後の新規 PDF 自動ダウンロード、`#/config` 二タブ構成 (API keys & runtime + Profile)、`#/profile` を正規ルートに昇格、8 ロケールのヘルプ刷新。
+
+---
+
 ## [1.9.1] — 2026-05-08
 
 Production-readiness パス。4 件の的を絞った修正 (BF-1..BF-4)、Playwright スモークを 5 → 12 件に拡充。
