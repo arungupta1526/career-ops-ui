@@ -50,11 +50,17 @@ Router.register('evaluate', async () => {
       ]));
     } else {
       const cls = r.code === 0 ? 'badge-ok' : 'badge-bad';
+      // Engine label (Gemini / Anthropic) stays as a brand name across
+      // locales; only the surrounding scaffolding ("exit", "Saved:")
+      // gets localized so the badge reads naturally in every UI language.
+      const engineName = r.mode === 'anthropic' ? 'Anthropic' : 'Gemini';
       out.appendChild(c('div', { className: 'card' }, [
         c('div', { className: 'flex-between mb-3' }, [
           c('div', { className: 'flex gap-3' }, [
-            c('div', { className: 'badge ' + cls }, 'Gemini · exit ' + r.code),
-            r.saved && c('div', { className: 'badge badge-info' }, 'Saved: ' + r.saved),
+            c('div', { className: 'badge ' + cls },
+              engineName + ' · ' + t('eval.exit', 'exit') + ' ' + (r.code ?? 0)),
+            r.saved && c('div', { className: 'badge badge-info' },
+              t('eval.savedAs', 'Saved') + ': ' + r.saved),
           ]),
         ]),
         r.stdout && c('div', { className: 'md', html: UI.md(r.stdout) }),

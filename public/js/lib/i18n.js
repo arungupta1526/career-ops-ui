@@ -319,6 +319,8 @@ window.I18n = (function () {
     'eval.manualMode':{ en: 'Manual mode (no GEMINI_API_KEY)', es: 'Modo manual (sin GEMINI_API_KEY)', 'pt-BR': 'Modo manual (sem GEMINI_API_KEY)', ko: '수동 모드 (GEMINI_API_KEY 없음)', ja: '手動モード (GEMINI_API_KEY なし)', ru: 'Manual mode (нет GEMINI_API_KEY)', 'zh-CN': '手动模式 (无 GEMINI_API_KEY)', 'zh-TW': '手動模式 (無 GEMINI_API_KEY)' },
     'eval.copy':      { en: '⧉ Copy prompt', es: '⧉ Copiar prompt', 'pt-BR': '⧉ Copiar prompt', ko: '⧉ 프롬프트 복사', ja: '⧉ プロンプトをコピー', ru: '⧉ Скопировать промпт', 'zh-CN': '⧉ 复制 prompt', 'zh-TW': '⧉ 複製 prompt' },
     'eval.copied':    { en: 'Prompt copied', es: 'Prompt copiado', 'pt-BR': 'Prompt copiado', ko: '프롬프트 복사됨', ja: 'プロンプトをコピーしました', ru: 'Промпт скопирован', 'zh-CN': 'Prompt 已复制', 'zh-TW': 'Prompt 已複製' },
+    'eval.exit':      { en: 'exit', es: 'salida', 'pt-BR': 'saída', ko: '종료', ja: '終了', ru: 'код выхода', 'zh-CN': '退出', 'zh-TW': '退出' },
+    'eval.savedAs':   { en: 'Saved', es: 'Guardado', 'pt-BR': 'Salvo', ko: '저장됨', ja: '保存', ru: 'Сохранено', 'zh-CN': '已保存', 'zh-TW': '已儲存' },
     'eval.copyHint':  { en: 'Copy this prompt and paste into Claude/ChatGPT/Gemini.', es: 'Copia este prompt y pégalo en Claude/ChatGPT/Gemini.', 'pt-BR': 'Copie este prompt e cole no Claude/ChatGPT/Gemini.', ko: '이 프롬프트를 복사하여 Claude/ChatGPT/Gemini에 붙여넣으세요.', ja: 'このプロンプトをコピーして Claude/ChatGPT/Gemini に貼り付けてください。', ru: 'Скопируйте промпт ниже и вставьте в Claude Code или другой LLM.', 'zh-CN': '复制此 prompt 并粘贴到 Claude/ChatGPT/Gemini。', 'zh-TW': '複製此 prompt 並貼到 Claude/ChatGPT/Gemini。' },
 
     // Deep / Apply
