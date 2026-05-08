@@ -1,6 +1,11 @@
 /* global Router, API, UI, I18n */
 Router.register('dashboard', async () => {
-  const data = await API.get('/api/dashboard');
+  // Pull both dashboard data and live health in parallel — saves a round-trip
+  // since the System Status card reuses /api/health.
+  const [data, health] = await Promise.all([
+    API.get('/api/dashboard'),
+    API.get('/api/health').catch(() => null),
+  ]);
   const c = UI.el;
   const t = (k, f) => I18n.t(k, f);
 
@@ -11,6 +16,30 @@ Router.register('dashboard', async () => {
     return 'score-low';
   }
 
+  // Compact "quick action" tile. Renders an icon + label + sub-label.
+  // Click goes to `route`. Each tile is keyboard-focusable for a11y.
+  function qa(icon, labelKey, labelFallback, subKey, subFallback, route) {
+    return c('button', {
+      className: 'qa-tile',
+      onClick: () => Router.go(route),
+      title: route,
+    }, [
+      c('span', { className: 'qa-icon' }, icon),
+      c('span', { className: 'qa-body' }, [
+        c('span', { className: 'qa-label' }, t(labelKey, labelFallback)),
+        c('span', { className: 'qa-sub' }, t(subKey, subFallback)),
+      ]),
+    ]);
+  }
+
+  // Group of tiles under a heading.
+  function qaGroup(titleKey, titleFallback, tiles) {
+    return c('div', { className: 'qa-group' }, [
+      c('h3', { className: 'qa-group-title' }, t(titleKey, titleFallback)),
+      c('div', { className: 'qa-grid' }, tiles),
+    ]);
+  }
+
   const root = c('div', null, [
     c('header', { className: 'page-header' }, [
       c('div', null, [
@@ -19,11 +48,11 @@ Router.register('dashboard', async () => {
       ]),
       c('div', { className: 'flex gap-3' }, [
         c('button', { className: 'btn btn-ghost', onClick: () => Router.go('/pipeline') }, t('dash.openPipeline')),
-        c('button', { className: 'btn btn-primary', onClick: () => Router.go('/evaluate') }, t('dash.evaluate')),
+        c('button', { className: 'btn btn-primary', onClick: () => Router.go('/scan') }, '🌐 ' + t('dash.scanNow', 'Scan now')),
       ]),
     ]),
 
-    // metrics
+    // ── 4 metric cards ────────────────────────────────────────────
     c('div', { className: 'card-row' }, [
       metric(t('dash.apps'), data.counts.applications, t('dash.tracker')),
       metric(t('dash.pipeline'), data.counts.pipeline, t('dash.pending')),
@@ -31,7 +60,47 @@ Router.register('dashboard', async () => {
       metric(t('dash.avgScore'), data.avgScore ?? '—', '/ 5.0', scoreClass(data.avgScore)),
     ]),
 
-    // by status
+    // ── Quick actions (every sidebar item, grouped by purpose) ────
+    c('section', { className: 'section' }, [
+      c('h2', { className: 'section-title' }, t('dash.quick.title', 'Quick actions')),
+
+      qaGroup('dash.quick.searchApply', 'Search & Apply', [
+        qa('🌐', 'dash.quick.scanCta', 'Scan all sources', 'dash.quick.scanSub', 'Greenhouse · Ashby · Lever · hh.ru · Habr', '/scan'),
+        qa('📥', 'nav.pipeline', 'Pipeline', 'dash.quick.pipelineSub', `${data.counts.pipeline} pending URLs`, '/pipeline'),
+        qa('▶', 'dash.quick.evaluateCta', 'Evaluate a JD', 'dash.quick.evaluateSub', 'Anthropic-first scoring', '/evaluate'),
+        qa('≡', 'nav.tracker', 'Tracker', 'dash.quick.trackerSub', `${data.counts.applications} applications`, '/tracker'),
+      ]),
+
+      qaGroup('dash.quick.researchPrep', 'Research & Prep', [
+        qa('⌕', 'dash.quick.deepCta', 'Deep research', 'dash.quick.deepSub', 'Company intel via LLM', '/deep'),
+        qa('🎯', 'dash.quick.interviewCta', 'Interview prep', 'dash.quick.interviewSub', 'Saved research', '/interview-prep'),
+        qa('📈', 'dash.quick.patternsCta', 'Patterns', 'dash.quick.patternsSub', 'Analyze your wins', '/patterns'),
+        qa('🔔', 'dash.quick.followupCta', 'Follow-up', 'dash.quick.followupSub', 'After-interview email', '/followup'),
+      ]),
+
+      qaGroup('dash.quick.promptBuilders', 'Prompt builders', [
+        qa('💡', 'dash.quick.projectCta', 'Project ideas', 'dash.quick.projectSub', 'Tailor a portfolio', '/project'),
+        qa('📚', 'dash.quick.trainingCta', 'Training plan', 'dash.quick.trainingSub', 'Skill gap → curriculum', '/training'),
+        qa('📦', 'dash.quick.batchCta', 'Batch evaluate', 'dash.quick.batchSub', 'Multiple JDs at once', '/batch'),
+        qa('✉️', 'dash.quick.contactoCta', 'Outreach', 'dash.quick.contactoSub', 'Recruiter / referral', '/contacto'),
+      ]),
+
+      qaGroup('dash.quick.workspace', 'Workspace', [
+        qa('✎', 'dash.quick.cvCta', 'Edit CV', 'dash.quick.cvSub', 'cv.md side-by-side', '/cv'),
+        qa('⚙', 'dash.quick.profileCta', 'Profile', 'dash.quick.profileSub', 'config/profile.yml', '/profile'),
+        qa('🔧', 'dash.quick.configCta', 'App settings', 'dash.quick.configSub', 'API keys, host, port', '/config'),
+        qa('▦', 'dash.quick.reportsCta', 'Reports', 'dash.quick.reportsSub', `${data.counts.reports} past evaluations`, '/reports'),
+        qa('→', 'dash.quick.applyCta', 'Apply helper', 'dash.quick.applySub', 'Submission checklist', '/apply'),
+        qa('🕘', 'dash.quick.activityCta', 'Activity log', 'dash.quick.activitySub', 'Audit trail', '/activity'),
+      ]),
+
+      qaGroup('dash.quick.system', 'System', [
+        qa('❤', 'dash.quick.healthCta', 'Health', 'dash.quick.healthSub', 'System checks', '/health'),
+        qa('📖', 'dash.quick.helpCta', 'Help', 'dash.quick.helpSub', 'In-app guide', '/help'),
+      ]),
+    ]),
+
+    // ── Status breakdown ──────────────────────────────────────────
     c('section', { className: 'section' }, [
       c('h2', { className: 'section-title' }, t('dash.statuses')),
       c('div', { className: 'card' },
@@ -45,19 +114,19 @@ Router.register('dashboard', async () => {
       ),
     ]),
 
+    // ── Recent + Pipeline (existing 2-col grid) ───────────────────
     c('div', { className: 'grid-2 section' }, [
-      // recent
       c('div', null, [
         c('h2', { className: 'section-title' }, t('dash.recent')),
         recentTable(data.recent, scoreClass),
       ]),
-      // pipeline
       c('div', null, [
         c('h2', { className: 'section-title' }, t('dash.pipeline')),
         pipelineCard(data.pipeline),
       ]),
     ]),
 
+    // ── Last report (existing) ────────────────────────────────────
     data.lastReport && c('section', { className: 'section' }, [
       c('h2', { className: 'section-title' }, t('dash.lastReport')),
       c('div', { className: 'card' }, [
@@ -73,6 +142,12 @@ Router.register('dashboard', async () => {
           c('button', { className: 'btn btn-ghost btn-sm', onClick: () => Router.go('/reports/' + data.lastReport.slug) }, t('common.open') + ' →'),
         ]),
       ]),
+    ]),
+
+    // ── System status card (live from /api/health) ────────────────
+    health && c('section', { className: 'section' }, [
+      c('h2', { className: 'section-title' }, t('dash.system.title', 'System status')),
+      systemStatusCard(health, t),
     ]),
   ]);
 
@@ -128,6 +203,35 @@ function pipelineCard(urls) {
       )
     )
   );
+}
+
+function systemStatusCard(h, t) {
+  const c = UI.el;
+  // Surface 4 high-signal facts:
+  //   - Required checks pass / total
+  //   - Optional warnings count
+  //   - Anthropic key set / unset
+  //   - Gemini key set / unset
+  const req = h.checks.filter((x) => x.required);
+  const reqOk = req.filter((x) => x.ok).length;
+  const anth = h.checks.find((x) => x.name === 'ANTHROPIC_API_KEY');
+  const gem = h.checks.find((x) => x.name === 'GEMINI_API_KEY');
+  const tag = (label, value, ok) =>
+    c('div', { className: 'badge ' + (ok ? 'badge-ok' : 'badge-warn') }, label + ' · ' + value);
+  return c('div', { className: 'card' }, [
+    c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap', alignItems: 'center' } }, [
+      tag(t('dash.system.required', 'Required'), `${reqOk}/${req.length}`, reqOk === req.length),
+      tag(t('dash.system.warnings', 'Warnings'), String(h.warnings || 0), (h.warnings || 0) === 0),
+      tag('Anthropic', anth?.ok ? t('dash.system.set', 'set') : t('dash.system.unset', 'unset'), !!anth?.ok),
+      tag('Gemini', gem?.ok ? t('dash.system.set', 'set') : t('dash.system.unset', 'unset'), !!gem?.ok),
+      c('div', { style: { marginLeft: 'auto' } },
+        c('button', {
+          className: 'btn btn-ghost btn-sm',
+          onClick: () => window.Router.go('/health'),
+        }, t('common.open', 'Open') + ' →')
+      ),
+    ]),
+  ]);
 }
 
 function statusClass(s) {
