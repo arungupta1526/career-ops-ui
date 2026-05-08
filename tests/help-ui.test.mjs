@@ -87,13 +87,13 @@ test('docs/help/{lang}.md exists for every supported locale', () => {
   }
 });
 
-test('every help doc covers the same 14 sections (all 8 locales — P-8)', () => {
-  // P-8 — verify section parity across every shipped locale, not just
-  // en + ru. A user switching language should land on the same
-  // structural document, not a stub. Content can be shorter (compact
-  // translations are fine) but the 14-section skeleton is mandatory.
+test('every help doc covers the same 16 sections (all 8 locales — P-8 expanded)', () => {
+  // Full user-journey coverage: from initial setup + API keys to
+  // applying for jobs and preparing for interviews. v1.9.2 expanded
+  // from 14 → 16 sections (added App settings & API keys, Interview
+  // preparation; renamed Setup hints → Troubleshooting).
   const helpDir = resolve(ROOT, 'docs', 'help');
-  const SECTION_COUNT = 14;
+  const SECTION_COUNT = 16;
   const ALL_LOCALES = ['en', 'es', 'pt-BR', 'ko-KR', 'ja', 'ru', 'zh-CN', 'zh-TW'];
   for (const lang of ALL_LOCALES) {
     const fname = `${lang}.md`;
