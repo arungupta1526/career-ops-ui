@@ -5,11 +5,19 @@
 
 **English** | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-284%20passed-brightgreen)](#tests)
-[![playwright](https://img.shields.io/badge/playwright-12%20smoke-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-298%20passed-brightgreen)](#tests)
+[![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.9.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.9.1)
+[![release](https://img.shields.io/badge/release-v1.10.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.10.0)
+
+## What's new in v1.10.0
+
+- **CV import** — `📁 Upload CV` now accepts `.docx`, `.doc`, `.odt`, `.rtf`, `.pdf`, `.html`, `.txt`, `.md`. Office formats convert via pandoc, PDFs via Poppler's `pdftotext`. Result is sanitized through the same XSS strip as paste, capped at 10 MB.
+- **PDF auto-download** — when `📄 Generate PDF` finishes, the newest output PDF is auto-downloaded to your browser; the on-page list still keeps every previous one.
+- **`#/config` two-tab layout** — API keys & runtime stay on tab one; the new **Profile** tab is a direct YAML editor for `config/profile.yml` (validated, header-stamped).
+- **`#/profile` is now the canonical route** (was `#/settings`). The old hash still resolves so bookmarks keep working.
+- **Help docs refreshed** in all 8 locales for every change above.
 
 ![career-ops-ui — vacancy search](./screen_vacancy_found.png)
 

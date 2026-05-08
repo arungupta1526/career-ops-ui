@@ -6,6 +6,36 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.10.0] — 2026-05-08
+
+CV import revamp + `#/config` tabs + canonical `#/profile` route.
+
+### ✨ Features
+
+- **`feat(cv): server-side import for .docx / .doc / .odt / .rtf / .pdf / .html / .txt / .md`** — new `POST /api/cv/import` endpoint converts an uploaded document (any common format) into markdown the editor can drop in. Office formats go via **pandoc**, PDF via **pdftotext** from Poppler. Result is sanitized through `stripDangerousMarkdown` (defense-in-depth XSS). Hard cap: 10 MB per upload. Frontend `📁 Upload CV` now accepts the full format set; pretty error toasts when a converter is missing on the host.
+- **`feat(cv): auto-download generated PDF when generate-pdf.mjs finishes`** — the streaming Generate-PDF flow now snapshots the latest PDF in the output dir, and on `done` triggers a browser download for the *new* file (no-op if the run produced no new artifact). The existing on-page list still shows every previous PDF.
+- **`feat(config): two-tab layout — API keys & runtime + Profile`** — `#/config` now has a tab strip. The first tab keeps the existing `.env` editor (API keys, models, scanner knobs). The new **Profile** tab is a direct YAML editor for `config/profile.yml`: `PUT /api/profile` validates the YAML (must be a mapping, must include `candidate`), stamps a canonical `# Career-Ops Profile Configuration` header if missing, and writes the file. Save propagates without restart.
+- **`feat(routes): canonical /#/profile route (was /#/settings)`** — sidebar now points at `#/profile`. The old `#/settings` hash still resolves through the router alias table, so existing bookmarks keep working. Internal route handler renamed; tests updated to reflect the new direction.
+
+### 🧪 Tests
+
+- New `tests/cv-import.test.mjs` (7 cases): `.md` / `.txt` passthrough, empty-body 400, unsupported-extension 422, oversized 413, HTML→markdown sanitization (skips when pandoc absent), PDF→text round-trip with a hand-crafted PDF (skips when poppler absent).
+- New `tests/profile-put.test.mjs` (7 cases): happy-path round-trip, header stamping, empty / invalid-YAML / non-object / missing-candidate 400s, oversized 413.
+- `tests/playwright-full-cycle.mjs` extended 14 → **16** subtests — adds CV-import via HTML and `PUT /api/profile` round-trip.
+- `tests/router.test.mjs` ALIAS regex flipped to assert the new `settings → profile` direction.
+
+### 📚 Docs
+
+- `docs/help/{en,ru}.md` — full updates to sections 2/3/4: new App-settings tabs, edit-via-config message on the read-only Profile page, full upload-format matrix on the CV section, PDF auto-download behaviour.
+- `docs/help/{es,pt-BR,ko-KR,ja,zh-CN,zh-TW}.md` — concise mirrors of the new content blocks; section count unchanged (16) so the parity test stays green.
+
+### 🔧 Internal
+
+- New `server/lib/cv-import.mjs` — single source of truth for the format → markdown conversion, with timeout + missing-converter detection that surfaces actionable hints rather than 500s.
+- `server/lib/routes/content.mjs` gains `POST /api/cv/import` and `PUT /api/profile` (binary-safe via `express.raw` for the upload, JSON for the YAML PUT).
+
+---
+
 ## [1.9.1] — 2026-05-08
 
 Production-readiness pass. Four targeted bug fixes (BF-1..BF-4), Playwright smoke expanded from 5 to 12 tests covering tracker / pipeline / reports / evaluate / config / cv save round-trips. All green in CI.

@@ -5,13 +5,19 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | **Русский** | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-284%20passed-brightgreen)](README.md#tests)
-[![playwright](https://img.shields.io/badge/playwright-12%20smoke-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-298%20passed-brightgreen)](README.md#tests)
+[![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.9.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.9.1)
+[![release](https://img.shields.io/badge/release-v1.10.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.10.0)
 
-> 📦 **v1.9.1** — server/index.mjs ужат до 130-строчного orchestrator + 12 route-модулей в `server/lib/routes/`. Anthropic-паритет в `/api/evaluate` (предпочтителен при наличии обоих ключей). Multi-CLI shim'ы (`AGENTS.md`, `GEMINI.md`) для Codex / Aider / Cursor / Gemini CLI. **284 unit + 12 Playwright smoke тестов**. Production-readiness assessment: [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md). Готов к single-tenant loopback deploy; auth gate для LAN exposure — v2.0 (P-12).
+## Что нового в v1.10.0
+
+- **CV import** — `📁 Upload CV` принимает `.docx`, `.doc`, `.odt`, `.rtf`, `.pdf`, `.html`, `.txt`, `.md`. Office идёт через pandoc, PDF — через `pdftotext` из Poppler. Результат проходит тот же XSS-страйп, что и paste, лимит 10 MB.
+- **PDF auto-download** — после `📄 Generate PDF` свежий PDF автоматически скачивается в браузер; список на странице сохраняет все предыдущие файлы.
+- **Двухтабовый `#/config`** — первая вкладка та же (API-ключи + runtime); новая вкладка **Profile** — прямой YAML-редактор `config/profile.yml` с валидацией и проставлением канонического заголовка.
+- **`#/profile` теперь канонический маршрут** (раньше был `#/settings`). Старый хеш всё равно резолвится, букмарки не ломаются.
+- **Help-доки обновлены** во всех 8 локалях.
 
 
 ![career-ops-ui — vacancy search](./screen_vacancy_found.png)
