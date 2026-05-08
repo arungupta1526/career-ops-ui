@@ -43,7 +43,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 | 页面             | 功能                                                                                                              |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
 | **Dashboard**    | 聚合计数 (apps / pipeline / reports)、平均分、按状态分类、最新 5 个 apps + 最新报告。                                       |
-| **Scan**         | **两个扫描器:** 🌍 EN scan (Greenhouse/Ashby/Lever, 24+ 已验证 board) + 🇷🇺 RU scan (hh.ru API + Habr Career HTML 抓取)。实时 SSE 日志 + 带 stack/level chip 过滤器和 location / Remote-Hybrid / reloc / source 过滤器的可点击结果表。 |
+| **Scan**         | **🌐 单个 🌐 Scan 按钮** — 一次性扫描所有已启用的来源(EN:Greenhouse / Ashby / Lever,RU:hh.ru + Habr Career)。实时 SSE 日志 + 带 stack/level chip 过滤器和 location / Remote-Hybrid / reloc / source 过滤器的可点击结果表。 |
 | **Pipeline**     | 对 `data/pipeline.md` 进行 CRUD。从 URL 直接跳转到评估。                                                              |
 | **Evaluate**     | 粘贴 JD → 如果设置了 `GEMINI_API_KEY`,运行 `gemini-eval.mjs`;否则返回 Claude 的复制粘贴 prompt。                       |
 | **Deep research**| 为指定的公司/角色生成完整的 `modes/deep.md` prompt。                                                                  |

@@ -43,7 +43,7 @@ Esse comando clona ambos os repositórios (career-ops + career-ops-ui), instala 
 | Página           | O que faz                                                                                                          |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------ |
 | **Dashboard**    | Contadores agregados (apps / pipeline / relatórios), score médio, breakdown por status, últimas 5 apps + último relatório. |
-| **Scan**         | **Dois scanners:** 🌍 EN scan (Greenhouse/Ashby/Lever, 24+ boards verificados) + 🇷🇺 RU scan (API hh.ru + scraping de Habr Career). Streaming SSE ao vivo + tabela de resultados com chips de stack/nível e filtros location / Remote-Hybrid / reloc / source. |
+| **Scan**         | **🌐 Botão único 🌐 Scan** — percorre cada fonte habilitada em uma única passagem (Greenhouse / Ashby / Lever para EN, hh.ru + Habr Career para RU). Streaming SSE ao vivo + tabela de resultados com chips de stack/nível e filtros location / Remote-Hybrid / reloc / source. |
 | **Pipeline**     | CRUD em `data/pipeline.md`. Pula direto da URL para avaliar.                                                       |
 | **Evaluate**     | Cole JD → se `GEMINI_API_KEY` estiver setado, roda `gemini-eval.mjs`; senão, devolve um prompt para Claude.       |
 | **Deep research**| Gera o prompt completo de `modes/deep.md` para a empresa/role indicados.                                          |

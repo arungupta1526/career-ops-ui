@@ -43,7 +43,7 @@ Es puramente aditivo: nada dentro de `career-ops/` se modifica. Tus personalizac
 | Página           | Qué hace                                                                                                            |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------- |
 | **Dashboard**    | Conteos agregados (apps / pipeline / reports), score promedio, desglose por estado, últimas 5 apps + último reporte. |
-| **Scan**         | **Dos scanners:** 🌍 EN scan (Greenhouse/Ashby/Lever, 24+ boards verificados) + 🇷🇺 RU scan (API hh.ru + scraping de Habr Career). Streaming SSE en vivo + tabla de resultados con chips de stack/nivel y filtros location / Remote-Hybrid / reloc / source. |
+| **Scan**         | **🌐 Botón único 🌐 Scan** — recorre cada fuente activada en un solo barrido (Greenhouse / Ashby / Lever para EN, hh.ru + Habr Career para RU). Streaming SSE en vivo + tabla de resultados con chips de stack/nivel y filtros location / Remote-Hybrid / reloc / source. |
 | **Pipeline**     | CRUD sobre `data/pipeline.md`. Salta directo de URL a evaluar.                                                       |
 | **Evaluate**     | Pega oferta → si `GEMINI_API_KEY` está activo, ejecuta `gemini-eval.mjs`; si no, devuelve un prompt para Claude.    |
 | **Deep research**| Genera el prompt completo de `modes/deep.md` para la empresa/rol indicados.                                         |

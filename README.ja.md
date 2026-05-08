@@ -43,7 +43,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 | ページ            | 機能                                                                                                              |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
 | **Dashboard**    | 集計カウント (apps / pipeline / reports)、平均スコア、ステータス内訳、最新 5 件の apps + 最新レポート。                       |
-| **Scan**         | **2 つのスキャナー:** 🌍 EN scan (Greenhouse/Ashby/Lever、24+ 検証済み board) + 🇷🇺 RU scan (hh.ru API + Habr Career HTML スクレイピング)。ライブ SSE ログ + stack/level チップフィルターと location / Remote-Hybrid / reloc / source フィルター付きの結果テーブル。 |
+| **Scan**         | **🌐 単一の 🌐 Scan ボタン** — 1 回のスイープで有効なすべてのソースを実行 (EN: Greenhouse / Ashby / Lever、RU: hh.ru + Habr Career)。ライブ SSE ログ + stack/level チップフィルターと location / Remote-Hybrid / reloc / source フィルター付きの結果テーブル。 |
 | **Pipeline**     | `data/pipeline.md` への CRUD。URL から評価へ直接ジャンプ。                                                              |
 | **Evaluate**     | JD を貼り付け → `GEMINI_API_KEY` が設定されていれば `gemini-eval.mjs` を実行; なければ Claude 用のコピペ可能なプロンプトを返す。 |
 | **Deep research**| 指定された会社/役割について、`modes/deep.md` の完全なプロンプトを生成。                                                       |

@@ -13,22 +13,6 @@
 
 ![career-ops-ui — vacancy search](./screen_vacancy_found.png)
 
-```
-   ┌──────────────────────────────────────────────────────────────────────┐
-   │ ◆ Dashboard      │  Command Center                                   │
-   │ ◇ Scan           │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐  │
-   │ ▤ Pipeline       │  │  Apps   │ │Pipeline │ │ Reports │ │  Score  │  │
-   │ ▷ Evaluate       │  │   12    │ │    3    │ │   12    │ │   4.2   │  │
-   │ ⌕ Deep research  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘  │
-   │ → Apply helper   │                                                   │
-   │ ≡ Tracker        │  Vacancies found  [filters: stack · level · src]  │
-   │ ▦ Reports        │  ┌────────────────────────────────────────────┐   │
-   │ ✎ CV             │  │ Vercel  Software Engineer, Backend  Remote │   │
-   │ ⚙ Profile        │  │ GitLab  Engineering Manager, AI     Remote │   │
-   │ ❤ Health         │  │ Stripe  Backend Engineer, Billing   US     │   │
-   └──────────────────────────────────────────────────────────────────────┘
-```
-
 ## One-command install
 
 ```bash
@@ -161,45 +145,35 @@ Global keyboard shortcuts:
 
 ---
 
-## The scanners
+## Scan
 
-This is the killer feature: zero-token portal scanning that actually returns vacancies.
+Zero-token portal scanning that actually returns vacancies. **One 🌐 Scan button** in the UI runs every configured source in a single sweep:
 
-### 🌍 EN scan — `/api/stream/scan-en`
+- **Greenhouse / Ashby / Lever** — public boards-api for every company in `portals.yml::tracked_companies` with a recognizable ATS pattern. Bundled list covers Stripe, GitLab, Vercel, Cloudflare, Datadog, Discord, Elastic, Grafana Labs, CockroachDB, Fastly, Twilio, Coinbase, Reddit, Robinhood, Affirm, Lyft, Linear, Supabase, PostHog, Ramp, Modal Labs, Railway, Browserbase, JetBrains — extend or trim freely.
+- **hh.ru** — public API (returns 403 from non-RU IPs; set `HH_USER_AGENT` in `.env` to a registered app UA, or run from a Russian IP, or skip — repeated 403s from one source are coalesced and the source is disabled mid-run).
+- **Habr Career** — HTML scrape of `career.habr.com/vacancies`. Works from any IP, no auth.
 
-Hits the public boards-api of Greenhouse, Ashby, and Lever for every company in `portals.yml` that has either an `api:` field set or a `careers_url` matching one of the three ATS URL patterns. Pre-bundled list of 24 verified backend-friendly companies covers ~3000 jobs per run:
+All sources go through the same pipeline: normalize → filter (`title_filter.positive` / `title_filter.negative`) → dedup against `data/scan-history.tsv` + `data/pipeline.md` + `data/applications.md` → append to `data/pipeline.md` → save full result set to `data/last-scan.json` for the UI's filterable table.
 
-| ATS | Companies |
-| --- | --- |
-| Greenhouse | Stripe, GitLab, Vercel, Cloudflare, Datadog, Discord, Elastic, Grafana Labs, CockroachDB, Fastly, Twilio, Coinbase, Reddit, Robinhood, Affirm, Lyft |
-| Ashby | Linear, Supabase, PostHog, Ramp, Modal Labs, Railway, Browserbase |
-| Lever | JetBrains |
-
-Each job is normalized to `{ id, title, company, url, location, isRemote, workplaceType, relocates, salary, source, date }`, filtered against the `title_filter.positive` and `title_filter.negative` lists from `portals.yml`, deduped against `data/scan-history.tsv` + `data/pipeline.md` + `data/applications.md`, then appended to `data/pipeline.md` for downstream `/career-ops pipeline` processing. The full result set lands in `data/last-scan.json` so the UI can render the rich filterable table.
-
-### 🇷🇺 RU scan — `/api/stream/scan-ru`
-
-Configured via a `russian_portals:` section in `portals.yml`:
+Configure via `portals.yml`:
 
 ```yaml
+title_filter:
+  positive: [backend, engineer, senior, tech lead, golang, php]
+  negative: [junior, intern, frontend, ios, android]
+tracked_companies:
+  - { name: Stripe, enabled: true, careers_url: https://job-boards.greenhouse.io/stripe }
+  - { name: Linear, enabled: true, careers_url: https://jobs.ashbyhq.com/linear }
+  # ...
 russian_portals:
   sources: ["hh", "habr"]   # one or both
   area: 113                  # 1=Moscow, 2=SPb, 113=Russia, 1001=remote
   per_page: 50
   only_remote: false
-  queries:
-    - "Senior PHP"
-    - "PHP Symfony"
-    - "Senior Go"
-    - "Тимлид PHP"
-    # …
+  queries: ["Senior PHP", "Senior Go", "Tech Lead"]
 ```
 
-- **hh.ru** uses the [public API](https://github.com/hhru/api). It returns 403 from non-Russian IP ranges; if you're outside RU, either register an app at [dev.hh.ru/admin](https://dev.hh.ru/admin) and put its UA into `HH_USER_AGENT`, or run from a Russian IP, or just rely on Habr.
-- **Habr Career** scrapes [career.habr.com/vacancies](https://career.habr.com/vacancies) HTML — works from any IP, no auth, ~70 hits per multi-query run.
-- Repeated 403s from one source are coalesced to a single summary line and the source is disabled for the rest of the run (no log spam).
-
-Same normalization, dedup, and `last-scan.json` flow as the EN scanner.
+Under the hood the SSE endpoints are still split (`/api/stream/scan-en` and `/api/stream/scan-ru`) so you can drive each independently from the API; the **🌐 Scan** UI button calls both back-to-back. Each fan-out honors `AbortSignal` from client disconnect — no orphan fetches.
 
 ---
 

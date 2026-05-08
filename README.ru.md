@@ -16,22 +16,6 @@
 
 ![career-ops-ui — vacancy search](./screen_vacancy_found.png)
 
-```
-   ┌──────────────────────────────────────────────────────────────────────┐
-   │ ◆ Дашборд        │  Командный центр                                  │
-   │ ◇ Поиск          │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐  │
-   │ ▤ Pipeline       │  │ Заявки  │ │Pipeline │ │ Отчёты  │ │  Score  │  │
-   │ ▷ Оценить        │  │   12    │ │    3    │ │   12    │ │   4.2   │  │
-   │ ⌕ Deep research  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘  │
-   │ → Apply helper   │                                                    │
-   │ ≡ Трекер         │  Найденные вакансии  [filters: stack·level·src]   │
-   │ ▦ Отчёты         │  ┌────────────────────────────────────────────┐   │
-   │ ✎ CV             │  │ Vercel  Software Engineer, Backend  Remote │   │
-   │ ⚙ Профиль        │  │ GitLab  Engineering Manager, AI     Remote │   │
-   │ ❤ Health         │  │ Stripe  Backend Engineer, Billing   US     │   │
-   └──────────────────────────────────────────────────────────────────────┘
-```
-
 ## Установка одной командой
 
 ```bash
@@ -59,7 +43,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 | Страница         | Что делает                                                                                                         |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------ |
 | **Дашборд**      | Агрегированные счётчики (apps / pipeline / отчёты), средний score, разбивка по статусам, последние 5 apps + последний отчёт. |
-| **Поиск**        | **Два сканера:** 🌍 EN scan (Greenhouse/Ashby/Lever, 24+ verified board) + 🇷🇺 RU scan (hh.ru API + Habr Career HTML scraping). Live SSE log + кликабельная таблица результатов с chip-фильтрами по стеку/уровню и фильтрами location / Remote-Hybrid / reloc / source. |
+| **Поиск**        | **🌐 Одна кнопка 🌐 Scan** — за один проход обходит каждый включённый источник (EN: Greenhouse / Ashby / Lever, RU: hh.ru + Habr Career). Live SSE log + кликабельная таблица результатов с chip-фильтрами по стеку/уровню и фильтрами location / Remote-Hybrid / reloc / source. |
 | **Pipeline**     | CRUD для `data/pipeline.md`. Прыжок прямо с URL на оценку.                                                          |
 | **Оценить**      | Вставь JD → если задан `GEMINI_API_KEY`, запускает `gemini-eval.mjs`; иначе возвращает готовый промпт для Claude. |
 | **Deep research**| Генерирует полный промпт `modes/deep.md` для указанной компании/роли.                                              |
