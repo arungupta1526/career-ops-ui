@@ -1,0 +1,120 @@
+/**
+ * Health + Dashboard routes.
+ *
+ *   GET /api/health    → { ok, warnings, version, parentVersion, checks[] }
+ *   GET /api/dashboard → KPI summary for the home view
+ *
+ * /api/health gates required (system can't function) vs optional
+ * (warnings only) checks. When HOST is non-loopback, absolute paths and
+ * exact Node versions are replaced with "hidden" to reduce LAN
+ * fingerprinting.
+ *
+ * /api/dashboard aggregates from the parent's applications + pipeline +
+ * reports trees via the defensive store helpers.
+ */
+import { readFileSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { PATHS, PROJECT_ROOT, WEB_UI_ROOT, path as projPath } from '../paths.mjs';
+import { isPubliclyExposed } from '../security.mjs';
+import {
+  safeReadApps,
+  safeReadPipeline,
+  safeListReports,
+  checkProfileCustomized,
+} from '../store.mjs';
+
+export function registerHealthRoutes(app) {
+  app.get('/api/health', async (_req, res) => {
+    const checks = [];
+    const hidden = isPubliclyExposed() ? 'hidden' : null;
+
+    // Required checks — system can't function without these
+    checks.push({ name: 'Node version', required: true, ok: parseInt(process.versions.node) >= 18, value: hidden ?? `v${process.versions.node}` });
+    checks.push({ name: 'Project root', required: true, ok: existsSync(PROJECT_ROOT), value: hidden ?? PROJECT_ROOT });
+    checks.push({ name: 'cv.md', required: true, ok: existsSync(PATHS.cv) });
+    checks.push({ name: 'config/profile.yml', required: true, ok: existsSync(PATHS.profile) });
+    checks.push({ name: 'portals.yml', required: true, ok: existsSync(PATHS.portals) });
+    checks.push({ name: 'data/applications.md', required: true, ok: existsSync(PATHS.applications) });
+    checks.push({ name: 'data/pipeline.md', required: true, ok: existsSync(PATHS.pipeline) });
+    checks.push({ name: 'modes/oferta.md', required: true, ok: existsSync(projPath('modes', 'oferta.md')) });
+
+    // FIX-H6 — flag fresh installs that still have placeholder profile data.
+    const profileCustomized = checkProfileCustomized();
+    checks.push({
+      name: 'Profile customized',
+      required: false,
+      ok: profileCustomized.ok,
+      value: hidden ?? profileCustomized.value,
+    });
+
+    // Optional — UI works fine without these
+    checks.push({ name: 'GEMINI_API_KEY', required: false, ok: !!process.env.GEMINI_API_KEY, value: process.env.GEMINI_API_KEY ? 'set' : 'unset (manual mode)' });
+    checks.push({ name: 'ANTHROPIC_API_KEY', required: false, ok: !!process.env.ANTHROPIC_API_KEY, value: process.env.ANTHROPIC_API_KEY ? 'set' : 'unset (set to enable live "Run" buttons)' });
+    // FIX-H1 — surface hh.ru anti-bot gate as an optional setup hint.
+    checks.push({ name: 'HH_USER_AGENT', required: false, ok: !!process.env.HH_USER_AGENT, value: process.env.HH_USER_AGENT ? 'set' : 'unset (hh.ru may 403 from non-RU IPs)' });
+    // Playwright + parent deps — required for PDF generation and liveness
+    // checks; we don't install them but surface the gap.
+    const playwrightInstalled = existsSync(projPath('node_modules', 'playwright'));
+    checks.push({ name: 'Playwright (parent node_modules)', required: false, ok: playwrightInstalled, value: playwrightInstalled ? 'installed' : 'run: cd $CAREER_OPS_ROOT && npm install && npx playwright install chromium' });
+    const parentDepsInstalled = existsSync(projPath('node_modules', 'js-yaml'));
+    checks.push({ name: 'Parent project dependencies', required: false, ok: parentDepsInstalled, value: parentDepsInstalled ? 'installed' : 'run: cd $CAREER_OPS_ROOT && npm install' });
+    // FIX-C6 — directories the scripts write into (auto-created on
+    // first write; surfacing the state mirrors `node doctor.mjs`).
+    for (const [label, dir] of [
+      ['data/ directory',    PATHS.applications.replace(/\/applications\.md$/, '')],
+      ['reports/ directory', PATHS.reportsDir],
+      ['output/ directory',  PATHS.outputDir],
+      ['jds/ directory',     PATHS.jdsDir],
+    ]) {
+      checks.push({ name: label, required: false, ok: existsSync(dir), value: hidden ?? (existsSync(dir) ? 'exists' : 'will be auto-created on first write') });
+    }
+
+    // The footer shows the WEB-UI version (this repo's package.json);
+    // parent's VERSION is reported separately as `parentVersion`.
+    let version = '?';
+    let parentVersion = null;
+    try {
+      const pkg = JSON.parse(readFileSync(resolve(WEB_UI_ROOT, 'package.json'), 'utf8'));
+      version = pkg.version || '?';
+    } catch {}
+    try {
+      parentVersion = readFileSync(PATHS.version, 'utf8').trim();
+    } catch {}
+
+    const ok = checks.filter((c) => c.required).every((c) => c.ok);
+    const warnings = checks.filter((c) => !c.required && !c.ok).length;
+    res.json({ ok, warnings, version, parentVersion, checks });
+  });
+
+  app.get('/api/dashboard', (_req, res) => {
+    const apps = safeReadApps();
+    const pipeline = safeReadPipeline();
+    const reports = safeListReports();
+
+    const byStatus = {};
+    let totalScore = 0;
+    let scored = 0;
+    for (const a of apps) {
+      const s = (a.status || 'Unknown').trim();
+      byStatus[s] = (byStatus[s] || 0) + 1;
+      if (typeof a.scoreNum === 'number') {
+        totalScore += a.scoreNum;
+        scored += 1;
+      }
+    }
+
+    const recent = apps.slice(-5).reverse();
+    res.json({
+      counts: {
+        applications: apps.length,
+        pipeline: pipeline.length,
+        reports: reports.length,
+      },
+      avgScore: scored ? +(totalScore / scored).toFixed(2) : null,
+      byStatus,
+      recent,
+      pipeline: pipeline.slice(0, 10),
+      lastReport: reports[0] || null,
+    });
+  });
+}
