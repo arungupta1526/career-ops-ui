@@ -16,6 +16,12 @@
 
 ![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
 
+## Novedades en v1.10.2
+
+- **La subida del CV ya no corrompe `cv.md` con multipart.** Cualquier herramienta externa (curl `-F`, clientes HTTP comunes) que use `multipart/form-data` por defecto antes guardaba el sobre wire de multipart como contenido de `cv.md`. `POST /api/cv/import` ahora devuelve **HTTP 415** con una pista: usa `Content-Type: application/octet-stream` + `X-Filename: <nombre>`. Defensa en profundidad: cuerpos octet-stream que *parecen* multipart (sniff `Content-Disposition: form-data` en los primeros 256 bytes) también obtienen 415.
+- **`📄 Generate PDF` por fin produce un PDF.** `/api/stream/pdf` antes invocaba `generate-pdf.mjs` **sin argumentos**; el script imprimía `Usage:` y salía con código 1 — la SPA mostraba un toast verde pero ningún archivo llegaba al disco. Ahora la ruta renderiza `cv.md` a HTML en el servidor, lo escribe en `output/cv-input-<TIMESTAMP>.html` y lanza el script con los args posicionales correctos + `--format=a4`. Opcional `?format=letter` para US-letter. Error claro cuando falta `cv.md`.
+- **`docs/test-scenarios/`** — 21 archivos de escenarios en inglés que documentan el contrato de cada página (CV upload, PDF download, filtros de scan, pipeline, evaluate, tracker, activity log, seguridad, embudo completo).
+
 ## Novedades en v1.10.1
 
 - **Seguridad: superficie SSRF reforzada.** `isValidJobUrl` ahora rechaza RFC1918, link-local (incluyendo AWS IMDS `169.254.169.254`), `0.0.0.0`, todo el rango 127/8, CGNAT `100.64/10` y IPv6 ULA / link-local. El proxy de preview resuelve por DNS cada salto y bloquea si la dirección cae en rango privado — defensa contra DNS-rebind.

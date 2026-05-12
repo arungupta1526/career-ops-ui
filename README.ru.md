@@ -5,11 +5,17 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | **Русский** | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-318%20passed-brightgreen)](README.md#tests)
+[![tests](https://img.shields.io/badge/tests-340%20passed-brightgreen)](README.md#tests)
 [![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.10.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.10.1)
+[![release](https://img.shields.io/badge/release-v1.10.2-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.10.2)
+
+## Что нового в v1.10.2
+
+- **CV-загрузка больше не портит `cv.md` при multipart-загрузках.** Любой внешний инструмент (curl `-F`, типовые HTTP-клиенты) по умолчанию шёл `multipart/form-data` и записывал в `cv.md` сам wire-envelope. `POST /api/cv/import` теперь возвращает **HTTP 415** с подсказкой: используй `Content-Type: application/octet-stream` + `X-Filename: <name>`. Защита в глубину: octet-stream-тела, которые *выглядят* как multipart (есть `Content-Disposition: form-data` в первых 256 байтах), тоже получают 415.
+- **`📄 Generate PDF` наконец-то делает PDF.** `/api/stream/pdf` раньше запускал родительский `generate-pdf.mjs` **без аргументов**; скрипт печатал `Usage:` и завершался с кодом 1 — SPA показывала зелёный тост, но файл никогда не сохранялся. Теперь маршрут рендерит `cv.md` в HTML на сервере, пишет в `output/cv-input-<TIMESTAMP>.html` и запускает скрипт с правильными позиционными аргументами + `--format=a4`. Опционально `?format=letter` для US-letter. Понятная ошибка в стриме, когда `cv.md` отсутствует.
+- **`docs/test-scenarios/`** — 21 файл сценариев на английском, описывающие контракт каждой страницы (CV-загрузка, PDF-скачивание, scan-фильтры, pipeline, evaluate, tracker, activity log, безопасность, полная воронка).
 
 ## Что нового в v1.10.1
 

@@ -16,6 +16,12 @@
 
 ![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
 
+## v1.10.2 の新機能
+
+- **CV アップロードで multipart 時に `cv.md` が破損しなくなりました。** `multipart/form-data` をデフォルトとする外部ツール (curl `-F`、一般的な HTTP クライアント) は以前、multipart wire envelope を `cv.md` の内容として保存していました。`POST /api/cv/import` は今や **HTTP 415** とヒントを返します:`Content-Type: application/octet-stream` + `X-Filename: <name>` を使ってください。多層防御:multipart のように*見える* octet-stream ボディ (先頭 256 バイト内に `Content-Disposition: form-data` をスニッフィング) も 415 になります。
+- **`📄 Generate PDF` がついに PDF を生成します。** `/api/stream/pdf` は以前、親の `generate-pdf.mjs` を**引数なし**で呼び出していました;スクリプトは `Usage:` を出力して終了コード 1 で終了 — SPA は緑のトーストを表示しましたがファイルはディスクに到達しませんでした。今やルートは `cv.md` をサーバー側で HTML にレンダリングし、`output/cv-input-<TIMESTAMP>.html` に書き込み、正しい位置引数 + `--format=a4` でスクリプトを起動します。US-letter 出力のためのオプション `?format=letter`。`cv.md` がない場合の親切なストリームエラー。
+- **`docs/test-scenarios/`** — 各ページの契約を文書化した 21 個の英語シナリオファイル (CV アップロード、PDF ダウンロード、スキャンフィルター、pipeline、evaluate、tracker、activity log、セキュリティ、完全な funnel)。
+
 ## v1.10.1 の新機能
 
 - **セキュリティ: SSRF 表面の強化。** `isValidJobUrl` は RFC1918、リンクローカル (AWS IMDS `169.254.169.254` を含む)、`0.0.0.0`、127/8 ループバック全範囲、CGNAT `100.64/10`、IPv6 ULA / リンクローカルを拒否するようになりました。プレビュープロキシは各ホップで DNS を再解決し、アドレスがプライベート範囲に入る場合はブロックします — DNS リバインド対策。

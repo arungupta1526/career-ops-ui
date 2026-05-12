@@ -6,6 +6,27 @@
 
 ---
 
+## [1.10.2] — 2026-05-12
+
+功能回归补丁。修复 v1.10.1 手动验证中发现的两个 bug;扩展文档面。
+
+### 🐛 修复
+
+- **`fix(cv): /api/cv/import 用 415 拒绝 multipart/form-data`** — 默认发送 `multipart/form-data` 的外部客户端以前会把 wire envelope 写入 `cv.md`。现在 415 加提示。SPA 路径(octet-stream + X-Filename)不受影响。
+- **`fix(pdf): /api/stream/pdf 用正确的位置参数调用 generate-pdf.mjs`** — 以前用 `[]` 调用,脚本打印 `Usage:` 并以代码 1 退出,不生成 PDF。现在路由把 `cv.md` 渲染为 HTML,写入 `output/cv-input-<TIMESTAMP>.html`,然后用 `<input.html> <output.pdf> --format=a4` 启动脚本。
+
+### 🧪 测试
+
+- 新增 `tests/cv-upload-multipart-reject.test.mjs`(5 用例),新增 `tests/pdf-stream-args.test.mjs`(3 用例)。**单元测试 340 个**(原 318)。覆盖率 94.63 % 行 / 84.94 % 分支。
+
+### 📝 文档
+
+- 新增 `docs/test-scenarios/` — 21 个英文场景文件。
+- 新增 `docs/reviews/REVIEW-2026-05-12-v1.10.2.md`。
+- 完整文本见 [CHANGELOG.md](CHANGELOG.md#1102--2026-05-12)。
+
+---
+
 ## [1.10.1] — 2026-05-09
 
 基于 v1.10.0 QA 回归结果的关键修复补丁 (`qa/reports/00-FINAL-SUMMARY.md`)。

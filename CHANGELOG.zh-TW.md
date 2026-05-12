@@ -6,6 +6,27 @@
 
 ---
 
+## [1.10.2] — 2026-05-12
+
+功能回歸修補。修復 v1.10.1 手動驗證中發現的兩個 bug;擴充文件面。
+
+### 🐛 修復
+
+- **`fix(cv): /api/cv/import 用 415 拒絕 multipart/form-data`** — 預設傳送 `multipart/form-data` 的外部用戶端以前會把 wire envelope 寫入 `cv.md`。現在 415 加提示。SPA 路徑(octet-stream + X-Filename)不受影響。
+- **`fix(pdf): /api/stream/pdf 用正確的位置引數呼叫 generate-pdf.mjs`** — 以前用 `[]` 呼叫,指令碼印出 `Usage:` 並以代碼 1 退出,不生成 PDF。現在路由把 `cv.md` 渲染為 HTML,寫入 `output/cv-input-<TIMESTAMP>.html`,然後用 `<input.html> <output.pdf> --format=a4` 啟動指令碼。
+
+### 🧪 測試
+
+- 新增 `tests/cv-upload-multipart-reject.test.mjs`(5 案例),新增 `tests/pdf-stream-args.test.mjs`(3 案例)。**單元測試 340 個**(原 318)。覆蓋率 94.63 % 行 / 84.94 % 分支。
+
+### 📝 文件
+
+- 新增 `docs/test-scenarios/` — 21 個英文情境檔案。
+- 新增 `docs/reviews/REVIEW-2026-05-12-v1.10.2.md`。
+- 完整文字見 [CHANGELOG.md](CHANGELOG.md#1102--2026-05-12)。
+
+---
+
 ## [1.10.1] — 2026-05-09
 
 基於 v1.10.0 QA 回歸結果的關鍵修復補丁 (`qa/reports/00-FINAL-SUMMARY.md`)。

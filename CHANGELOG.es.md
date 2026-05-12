@@ -6,6 +6,27 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.10.2] — 2026-05-12
+
+Patch de regresión funcional. Dos bugs descubiertos durante la verificación manual de v1.10.1 cerrados; superficie de docs ampliada.
+
+### 🐛 Correcciones
+
+- **`fix(cv): /api/cv/import rechaza multipart/form-data con 415 (F-016 hardening)`** — clientes externos que enviaban `multipart/form-data` por defecto guardaban el wire envelope como contenido de `cv.md`. Ahora 415 con pista. La ruta del SPA (octet-stream + X-Filename) no cambia.
+- **`fix(pdf): /api/stream/pdf invoca generate-pdf.mjs con args posicionales correctos`** — antes lo llamaba con `[]` y el script imprimía `Usage:` saliendo con código 1, sin producir PDF. Ahora renderiza `cv.md` a HTML, escribe en `output/cv-input-<TIMESTAMP>.html` y lanza el script con `<input.html> <output.pdf> --format=a4`.
+
+### 🧪 Tests
+
+- Nuevos `tests/cv-upload-multipart-reject.test.mjs` (5 casos) y `tests/pdf-stream-args.test.mjs` (3 casos). **340 unit tests** (antes 318). Coverage 94.63 % línea / 84.94 % rama.
+
+### 📝 Docs
+
+- Nuevo `docs/test-scenarios/` — 21 archivos de escenarios en inglés.
+- Nuevo `docs/reviews/REVIEW-2026-05-12-v1.10.2.md`.
+- Los 8 READMEs y CHANGELOGs actualizados. Texto completo en [CHANGELOG.md](CHANGELOG.md#1102--2026-05-12).
+
+---
+
 ## [1.10.1] — 2026-05-09
 
 Parche de correcciones críticas tras la regresión QA de v1.10.0 (`qa/reports/00-FINAL-SUMMARY.md`).

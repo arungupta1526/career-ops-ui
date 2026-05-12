@@ -6,6 +6,27 @@
 
 ---
 
+## [1.10.2] — 2026-05-12
+
+機能回帰パッチ。v1.10.1 の手動検証で見つかった 2 件のバグを修正; ドキュメント面を拡充。
+
+### 🐛 バグ修正
+
+- **`fix(cv): /api/cv/import は multipart/form-data を 415 で拒否`** — `multipart/form-data` をデフォルトとする外部クライアントは以前、wire envelope を `cv.md` の内容として保存していました。今や 415 とヒント。SPA のパス(octet-stream + X-Filename)は影響なし。
+- **`fix(pdf): /api/stream/pdf は generate-pdf.mjs を正しい位置引数で呼び出す`** — 以前は `[]` で呼び出しており、スクリプトは `Usage:` を出力してコード 1 で終了、PDF は生成されませんでした。今やルートが `cv.md` を HTML にレンダリングし、`output/cv-input-<TIMESTAMP>.html` に書き込み、スクリプトを `<input.html> <output.pdf> --format=a4` で起動します。
+
+### 🧪 テスト
+
+- 新規 `tests/cv-upload-multipart-reject.test.mjs`(5 ケース)、新規 `tests/pdf-stream-args.test.mjs`(3 ケース)。**ユニットテスト 340 件**(以前は 318)。カバレッジ 94.63 % 行 / 84.94 % ブランチ。
+
+### 📝 ドキュメント
+
+- 新規 `docs/test-scenarios/` — 21 個の英語シナリオファイル。
+- 新規 `docs/reviews/REVIEW-2026-05-12-v1.10.2.md`。
+- 全文は [CHANGELOG.md](CHANGELOG.md#1102--2026-05-12) を参照。
+
+---
+
 ## [1.10.1] — 2026-05-09
 
 v1.10.0 QA 回帰結果に基づく重要修正パッチ (`qa/reports/00-FINAL-SUMMARY.md`)。

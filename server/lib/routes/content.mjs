@@ -44,14 +44,44 @@ export function registerContentRoutes(app) {
   // ─── CV import ───
   // Binary-safe upload: express.raw stops the global JSON parser from
   // mangling the buffer; we cap payload size before it reaches us.
+  //
+  // Contract (F-016 hardening): the request body MUST be the file bytes
+  // verbatim with Content-Type: application/octet-stream and an
+  // X-Filename header. multipart/form-data is REJECTED with 415 — the
+  // route does not parse multipart envelopes, and silently storing the
+  // wire envelope as cv.md content was the corruption vector flagged in
+  // qa/fixes/F-016. If you have a multipart-only client, use the SPA
+  // upload flow which already sends raw octet-stream.
   app.post(
     '/api/cv/import',
     express.raw({ type: '*/*', limit: MAX_UPLOAD_BYTES }),
     async (req, res) => {
+      const ct = (req.headers['content-type'] || '').toLowerCase();
+      if (ct.startsWith('multipart/')) {
+        return res.status(415).json({
+          ok: false,
+          error: 'multipart/form-data is not supported',
+          hint: 'POST the file bytes directly with Content-Type: application/octet-stream and X-Filename: <name>',
+        });
+      }
       const filename = (req.headers['x-filename'] || 'upload.txt').toString();
       const buf = Buffer.isBuffer(req.body) ? req.body : null;
       if (!buf || buf.length === 0) {
         return res.status(400).json({ error: 'empty body — upload the file as the request body with X-Filename header' });
+      }
+      // Defense in depth: even with octet-stream, refuse a body that
+      // contains a multipart preamble. Catches misconfigured clients
+      // that set Content-Type wrong but still send the wire envelope.
+      // RFC 2046 boundaries can be 1–70 chars; we don't validate the
+      // boundary itself, we sniff for `Content-Disposition: form-data`
+      // near the top of the buffer (always present in real multipart).
+      const preview = buf.slice(0, 256).toString('latin1');
+      if (/Content-Disposition:\s*form-data/i.test(preview)) {
+        return res.status(415).json({
+          ok: false,
+          error: 'request body looks like multipart/form-data',
+          hint: 'POST the file bytes directly, not a multipart wire envelope',
+        });
       }
       try {
         const result = await importDocumentToMarkdown(buf, filename);

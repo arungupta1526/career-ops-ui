@@ -16,6 +16,12 @@
 
 ![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
 
+## v1.10.2 新增內容
+
+- **CV 上傳不再因 multipart 上傳損壞 `cv.md`。** 預設使用 `multipart/form-data` 的任何外部工具(curl `-F`、常見 HTTP 客戶端)以前會把 multipart wire envelope 當作 `cv.md` 的內容寫入。`POST /api/cv/import` 現在回傳 **HTTP 415** 並帶提示:使用 `Content-Type: application/octet-stream` + `X-Filename: <name>`。深度防禦:*看起來*像 multipart 的 octet-stream 主體(前 256 位元組中嗅探到 `Content-Disposition: form-data`)也會得到 415。
+- **`📄 Generate PDF` 終於產生 PDF。** `/api/stream/pdf` 以前**沒有參數**就呼叫父專案的 `generate-pdf.mjs`;指令碼印出 `Usage:` 並以代碼 1 結束 — SPA 顯示綠色 toast 但沒有檔案寫入磁碟。現在該路由在伺服器端將 `cv.md` 渲染為 HTML,寫入 `output/cv-input-<TIMESTAMP>.html`,然後用正確的位置參數 + `--format=a4` 啟動指令碼。可選 `?format=letter` 用於 US-letter 輸出。`cv.md` 缺失時給出清晰的串流錯誤。
+- **`docs/test-scenarios/`** — 21 個英文情境檔案,記錄每個頁面的契約(CV 上傳、PDF 下載、scan 過濾器、pipeline、evaluate、tracker、activity log、安全、完整漏斗)。
+
 ## v1.10.1 新增內容
 
 - **安全：SSRF 攻擊面收緊。** `isValidJobUrl` 現在會拒絕 RFC1918、鏈路本地（包括 AWS IMDS `169.254.169.254`）、`0.0.0.0`、整個 127/8 迴環範圍、CGNAT `100.64/10` 和 IPv6 ULA / 鏈路本地。預覽代理在每一跳進行 DNS 解析，地址落入私有範圍時直接阻斷 — 防禦 DNS 重綁定。

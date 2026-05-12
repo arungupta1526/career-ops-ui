@@ -15,9 +15,70 @@
  *   GET /api/output/pdfs         → list { name, size, mtime }[]
  *   GET /api/output/pdfs/:name   → download (Content-Disposition: attachment)
  */
-import { existsSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, statSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { PATHS, path as projPath } from '../paths.mjs';
 import { runNodeScript, streamNodeScript } from '../runner.mjs';
+
+/**
+ * Minimal markdown → HTML for PDF rendering. Mirrors what the SPA's
+ * UI.md does but server-side and lightly styled. We don't pull a full
+ * markdown library because the CV format is constrained (headings,
+ * lists, paragraphs, occasional bold/italic) and adding a dep just for
+ * this would be scope creep. Output is escaped first; only the
+ * renderer's own tags reach the HTML.
+ */
+function escapeHtml(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function cvMarkdownToHtml(md, title) {
+  // Escape everything first so user text can't inject HTML.
+  let s = escapeHtml(md).replace(/\r\n/g, '\n');
+
+  // Headings — H1 through H4 only.
+  s = s
+    .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+  // Lists — collapse consecutive `- ` lines into a single <ul>.
+  s = s.replace(/(^- .+(\n- .+)*)/gm, (block) => {
+    const items = block.split('\n').map((l) => l.replace(/^- /, ''));
+    return '<ul>' + items.map((i) => `<li>${i}</li>`).join('') + '</ul>';
+  });
+
+  // Bold/italic inside running text.
+  s = s
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[\s])\*([^*]+)\*/g, '$1<em>$2</em>');
+
+  // Paragraphs — wrap remaining text blocks that aren't already tagged.
+  s = s
+    .split('\n\n')
+    .map((p) => (/^<(h\d|ul|p|hr)/.test(p.trim()) || !p.trim()) ? p : `<p>${p.replace(/\n/g, '<br/>')}</p>`)
+    .join('\n');
+
+  return `<!doctype html>
+<html><head><meta charset="utf-8"/><title>${escapeHtml(title || 'CV')}</title>
+<style>
+  body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; max-width: 720px; margin: 32px auto; padding: 0 24px; color: #222; line-height: 1.45; }
+  h1 { font-size: 22pt; margin: 0 0 4pt; }
+  h2 { font-size: 13pt; margin: 16pt 0 6pt; border-bottom: 1pt solid #ddd; padding-bottom: 2pt; }
+  h3 { font-size: 11pt; margin: 12pt 0 4pt; }
+  h4 { font-size: 10.5pt; margin: 8pt 0 2pt; }
+  p, li { font-size: 10.5pt; }
+  ul { margin: 4pt 0 8pt; padding-left: 18pt; }
+  li { margin: 1pt 0; }
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+</style>
+</head><body>${s}</body></html>`;
+}
 
 const BUFFERED = [
   { route: '/api/run/doctor',     script: 'doctor.mjs' },
@@ -47,8 +108,37 @@ export function registerRunnerRoutes(app) {
     streamNodeScript(res, 'check-liveness.mjs', []);
   });
 
-  app.get('/api/stream/pdf', (_req, res) => {
-    streamNodeScript(res, 'generate-pdf.mjs', []);
+  // `generate-pdf.mjs` requires positional <input.html> <output.pdf>.
+  // Render the current cv.md to a temp HTML file under output/ and pass
+  // its absolute path to the script along with a timestamped output
+  // filename. Without this, the script printed its usage line and exited
+  // with code 1 — silently no-op'ing the SPA's Generate PDF button.
+  app.get('/api/stream/pdf', (req, res) => {
+    if (!existsSync(PATHS.cv)) {
+      // Stream a single error frame then close — don't emit a fake start
+      // since we never invoke the script in this branch.
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
+        'X-Accel-Buffering': 'no',
+      });
+      res.write(`event: error\ndata: ${JSON.stringify({ message: 'cv.md not found in project root' })}\n\n`);
+      res.write(`event: done\ndata: ${JSON.stringify({ code: 2 })}\n\n`);
+      return res.end();
+    }
+    mkdirSync(PATHS.outputDir, { recursive: true });
+    const md = readFileSync(PATHS.cv, 'utf8');
+    // Use the H1 (first non-empty heading) as the rendered <title>; fall
+    // back to "CV" so the PDF metadata is always populated.
+    const firstHeading = (md.match(/^#\s+(.+)$/m) || [, 'CV'])[1].trim();
+    const html = cvMarkdownToHtml(md, firstHeading);
+    const ts = new Date().toISOString().replace(/[^\dT]/g, '').slice(0, 15);
+    const inputPath = projPath('output', `cv-input-${ts}.html`);
+    const outputPath = projPath('output', `cv-${ts}.pdf`);
+    writeFileSync(inputPath, html);
+    const format = (req.query.format === 'letter') ? 'letter' : 'a4';
+    streamNodeScript(res, 'generate-pdf.mjs', [inputPath, outputPath, `--format=${format}`]);
   });
 
   // ─── List + download generated PDFs (output/*.pdf) ───

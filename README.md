@@ -5,11 +5,17 @@
 
 **English** | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-318%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-340%20passed-brightgreen)](#tests)
 [![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.10.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.10.1)
+[![release](https://img.shields.io/badge/release-v1.10.2-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.10.2)
+
+## What's new in v1.10.2
+
+- **CV upload no longer corrupts `cv.md` on multipart uploads.** Any external tool (curl `-F`, common HTTP clients) that defaulted to `multipart/form-data` previously stored the multipart wire envelope as `cv.md` contents. `POST /api/cv/import` now returns **HTTP 415** with a hint pointing at the documented contract: `Content-Type: application/octet-stream` + `X-Filename: <name>`. Defense-in-depth: octet-stream bodies that *look* like multipart (sniff for `Content-Disposition: form-data` in the first 256 bytes) also get 415.
+- **`📄 Generate PDF` actually produces a PDF.** `/api/stream/pdf` used to invoke the parent's `generate-pdf.mjs` with **no arguments**; the script printed its `Usage:` line and exited code 1 — the SPA showed a green toast but no file ever reached disk. The route now renders `cv.md` to HTML server-side, writes it to `output/cv-input-<TIMESTAMP>.html`, and spawns `generate-pdf.mjs <input.html> <output.pdf> --format=a4` with the documented positional args. Optional `?format=letter` query for US-letter output. Friendly stream-time error when `cv.md` is missing.
+- **`docs/test-scenarios/`** — 21 scenario files in English documenting the contract for every page (CV upload, PDF download, scan filters, pipeline, evaluate, tracker, activity log, security, full funnel). Linked from the in-app help.
 
 ## What's new in v1.10.1
 

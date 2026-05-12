@@ -6,6 +6,31 @@
 
 ---
 
+## [1.10.2] — 2026-05-12
+
+Патч с функциональными фиксами. Два бага из ручной проверки v1.10.1 закрыты; расширена доковая поверхность.
+
+### 🐛 Фиксы
+
+- **`fix(cv): /api/cv/import отбрасывает multipart/form-data с 415 (F-016 hardening)`** — любой внешний клиент (curl `-F`, типовые HTTP-клиенты), который шёл `multipart/form-data` по умолчанию, ранее записывал свой wire-envelope (`--boundary…\r\nContent-Disposition: form-data; name="file"; filename="x"…`) в `cv.md` как контент. Путь SPA (`Content-Type: application/octet-stream` + `X-Filename`) затронут не был. Маршрут теперь возвращает 415 с подсказкой. Защита в глубину: octet-stream-тела, которые в первых 256 байтах нюхают как multipart, тоже получают 415. `cv.md` не трогается при 415.
+- **`fix(pdf): /api/stream/pdf запускает generate-pdf.mjs с правильными позиционными аргументами`** — раньше вызывал скрипт с `[]`. Скрипт печатал свой `Usage:` и завершался с кодом 1 — SPA показывала зелёный тост "PDF generated", но файл никогда не попадал на диск. Маршрут теперь читает `cv.md`, рендерит в HTML-файл `output/cv-input-<TIMESTAMP>.html` через in-route хелпер markdown→print-HTML, затем запускает `generate-pdf.mjs <input.html> <output.pdf> --format=a4`. Опционально `?format=letter` для US-letter. Когда `cv.md` отсутствует, выдаёт `event: error` + `done { code: 2 }` вместо фейкового `start`.
+
+### 🧪 Тесты
+
+- Новый `tests/cv-upload-multipart-reject.test.mjs` (5 кейсов): SPA happy path → 200 с чистым markdown; `multipart/form-data` → 415; octet-stream body, который ВЫГЛЯДИТ как multipart → 415; пустое тело → 400; отвергнутый запрос НЕ изменяет `cv.md`.
+- Новый `tests/pdf-stream-args.test.mjs` (3 кейса): событие `start` несёт `<input.html> <output.pdf> --format=a4` с абсолютными путями и HTML существует на диске; `?format=letter` переключает флаг; отсутствующий `cv.md` выдаёт ожидаемый error frame.
+- Итого: **340 unit-тестов** (было 318). Один pre-existing failure в `portals-dead.test.mjs` — это дрейф данных в parent, не связан с web-ui.
+- Coverage: 94.63 % line / 84.94 % branch.
+
+### 📝 Документация
+
+- Новый `docs/test-scenarios/` — 21 файл сценариев на английском (index + контракт каждой страницы).
+- Новый `docs/reviews/REVIEW-2026-05-12-v1.10.2.md` — полный контекст сессии + список отложенного + команды верификации.
+- Все 8 README обновлены: badge-ы (тесты 318 → 340, релиз v1.10.1 → v1.10.2) + секция "Что нового в v1.10.2" в каждой локали.
+- Все 8 CHANGELOG-ов получили эту запись.
+
+---
+
 ## [1.10.1] — 2026-05-09
 
 Патч с критическими фиксами по итогам QA-регрессии v1.10.0 (`qa/reports/00-FINAL-SUMMARY.md`).

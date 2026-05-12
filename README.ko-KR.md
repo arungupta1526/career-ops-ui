@@ -16,6 +16,12 @@
 
 ![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
 
+## v1.10.2 새로운 변경사항
+
+- **CV 업로드가 더 이상 multipart 업로드 시 `cv.md`를 손상시키지 않습니다.** `multipart/form-data`를 기본으로 사용하는 외부 도구(curl `-F`, 일반 HTTP 클라이언트)가 이전에는 multipart wire envelope을 `cv.md` 내용으로 저장했습니다. `POST /api/cv/import`는 이제 **HTTP 415**와 함께 힌트를 반환합니다: `Content-Type: application/octet-stream` + `X-Filename: <name>`을 사용하세요. 심층 방어: multipart처럼 *보이는* octet-stream 본문(첫 256바이트에서 `Content-Disposition: form-data` 스니핑)도 415를 받습니다.
+- **`📄 Generate PDF`가 마침내 PDF를 생성합니다.** `/api/stream/pdf`는 이전에 부모의 `generate-pdf.mjs`를 **인수 없이** 호출했습니다; 스크립트는 `Usage:`를 출력하고 종료 코드 1로 종료 — SPA는 녹색 토스트를 표시했지만 파일은 디스크에 저장되지 않았습니다. 이제 라우트는 서버 측에서 `cv.md`를 HTML로 렌더링하고, `output/cv-input-<TIMESTAMP>.html`에 작성한 다음 올바른 위치 인수 + `--format=a4`로 스크립트를 실행합니다. US-letter 출력을 위한 선택적 `?format=letter`. `cv.md`가 없을 때 친근한 스트림 오류.
+- **`docs/test-scenarios/`** — 모든 페이지의 계약을 문서화하는 21개의 영어 시나리오 파일 (CV 업로드, PDF 다운로드, 스캔 필터, pipeline, evaluate, tracker, activity log, 보안, 전체 funnel).
+
 ## v1.10.1 새로운 변경사항
 
 - **보안: SSRF 표면 강화.** `isValidJobUrl`이 이제 RFC1918, 링크 로컬 (AWS IMDS `169.254.169.254` 포함), `0.0.0.0`, 전체 127/8 루프백 범위, CGNAT `100.64/10`, IPv6 ULA / 링크 로컬을 거부합니다. 프리뷰 프록시는 매 홉마다 DNS를 다시 조회하여 주소가 프라이빗 범위에 들어가면 차단합니다 — DNS 리바인딩 방어.

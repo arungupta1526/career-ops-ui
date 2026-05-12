@@ -6,6 +6,27 @@
 
 ---
 
+## [1.10.2] — 2026-05-12
+
+기능 회귀 패치. v1.10.1 수동 검증에서 발견된 두 가지 버그 해결; 문서 표면 확장.
+
+### 🐛 버그 수정
+
+- **`fix(cv): /api/cv/import는 multipart/form-data를 415로 거부`** — `multipart/form-data`를 기본으로 보내는 외부 클라이언트가 이전에는 wire envelope을 `cv.md` 내용으로 저장했습니다. 이제 415와 힌트. SPA 경로(octet-stream + X-Filename)는 영향 없음.
+- **`fix(pdf): /api/stream/pdf는 generate-pdf.mjs를 올바른 위치 인수로 호출`** — 이전에는 `[]`로 호출해서 스크립트가 `Usage:`를 출력하고 코드 1로 종료, PDF 생성되지 않음. 이제 `cv.md`를 HTML로 렌더링, `output/cv-input-<TIMESTAMP>.html`에 작성하고 스크립트를 `<input.html> <output.pdf> --format=a4`로 실행.
+
+### 🧪 테스트
+
+- 새 `tests/cv-upload-multipart-reject.test.mjs`(5 케이스), 새 `tests/pdf-stream-args.test.mjs`(3 케이스). **유닛 테스트 340개**(이전 318). 커버리지 94.63% 라인 / 84.94% 브랜치.
+
+### 📝 문서
+
+- 새 `docs/test-scenarios/` — 21개의 영문 시나리오 파일.
+- 새 `docs/reviews/REVIEW-2026-05-12-v1.10.2.md`.
+- 전체 내용은 [CHANGELOG.md](CHANGELOG.md#1102--2026-05-12) 참조.
+
+---
+
 ## [1.10.1] — 2026-05-09
 
 v1.10.0 QA 회귀 결과를 반영한 중요 수정 패치 (`qa/reports/00-FINAL-SUMMARY.md`).
