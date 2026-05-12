@@ -188,8 +188,33 @@ Router.register('config', async () => {
   }
 
   // ─── Tab plumbing ───
+  // F-013: group fields by cfg.groups (core | runtime | regional). The
+  // regional group is auto-collapsed and only present when portals.yml
+  // declares at least one regional source.
+  const groups = (cfg && cfg.groups) || {};
+  const regionalActive = !!(cfg && cfg.regionalActive);
+  const groupOf = (k) => groups[k] || 'core';
+  const groupTitle = (g) => ({
+    core: t('config.groupCore', 'API keys'),
+    runtime: t('config.groupRuntime', 'Runtime'),
+    regional: t('config.groupRegional', 'Regional sources'),
+  }[g] || g);
+  const renderGroup = (g, fields, opts = {}) => {
+    if (!fields.length) return null;
+    if (g === 'regional' && !regionalActive && !opts.forceVisible) return null;
+    return c('details', {
+      open: g !== 'regional',
+      style: { marginBottom: '16px' },
+    }, [
+      c('summary', { style: { fontSize: '14px', fontWeight: 600, cursor: 'pointer', padding: '6px 0' } },
+        groupTitle(g)),
+      c('div', { style: { paddingTop: '10px' } }, fields.map(fieldRow)),
+    ]);
+  };
   const apiPanel = c('div', { className: 'card' }, [
-    ...FIELDS.map(fieldRow),
+    renderGroup('core',     FIELDS.filter((f) => groupOf(f.key) === 'core'),     { forceVisible: true }),
+    renderGroup('runtime',  FIELDS.filter((f) => groupOf(f.key) === 'runtime'),  { forceVisible: true }),
+    renderGroup('regional', FIELDS.filter((f) => groupOf(f.key) === 'regional')),
     c('div', { className: 'flex gap-3' }, [
       c('button', {
         className: 'btn btn-primary',

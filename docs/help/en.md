@@ -340,7 +340,7 @@ tracked_companies:
   - { name: JetBrains,  enabled: true, careers_url: https://jobs.lever.co/jetbrains }
 ```
 
-The EN scanner detects the ATS from the URL pattern
+The ATS scanner detects the ATS from the URL pattern
 (`job-boards.greenhouse.io/<slug>` → Greenhouse, etc.) and fetches each
 company's public boards-api directly. Companies without a recognizable
 ATS are skipped (the **Active Companies** card on `/#/scan` shows them
@@ -423,7 +423,7 @@ history, and writes hits into `data/last-scan.json` and
 
 **🌐 Scan** runs every enabled source in a single sweep:
 
-- Greenhouse / Ashby / Lever (the EN sweep) for every company in
+- Greenhouse / Ashby / Lever (the ATS sweep) for every company in
   `tracked_companies` with a recognizable ATS URL.
 - hh.ru API + Habr Career HTML for every query in `russian_portals`.
 

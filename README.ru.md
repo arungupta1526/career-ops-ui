@@ -5,11 +5,21 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | **Русский** | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-340%20passed-brightgreen)](README.md#tests)
+[![tests](https://img.shields.io/badge/tests-349%20passed-brightgreen)](README.md#tests)
 [![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.10.2-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.10.2)
+[![release](https://img.shields.io/badge/release-v1.10.3-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.10.3)
+
+## Что нового в v1.10.3
+
+- **Generate PDF на каждой длинной странице.** Три новых SSE-эндпоинта — `GET /api/stream/pdf/report?slug=`, `GET /api/stream/pdf/deep?name=`, `POST /api/stream/pdf/inline { markdown }`. Кнопка **📄 Generate PDF** теперь на `#/reports/:slug`, `#/deep` (manual + live), `#/evaluate` (manual + live) и `#/interview-prep`.
+- **Глобальный Express error handler.** `PayloadTooLargeError` (загрузка 11 МБ в `/api/cv/import`) и невалидный JSON теперь возвращают JSON-конверт, который SPA локализует в тост — без HTML stack trace (F-019).
+- **`#/config` сгруппирован.** API keys / runtime / regional. `HH_USER_AGENT` переехал в свёрнутую секцию "Regional sources", которая рендерится только если в `portals.yml::russian_portals.sources` что-то есть (F-013).
+- **Английские токены больше не протекают в RU/PT/ES/etc UI** — `Pipeline`, `Deep research`, `Follow-up`, `Health`, `Outreach`, `Doctor`, `Quick scan` получили нормальные локализованные ярлыки (F-001).
+- **`#/scan` без EN/RU framing** — ярлыки читаются как "ATS adapters" + "Regional portals", счётчик Active companies пересчитывается из реального scan-корпуса после каждого `done` (F-010 + F-011 минимальный слайс; полная консолидация адаптерного реестра — PR-1 / v1.11.0).
+- **README + help-бандлы зачищены** от EN/RU framing во всех 8 локалях (F-014).
+- Новые тесты: `global-error-handler`, `config-groups`, `pdf-extra-routes`. **349/350** юнит, 94.59 % линий / 84.16 % веток, 23/23 comprehensive E2E, 28/28 Playwright.
 
 ## Что нового в v1.10.2
 
@@ -65,7 +75,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 | Страница         | Что делает                                                                                                         |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------ |
 | **Дашборд**      | Агрегированные счётчики (apps / pipeline / отчёты), средний score, разбивка по статусам, последние 5 apps + последний отчёт. |
-| **Поиск**        | **🌐 Одна кнопка 🌐 Scan** — за один проход обходит каждый включённый источник (EN: Greenhouse / Ashby / Lever, RU: hh.ru + Habr Career). Live SSE log + кликабельная таблица результатов с chip-фильтрами по стеку/уровню и фильтрами location / Remote-Hybrid / reloc / source. |
+| **Поиск**        | **🌐 Одна кнопка 🌐 Scan** — за один проход обходит каждый включённый источник (ATS adapters (Greenhouse / Ashby / Lever) + regional portals (hh.ru / Habr Career)). Live SSE log + кликабельная таблица результатов с chip-фильтрами по стеку/уровню и фильтрами location / Remote-Hybrid / reloc / source. |
 | **Pipeline**     | CRUD для `data/pipeline.md`. Прыжок прямо с URL на оценку.                                                          |
 | **Оценить**      | Вставь JD → если задан `GEMINI_API_KEY`, запускает `gemini-eval.mjs`; иначе возвращает готовый промпт для Claude. |
 | **Deep research**| Генерирует полный промпт `modes/deep.md` для указанной компании/роли.                                              |

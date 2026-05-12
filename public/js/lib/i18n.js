@@ -24,16 +24,16 @@ window.I18n = (function () {
     // Navigation labels
     'nav.dashboard':  { en: 'Dashboard', es: 'Panel', 'pt-BR': 'Painel', ko: '대시보드', ja: 'ダッシュボード', ru: 'Дашборд', 'zh-CN': '仪表盘', 'zh-TW': '儀表板' },
     'nav.scan':       { en: 'Scan',      es: 'Búsqueda', 'pt-BR': 'Busca', ko: '검색', ja: '検索', ru: 'Поиск', 'zh-CN': '搜索', 'zh-TW': '搜尋' },
-    'nav.pipeline':   { en: 'Pipeline',  es: 'Pipeline', 'pt-BR': 'Pipeline', ko: '파이프라인', ja: 'パイプライン', ru: 'Pipeline', 'zh-CN': '流水线', 'zh-TW': '流水線' },
+    'nav.pipeline':   { en: 'Pipeline',  es: 'Vacantes', 'pt-BR': 'Vagas', ko: '파이프라인', ja: 'パイプライン', ru: 'Воронка', 'zh-CN': '流水线', 'zh-TW': '流水線' },
     'nav.evaluate':   { en: 'Evaluate',  es: 'Evaluar', 'pt-BR': 'Avaliar', ko: '평가', ja: '評価', ru: 'Оценить', 'zh-CN': '评估', 'zh-TW': '評估' },
-    'nav.deep':       { en: 'Deep research', es: 'Investigación', 'pt-BR': 'Pesquisa', ko: '심층 조사', ja: 'ディープ調査', ru: 'Deep research', 'zh-CN': '深度研究', 'zh-TW': '深度研究' },
+    'nav.deep':       { en: 'Deep research', es: 'Investigación', 'pt-BR': 'Pesquisa', ko: '심층 조사', ja: 'ディープ調査', ru: 'Глубокий рисёрч', 'zh-CN': '深度研究', 'zh-TW': '深度研究' },
     'nav.apply':      { en: 'Apply checklist', es: 'Checklist de aplicación', 'pt-BR': 'Checklist de aplicação', ko: '지원 체크리스트', ja: '応募チェックリスト', ru: 'Чек-лист отклика', 'zh-CN': '申请清单', 'zh-TW': '申請清單' },
     'nav.tracker':    { en: 'Tracker', es: 'Tracker', 'pt-BR': 'Tracker', ko: '트래커', ja: 'トラッカー', ru: 'Трекер', 'zh-CN': '跟踪器', 'zh-TW': '追蹤器' },
     'nav.reports':    { en: 'Reports', es: 'Reportes', 'pt-BR': 'Relatórios', ko: '보고서', ja: 'レポート', ru: 'Отчёты', 'zh-CN': '报告', 'zh-TW': '報告' },
     'nav.cv':         { en: 'CV', es: 'CV', 'pt-BR': 'CV', ko: '이력서', ja: '履歴書', ru: 'CV', 'zh-CN': '简历', 'zh-TW': '履歷' },
     'nav.profile':    { en: 'Profile', es: 'Perfil', 'pt-BR': 'Perfil', ko: '프로필', ja: 'プロフィール', ru: 'Профиль', 'zh-CN': '个人资料', 'zh-TW': '個人資料' },
     'nav.settings':   { en: 'Profile', es: 'Perfil', 'pt-BR': 'Perfil', ko: '프로필', ja: 'プロフィール', ru: 'Профиль', 'zh-CN': '个人资料', 'zh-TW': '個人資料' },
-    'nav.health':     { en: 'Health', es: 'Estado', 'pt-BR': 'Saúde', ko: '상태', ja: 'ヘルス', ru: 'Health', 'zh-CN': '健康', 'zh-TW': '健康' },
+    'nav.health':     { en: 'Health', es: 'Estado', 'pt-BR': 'Saúde', ko: '상태', ja: 'ヘルス', ru: 'Состояние', 'zh-CN': '健康', 'zh-TW': '健康' },
     // Sidebar groups
     'nav.group.sourcing':    { en: 'Sourcing', es: 'Búsqueda', 'pt-BR': 'Busca', ko: '소싱', ja: 'ソーシング', ru: 'Поиск', 'zh-CN': '寻源', 'zh-TW': '尋源' },
     'nav.group.decision':    { en: 'Decision', es: 'Decisión', 'pt-BR': 'Decisão', ko: '결정', ja: '判断', ru: 'Решение', 'zh-CN': '决策', 'zh-TW': '決策' },
@@ -44,9 +44,9 @@ window.I18n = (function () {
     // Sidebar items for the 7 new modes
     'nav.project':       { en: 'Project', es: 'Proyecto', 'pt-BR': 'Projeto', ko: '프로젝트', ja: 'プロジェクト', ru: 'Проект', 'zh-CN': '项目', 'zh-TW': '專案' },
     'nav.training':      { en: 'Training', es: 'Formación', 'pt-BR': 'Formação', ko: '교육', ja: 'トレーニング', ru: 'Обучение', 'zh-CN': '培训', 'zh-TW': '培訓' },
-    'nav.followup':      { en: 'Follow-up', es: 'Seguimiento', 'pt-BR': 'Follow-up', ko: '팔로업', ja: 'フォローアップ', ru: 'Follow-up', 'zh-CN': '跟进', 'zh-TW': '跟進' },
+    'nav.followup':      { en: 'Follow-up', es: 'Seguimiento', 'pt-BR': 'Acompanhamento', ko: '팔로업', ja: 'フォローアップ', ru: 'Напоминания', 'zh-CN': '跟进', 'zh-TW': '跟進' },
     'nav.batch':         { en: 'Batch', es: 'Lote', 'pt-BR': 'Lote', ko: '배치', ja: 'バッチ', ru: 'Пакетная обработка', 'zh-CN': '批处理', 'zh-TW': '批次處理' },
-    'nav.contacto':      { en: 'Outreach', es: 'Contacto', 'pt-BR': 'Contato', ko: '연락', ja: '連絡', ru: 'Outreach', 'zh-CN': '外联', 'zh-TW': '外聯' },
+    'nav.contacto':      { en: 'Outreach', es: 'Contacto', 'pt-BR': 'Contato', ko: '연락', ja: '連絡', ru: 'Связь', 'zh-CN': '外联', 'zh-TW': '外聯' },
     'nav.interviewPrep': { en: 'Interview prep', es: 'Preparación de entrevistas', 'pt-BR': 'Preparação para entrevistas', ko: '인터뷰 준비', ja: '面接準備', ru: 'Подготовка к интервью', 'zh-CN': '面试准备', 'zh-TW': '面試準備' },
     'nav.patterns':      { en: 'Patterns', es: 'Patrones', 'pt-BR': 'Padrões', ko: '패턴', ja: 'パターン', ru: 'Паттерны', 'zh-CN': '模式', 'zh-TW': '模式' },
     // Generic mode-page strings (shared by all 7)
@@ -152,8 +152,8 @@ window.I18n = (function () {
 
     // Top bar
     'top.search':     { en: 'Find a company, role or URL…', es: 'Buscar empresa, rol o URL…', 'pt-BR': 'Buscar empresa, vaga ou URL…', ko: '회사, 직무 또는 URL 검색…', ja: '会社、役割、URL を検索…', ru: 'Найти компанию, роль или URL…', 'zh-CN': '查找公司、职位或 URL…', 'zh-TW': '查找公司、職位或 URL…' },
-    'top.doctor':     { en: 'Doctor', es: 'Doctor', 'pt-BR': 'Doctor', ko: 'Doctor', ja: 'Doctor', ru: 'Doctor', 'zh-CN': 'Doctor', 'zh-TW': 'Doctor' },
-    'top.quickscan':  { en: 'Quick scan', es: 'Búsqueda rápida', 'pt-BR': 'Busca rápida', ko: '빠른 검색', ja: 'クイック検索', ru: 'Quick scan', 'zh-CN': '快速搜索', 'zh-TW': '快速搜尋' },
+    'top.doctor':     { en: 'Doctor', es: 'Diagnóstico', 'pt-BR': 'Diagnóstico', ko: '진단', ja: '診断', ru: 'Диагностика', 'zh-CN': '诊断', 'zh-TW': '診斷' },
+    'top.quickscan':  { en: 'Quick scan', es: 'Búsqueda rápida', 'pt-BR': 'Busca rápida', ko: '빠른 검색', ja: 'クイック検索', ru: 'Быстрый скан', 'zh-CN': '快速搜索', 'zh-TW': '快速搜尋' },
     'top.langhint':   { en: 'CTRL+K — search', es: 'CTRL+K — buscar', 'pt-BR': 'CTRL+K — buscar', ko: 'CTRL+K — 검색', ja: 'CTRL+K — 検索', ru: 'CTRL+K — поиск', 'zh-CN': 'CTRL+K — 搜索', 'zh-TW': 'CTRL+K — 搜尋' },
 
     // Common
@@ -174,6 +174,7 @@ window.I18n = (function () {
     'pg.last':        { en: 'Last', es: 'Último', 'pt-BR': 'Último', ko: '마지막', ja: '最後', ru: 'В конец', 'zh-CN': '末页', 'zh-TW': '末頁' },
     'pg.of':          { en: 'of', es: 'de', 'pt-BR': 'de', ko: '/', ja: '/', ru: 'из', 'zh-CN': '/', 'zh-TW': '/' },
     'common.refresh': { en: 'Refresh', es: 'Actualizar', 'pt-BR': 'Atualizar', ko: '새로고침', ja: '更新', ru: 'Обновить', 'zh-CN': '刷新', 'zh-TW': '重新整理' },
+    'common.generatePdf': { en: 'Generate PDF', es: 'Generar PDF', 'pt-BR': 'Gerar PDF', ko: 'PDF 생성', ja: 'PDF を生成', ru: 'Создать PDF', 'zh-CN': '生成 PDF', 'zh-TW': '產生 PDF' },
 
     // Dashboard
     'dash.title':     { en: 'Command Center', es: 'Centro de Comando', 'pt-BR': 'Centro de Comando', ko: '커맨드 센터', ja: 'コマンドセンター', ru: 'Командный центр', 'zh-CN': '指挥中心', 'zh-TW': '指揮中心' },
@@ -244,16 +245,16 @@ window.I18n = (function () {
     // Scan
     'scan.title':     { en: 'Vacancy search', es: 'Búsqueda de vacantes', 'pt-BR': 'Busca de vagas', ko: '채용 공고 검색', ja: '求人検索', ru: 'Поиск вакансий', 'zh-CN': '职位搜索', 'zh-TW': '職位搜尋' },
     'scan.hhWarning': { en: 'hh.ru returns 403 from non-RU IPs without a real-browser User-Agent. Set HH_USER_AGENT in .env to enable. Habr Career still works either way.', es: 'hh.ru devuelve 403 desde IPs fuera de RU sin un User-Agent real. Define HH_USER_AGENT en .env para habilitarlo. Habr Career funciona igual.', 'pt-BR': 'hh.ru retorna 403 de IPs fora da Rússia sem um User-Agent real. Defina HH_USER_AGENT em .env. Habr Career funciona normalmente.', ko: 'hh.ru 는 러시아 외 IP 에서 실제 브라우저 User-Agent 가 없으면 403 을 반환합니다. .env 에 HH_USER_AGENT 를 설정하세요. Habr Career 는 영향 없음.', ja: 'hh.ru は本物のブラウザ User-Agent がないと非ロシア IP に対して 403 を返します。.env で HH_USER_AGENT を設定してください。Habr Career は影響を受けません。', ru: 'hh.ru возвращает 403 с не-российских IP без реального браузерного User-Agent. Установите HH_USER_AGENT в .env. Habr Career работает в любом случае.', 'zh-CN': 'hh.ru 在非俄罗斯 IP 没有真实浏览器 User-Agent 时返回 403。在 .env 中设置 HH_USER_AGENT。Habr Career 不受影响。', 'zh-TW': 'hh.ru 在非俄羅斯 IP 沒有真實瀏覽器 User-Agent 時返回 403。在 .env 中設定 HH_USER_AGENT。Habr Career 不受影響。' },
-    'scan.subtitle':  { en: 'EN: companies with API · RU: hh.ru + Habr Career', es: 'EN: empresas con API · RU: hh.ru + Habr Career', 'pt-BR': 'EN: empresas com API · RU: hh.ru + Habr Career', ko: 'EN: API가 있는 회사 · RU: hh.ru + Habr Career', ja: 'EN: API のある会社 · RU: hh.ru + Habr Career', ru: 'EN: компаний с API · RU: hh.ru + Habr Career', 'zh-CN': 'EN: 有 API 的公司 · RU: hh.ru + Habr Career', 'zh-TW': 'EN: 有 API 的公司 · RU: hh.ru + Habr Career' },
+    'scan.subtitle':  { en: 'ATS adapters + regional portals (hh.ru, Habr Career)', es: 'Adaptadores ATS + portales regionales (hh.ru, Habr Career)', 'pt-BR': 'Adaptadores ATS + portais regionais (hh.ru, Habr Career)', ko: 'ATS 어댑터 + 지역 포털 (hh.ru, Habr Career)', ja: 'ATS アダプター + 地域ポータル (hh.ru, Habr Career)', ru: 'ATS-адаптеры + региональные порталы (hh.ru, Habr Career)', 'zh-CN': 'ATS 适配器 + 区域门户 (hh.ru, Habr Career)', 'zh-TW': 'ATS 配接器 + 區域入口 (hh.ru, Habr Career)' },
     'scan.btnAll':    { en: 'Scan all sources', es: 'Buscar en todas las fuentes', 'pt-BR': 'Buscar em todas as fontes', ko: '모든 소스 검색', ja: 'すべてのソースを検索', ru: 'Сканировать все источники', 'zh-CN': '搜索所有来源', 'zh-TW': '搜尋所有來源' },
     'scan.btnRun':    { en: 'Scan', es: 'Buscar', 'pt-BR': 'Buscar', ko: '스캔', ja: 'スキャン', ru: 'Сканировать', 'zh-CN': '扫描', 'zh-TW': '掃描' },
     'scan.runAll':    { en: 'Scanning all sources…', es: 'Buscando en todas las fuentes…', 'pt-BR': 'Buscando em todas as fontes…', ko: '모든 소스 검색 중…', ja: 'すべてのソースを検索中…', ru: 'Сканирую все источники…', 'zh-CN': '正在搜索所有来源…', 'zh-TW': '正在搜尋所有來源…' },
-    'scan.btnEn':     { en: '🌍 EN scan', es: '🌍 EN scan', 'pt-BR': '🌍 EN scan', ko: '🌍 EN scan', ja: '🌍 EN scan', ru: '🌍 EN scan', 'zh-CN': '🌍 EN scan', 'zh-TW': '🌍 EN scan' },
-    'scan.btnRu':     { en: '🇷🇺 RU scan', es: '🇷🇺 RU scan', 'pt-BR': '🇷🇺 RU scan', ko: '🇷🇺 RU scan', ja: '🇷🇺 RU scan', ru: '🇷🇺 RU scan', 'zh-CN': '🇷🇺 RU scan', 'zh-TW': '🇷🇺 RU scan' },
-    'scan.btnPipe':   { en: 'Pipeline', es: 'Pipeline', 'pt-BR': 'Pipeline', ko: '파이프라인', ja: 'パイプライン', ru: 'Pipeline', 'zh-CN': '流水线', 'zh-TW': '流水線' },
+    'scan.btnAts':    { en: '🌐 ATS scan', es: '🌐 Buscar ATS', 'pt-BR': '🌐 Buscar ATS', ko: '🌐 ATS 검색', ja: '🌐 ATS 検索', ru: '🌐 Скан ATS', 'zh-CN': '🌐 ATS 扫描', 'zh-TW': '🌐 ATS 掃描' },
+    'scan.btnRegional': { en: '🗺 Regional scan', es: '🗺 Búsqueda regional', 'pt-BR': '🗺 Busca regional', ko: '🗺 지역 검색', ja: '🗺 地域検索', ru: '🗺 Региональный скан', 'zh-CN': '🗺 区域扫描', 'zh-TW': '🗺 區域掃描' },
+    'scan.btnPipe':   { en: 'Pipeline', es: 'Vacantes', 'pt-BR': 'Vagas', ko: '파이프라인', ja: 'パイプライン', ru: 'Воронка', 'zh-CN': '流水线', 'zh-TW': '流水線' },
     'scan.chip.dynamic':{ en: 'Keywords', es: 'Palabras clave', 'pt-BR': 'Palavras-chave', ko: '키워드', ja: 'キーワード', ru: 'Ключевые слова', 'zh-CN': '关键词', 'zh-TW': '關鍵字' },
     'scan.dryRun':    { en: 'Dry run (no write)', es: 'Dry run (sin escribir)', 'pt-BR': 'Dry run (sem escrever)', ko: 'Dry run (기록 없음)', ja: 'ドライラン (書込なし)', ru: 'Dry run (без записи)', 'zh-CN': '干运行 (不写入)', 'zh-TW': '乾運行 (不寫入)' },
-    'scan.companyLbl':{ en: 'Company (for EN, optional)', es: 'Empresa (para EN, opcional)', 'pt-BR': 'Empresa (para EN, opcional)', ko: '회사 (EN용, 선택사항)', ja: '会社 (EN用、オプション)', ru: 'Компания (для EN, опционально)', 'zh-CN': '公司 (用于 EN, 可选)', 'zh-TW': '公司 (用於 EN, 可選)' },
+    'scan.companyLbl':{ en: 'Company (optional)', es: 'Empresa (opcional)', 'pt-BR': 'Empresa (opcional)', ko: '회사 (선택사항)', ja: '会社 (オプション)', ru: 'Компания (опционально)', 'zh-CN': '公司 (可选)', 'zh-TW': '公司 (可選)' },
     'scan.allCompanies':{ en: 'all companies', es: 'todas las empresas', 'pt-BR': 'todas as empresas', ko: '모든 회사', ja: 'すべての会社', ru: 'все компании', 'zh-CN': '所有公司', 'zh-TW': '所有公司' },
     'scan.results':   { en: 'Vacancies found', es: 'Vacantes encontradas', 'pt-BR': 'Vagas encontradas', ko: '찾은 채용 공고', ja: '見つかった求人', ru: 'Найденные вакансии', 'zh-CN': '找到的职位', 'zh-TW': '找到的職位' },
     'scan.scopeAll':  { en: 'all matching', es: 'todas las coincidencias', 'pt-BR': 'todas correspondências', ko: '모든 일치', ja: 'すべての一致', ru: 'все matching', 'zh-CN': '所有匹配', 'zh-TW': '所有匹配' },

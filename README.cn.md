@@ -16,6 +16,16 @@
 
 ![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
 
+## v1.10.3 新增内容
+
+- **每个长页面都有 Generate PDF。** 三个新的 SSE 端点 — `GET /api/stream/pdf/report?slug=`、`GET /api/stream/pdf/deep?name=`、`POST /api/stream/pdf/inline { markdown }`。**📄 Generate PDF** 按钮现在出现在 `#/reports/:slug`、`#/deep` (manual + live)、`#/evaluate` (manual + live)、`#/interview-prep`。
+- **全局 Express 错误处理器。** `PayloadTooLargeError` 和畸形 JSON 返回可本地化的 JSON 信封,而不是 HTML 堆栈 (F-019)。
+- **`#/config` 重新分组。** API keys / runtime / regional。`HH_USER_AGENT` 移到仅当 `portals.yml::russian_portals.sources` 非空时显示的折叠 "Regional sources" 部分 (F-013)。
+- **英文 token 不再泄露到非 EN UI** — `Pipeline`、`Deep research`、`Follow-up`、`Health`、`Outreach`、`Doctor`、`Quick scan` 现已正确本地化 (F-001)。
+- **`#/scan` 去掉 EN/RU 框架** — 标签读作 "ATS adapters" + "Regional portals",Active companies 计数器在每次 `done` 后从实际扫描语料库重新计算 (F-010 + F-011 最小切片;完整适配器注册表整合见 PR-1 / v1.11.0)。
+- **README + 帮助包清理** — 所有 8 个区域的 EN/RU 框架已删除 (F-014)。
+- 新测试。**349/350** 单元,94.59 % 行 / 84.16 % 分支,23/23 E2E,28/28 Playwright。
+
 ## v1.10.2 新增内容
 
 - **CV 上传不再因 multipart 上传损坏 `cv.md`。** 默认使用 `multipart/form-data` 的任何外部工具(curl `-F`、常见 HTTP 客户端)以前会把 multipart wire envelope 当作 `cv.md` 的内容写入。`POST /api/cv/import` 现在返回 **HTTP 415** 并带提示:使用 `Content-Type: application/octet-stream` + `X-Filename: <name>`。深度防御:*看起来*像 multipart 的 octet-stream 主体(前 256 字节中嗅探到 `Content-Disposition: form-data`)也会得到 415。

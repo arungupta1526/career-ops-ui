@@ -135,7 +135,7 @@ Router.register('scan', async () => {
 
     consoleEl.textContent = '';
     UI.toast(t('scan.runAll', 'Scanning all sources…'), 'success');
-    appendMeta(consoleEl, '▶ EN scan (Greenhouse + Ashby + Lever)\n');
+    appendMeta(consoleEl, '▶ ATS scan (Greenhouse + Ashby + Lever)\n');
 
     const es1 = API.stream('/api/stream/scan-en?' + enParams.toString(), (ev, data) => {
       if (ev === 'log') {
@@ -144,8 +144,8 @@ Router.register('scan', async () => {
         consoleEl.scrollTop = consoleEl.scrollHeight;
       } else if (ev === 'done') {
         const enFresh = data.counts?.fresh ?? 0;
-        appendMeta(consoleEl, `✓ EN done · NEW=${enFresh}\n\n▶ RU scan (hh.ru + Habr Career)\n`);
-        // chain RU scan after EN finishes
+        appendMeta(consoleEl, `✓ ATS done · NEW=${enFresh}\n\n▶ Regional scan (hh.ru + Habr Career)\n`);
+        // chain regional scan after ATS finishes
         const ruParams = new URLSearchParams();
         if (dryRun.checked) ruParams.set('dryRun', '1');
         API.stream('/api/stream/scan-ru?' + ruParams.toString(), (ev2, d2) => {
@@ -156,15 +156,17 @@ Router.register('scan', async () => {
           } else if (ev2 === 'done') {
             const ruFresh = d2.counts?.fresh ?? 0;
             const total = enFresh + ruFresh;
-            appendMeta(consoleEl, `✓ RU done · NEW=${ruFresh}\n\n✓ ALL DONE · total NEW=${total}\n`);
+            appendMeta(consoleEl, `✓ Regional done · NEW=${ruFresh}\n\n✓ ALL DONE · total NEW=${total}\n`);
             UI.toast(`Scan all: ${total} new offers`, 'success');
+            // F-011: refreshResults() re-reads /api/scan-results so the
+            // Active-Companies counter + filters pick up the new hits.
             refreshResults();
           } else if (ev2 === 'error') {
-            appendMeta(consoleEl, `\n✗ RU error: ${d2.message}\n`);
+            appendMeta(consoleEl, `\n✗ Regional error: ${d2.message}\n`);
           }
         });
       } else if (ev === 'error') {
-        appendMeta(consoleEl, `\n✗ EN error: ${data.message}\n`);
+        appendMeta(consoleEl, `\n✗ ATS error: ${data.message}\n`);
         UI.toast(data.message, 'error');
       }
     });
@@ -184,6 +186,9 @@ Router.register('scan', async () => {
       lastResults = { en: null, ru: null };
     }
     renderResults();
+    // F-011: notify the Active-Companies counter (and any other listener)
+    // that the result corpus changed so they can recompute their labels.
+    document.body.dispatchEvent(new CustomEvent('scan:refresh'));
   }
   function getRows() {
     const scope = filterScope.value || 'all';
@@ -199,10 +204,13 @@ Router.register('scan', async () => {
     const enWhen = lastResults.en?.when ? new Date(lastResults.en.when).toLocaleString('ru') : null;
     const ruWhen = lastResults.ru?.when ? new Date(lastResults.ru.when).toLocaleString('ru') : null;
 
-    // Header summary
+    // Header summary — labels neutralized to "ATS / Regional" so the
+    // adapter geography isn't baked into the UI (F-010).
+    const atsLabel = t('scan.atsBadge', 'ATS adapters');
+    const regionalLabel = t('scan.regionalBadge', 'Regional portals');
     const summary = c('div', { className: 'flex gap-3 mb-3', style: { flexWrap: 'wrap' } }, [
-      enWhen && c('span', { className: 'badge badge-info' }, `EN scan · ${enWhen} · ${lastResults.en.fresh?.length || 0} new / ${lastResults.en.filtered?.length || 0} matching`),
-      ruWhen && c('span', { className: 'badge badge-info' }, `RU scan · ${ruWhen} · ${lastResults.ru.fresh?.length || 0} new / ${lastResults.ru.filtered?.length || 0} matching`),
+      enWhen && c('span', { className: 'badge badge-info' }, `${atsLabel} · ${enWhen} · ${lastResults.en.fresh?.length || 0} new / ${lastResults.en.filtered?.length || 0} matching`),
+      ruWhen && c('span', { className: 'badge badge-info' }, `${regionalLabel} · ${ruWhen} · ${lastResults.ru.fresh?.length || 0} new / ${lastResults.ru.filtered?.length || 0} matching`),
     ]);
     resultsEl.appendChild(summary);
 
@@ -317,8 +325,9 @@ Router.register('scan', async () => {
     c('header', { className: 'page-header' }, [
       c('div', null, [
         c('h1', { className: 'page-title' }, t('scan.title')),
-        c('p', { className: 'page-subtitle' },
-          `EN: ${apiCompanies.length} · RU: hh.ru + Habr Career`),
+        // F-010: neutral label, no EN/RU split. apiCompanies is the
+        // count of ATS-tracked companies; the rest are regional portals.
+        c('p', { className: 'page-subtitle' }, t('scan.subtitle')),
       ]),
     ]),
 
@@ -466,18 +475,44 @@ Router.register('scan', async () => {
         }
       }
 
+      // F-011: count companies that produced at least one hit in the
+      // last scan run. Updated after every refreshResults() via the
+      // setLabel closure below. Falls back to the static tracked count
+      // before the first scan completes.
+      function activeFromLastScan() {
+        const rows = getRows();
+        const seen = new Set();
+        for (const r of rows) {
+          const name = (r && (r.company || r.companyName));
+          if (name) seen.add(String(name).toLowerCase());
+        }
+        return seen.size;
+      }
+      const labelN = () => {
+        const fromScan = activeFromLastScan();
+        const n = fromScan > 0 ? fromScan : companies.length;
+        return `${n}/${apiCompanies.length}`;
+      };
+      const setLabel = () => {
+        toggleBtn.textContent = (expanded ? '▾ ' : '▸ ') + t('scan.activeCo') + ` ${labelN()}`;
+      };
       const toggleBtn = c('button', {
         className: 'btn btn-ghost btn-sm',
         onClick: () => {
           expanded = !expanded;
           list.style.display = expanded ? '' : 'none';
           filterIn.style.display = expanded ? '' : 'none';
-          toggleBtn.textContent = (expanded ? '▾ ' : '▸ ')
-            + t('scan.activeCo')
-            + ` ${companies.length}/${apiCompanies.length}`;
+          setLabel();
           if (expanded) rerender();
         },
-      }, '▸ ' + t('scan.activeCo') + ` ${companies.length}/${apiCompanies.length}`);
+      }, '▸ ' + t('scan.activeCo') + ` ${labelN()}`);
+      // Hook into the existing refreshResults() flow without restructuring
+      // the closure: every renderResults() call invalidates this counter,
+      // and renderResults() is itself called from refreshResults() right
+      // after the new /api/scan-results comes back. Re-stamp the label
+      // every time the SSE done event fires by listening to a custom
+      // event the page dispatches on body.
+      document.body.addEventListener('scan:refresh', setLabel);
 
       filterIn.addEventListener('input', (e) => {
         query = e.target.value;

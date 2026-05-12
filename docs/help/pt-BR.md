@@ -196,7 +196,7 @@ tracked_companies:
   - { name: JetBrains, enabled: true, careers_url: https://jobs.lever.co/jetbrains }
 ```
 
-EN scanner detecta o ATS pela URL e bate na boards-api direto.
+ATS scanner detecta o ATS pela URL e bate na boards-api direto.
 
 ### `russian_portals`
 

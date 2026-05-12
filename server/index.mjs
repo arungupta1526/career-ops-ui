@@ -110,6 +110,41 @@ export function createApp() {
   app.get('/api/*', (_req, res) => res.status(404).json({ error: 'unknown api' }));
   app.get('*', (_req, res) => res.sendFile('index.html', { root: PUBLIC_DIR }));
 
+  // ─────────── Global error handler (F-019) ───────────
+  // Express's body parsers (express.json / express.raw / multer-like) throw
+  // PayloadTooLargeError / SyntaxError outside of any route handler. Without
+  // this middleware they bubble to the default handler, which returns an
+  // HTML stack trace — useless to the SPA's `try { res.json() } catch {}`
+  // path. We convert the well-known cases to JSON so the SPA can show a
+  // localized toast (`payload too large`, `malformed body`, etc.). Must be
+  // the LAST middleware so it catches errors from every route + parser.
+  // eslint-disable-next-line no-unused-vars
+  app.use((err, req, res, _next) => {
+    if (res.headersSent) return res.end();
+    // Body parser limits (express.json / express.raw / express.text):
+    if (err && (err.type === 'entity.too.large' || err.code === 'LIMIT_FILE_SIZE')) {
+      return res.status(413).json({
+        error: 'request body too large',
+        limit: err.limit,
+        length: err.length,
+      });
+    }
+    // Malformed JSON / multipart:
+    if (err && (err.type === 'entity.parse.failed' || err.type === 'charset.unsupported')) {
+      return res.status(400).json({ error: 'malformed request body' });
+    }
+    // SyntaxError from a manual JSON.parse leaking out:
+    if (err instanceof SyntaxError && 'body' in (err || {})) {
+      return res.status(400).json({ error: 'malformed JSON body' });
+    }
+    // Last resort — log server-side, return a sanitized 500 to the client.
+    // We don't leak err.message in case it contains a stack trace, query
+    // strings with tokens, etc.
+    // eslint-disable-next-line no-console
+    console.error('[unhandled]', err);
+    return res.status(500).json({ error: 'internal server error' });
+  });
+
   return app;
 }
 

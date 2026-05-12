@@ -16,6 +16,16 @@
 
 ![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
 
+## v1.10.3 새로운 변경사항
+
+- **모든 긴 페이지에 Generate PDF.** 새 SSE 엔드포인트 3개 — `GET /api/stream/pdf/report?slug=`, `GET /api/stream/pdf/deep?name=`, `POST /api/stream/pdf/inline { markdown }`. **📄 Generate PDF** 버튼이 `#/reports/:slug`, `#/deep` (manual + live), `#/evaluate` (manual + live), `#/interview-prep`에 나타납니다.
+- **전역 Express 오류 핸들러.** `PayloadTooLargeError`와 잘못된 JSON이 HTML 스택이 아닌 로컬라이즈 가능한 JSON 봉투를 반환합니다 (F-019).
+- **`#/config` 재그룹화.** API keys / runtime / regional. `HH_USER_AGENT`는 `portals.yml::russian_portals.sources`가 비어있지 않을 때만 보이는 접힌 "Regional sources" 섹션으로 이동 (F-013).
+- **영어 토큰이 더 이상 비-EN UI로 새지 않음** — `Pipeline`, `Deep research`, `Follow-up`, `Health`, `Outreach`, `Doctor`, `Quick scan`이 적절히 로컬라이즈됨 (F-001).
+- **`#/scan` EN/RU 프레이밍 제거** — 라벨이 "ATS adapters" + "Regional portals"로, Active companies 카운터가 각 `done` 후 실제 스캔 코퍼스에서 재계산됨 (F-010 + F-011 최소 슬라이스; 전체 어댑터 레지스트리 통합은 PR-1 / v1.11.0).
+- **README + 도움말 번들 정리** — 8개 로케일 모두에서 EN/RU 프레이밍 제거 (F-014).
+- 새 테스트. **349/350** 유닛, 94.59 % 라인 / 84.16 % 브랜치, 23/23 E2E, 28/28 Playwright.
+
 ## v1.10.2 새로운 변경사항
 
 - **CV 업로드가 더 이상 multipart 업로드 시 `cv.md`를 손상시키지 않습니다.** `multipart/form-data`를 기본으로 사용하는 외부 도구(curl `-F`, 일반 HTTP 클라이언트)가 이전에는 multipart wire envelope을 `cv.md` 내용으로 저장했습니다. `POST /api/cv/import`는 이제 **HTTP 415**와 함께 힌트를 반환합니다: `Content-Type: application/octet-stream` + `X-Filename: <name>`을 사용하세요. 심층 방어: multipart처럼 *보이는* octet-stream 본문(첫 256바이트에서 `Content-Disposition: form-data` 스니핑)도 415를 받습니다.
@@ -59,7 +69,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 | 페이지            | 기능                                                                                                              |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
 | **Dashboard**    | 집계된 카운트(apps / pipeline / reports), 평균 점수, 상태별 분류, 최근 5개 apps + 최신 보고서.                                  |
-| **Scan**         | **🌐 단일 🌐 Scan 버튼** — 한 번에 모든 활성화된 소스를 스캔(EN: Greenhouse / Ashby / Lever, RU: hh.ru + Habr Career). 실시간 SSE 로그 + stack/level chip 필터와 location / Remote-Hybrid / reloc / source 필터가 있는 결과 테이블. |
+| **Scan**         | **🌐 단일 🌐 Scan 버튼** — 한 번에 모든 활성화된 소스를 스캔(ATS adapters (Greenhouse / Ashby / Lever) + regional portals (hh.ru / Habr Career)). 실시간 SSE 로그 + stack/level chip 필터와 location / Remote-Hybrid / reloc / source 필터가 있는 결과 테이블. |
 | **Pipeline**     | `data/pipeline.md`에 대한 CRUD. URL에서 평가로 바로 점프.                                                                  |
 | **Evaluate**     | JD 붙여넣기 → `GEMINI_API_KEY`가 설정되어 있으면 `gemini-eval.mjs` 실행; 없으면 Claude용 복붙 가능 프롬프트 반환.            |
 | **Deep research**| 지정된 회사/역할에 대해 `modes/deep.md` 전체 프롬프트 생성.                                                                  |

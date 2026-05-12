@@ -46,14 +46,24 @@ Router.register('evaluate', async () => {
             navigator.clipboard.writeText(r.prompt);
             UI.toast(t('eval.copied'), 'success');
           }}, t('eval.copy')),
+          c('button', {
+            className: 'btn btn-ghost',
+            onClick: (e) => window.PdfGenerate.run({
+              kind: 'inline',
+              markdown: r.prompt,
+              title: 'JD evaluation prompt',
+              slug: 'evaluate',
+              button: e.currentTarget,
+            }),
+          }, '📄 ' + t('common.generatePdf', 'Generate PDF')),
         ]),
       ]));
     } else {
       const cls = r.code === 0 ? 'badge-ok' : 'badge-bad';
-      // Engine label (Gemini / Anthropic) stays as a brand name across
-      // locales; only the surrounding scaffolding ("exit", "Saved:")
-      // gets localized so the badge reads naturally in every UI language.
       const engineName = r.mode === 'anthropic' ? 'Anthropic' : 'Gemini';
+      // For live runs the markdown lives in either `markdown` (Anthropic)
+      // or `stdout` (Gemini). PDF button uses whichever is non-empty.
+      const liveMd = r.markdown || r.stdout || '';
       out.appendChild(c('div', { className: 'card' }, [
         c('div', { className: 'flex-between mb-3' }, [
           c('div', { className: 'flex gap-3' }, [
@@ -62,8 +72,18 @@ Router.register('evaluate', async () => {
             r.saved && c('div', { className: 'badge badge-info' },
               t('eval.savedAs', 'Saved') + ': ' + r.saved),
           ]),
+          liveMd && c('button', {
+            className: 'btn btn-primary',
+            onClick: (e) => window.PdfGenerate.run({
+              kind: 'inline',
+              markdown: liveMd,
+              title: `JD evaluation (${engineName})`,
+              slug: 'evaluate',
+              button: e.currentTarget,
+            }),
+          }, '📄 ' + t('common.generatePdf', 'Generate PDF')),
         ]),
-        r.stdout && c('div', { className: 'md', html: UI.md(r.stdout) }),
+        (r.markdown || r.stdout) && c('div', { className: 'md', html: UI.md(r.markdown || r.stdout) }),
         r.stderr && c('details', null, [
           c('summary', null, 'stderr'),
           c('pre', { className: 'console' }, r.stderr),

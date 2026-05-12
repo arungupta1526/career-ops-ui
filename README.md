@@ -5,11 +5,21 @@
 
 **English** | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-340%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-349%20passed-brightgreen)](#tests)
 [![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.10.2-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.10.2)
+[![release](https://img.shields.io/badge/release-v1.10.3-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.10.3)
+
+## What's new in v1.10.3
+
+- **Generate PDF on every long-form surface.** Three new SSE endpoints — `GET /api/stream/pdf/report?slug=`, `GET /api/stream/pdf/deep?name=`, `POST /api/stream/pdf/inline { markdown }`. The **📄 Generate PDF** button now appears on `#/reports/:slug`, `#/deep` (manual + live), `#/evaluate` (manual + live), and `#/interview-prep` reuses the same flow via the deep endpoint.
+- **Global Express error handler.** `PayloadTooLargeError` (an 11 MB upload to `/api/cv/import`) and malformed-JSON parse errors now return JSON envelopes the SPA can localize, not HTML stack traces (F-019).
+- **`#/config` regrouped.** API keys / runtime / regional groups. `HH_USER_AGENT` moves under a collapsed "Regional sources" section that only renders when `portals.yml::russian_portals.sources` is non-empty (F-013).
+- **English-token bleed plugged across non-EN UI** — `Pipeline`, `Deep research`, `Follow-up`, `Health`, `Outreach`, `Doctor`, `Quick scan` now have proper Russian / Portuguese / etc. labels instead of falling back to English (F-001).
+- **Scan view dropped the EN/RU framing** — labels read "ATS adapters" + "Regional portals", Active-Companies counter recomputes from the actual scan corpus after each `done` event instead of staying frozen at view-mount (F-010 + F-011 minimum slice; full adapter-registry consolidation is queued as PR-1 / v1.11.0).
+- **README + help bundles cleaned** of the EN/RU framing in all 8 locales (F-014).
+- New tests: `global-error-handler.test.mjs`, `config-groups.test.mjs`, `pdf-extra-routes.test.mjs`. **349 / 350** unit tests, 94.59 % line / 84.16 % branch coverage, 23/23 comprehensive E2E, 28/28 Playwright.
 
 ## What's new in v1.10.2
 
@@ -360,8 +370,8 @@ All buffered runs cap at 60 s; SIGTERM → SIGKILL escalation after a 5 s grace 
 | Method | Path                          | Streams                            |
 | ------ | ----------------------------- | ---------------------------------- |
 | GET    | `/api/stream/scan`            | legacy `node scan.mjs` (subprocess)|
-| GET    | `/api/stream/scan-en`         | in-process EN scanner — query: `dryRun=1`, `company=…` |
-| GET    | `/api/stream/scan-ru`         | in-process RU scanner — query: `dryRun=1`              |
+| GET    | `/api/stream/scan-en`         | in-process ATS scanner — query: `dryRun=1`, `company=…` |
+| GET    | `/api/stream/scan-ru`         | in-process regional scanner — query: `dryRun=1`              |
 | GET    | `/api/stream/liveness`        | `node check-liveness.mjs`          |
 | GET    | `/api/stream/pdf`             | `node generate-pdf.mjs`            |
 

@@ -13,14 +13,33 @@
 import { readFileSync, existsSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { PATHS } from '../paths.mjs';
+import yaml from 'js-yaml';
 import {
   KNOWN_KEYS,
+  KEY_GROUPS,
   SECRET_KEYS,
   parseEnv,
   maskSecret,
   validateConfig,
   updateEnvFile,
 } from '../env-config.mjs';
+
+/**
+ * F-013 — Is at least one regional source configured in portals.yml?
+ * If not, the SPA hides the "Regional sources" group entirely. Read fresh
+ * on every /api/config request so the user adding a regional source
+ * doesn't require a restart.
+ */
+function regionalSourcesPresent() {
+  try {
+    if (!existsSync(PATHS.portals)) return false;
+    const data = yaml.load(readFileSync(PATHS.portals, 'utf8')) || {};
+    const rp = data.russian_portals;
+    if (!rp || rp.enabled === false) return false;
+    const sources = Array.isArray(rp.sources) ? rp.sources : [];
+    return sources.length > 0;
+  } catch { return false; }
+}
 
 export function registerConfigRoutes(app) {
   app.get('/api/config', (_req, res) => {
@@ -36,7 +55,14 @@ export function registerConfigRoutes(app) {
       const v = parsed[k] !== undefined ? parsed[k] : live;
       out[k] = SECRET_KEYS.has(k) ? maskSecret(v) : (v || '');
     }
-    res.json({ envFile: PATHS.envFile, keys: KNOWN_KEYS, secretKeys: [...SECRET_KEYS], values: out });
+    res.json({
+      envFile: PATHS.envFile,
+      keys: KNOWN_KEYS,
+      secretKeys: [...SECRET_KEYS],
+      groups: KEY_GROUPS,
+      regionalActive: regionalSourcesPresent(),
+      values: out,
+    });
   });
 
   app.post('/api/config', (req, res) => {

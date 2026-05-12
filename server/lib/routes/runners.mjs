@@ -164,4 +164,92 @@ export function registerRunnerRoutes(app) {
     res.setHeader('Content-Disposition', `attachment; filename="${safe}"`);
     res.sendFile(file);
   });
+
+  // ─── F-015 — Generate PDF on surfaces beyond #/cv ───
+  // Same wire pattern as /api/stream/pdf: render markdown → HTML → temp
+  // file under output/ → spawn generate-pdf.mjs with positional args.
+  // The shared helper below keeps the three new endpoints small.
+  function streamPdfFor({ res, slug, markdown, title, format }) {
+    if (!markdown || !markdown.trim()) {
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
+        'X-Accel-Buffering': 'no',
+      });
+      res.write(`event: error\ndata: ${JSON.stringify({ message: 'empty markdown' })}\n\n`);
+      res.write(`event: done\ndata: ${JSON.stringify({ code: 2 })}\n\n`);
+      return res.end();
+    }
+    mkdirSync(PATHS.outputDir, { recursive: true });
+    const ts = new Date().toISOString().replace(/[^\dT]/g, '').slice(0, 15);
+    // Sanitize slug for filename use: only word chars + hyphen.
+    const safeSlug = (slug || 'doc').replace(/[^\w-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'doc';
+    const inputPath = projPath('output', `${safeSlug}-input-${ts}.html`);
+    const outputPath = projPath('output', `${safeSlug}-${ts}.pdf`);
+    writeFileSync(inputPath, cvMarkdownToHtml(markdown, title || safeSlug));
+    const fmt = (format === 'letter') ? 'letter' : 'a4';
+    streamNodeScript(res, 'generate-pdf.mjs', [inputPath, outputPath, `--format=${fmt}`]);
+  }
+
+  // GET /api/stream/pdf/report?slug=<slug> — renders reports/<slug>.md
+  app.get('/api/stream/pdf/report', (req, res) => {
+    const slug = String(req.query.slug || '').replace(/[^\w\-.]/g, '');
+    if (!slug) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'slug required' }));
+    }
+    const file = projPath('reports', slug.endsWith('.md') ? slug : `${slug}.md`);
+    if (!existsSync(file)) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'report not found', slug }));
+    }
+    streamPdfFor({
+      res,
+      slug: `report-${slug.replace(/\.md$/, '')}`,
+      markdown: readFileSync(file, 'utf8'),
+      title: `Report: ${slug.replace(/\.md$/, '')}`,
+      format: req.query.format,
+    });
+  });
+
+  // GET /api/stream/pdf/deep?name=<name> — renders interview-prep/<name>
+  app.get('/api/stream/pdf/deep', (req, res) => {
+    const name = String(req.query.name || '').replace(/[^\w\-.]/g, '');
+    if (!name || !name.endsWith('.md')) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'name required (must end with .md)' }));
+    }
+    const file = projPath('interview-prep', name);
+    if (!existsSync(file)) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'interview-prep file not found', name }));
+    }
+    streamPdfFor({
+      res,
+      slug: `deep-${name.replace(/\.md$/, '')}`,
+      markdown: readFileSync(file, 'utf8'),
+      title: `Deep research: ${name.replace(/\.md$/, '')}`,
+      format: req.query.format,
+    });
+  });
+
+  // POST /api/stream/pdf/inline { markdown, title?, slug? } — ad-hoc PDF
+  // for unsaved content (e.g. /#/evaluate result before persisting). SSE
+  // works through POST too: EventSource doesn't, but the SPA fetches with
+  // ReadableStream parsing for this endpoint.
+  app.post('/api/stream/pdf/inline', (req, res) => {
+    const { markdown, title, slug, format } = req.body || {};
+    if (!markdown || typeof markdown !== 'string') {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'markdown required' }));
+    }
+    streamPdfFor({
+      res,
+      slug: slug || 'inline',
+      markdown,
+      title: title || 'Document',
+      format,
+    });
+  });
 }

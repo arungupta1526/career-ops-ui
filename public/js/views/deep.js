@@ -93,6 +93,20 @@ Router.register('deep', async () => {
             window.open('/api/interview-prep/' + encodeURIComponent(opts.saved), '_blank');
           },
         }, '↗ ' + t('deep.openTab', 'Open in tab')) : null,
+        c('button', {
+          className: 'btn btn-primary btn-sm',
+          onClick: (e) => {
+            if (opts.saved) {
+              // We have a persisted interview-prep file — use the dedicated
+              // endpoint so the PDF metadata reflects the real filename.
+              window.PdfGenerate.run({ kind: 'deep', name: opts.saved, button: e.currentTarget });
+            } else {
+              window.PdfGenerate.run({
+                kind: 'inline', markdown, title, slug: 'deep', button: e.currentTarget,
+              });
+            }
+          },
+        }, '📄 ' + t('common.generatePdf', 'Generate PDF')),
       ]),
     ]);
     const body = c('div', { className: 'card md', html: UI.md(markdown || '') });

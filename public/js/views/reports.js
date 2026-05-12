@@ -16,6 +16,10 @@ Router.register('reports', async (params) => {
         c('div', { className: 'flex gap-3' }, [
           c('button', { className: 'btn btn-ghost', onClick: () => Router.go('/reports') }, t('rep.allReports')),
           r.url && c('a', { className: 'btn btn-ghost', href: r.url, target: '_blank', rel: 'noopener' }, t('rep.openJd')),
+          c('button', {
+            className: 'btn btn-primary',
+            onClick: (e) => window.PdfGenerate.run({ kind: 'report', slug, button: e.currentTarget }),
+          }, '📄 ' + t('common.generatePdf', 'Generate PDF')),
         ]),
       ]),
       c('div', { className: 'card md', html: UI.md(r.markdown) }),

@@ -34,7 +34,28 @@
       "Bash(curl -sN -m 30 \"http://127.0.0.1:4317/api/stream/pdf\")",
       "Bash(npx playwright *)",
       "Bash(node --test tests/cv-upload-multipart-reject.test.mjs tests/pdf-stream-args.test.mjs)",
-      "Bash(npm cache *)"
+      "Bash(npm cache *)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('local server v=', d.get\\('version'\\)\\)\")",
+      "Bash(curl -sf -m 5 -X POST -H \"Content-Type: application/octet-stream\" -H \"X-Filename: smoke.md\" --data-binary @/tmp/test-cv.md http://127.0.0.1:4317/api/cv/import -w \" HTTP %{http_code}\\\\n\" -o /dev/null)",
+      "Bash(curl -s -m 5 -X POST http://127.0.0.1:4317/api/cv/import -F \"file=@/tmp/test-cv.md\" -w \" HTTP %{http_code}\\\\n\" -o /dev/null)",
+      "Bash(curl -sN -m 3 \"http://127.0.0.1:4317/api/stream/pdf\")",
+      "Bash(python3 -c \"import sys,json; print\\(json.load\\(sys.stdin\\)['version']\\)\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('local v=', d.get\\('version'\\), '  warnings=', d.get\\('warnings'\\), '  ok=', d.get\\('ok'\\)\\)\")",
+      "Bash(curl -sf -m 3 http://127.0.0.1:4317/api/help/ko)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('lang=', d.get\\('lang'\\),' size=', len\\(d.get\\('markdown',''\\)\\)\\)\")",
+      "Bash(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{\"url\":\"__TRACKED_VAR__\"}' http://127.0.0.1:4317/api/pipeline)",
+      "Bash(curl -sf http://127.0.0.1:4317/api/activity?limit=200)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('  mode=', d.get\\('mode'\\),'  ru-directive=', 'Respond in Russian' in d.get\\('prompt',''\\)\\)\")",
+      "Bash(curl -sf \"http://127.0.0.1:4317/api/activity?limit=200\")",
+      "Bash(python3 -c \"import sys,json; evts=json.load\\(sys.stdin\\)['events']; hit=next\\(\\(e for e in evts if e['action']=='profile.save'\\), None\\); print\\('  profile.save present:', hit is not None\\)\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -X POST http://127.0.0.1:4317/api/cv/import -F \"file=@/tmp/test-cv.md\")",
+      "Bash(curl -sf -X POST -H \"Content-Type: application/json\" -d '{\"url\":\"https://audit-1.example.com/x\"}' http://127.0.0.1:4317/api/pipeline)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -X DELETE -H \"Content-Type: application/json\" -d '{\"url\":\"https://audit-1.example.com/x\"}' http://127.0.0.1:4317/api/pipeline)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -X DELETE \"http://127.0.0.1:4317/api/pipeline?url=https://never.example.com/x\")",
+      "Bash(python3 -c \"import sys,json,re; line=sys.stdin.read\\(\\); m=re.search\\(r'data: \\(\\\\\\\\{.+\\\\\\\\}\\)', line\\); d=json.loads\\(m.group\\(1\\)\\); print\\('  args=', d.get\\('args'\\),'  ok=', len\\(d.get\\('args',[]\\)\\)==3\\)\")",
+      "Bash(node --test tests/global-error-handler.test.mjs tests/config-groups.test.mjs tests/pdf-extra-routes.test.mjs)",
+      "Bash(grep -nA5 \"ensureRussianPortalsDefaults\\\\|russian_portals\" server/lib/store.mjs)",
+      "Bash(python3 -c ' *)"
     ]
   }
 }

@@ -16,6 +16,16 @@
 
 ![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
 
+## Novidades em v1.10.3
+
+- **Generate PDF em toda página longa.** Três novos endpoints SSE — `GET /api/stream/pdf/report?slug=`, `GET /api/stream/pdf/deep?name=`, `POST /api/stream/pdf/inline { markdown }`. O botão **📄 Generate PDF** agora aparece em `#/reports/:slug`, `#/deep` (manual + live), `#/evaluate` (manual + live) e `#/interview-prep`.
+- **Handler global de erros Express.** `PayloadTooLargeError` e JSON malformado retornam envelopes JSON localizáveis, não traces HTML (F-019).
+- **`#/config` reagrupado.** API keys / runtime / regional. `HH_USER_AGENT` vai para "Regional sources" recolhido, visível apenas se `portals.yml::russian_portals.sources` não está vazio (F-013).
+- **Tokens em inglês não vazam mais em UIs não-EN** — `Pipeline`, `Deep research`, `Follow-up`, `Health`, `Outreach`, `Doctor`, `Quick scan` agora têm labels localizadas (F-001).
+- **`#/scan` sem framing EN/RU** — labels "ATS adapters" + "Regional portals", contador Active-companies recalcula após cada `done` (F-010 + F-011 mínimo; consolidação completa do registro de adaptadores fica em PR-1 / v1.11.0).
+- **README + bundles de ajuda limpos** do framing EN/RU em todas as 8 localidades (F-014).
+- Novos testes. **349/350** unit, 94.59 % linha / 84.16 % branch, 23/23 E2E, 28/28 Playwright.
+
 ## Novidades em v1.10.2
 
 - **O upload do CV não corrompe mais `cv.md` em uploads multipart.** Qualquer ferramenta externa (curl `-F`, clientes HTTP comuns) que usasse `multipart/form-data` por padrão armazenava o envelope wire de multipart como conteúdo de `cv.md`. `POST /api/cv/import` agora retorna **HTTP 415** com uma dica: use `Content-Type: application/octet-stream` + `X-Filename: <nome>`. Defesa em profundidade: corpos octet-stream que *parecem* multipart (sniff `Content-Disposition: form-data` nos primeiros 256 bytes) também recebem 415.

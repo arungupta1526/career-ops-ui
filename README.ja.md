@@ -16,6 +16,16 @@
 
 ![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
 
+## v1.10.3 の新機能
+
+- **すべての長尺ページに Generate PDF。** 新しい SSE エンドポイント 3 つ — `GET /api/stream/pdf/report?slug=`、`GET /api/stream/pdf/deep?name=`、`POST /api/stream/pdf/inline { markdown }`。**📄 Generate PDF** ボタンが `#/reports/:slug`、`#/deep` (manual + live)、`#/evaluate` (manual + live)、`#/interview-prep` に表示されます。
+- **グローバル Express エラーハンドラー。** `PayloadTooLargeError` と不正な JSON が HTML スタックではなくローカライズ可能な JSON エンベロープを返します (F-019)。
+- **`#/config` 再グループ化。** API keys / runtime / regional。`HH_USER_AGENT` は `portals.yml::russian_portals.sources` が空でない場合のみ表示される折りたたまれた「Regional sources」セクションに移動 (F-013)。
+- **英語トークンが非 EN UI に漏れなくなりました** — `Pipeline`、`Deep research`、`Follow-up`、`Health`、`Outreach`、`Doctor`、`Quick scan` が適切にローカライズされました (F-001)。
+- **`#/scan` から EN/RU フレーミング除去** — ラベルが「ATS adapters」+「Regional portals」、Active companies カウンターが各 `done` 後に実際のスキャンコーパスから再計算 (F-010 + F-011 最小スライス; 完全なアダプターレジストリ統合は PR-1 / v1.11.0)。
+- **README + ヘルプバンドルをクリーンアップ** — 8 ロケール全てから EN/RU フレーミングを削除 (F-014)。
+- 新規テスト。**349/350** ユニット、94.59 % 行 / 84.16 % ブランチ、23/23 E2E、28/28 Playwright。
+
 ## v1.10.2 の新機能
 
 - **CV アップロードで multipart 時に `cv.md` が破損しなくなりました。** `multipart/form-data` をデフォルトとする外部ツール (curl `-F`、一般的な HTTP クライアント) は以前、multipart wire envelope を `cv.md` の内容として保存していました。`POST /api/cv/import` は今や **HTTP 415** とヒントを返します:`Content-Type: application/octet-stream` + `X-Filename: <name>` を使ってください。多層防御:multipart のように*見える* octet-stream ボディ (先頭 256 バイト内に `Content-Disposition: form-data` をスニッフィング) も 415 になります。
