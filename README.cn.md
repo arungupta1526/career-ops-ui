@@ -13,34 +13,30 @@
 
 > 📦 **v1.9.1** — 服务器精简为 130 行的编排器 + `server/lib/routes/` 中的 12 个路由模块。`/api/evaluate` 的 Anthropic 对等(两个 key 同时存在时优先)。多 CLI 桥接(`AGENTS.md`、`GEMINI.md`)支持 Codex / Aider / Cursor / Gemini CLI。**284 个 unit + 12 个 Playwright 烟雾测试**。完整 production-readiness 评估:[`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md)。可用于 single-tenant loopback 部署;LAN 暴露的 auth gate 在 v2.0 (P-12)。
 
-
 ![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
 
-## v1.10.3 新增内容
+## 关于 career-ops
 
-- **每个长页面都有 Generate PDF。** 三个新的 SSE 端点 — `GET /api/stream/pdf/report?slug=`、`GET /api/stream/pdf/deep?name=`、`POST /api/stream/pdf/inline { markdown }`。**📄 Generate PDF** 按钮现在出现在 `#/reports/:slug`、`#/deep` (manual + live)、`#/evaluate` (manual + live)、`#/interview-prep`。
-- **全局 Express 错误处理器。** `PayloadTooLargeError` 和畸形 JSON 返回可本地化的 JSON 信封,而不是 HTML 堆栈 (F-019)。
-- **`#/config` 重新分组。** API keys / runtime / regional。`HH_USER_AGENT` 移到仅当 `portals.yml::russian_portals.sources` 非空时显示的折叠 "Regional sources" 部分 (F-013)。
-- **英文 token 不再泄露到非 EN UI** — `Pipeline`、`Deep research`、`Follow-up`、`Health`、`Outreach`、`Doctor`、`Quick scan` 现已正确本地化 (F-001)。
-- **`#/scan` 去掉 EN/RU 框架** — 标签读作 "ATS adapters" + "Regional portals",Active companies 计数器在每次 `done` 后从实际扫描语料库重新计算 (F-010 + F-011 最小切片;完整适配器注册表整合见 PR-1 / v1.11.0)。
-- **README + 帮助包清理** — 所有 8 个区域的 EN/RU 框架已删除 (F-014)。
-- 新测试。**349/350** 单元,94.59 % 行 / 84.16 % 分支,23/23 E2E,28/28 Playwright。
+[career-ops](https://career-ops.org) 是一个开源求职系统,作为 slash 命令运行在任何 AI 编码 CLI(Claude Code、Codex、Cursor、Gemini CLI、GitHub Copilot CLI)内。模型无关。用 6 维 0.0–5.0 评分体系将每个职位与你的 CV 匹配,生成定制 PDF 简历,并在本地追踪每次申请 — 无云账号,无遥测,无自动提交。
 
-## v1.10.2 新增内容
+**本仓库 (career-ops-ui)** 是 CLI 之上的精致 Web 界面。CLI 继续拥有 form-fill(经 Playwright MCP)和 slash 命令模式;SPA 在同一 `cv.md` / `data/applications.md` / `reports/` 之上提供 CRM 风格的表面。数据共享。
 
-- **CV 上传不再因 multipart 上传损坏 `cv.md`。** 默认使用 `multipart/form-data` 的任何外部工具(curl `-F`、常见 HTTP 客户端)以前会把 multipart wire envelope 当作 `cv.md` 的内容写入。`POST /api/cv/import` 现在返回 **HTTP 415** 并带提示:使用 `Content-Type: application/octet-stream` + `X-Filename: <name>`。深度防御:*看起来*像 multipart 的 octet-stream 主体(前 256 字节中嗅探到 `Content-Disposition: form-data`)也会得到 415。
-- **`📄 Generate PDF` 终于生成 PDF。** `/api/stream/pdf` 以前**没有参数**就调用父项目的 `generate-pdf.mjs`;脚本打印 `Usage:` 并以代码 1 退出 — SPA 显示绿色 toast 但没有文件写入磁盘。现在该路由在服务器端将 `cv.md` 渲染为 HTML,写入 `output/cv-input-<TIMESTAMP>.html`,然后用正确的位置参数 + `--format=a4` 启动脚本。可选 `?format=letter` 用于 US-letter 输出。`cv.md` 缺失时给出清晰的流式错误。
-- **`docs/test-scenarios/`** — 21 个英文场景文件,记录每个页面的契约(CV 上传、PDF 下载、scan 过滤器、pipeline、evaluate、tracker、activity log、安全、完整漏斗)。
+**按 Score 的行动阈值** (来自 [career-ops.org/docs](https://career-ops.org/docs)):
 
-## v1.10.1 新增内容
+| Score | 下一步 |
+|---|---|
+| **≥ 4.5** | `/career-ops apply` — 高匹配,立即申请 |
+| **4.0 – 4.4** | 申请,或 `/career-ops contacto` (warm intro) |
+| **3.5 – 3.9** | `/career-ops deep` — 先调研 |
+| **< 3.5** | 除非有特定理由,跳过 |
 
-- **安全：SSRF 攻击面收紧。** `isValidJobUrl` 现在会拒绝 RFC1918、链路本地（包括 AWS IMDS `169.254.169.254`）、`0.0.0.0`、整个 127/8 回环范围、CGNAT `100.64/10` 和 IPv6 ULA / 链路本地。预览代理在每一跳进行 DNS 解析，地址落入私有范围时直接阻断 — 防御 DNS 重绑定。
-- **活动日志守纪。** 仅记录成功的状态变更 — 不再有 4xx 噪声。`profile.save`、`config.save`、`cv.import` 事件现已出现在动态中。
-- **韩语帮助正文修复。** `GET /api/help/ko` 现可正确提供 `ko-KR.md`（之前因文件名与语言代码不一致而静默回退到英文）。
-- **LLM 提示尊重 UI 语言。** `/api/evaluate`、`/api/deep`、`/api/mode/:slug` 与 apply-helper 会根据 `body.lang` / `Accept-Language` 注入 "Respond in X" 指令。SPA 自动为每次请求附上当前 locale。
-- **`/api/evaluate` 尊重 `mode:'manual'`** — 可将提示复制到 Claude Code，而不消耗 Anthropic 额度。
-- **`DELETE /api/pipeline`** 同时接受 `?url=` 与 `body.url`；当 URL 不在收件箱时返回 `404`（不再是静默 `200`）。
-- **`scripts/post-qa-cleanup.mjs`** — 重放 QA 回归后的清理清单；默认 dry-run，幂等。
+**规范指南** ([career-ops.org/docs](https://career-ops.org/docs)):
+
+- [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+- [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+- [Apply for a job](https://career-ops.org/docs/introduction/guides/apply-for-a-job)
+- [Batch-evaluate offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+- [Set up Playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright)
 
 ## 一键安装
 

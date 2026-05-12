@@ -7,6 +7,58 @@
 > **対象:** この UI を `career-ops` チェックアウト内に置き
 > `bash bin/start.sh` を実行した方。career-ops の事前知識は不要です。
 
+
+### career-ops について
+
+[career-ops](https://career-ops.org) は、AI コーディング CLI (Claude Code、Codex、Cursor、Gemini CLI、GitHub Copilot CLI) 内でスラッシュコマンドとして動作するオープンソースの求職システムです。モデル非依存。6 次元 0.0–5.0 ルーブリックで各求人を CV と照合し、カスタマイズされた PDF レジュメを生成し、すべての応募をローカルで追跡します。
+
+**原則** ([career-ops.org/docs](https://career-ops.org/docs)):
+
+- **オープンソース、本気で** — MIT、有料ティアなし、ウェイトリストなし、テレメトリなし、アカウントなし。
+- **データ主権** — `cv.md`、`config/profile.yml`、`data/`、`reports/`、`interview-prep/` は明示的にプッシュしない限りマシンを離れません。
+- **人間が送信** — career-ops は回答を起草しフォームを開きますが、**Submit はあなたがクリック**します。自動応募はありません。
+- **構造化された検索** — 能動的・意図的な求職活動向け、レコメンドエンジンではありません。
+
+**主要概念**
+
+| 概念 | 内容 |
+|---|---|
+| **Mode** | `modes/<slug>.md` 配下のプロンプトテンプレート。組込: `oferta`、`deep`、`apply`、`pipeline`、`batch`、`contacto`、`followup`、`interview-prep`、`patterns`、`project`、`training`。 |
+| **Archetype** | `config/profile.yml` のターゲットロールプロファイル。ルーブリックがアクティブな archetype に対してスキル一致を重み付け — **最も重要なフィールド**。 |
+| **Pipeline** | `data/pipeline.md` — 評価待ちの JD URL の inbox。 |
+| **Tracker** | `data/applications.md` — すべての評価/応募ステータスの GFM マークダウンテーブル。 |
+| **Report** | `reports/<NNN>-<company>-<DATE>.md` — JD ごとの完全な A–G 評価 + score + legitimacy。 |
+| **Scan history** | `data/scan-history.tsv` — append-only ログ、スキャン間の重複を防止。 |
+
+### career-ops と career-ops-ui
+
+| | career-ops (CLI) | career-ops-ui (本アプリ) |
+|---|---|---|
+| 実行場所 | Claude Code / Codex / Cursor / Gemini CLI 内 | ブラウザの `http://127.0.0.1:4317` |
+| 表面 | `/career-ops <mode>` スラッシュコマンド | サイドバー、ワークフローごとに 1 ページ |
+| フォーム入力 | あり、Playwright MCP 経由 | なし — チェックリスト生成、CLI で完結 |
+| PDF | `generate-pdf.mjs` | `📄 Generate PDF` (`#/cv`、`#/reports/:slug`、`#/evaluate`、`#/deep`、`#/interview-prep`) |
+| データファイル | career-ops-ui と共有 | career-ops と共有 |
+
+### Score 別アクション閾値
+
+| Score | 次のステップ |
+|---|---|
+| **≥ 4.5** | `/career-ops apply` — 高フィット、即応募。 |
+| **4.0 – 4.4** | 応募、または `/career-ops contacto` (warm intro)。 |
+| **3.5 – 3.9** | `/career-ops deep` — 会社/ロールを調査してから決定。 |
+| **< 3.5** | 特別な理由がなければスキップ。 |
+
+### 外部ドキュメント
+
+career-ops エンジンの完全リファレンス (スキャン、ルーブリック、batch、apply、Playwright) は [career-ops.org/docs](https://career-ops.org/docs):
+
+- [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+- [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+- [Apply for a job](https://career-ops.org/docs/introduction/guides/apply-for-a-job)
+- [Batch-evaluate offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+- [Set up Playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright)
+
 ---
 
 ## 1. クイックスタート — 「CV 作成」から「応募 + メッセージ送信」までステップごとに

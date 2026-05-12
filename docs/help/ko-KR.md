@@ -8,6 +8,58 @@
 > **대상:** 이 UI를 `career-ops` 체크아웃 안에 두고 `bash bin/start.sh`를
 > 실행한 분. career-ops에 대한 사전 지식은 가정하지 않습니다.
 
+
+### career-ops 소개
+
+[career-ops](https://career-ops.org)는 모든 AI 코딩 CLI(Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot CLI) 안에서 슬래시 명령으로 실행되는 오픈소스 구직 시스템입니다. 모델 무관. 각 공고를 6차원 0.0–5.0 루브릭으로 CV와 매칭하고, 맞춤형 PDF 이력서를 생성하며, 모든 지원을 로컬에서 추적합니다.
+
+**원칙** ([career-ops.org/docs](https://career-ops.org/docs)):
+
+- **오픈소스, 진짜로** — MIT, 유료 티어 없음, 대기자 없음, 텔레메트리 없음, 계정 없음.
+- **데이터 주권** — `cv.md`, `config/profile.yml`, `data/`, `reports/`, `interview-prep/`은 명시적으로 푸시하지 않는 한 머신을 벗어나지 않습니다.
+- **사람이 제출** — career-ops가 답변을 작성하고 폼을 열지만, **Submit은 당신이 클릭**합니다. 자동 지원 없음.
+- **구조적 검색** — 능동적이고 의도적인 구직을 위해 설계됨; 추천 엔진이 아닙니다.
+
+**핵심 개념**
+
+| 개념 | 설명 |
+|---|---|
+| **Mode** | `modes/<slug>.md`의 프롬프트 템플릿. 내장: `oferta`, `deep`, `apply`, `pipeline`, `batch`, `contacto`, `followup`, `interview-prep`, `patterns`, `project`, `training`. |
+| **Archetype** | `config/profile.yml`의 타깃 롤 프로필. 루브릭이 활성 archetype 대비 스킬 매칭에 가중치 부여 — **가장 중요한 필드**. |
+| **Pipeline** | `data/pipeline.md` — 평가 대기 JD URL의 inbox. |
+| **Tracker** | `data/applications.md` — 모든 평가/지원 상태의 GFM 마크다운 테이블. |
+| **Report** | `reports/<NNN>-<company>-<DATE>.md` — JD별 전체 A–G 평가 + score + legitimacy. |
+| **Scan history** | `data/scan-history.tsv` — append-only 로그, 스캔 간 중복 제거. |
+
+### career-ops vs career-ops-ui
+
+| | career-ops (CLI) | career-ops-ui (이 앱) |
+|---|---|---|
+| 실행 위치 | Claude Code / Codex / Cursor / Gemini CLI 내부 | 브라우저의 `http://127.0.0.1:4317` |
+| 표면 | `/career-ops <mode>` 슬래시 명령 | 사이드바, 워크플로우당 한 페이지 |
+| 폼 채우기 | 예, Playwright MCP 경유 | 아니오 — 체크리스트 생성, CLI에서 마무리 |
+| PDF | `generate-pdf.mjs` | `📄 Generate PDF` (`#/cv`, `#/reports/:slug`, `#/evaluate`, `#/deep`, `#/interview-prep`) |
+| 데이터 파일 | career-ops-ui와 공유 | career-ops와 공유 |
+
+### Score 별 액션 임계값
+
+| Score | 다음 단계 |
+|---|---|
+| **≥ 4.5** | `/career-ops apply` — 높은 적합도, 즉시 지원. |
+| **4.0 – 4.4** | 지원 또는 `/career-ops contacto` (warm intro). |
+| **3.5 – 3.9** | `/career-ops deep` — 회사/롤 리서치 후 결정. |
+| **< 3.5** | 특별한 이유 없으면 건너뜀. |
+
+### 외부 문서
+
+career-ops 엔진의 전체 레퍼런스(스캐닝, 루브릭, batch, apply, Playwright)는 [career-ops.org/docs](https://career-ops.org/docs):
+
+- [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+- [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+- [Apply for a job](https://career-ops.org/docs/introduction/guides/apply-for-a-job)
+- [Batch-evaluate offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+- [Set up Playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright)
+
 ---
 
 ## 1. 빠른 시작 — "CV 만들기"부터 "지원 + 메시지 발송"까지 단계별 가이드

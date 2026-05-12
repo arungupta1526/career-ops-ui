@@ -55,7 +55,13 @@
       "Bash(python3 -c \"import sys,json,re; line=sys.stdin.read\\(\\); m=re.search\\(r'data: \\(\\\\\\\\{.+\\\\\\\\}\\)', line\\); d=json.loads\\(m.group\\(1\\)\\); print\\('  args=', d.get\\('args'\\),'  ok=', len\\(d.get\\('args',[]\\)\\)==3\\)\")",
       "Bash(node --test tests/global-error-handler.test.mjs tests/config-groups.test.mjs tests/pdf-extra-routes.test.mjs)",
       "Bash(grep -nA5 \"ensureRussianPortalsDefaults\\\\|russian_portals\" server/lib/store.mjs)",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://127.0.0.1:4317/api/stream/pdf/report?slug=nope\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://127.0.0.1:4317/api/stream/pdf/deep?name=nope.md\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -X POST -H \"Content-Type: application/json\" -d '{\"markdown\":\"\"}' \"http://127.0.0.1:4317/api/stream/pdf/inline\")",
+      "WebFetch(domain:career-ops.org)",
+      "Bash(grep -n \"^---$\\\\|^## 1\" docs/help/ru.md)",
+      "Bash(python3)"
     ]
   }
 }

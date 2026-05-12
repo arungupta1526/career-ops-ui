@@ -13,34 +13,30 @@
 
 > 📦 **v1.9.1** — Servidor refatorado para um orquestrador de 130 linhas + 12 módulos de rotas em `server/lib/routes/`. Paridade Anthropic em `/api/evaluate` (preferida sobre Gemini quando ambas as chaves estão presentes). Shims multi-CLI (`AGENTS.md`, `GEMINI.md`) para Codex / Aider / Cursor / Gemini CLI. **284 unit + 12 Playwright smoke tests**. Para a avaliação completa de production-readiness: [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md). Pronto para deploy single-tenant loopback; o gate de auth para LAN chega em v2.0 (P-12).
 
-
 ![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
 
-## Novidades em v1.10.3
+## Sobre o career-ops
 
-- **Generate PDF em toda página longa.** Três novos endpoints SSE — `GET /api/stream/pdf/report?slug=`, `GET /api/stream/pdf/deep?name=`, `POST /api/stream/pdf/inline { markdown }`. O botão **📄 Generate PDF** agora aparece em `#/reports/:slug`, `#/deep` (manual + live), `#/evaluate` (manual + live) e `#/interview-prep`.
-- **Handler global de erros Express.** `PayloadTooLargeError` e JSON malformado retornam envelopes JSON localizáveis, não traces HTML (F-019).
-- **`#/config` reagrupado.** API keys / runtime / regional. `HH_USER_AGENT` vai para "Regional sources" recolhido, visível apenas se `portals.yml::russian_portals.sources` não está vazio (F-013).
-- **Tokens em inglês não vazam mais em UIs não-EN** — `Pipeline`, `Deep research`, `Follow-up`, `Health`, `Outreach`, `Doctor`, `Quick scan` agora têm labels localizadas (F-001).
-- **`#/scan` sem framing EN/RU** — labels "ATS adapters" + "Regional portals", contador Active-companies recalcula após cada `done` (F-010 + F-011 mínimo; consolidação completa do registro de adaptadores fica em PR-1 / v1.11.0).
-- **README + bundles de ajuda limpos** do framing EN/RU em todas as 8 localidades (F-014).
-- Novos testes. **349/350** unit, 94.59 % linha / 84.16 % branch, 23/23 E2E, 28/28 Playwright.
+[career-ops](https://career-ops.org) é um sistema open-source de busca de emprego que roda como slash-comandos dentro de qualquer CLI de codificação com IA (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot CLI). Modelo-agnóstico. Avalia cada vaga contra seu CV com uma rubrica de seis dimensões 0.0–5.0, gera CVs PDF adaptados, e registra cada candidatura localmente — sem contas na nuvem, sem telemetria, sem auto-envio.
 
-## Novidades em v1.10.2
+**Este repositório (career-ops-ui)** é uma interface web polida sobre o CLI. O CLI continua dono do form-fill (via Playwright MCP) e dos slash-comandos; a SPA dá uma superfície tipo CRM sobre os mesmos `cv.md` / `data/applications.md` / `reports/`. Dados compartilhados.
 
-- **O upload do CV não corrompe mais `cv.md` em uploads multipart.** Qualquer ferramenta externa (curl `-F`, clientes HTTP comuns) que usasse `multipart/form-data` por padrão armazenava o envelope wire de multipart como conteúdo de `cv.md`. `POST /api/cv/import` agora retorna **HTTP 415** com uma dica: use `Content-Type: application/octet-stream` + `X-Filename: <nome>`. Defesa em profundidade: corpos octet-stream que *parecem* multipart (sniff `Content-Disposition: form-data` nos primeiros 256 bytes) também recebem 415.
-- **`📄 Generate PDF` finalmente produz um PDF.** `/api/stream/pdf` antes invocava `generate-pdf.mjs` **sem argumentos**; o script imprimia `Usage:` e saía com código 1 — a SPA mostrava um toast verde mas nenhum arquivo chegava ao disco. Agora a rota renderiza `cv.md` para HTML no servidor, escreve em `output/cv-input-<TIMESTAMP>.html` e lança o script com os args posicionais corretos + `--format=a4`. Opcional `?format=letter` para US-letter. Erro claro quando `cv.md` está ausente.
-- **`docs/test-scenarios/`** — 21 arquivos de cenários em inglês documentando o contrato de cada página (CV upload, PDF download, filtros de scan, pipeline, evaluate, tracker, activity log, segurança, funil completo).
+**Limiares por score** (de [career-ops.org/docs](https://career-ops.org/docs)):
 
-## Novidades em v1.10.1
+| Score | Próximo passo |
+|---|---|
+| **≥ 4.5** | `/career-ops apply` — alto fit, aplique já |
+| **4.0 – 4.4** | aplique, ou `/career-ops contacto` (warm intro) |
+| **3.5 – 3.9** | `/career-ops deep` — pesquise antes |
+| **< 3.5** | pule, salvo razão específica |
 
-- **Segurança: superfície SSRF reforçada.** `isValidJobUrl` agora rejeita RFC1918, link-local (incluindo AWS IMDS `169.254.169.254`), `0.0.0.0`, toda a faixa 127/8, CGNAT `100.64/10` e IPv6 ULA / link-local. O proxy de preview resolve via DNS cada salto e bloqueia se o endereço cair em faixa privada — defesa contra DNS-rebind.
-- **Disciplina do log de atividade.** Só registra mudanças de estado bem-sucedidas — sem ruído 4xx. Os eventos `profile.save`, `config.save` e `cv.import` agora aparecem no feed.
-- **Help coreano corrigido.** `GET /api/help/ko` agora serve `ko-KR.md` corretamente (antes caía no inglês por um descompasso de nome de arquivo).
-- **Prompts LLM respeitam o idioma da UI.** `/api/evaluate`, `/api/deep`, `/api/mode/:slug` e o apply-helper injetam uma diretiva "Respond in X" via `body.lang` / `Accept-Language`. A SPA anexa seu locale em cada requisição.
-- **`/api/evaluate` respeita `mode:'manual'`** — copie o prompt no Claude Code sem queimar créditos do Anthropic.
-- **`DELETE /api/pipeline`** aceita `?url=` E `body.url`, retorna `404` (não `200` silencioso) quando a URL não estava na caixa de entrada.
-- **`scripts/post-qa-cleanup.mjs`** — repete a limpeza após regressão de QA; dry-run por padrão, idempotente.
+**Guias canônicos** em [career-ops.org/docs](https://career-ops.org/docs):
+
+- [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+- [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+- [Apply for a job](https://career-ops.org/docs/introduction/guides/apply-for-a-job)
+- [Batch-evaluate offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+- [Set up Playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright)
 
 ## Instalação com um comando
 

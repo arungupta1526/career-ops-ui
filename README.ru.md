@@ -5,48 +5,36 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | **Русский** | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-349%20passed-brightgreen)](README.md#tests)
+[![tests](https://img.shields.io/badge/tests-348%20passed-brightgreen)](README.md#tests)
 [![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.10.3-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.10.3)
-
-## Что нового в v1.10.3
-
-- **Generate PDF на каждой длинной странице.** Три новых SSE-эндпоинта — `GET /api/stream/pdf/report?slug=`, `GET /api/stream/pdf/deep?name=`, `POST /api/stream/pdf/inline { markdown }`. Кнопка **📄 Generate PDF** теперь на `#/reports/:slug`, `#/deep` (manual + live), `#/evaluate` (manual + live) и `#/interview-prep`.
-- **Глобальный Express error handler.** `PayloadTooLargeError` (загрузка 11 МБ в `/api/cv/import`) и невалидный JSON теперь возвращают JSON-конверт, который SPA локализует в тост — без HTML stack trace (F-019).
-- **`#/config` сгруппирован.** API keys / runtime / regional. `HH_USER_AGENT` переехал в свёрнутую секцию "Regional sources", которая рендерится только если в `portals.yml::russian_portals.sources` что-то есть (F-013).
-- **Английские токены больше не протекают в RU/PT/ES/etc UI** — `Pipeline`, `Deep research`, `Follow-up`, `Health`, `Outreach`, `Doctor`, `Quick scan` получили нормальные локализованные ярлыки (F-001).
-- **`#/scan` без EN/RU framing** — ярлыки читаются как "ATS adapters" + "Regional portals", счётчик Active companies пересчитывается из реального scan-корпуса после каждого `done` (F-010 + F-011 минимальный слайс; полная консолидация адаптерного реестра — PR-1 / v1.11.0).
-- **README + help-бандлы зачищены** от EN/RU framing во всех 8 локалях (F-014).
-- Новые тесты: `global-error-handler`, `config-groups`, `pdf-extra-routes`. **349/350** юнит, 94.59 % линий / 84.16 % веток, 23/23 comprehensive E2E, 28/28 Playwright.
-
-## Что нового в v1.10.2
-
-- **CV-загрузка больше не портит `cv.md` при multipart-загрузках.** Любой внешний инструмент (curl `-F`, типовые HTTP-клиенты) по умолчанию шёл `multipart/form-data` и записывал в `cv.md` сам wire-envelope. `POST /api/cv/import` теперь возвращает **HTTP 415** с подсказкой: используй `Content-Type: application/octet-stream` + `X-Filename: <name>`. Защита в глубину: octet-stream-тела, которые *выглядят* как multipart (есть `Content-Disposition: form-data` в первых 256 байтах), тоже получают 415.
-- **`📄 Generate PDF` наконец-то делает PDF.** `/api/stream/pdf` раньше запускал родительский `generate-pdf.mjs` **без аргументов**; скрипт печатал `Usage:` и завершался с кодом 1 — SPA показывала зелёный тост, но файл никогда не сохранялся. Теперь маршрут рендерит `cv.md` в HTML на сервере, пишет в `output/cv-input-<TIMESTAMP>.html` и запускает скрипт с правильными позиционными аргументами + `--format=a4`. Опционально `?format=letter` для US-letter. Понятная ошибка в стриме, когда `cv.md` отсутствует.
-- **`docs/test-scenarios/`** — 21 файл сценариев на английском, описывающие контракт каждой страницы (CV-загрузка, PDF-скачивание, scan-фильтры, pipeline, evaluate, tracker, activity log, безопасность, полная воронка).
-
-## Что нового в v1.10.1
-
-- **Безопасность: SSRF-защита затянута.** `isValidJobUrl` теперь отбрасывает RFC1918, link-local (включая AWS IMDS `169.254.169.254`), `0.0.0.0`, всю петлю 127/8, CGNAT `100.64/10` и IPv6 ULA / link-local. Прокси предпросмотра DNS-резолвит каждый прыжок и блокирует запрос, если адрес попадает в приватный диапазон — защита от DNS-rebind.
-- **Дисциплина аудит-лога.** В ленту активности теперь попадают только успешные изменения состояния — никакого 4xx-шума. События `profile.save`, `config.save` и `cv.import` наконец видны в ленте.
-- **Корейская справка.** `GET /api/help/ko` теперь корректно отдаёт `ko-KR.md` (раньше молча падал на английский фолбэк из-за расхождения имени файла и кода локали).
-- **LLM-промпты учитывают язык UI.** `/api/evaluate`, `/api/deep`, `/api/mode/:slug` и apply-helper подставляют директиву "Respond in X" по `body.lang` / `Accept-Language`. SPA автоматически прикрепляет текущую локаль ко всем запросам.
-- **`/api/evaluate` уважает `mode:'manual'`** — можно скопировать промпт в Claude Code, не сжигая Anthropic-токены.
-- **`DELETE /api/pipeline`** принимает `?url=` И `body.url`, возвращает `404` (а не молчаливый `200`), если URL не было в очереди.
-- **`scripts/post-qa-cleanup.mjs`** — повторяет чек-лист уборки после QA-регрессии; по умолчанию dry-run, идемпотентен.
-
-## Что нового в v1.10.0
-
-- **CV import** — `📁 Upload CV` принимает `.docx`, `.doc`, `.odt`, `.rtf`, `.pdf`, `.html`, `.txt`, `.md`. Office идёт через pandoc, PDF — через `pdftotext` из Poppler. Результат проходит тот же XSS-страйп, что и paste, лимит 10 MB.
-- **PDF auto-download** — после `📄 Generate PDF` свежий PDF автоматически скачивается в браузер; список на странице сохраняет все предыдущие файлы.
-- **Двухтабовый `#/config`** — первая вкладка та же (API-ключи + runtime); новая вкладка **Profile** — прямой YAML-редактор `config/profile.yml` с валидацией и проставлением канонического заголовка.
-- **`#/profile` теперь канонический маршрут** (раньше был `#/settings`). Старый хеш всё равно резолвится, букмарки не ломаются.
-- **Help-доки обновлены** во всех 8 локалях.
-
+[![release](https://img.shields.io/badge/release-v1.11.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.11.0)
 
 ![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
+
+## О career-ops
+
+[career-ops](https://career-ops.org) — open-source система поиска работы, которая запускается как slash-команды внутри любого AI CLI (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot CLI). Модель-агностична. Оценивает каждую вакансию по шестимерной рубрике 0.0–5.0, генерирует подогнанное PDF-резюме и трекает каждую заявку локально — без облака, без телеметрии, без авто-сабмита.
+
+**Этот репозиторий (career-ops-ui)** — отполированный веб-интерфейс поверх CLI. CLI продолжает владеть заполнением форм (через Playwright MCP) и slash-командами; SPA даёт CRM-стиль поверх тех же `cv.md` / `data/applications.md` / `reports/`. Данные общие.
+
+**Пороги действий по score** (из [career-ops.org/docs](https://career-ops.org/docs)):
+
+| Score | Следующий шаг |
+|---|---|
+| **≥ 4.5** | `/career-ops apply` — высокий fit, подавайте сразу |
+| **4.0 – 4.4** | подача или `/career-ops contacto` для warm intro |
+| **3.5 – 3.9** | `/career-ops deep` — сначала рисёрч |
+| **< 3.5** | пропустите, если нет персональной причины |
+
+**Канонические гайды** на [career-ops.org/docs](https://career-ops.org/docs):
+
+- [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+- [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+- [Apply for a job](https://career-ops.org/docs/introduction/guides/apply-for-a-job)
+- [Batch-evaluate offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+- [Set up Playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright)
 
 ## Установка одной командой
 

@@ -13,34 +13,30 @@
 
 > 📦 **v1.9.1** — サーバを 130 行のオーケストレータ + `server/lib/routes/` の 12 ルートモジュールに分割。`/api/evaluate` の Anthropic パリティ (両キー存在時は優先)。マルチ CLI シム (`AGENTS.md`、`GEMINI.md`) で Codex / Aider / Cursor / Gemini CLI に対応。**unit 284 + Playwright smoke 12**。Production-readiness 評価: [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md)。シングルテナント loopback デプロイ可能。LAN 公開用の auth gate は v2.0 (P-12)。
 
-
 ![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
 
-## v1.10.3 の新機能
+## career-ops について
 
-- **すべての長尺ページに Generate PDF。** 新しい SSE エンドポイント 3 つ — `GET /api/stream/pdf/report?slug=`、`GET /api/stream/pdf/deep?name=`、`POST /api/stream/pdf/inline { markdown }`。**📄 Generate PDF** ボタンが `#/reports/:slug`、`#/deep` (manual + live)、`#/evaluate` (manual + live)、`#/interview-prep` に表示されます。
-- **グローバル Express エラーハンドラー。** `PayloadTooLargeError` と不正な JSON が HTML スタックではなくローカライズ可能な JSON エンベロープを返します (F-019)。
-- **`#/config` 再グループ化。** API keys / runtime / regional。`HH_USER_AGENT` は `portals.yml::russian_portals.sources` が空でない場合のみ表示される折りたたまれた「Regional sources」セクションに移動 (F-013)。
-- **英語トークンが非 EN UI に漏れなくなりました** — `Pipeline`、`Deep research`、`Follow-up`、`Health`、`Outreach`、`Doctor`、`Quick scan` が適切にローカライズされました (F-001)。
-- **`#/scan` から EN/RU フレーミング除去** — ラベルが「ATS adapters」+「Regional portals」、Active companies カウンターが各 `done` 後に実際のスキャンコーパスから再計算 (F-010 + F-011 最小スライス; 完全なアダプターレジストリ統合は PR-1 / v1.11.0)。
-- **README + ヘルプバンドルをクリーンアップ** — 8 ロケール全てから EN/RU フレーミングを削除 (F-014)。
-- 新規テスト。**349/350** ユニット、94.59 % 行 / 84.16 % ブランチ、23/23 E2E、28/28 Playwright。
+[career-ops](https://career-ops.org) は、AI コーディング CLI (Claude Code、Codex、Cursor、Gemini CLI、GitHub Copilot CLI) 内でスラッシュコマンドとして動作するオープンソースの求職システムです。モデル非依存。6 次元 0.0–5.0 ルーブリックで各求人を CV と照合し、カスタマイズされた PDF レジュメを生成し、すべての応募をローカルで追跡します — クラウドアカウントなし、テレメトリなし、自動送信なし。
 
-## v1.10.2 の新機能
+**このリポジトリ (career-ops-ui)** は CLI の上に磨かれた Web インターフェースです。CLI は form-fill (Playwright MCP 経由) とスラッシュコマンドモードを引き続き所有; SPA は同じ `cv.md` / `data/applications.md` / `reports/` の上に CRM スタイルのサーフェスを提供します。データ共有。
 
-- **CV アップロードで multipart 時に `cv.md` が破損しなくなりました。** `multipart/form-data` をデフォルトとする外部ツール (curl `-F`、一般的な HTTP クライアント) は以前、multipart wire envelope を `cv.md` の内容として保存していました。`POST /api/cv/import` は今や **HTTP 415** とヒントを返します:`Content-Type: application/octet-stream` + `X-Filename: <name>` を使ってください。多層防御:multipart のように*見える* octet-stream ボディ (先頭 256 バイト内に `Content-Disposition: form-data` をスニッフィング) も 415 になります。
-- **`📄 Generate PDF` がついに PDF を生成します。** `/api/stream/pdf` は以前、親の `generate-pdf.mjs` を**引数なし**で呼び出していました;スクリプトは `Usage:` を出力して終了コード 1 で終了 — SPA は緑のトーストを表示しましたがファイルはディスクに到達しませんでした。今やルートは `cv.md` をサーバー側で HTML にレンダリングし、`output/cv-input-<TIMESTAMP>.html` に書き込み、正しい位置引数 + `--format=a4` でスクリプトを起動します。US-letter 出力のためのオプション `?format=letter`。`cv.md` がない場合の親切なストリームエラー。
-- **`docs/test-scenarios/`** — 各ページの契約を文書化した 21 個の英語シナリオファイル (CV アップロード、PDF ダウンロード、スキャンフィルター、pipeline、evaluate、tracker、activity log、セキュリティ、完全な funnel)。
+**Score 別アクション閾値** ([career-ops.org/docs](https://career-ops.org/docs)):
 
-## v1.10.1 の新機能
+| Score | 次のステップ |
+|---|---|
+| **≥ 4.5** | `/career-ops apply` — 高フィット、即応募 |
+| **4.0 – 4.4** | 応募、または `/career-ops contacto` (warm intro) |
+| **3.5 – 3.9** | `/career-ops deep` — 先に調査 |
+| **< 3.5** | 特別な理由がなければスキップ |
 
-- **セキュリティ: SSRF 表面の強化。** `isValidJobUrl` は RFC1918、リンクローカル (AWS IMDS `169.254.169.254` を含む)、`0.0.0.0`、127/8 ループバック全範囲、CGNAT `100.64/10`、IPv6 ULA / リンクローカルを拒否するようになりました。プレビュープロキシは各ホップで DNS を再解決し、アドレスがプライベート範囲に入る場合はブロックします — DNS リバインド対策。
-- **アクティビティログの規律。** 成功した状態変更のみが記録されます — 4xx ノイズなし。`profile.save`、`config.save`、`cv.import` イベントがフィードに表示されます。
-- **韓国語ヘルプ本文を修正。** `GET /api/help/ko` が `ko-KR.md` を正しく提供するようになりました (以前はファイル名とロケールの不一致により英語にフォールバックしていました)。
-- **LLM プロンプトが UI 言語を尊重します。** `/api/evaluate`、`/api/deep`、`/api/mode/:slug`、apply-helper は `body.lang` / `Accept-Language` に基づいて "Respond in X" ディレクティブを挿入します。SPA はすべてのリクエストに現在のロケールを自動的に添付します。
-- **`/api/evaluate` が `mode:'manual'` を尊重します** — Anthropic クレジットを消費せずにプロンプトを Claude Code にコピーできます。
-- **`DELETE /api/pipeline`** が `?url=` と `body.url` の両方を受け入れ、URL がインボックスにない場合は `404` (静かな `200` ではなく) を返します。
-- **`scripts/post-qa-cleanup.mjs`** — QA 回帰後のクリーンアップチェックリストを再実行します; デフォルトはドライラン、冪等。
+**正規ガイド** ([career-ops.org/docs](https://career-ops.org/docs)):
+
+- [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+- [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+- [Apply for a job](https://career-ops.org/docs/introduction/guides/apply-for-a-job)
+- [Batch-evaluate offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+- [Set up Playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright)
 
 ## ワンコマンドインストール
 

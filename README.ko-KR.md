@@ -13,34 +13,30 @@
 
 > 📦 **v1.9.1** — 서버를 130줄 오케스트레이터 + `server/lib/routes/`의 12개 라우트 모듈로 리팩터링. `/api/evaluate`의 Anthropic 패리티(두 키 모두 있을 때 우선). 멀티 CLI 심(`AGENTS.md`, `GEMINI.md`)으로 Codex / Aider / Cursor / Gemini CLI 지원. **unit 284개 + Playwright smoke 12개**. 전체 production-readiness 평가: [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md). 싱글 테넌트 loopback 배포 준비 완료; LAN 노출용 auth gate는 v2.0 (P-12)에서 제공.
 
-
 ![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
 
-## v1.10.3 새로운 변경사항
+## career-ops 소개
 
-- **모든 긴 페이지에 Generate PDF.** 새 SSE 엔드포인트 3개 — `GET /api/stream/pdf/report?slug=`, `GET /api/stream/pdf/deep?name=`, `POST /api/stream/pdf/inline { markdown }`. **📄 Generate PDF** 버튼이 `#/reports/:slug`, `#/deep` (manual + live), `#/evaluate` (manual + live), `#/interview-prep`에 나타납니다.
-- **전역 Express 오류 핸들러.** `PayloadTooLargeError`와 잘못된 JSON이 HTML 스택이 아닌 로컬라이즈 가능한 JSON 봉투를 반환합니다 (F-019).
-- **`#/config` 재그룹화.** API keys / runtime / regional. `HH_USER_AGENT`는 `portals.yml::russian_portals.sources`가 비어있지 않을 때만 보이는 접힌 "Regional sources" 섹션으로 이동 (F-013).
-- **영어 토큰이 더 이상 비-EN UI로 새지 않음** — `Pipeline`, `Deep research`, `Follow-up`, `Health`, `Outreach`, `Doctor`, `Quick scan`이 적절히 로컬라이즈됨 (F-001).
-- **`#/scan` EN/RU 프레이밍 제거** — 라벨이 "ATS adapters" + "Regional portals"로, Active companies 카운터가 각 `done` 후 실제 스캔 코퍼스에서 재계산됨 (F-010 + F-011 최소 슬라이스; 전체 어댑터 레지스트리 통합은 PR-1 / v1.11.0).
-- **README + 도움말 번들 정리** — 8개 로케일 모두에서 EN/RU 프레이밍 제거 (F-014).
-- 새 테스트. **349/350** 유닛, 94.59 % 라인 / 84.16 % 브랜치, 23/23 E2E, 28/28 Playwright.
+[career-ops](https://career-ops.org)는 모든 AI 코딩 CLI(Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot CLI) 안에서 슬래시 명령으로 실행되는 오픈소스 구직 시스템입니다. 모델 무관. 각 공고를 6차원 0.0–5.0 루브릭으로 CV와 매칭하고, 맞춤형 PDF 이력서를 생성하며, 모든 지원을 로컬에서 추적합니다 — 클라우드 계정 없음, 텔레메트리 없음, 자동 제출 없음.
 
-## v1.10.2 새로운 변경사항
+**이 저장소(career-ops-ui)**는 CLI 위에 다듬은 웹 인터페이스입니다. CLI는 form-fill(Playwright MCP 경유)과 슬래시 명령 모드를 계속 소유; SPA는 동일한 `cv.md` / `data/applications.md` / `reports/` 위에 CRM 스타일 표면을 제공합니다. 데이터 공유.
 
-- **CV 업로드가 더 이상 multipart 업로드 시 `cv.md`를 손상시키지 않습니다.** `multipart/form-data`를 기본으로 사용하는 외부 도구(curl `-F`, 일반 HTTP 클라이언트)가 이전에는 multipart wire envelope을 `cv.md` 내용으로 저장했습니다. `POST /api/cv/import`는 이제 **HTTP 415**와 함께 힌트를 반환합니다: `Content-Type: application/octet-stream` + `X-Filename: <name>`을 사용하세요. 심층 방어: multipart처럼 *보이는* octet-stream 본문(첫 256바이트에서 `Content-Disposition: form-data` 스니핑)도 415를 받습니다.
-- **`📄 Generate PDF`가 마침내 PDF를 생성합니다.** `/api/stream/pdf`는 이전에 부모의 `generate-pdf.mjs`를 **인수 없이** 호출했습니다; 스크립트는 `Usage:`를 출력하고 종료 코드 1로 종료 — SPA는 녹색 토스트를 표시했지만 파일은 디스크에 저장되지 않았습니다. 이제 라우트는 서버 측에서 `cv.md`를 HTML로 렌더링하고, `output/cv-input-<TIMESTAMP>.html`에 작성한 다음 올바른 위치 인수 + `--format=a4`로 스크립트를 실행합니다. US-letter 출력을 위한 선택적 `?format=letter`. `cv.md`가 없을 때 친근한 스트림 오류.
-- **`docs/test-scenarios/`** — 모든 페이지의 계약을 문서화하는 21개의 영어 시나리오 파일 (CV 업로드, PDF 다운로드, 스캔 필터, pipeline, evaluate, tracker, activity log, 보안, 전체 funnel).
+**Score 별 액션 임계값** ([career-ops.org/docs](https://career-ops.org/docs)):
 
-## v1.10.1 새로운 변경사항
+| Score | 다음 단계 |
+|---|---|
+| **≥ 4.5** | `/career-ops apply` — 높은 적합도, 즉시 지원 |
+| **4.0 – 4.4** | 지원 또는 `/career-ops contacto` (warm intro) |
+| **3.5 – 3.9** | `/career-ops deep` — 먼저 리서치 |
+| **< 3.5** | 특별한 이유 없으면 건너뜀 |
 
-- **보안: SSRF 표면 강화.** `isValidJobUrl`이 이제 RFC1918, 링크 로컬 (AWS IMDS `169.254.169.254` 포함), `0.0.0.0`, 전체 127/8 루프백 범위, CGNAT `100.64/10`, IPv6 ULA / 링크 로컬을 거부합니다. 프리뷰 프록시는 매 홉마다 DNS를 다시 조회하여 주소가 프라이빗 범위에 들어가면 차단합니다 — DNS 리바인딩 방어.
-- **활동 로그 정돈.** 이제 성공한 상태 변경만 기록됩니다 — 4xx 노이즈 없음. `profile.save`, `config.save`, `cv.import` 이벤트가 피드에 표시됩니다.
-- **한국어 도움말 본문 수정.** `GET /api/help/ko`가 이제 `ko-KR.md`를 정확히 제공합니다 (이전에는 파일명-로케일 불일치로 영어로 폴백되었음).
-- **LLM 프롬프트가 UI 언어를 따릅니다.** `/api/evaluate`, `/api/deep`, `/api/mode/:slug`, apply-helper가 `body.lang` / `Accept-Language`에 따라 "Respond in X" 지시문을 주입합니다. SPA가 모든 요청에 현재 로케일을 자동으로 첨부합니다.
-- **`/api/evaluate`가 `mode:'manual'`을 존중합니다** — Anthropic 크레딧을 소비하지 않고 프롬프트를 Claude Code에 복사할 수 있습니다.
-- **`DELETE /api/pipeline`**이 `?url=` 와 `body.url` 둘 다 받으며, URL이 인박스에 없을 때 `404` (조용한 `200` 아님)를 반환합니다.
-- **`scripts/post-qa-cleanup.mjs`** — QA 회귀 후 정리 체크리스트를 재실행합니다; 기본은 드라이런, 멱등적.
+**캐노니컬 가이드** ([career-ops.org/docs](https://career-ops.org/docs)):
+
+- [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+- [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+- [Apply for a job](https://career-ops.org/docs/introduction/guides/apply-for-a-job)
+- [Batch-evaluate offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+- [Set up Playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright)
 
 ## 한 줄 설치
 

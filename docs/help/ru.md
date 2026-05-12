@@ -10,6 +10,58 @@
 > `career-ops` checkout и запустил `bash bin/start.sh`. Знание
 > career-ops не предполагается.
 
+
+### О career-ops
+
+[career-ops](https://career-ops.org) — open-source система поиска работы, которая запускается как slash-команды внутри любого AI CLI (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot CLI). Модель-агностична. Оценивает каждую вакансию по шестимерной рубрике 0.0–5.0, генерирует подогнанное PDF-резюме и трекает каждую заявку локально.
+
+**Принципы** (из [career-ops.org/docs](https://career-ops.org/docs)):
+
+- **Open source, всерьёз** — MIT, ни платного тира, ни вейтлиста, ни телеметрии, ни аккаунтов.
+- **Суверенитет данных** — `cv.md`, `config/profile.yml`, `data/`, `reports/`, `interview-prep/` не покидают вашу машину, если вы их не пушите явно.
+- **Подаёт человек** — career-ops пишет ответы и открывает форму, но **Submit нажимаете вы**. Автоподача отсутствует.
+- **Структурированный поиск** — для активного поиска, не для рекомендаций.
+
+**Ключевые концепты**
+
+| Концепт | Что это |
+|---|---|
+| **Mode** | Шаблон промпта в `modes/<slug>.md`. Встроенные: `oferta`, `deep`, `apply`, `pipeline`, `batch`, `contacto`, `followup`, `interview-prep`, `patterns`, `project`, `training`. |
+| **Архетип** | Целевая ролевая модель в `config/profile.yml`. Рубрика взвешивает совпадения навыков относительно активного архетипа — **самое важное поле**. |
+| **Pipeline** | `data/pipeline.md` — inbox URL-ов, ждущих оценки. |
+| **Tracker** | `data/applications.md` — историческая GFM-таблица всех оценок и статусов. |
+| **Report** | `reports/<NNN>-<company>-<DATE>.md` — полная A–G оценка JD + score + legitimacy. |
+| **Scan history** | `data/scan-history.tsv` — append-only лог, дедупит сканы. |
+
+### career-ops vs career-ops-ui
+
+| | career-ops (CLI) | career-ops-ui (это приложение) |
+|---|---|---|
+| Где работает | внутри Claude Code / Codex / Cursor / Gemini CLI | `http://127.0.0.1:4317` в браузере |
+| Поверхность | `/career-ops <mode>` слэш-команды | сайдбар, одна страница на workflow |
+| Заполнение форм | да, через Playwright MCP | нет — генерит чек-лист, заполнение в CLI |
+| PDF | `generate-pdf.mjs` | `📄 Generate PDF` на `#/cv`, `#/reports/:slug`, `#/evaluate`, `#/deep`, `#/interview-prep` |
+| Файлы данных | общие с career-ops-ui | общие с career-ops |
+
+### Пороги действий по score
+
+| Score | Следующий шаг |
+|---|---|
+| **≥ 4.5** | `/career-ops apply` — высокий fit, подавайте сразу. |
+| **4.0 – 4.4** | Подавайте или `/career-ops contacto` для warm intro. |
+| **3.5 – 3.9** | `/career-ops deep` — изучите компанию/роль перед решением. |
+| **< 3.5** | Пропустите, если нет персональной причины. |
+
+### Внешние доки
+
+Полная справка по движку career-ops (сканирование, рубрика, batch, apply, Playwright) — на [career-ops.org/docs](https://career-ops.org/docs):
+
+- [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+- [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+- [Apply for a job](https://career-ops.org/docs/introduction/guides/apply-for-a-job)
+- [Batch-evaluate offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+- [Set up Playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright)
+
 ---
 
 ## 1. Быстрый старт — пошаговое руководство от «создать CV» до «отклик и сообщение»

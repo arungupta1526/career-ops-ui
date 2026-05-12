@@ -5,47 +5,36 @@
 
 **English** | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-349%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-348%20passed-brightgreen)](#tests)
 [![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.10.3-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.10.3)
-
-## What's new in v1.10.3
-
-- **Generate PDF on every long-form surface.** Three new SSE endpoints — `GET /api/stream/pdf/report?slug=`, `GET /api/stream/pdf/deep?name=`, `POST /api/stream/pdf/inline { markdown }`. The **📄 Generate PDF** button now appears on `#/reports/:slug`, `#/deep` (manual + live), `#/evaluate` (manual + live), and `#/interview-prep` reuses the same flow via the deep endpoint.
-- **Global Express error handler.** `PayloadTooLargeError` (an 11 MB upload to `/api/cv/import`) and malformed-JSON parse errors now return JSON envelopes the SPA can localize, not HTML stack traces (F-019).
-- **`#/config` regrouped.** API keys / runtime / regional groups. `HH_USER_AGENT` moves under a collapsed "Regional sources" section that only renders when `portals.yml::russian_portals.sources` is non-empty (F-013).
-- **English-token bleed plugged across non-EN UI** — `Pipeline`, `Deep research`, `Follow-up`, `Health`, `Outreach`, `Doctor`, `Quick scan` now have proper Russian / Portuguese / etc. labels instead of falling back to English (F-001).
-- **Scan view dropped the EN/RU framing** — labels read "ATS adapters" + "Regional portals", Active-Companies counter recomputes from the actual scan corpus after each `done` event instead of staying frozen at view-mount (F-010 + F-011 minimum slice; full adapter-registry consolidation is queued as PR-1 / v1.11.0).
-- **README + help bundles cleaned** of the EN/RU framing in all 8 locales (F-014).
-- New tests: `global-error-handler.test.mjs`, `config-groups.test.mjs`, `pdf-extra-routes.test.mjs`. **349 / 350** unit tests, 94.59 % line / 84.16 % branch coverage, 23/23 comprehensive E2E, 28/28 Playwright.
-
-## What's new in v1.10.2
-
-- **CV upload no longer corrupts `cv.md` on multipart uploads.** Any external tool (curl `-F`, common HTTP clients) that defaulted to `multipart/form-data` previously stored the multipart wire envelope as `cv.md` contents. `POST /api/cv/import` now returns **HTTP 415** with a hint pointing at the documented contract: `Content-Type: application/octet-stream` + `X-Filename: <name>`. Defense-in-depth: octet-stream bodies that *look* like multipart (sniff for `Content-Disposition: form-data` in the first 256 bytes) also get 415.
-- **`📄 Generate PDF` actually produces a PDF.** `/api/stream/pdf` used to invoke the parent's `generate-pdf.mjs` with **no arguments**; the script printed its `Usage:` line and exited code 1 — the SPA showed a green toast but no file ever reached disk. The route now renders `cv.md` to HTML server-side, writes it to `output/cv-input-<TIMESTAMP>.html`, and spawns `generate-pdf.mjs <input.html> <output.pdf> --format=a4` with the documented positional args. Optional `?format=letter` query for US-letter output. Friendly stream-time error when `cv.md` is missing.
-- **`docs/test-scenarios/`** — 21 scenario files in English documenting the contract for every page (CV upload, PDF download, scan filters, pipeline, evaluate, tracker, activity log, security, full funnel). Linked from the in-app help.
-
-## What's new in v1.10.1
-
-- **Security: SSRF surface tightened.** `isValidJobUrl` now rejects RFC1918, link-local (incl. AWS IMDS `169.254.169.254`), `0.0.0.0`, the full 127/8 loopback range, CGNAT `100.64/10`, and IPv6 ULA / link-local. The pipeline-preview proxy DNS-resolves each hop and rejects when the address itself is private — defeats DNS-rebind.
-- **Audit log discipline.** Activity feed now records only successful state changes — no more 4xx-rejected attempts cluttering the timeline. `profile.save`, `config.save`, and `cv.import` events now appear in the feed.
-- **Korean Help body fixed.** `GET /api/help/ko` now correctly serves `ko-KR.md` (was silently falling back to English because of a filename-vs-locale mismatch).
-- **LLM prompts honor your UI language.** `/api/evaluate`, `/api/deep`, `/api/mode/:slug`, and the apply-helper inject a "Respond in X" directive based on `body.lang` / `Accept-Language`. The SPA's `API.call()` auto-attaches your current locale to every request.
-- **`/api/evaluate` honors `mode:'manual'`** so you can copy the prompt into Claude Code without burning Anthropic credits.
-- **`DELETE /api/pipeline`** now accepts `?url=` AND `body.url`, returns `404` (not silent `200`) when the URL isn't in the inbox.
-- **`scripts/post-qa-cleanup.mjs`** — replays the QA-regression cleanup checklist; dry-run by default, idempotent.
-
-## What's new in v1.10.0
-
-- **CV import** — `📁 Upload CV` now accepts `.docx`, `.doc`, `.odt`, `.rtf`, `.pdf`, `.html`, `.txt`, `.md`. Office formats convert via pandoc, PDFs via Poppler's `pdftotext`. Result is sanitized through the same XSS strip as paste, capped at 10 MB.
-- **PDF auto-download** — when `📄 Generate PDF` finishes, the newest output PDF is auto-downloaded to your browser; the on-page list still keeps every previous one.
-- **`#/config` two-tab layout** — API keys & runtime stay on tab one; the new **Profile** tab is a direct YAML editor for `config/profile.yml` (validated, header-stamped).
-- **`#/profile` is now the canonical route** (was `#/settings`). The old hash still resolves so bookmarks keep working.
-- **Help docs refreshed** in all 8 locales for every change above.
+[![release](https://img.shields.io/badge/release-v1.11.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.11.0)
 
 ![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
+
+## About career-ops
+
+[career-ops](https://career-ops.org) is an open-source job-search system that runs as slash commands inside any AI coding CLI (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot CLI). Model-agnostic. It evaluates each posting against your CV with a six-dimension 0.0–5.0 rubric, generates tailored PDF résumés, and tracks every application locally — no cloud accounts, no telemetry, no auto-submit.
+
+**This repository (career-ops-ui)** is a polished web interface on top. The CLI keeps owning form-fill (via Playwright MCP) and slash-command modes; the SPA gives you a CRM-style browser surface over the same `cv.md` / `data/applications.md` / `reports/` files. Both share the same data.
+
+**Action thresholds by score** (from [career-ops.org/docs](https://career-ops.org/docs)):
+
+| Score | Next step |
+|---|---|
+| **≥ 4.5** | `/career-ops apply` — high fit, push immediately |
+| **4.0 – 4.4** | apply, or `/career-ops contacto` for warm intro |
+| **3.5 – 3.9** | `/career-ops deep` — research first |
+| **< 3.5** | skip unless you have a specific reason |
+
+**Canonical guides** at [career-ops.org/docs](https://career-ops.org/docs):
+
+- [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+- [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+- [Apply for a job](https://career-ops.org/docs/introduction/guides/apply-for-a-job)
+- [Batch-evaluate offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+- [Set up Playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright)
 
 ## One-command install
 

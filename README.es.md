@@ -13,34 +13,30 @@
 
 > 📦 **v1.9.1** — Servidor refactorizado a un orquestador de 130 líneas + 12 módulos de rutas en `server/lib/routes/`. Paridad Anthropic en `/api/evaluate` (preferida sobre Gemini cuando ambas claves están presentes). Shims multi-CLI (`AGENTS.md`, `GEMINI.md`) para Codex / Aider / Cursor / Gemini CLI. **284 unit + 12 Playwright smoke tests**. Para la evaluación de production-readiness completa: [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md). Listo para deploy single-tenant loopback; el gate de auth para LAN llega en v2.0 (P-12).
 
-
 ![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
 
-## Novedades en v1.10.3
+## Sobre career-ops
 
-- **Generate PDF en todas las páginas largas.** Tres nuevos endpoints SSE — `GET /api/stream/pdf/report?slug=`, `GET /api/stream/pdf/deep?name=`, `POST /api/stream/pdf/inline { markdown }`. El botón **📄 Generate PDF** ahora aparece en `#/reports/:slug`, `#/deep` (manual + live), `#/evaluate` (manual + live) y `#/interview-prep`.
-- **Manejador de errores Express global.** `PayloadTooLargeError` y JSON malformado devuelven sobres JSON localizables, no trazas HTML (F-019).
-- **`#/config` regroupado.** API keys / runtime / regional. `HH_USER_AGENT` pasa a "Regional sources" colapsado, solo visible si `portals.yml::russian_portals.sources` no está vacío (F-013).
-- **Tokens en inglés ya no se filtran a UIs no-EN** — `Pipeline`, `Deep research`, `Follow-up`, `Health`, `Outreach`, `Doctor`, `Quick scan` ahora tienen etiquetas localizadas (F-001).
-- **`#/scan` sin framing EN/RU** — etiquetas "ATS adapters" + "Regional portals", contador Active-companies se recalcula tras cada `done` (F-010 + F-011 mínimo; consolidación completa del registro de adaptadores queda en PR-1 / v1.11.0).
-- **README + bundles de ayuda limpiados** del framing EN/RU en las 8 localizaciones (F-014).
-- Nuevos tests. **349/350** unit, 94.59 % línea / 84.16 % rama, 23/23 E2E, 28/28 Playwright.
+[career-ops](https://career-ops.org) es un sistema open-source de búsqueda de empleo que corre como slash-comandos dentro de cualquier CLI de codificación con IA (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot CLI). Modelo-agnóstico. Evalúa cada puesto contra tu CV con una rúbrica de seis dimensiones 0.0–5.0, genera CVs PDF adaptados, y registra cada aplicación localmente — sin cuentas en la nube, sin telemetría, sin auto-envío.
 
-## Novedades en v1.10.2
+**Este repositorio (career-ops-ui)** es una interfaz web pulida encima del CLI. El CLI sigue siendo dueño del form-fill (vía Playwright MCP) y los slash-comandos; la SPA da una superficie tipo CRM sobre los mismos `cv.md` / `data/applications.md` / `reports/`. Datos compartidos.
 
-- **La subida del CV ya no corrompe `cv.md` con multipart.** Cualquier herramienta externa (curl `-F`, clientes HTTP comunes) que use `multipart/form-data` por defecto antes guardaba el sobre wire de multipart como contenido de `cv.md`. `POST /api/cv/import` ahora devuelve **HTTP 415** con una pista: usa `Content-Type: application/octet-stream` + `X-Filename: <nombre>`. Defensa en profundidad: cuerpos octet-stream que *parecen* multipart (sniff `Content-Disposition: form-data` en los primeros 256 bytes) también obtienen 415.
-- **`📄 Generate PDF` por fin produce un PDF.** `/api/stream/pdf` antes invocaba `generate-pdf.mjs` **sin argumentos**; el script imprimía `Usage:` y salía con código 1 — la SPA mostraba un toast verde pero ningún archivo llegaba al disco. Ahora la ruta renderiza `cv.md` a HTML en el servidor, lo escribe en `output/cv-input-<TIMESTAMP>.html` y lanza el script con los args posicionales correctos + `--format=a4`. Opcional `?format=letter` para US-letter. Error claro cuando falta `cv.md`.
-- **`docs/test-scenarios/`** — 21 archivos de escenarios en inglés que documentan el contrato de cada página (CV upload, PDF download, filtros de scan, pipeline, evaluate, tracker, activity log, seguridad, embudo completo).
+**Umbrales por score** (de [career-ops.org/docs](https://career-ops.org/docs)):
 
-## Novedades en v1.10.1
+| Score | Siguiente paso |
+|---|---|
+| **≥ 4.5** | `/career-ops apply` — alto fit, aplica de inmediato |
+| **4.0 – 4.4** | aplica, o `/career-ops contacto` (warm intro) |
+| **3.5 – 3.9** | `/career-ops deep` — investiga primero |
+| **< 3.5** | salta salvo razón específica |
 
-- **Seguridad: superficie SSRF reforzada.** `isValidJobUrl` ahora rechaza RFC1918, link-local (incluyendo AWS IMDS `169.254.169.254`), `0.0.0.0`, todo el rango 127/8, CGNAT `100.64/10` y IPv6 ULA / link-local. El proxy de preview resuelve por DNS cada salto y bloquea si la dirección cae en rango privado — defensa contra DNS-rebind.
-- **Disciplina del log de actividad.** Solo se registran cambios de estado exitosos — sin ruido 4xx. Los eventos `profile.save`, `config.save` y `cv.import` ya aparecen en el feed.
-- **Help en coreano arreglado.** `GET /api/help/ko` ahora sirve `ko-KR.md` correctamente (antes caía en inglés por un desajuste de nombre de archivo).
-- **Los prompts LLM respetan tu idioma de UI.** `/api/evaluate`, `/api/deep`, `/api/mode/:slug` y apply-helper inyectan una directiva "Respond in X" según `body.lang` / `Accept-Language`. La SPA adjunta tu locale en cada petición.
-- **`/api/evaluate` respeta `mode:'manual'`** — copia el prompt en Claude Code sin gastar créditos de Anthropic.
-- **`DELETE /api/pipeline`** acepta `?url=` Y `body.url`, devuelve `404` (no `200` silencioso) cuando la URL no estaba en la bandeja.
-- **`scripts/post-qa-cleanup.mjs`** — repite la limpieza tras una regresión de QA; dry-run por defecto, idempotente.
+**Guías canónicas** en [career-ops.org/docs](https://career-ops.org/docs):
+
+- [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+- [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+- [Apply for a job](https://career-ops.org/docs/introduction/guides/apply-for-a-job)
+- [Batch-evaluate offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+- [Set up Playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright)
 
 ## Instalación con un solo comando
 

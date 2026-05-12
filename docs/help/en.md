@@ -10,6 +10,80 @@ help sidebar.
 > checkout and ran `bash bin/start.sh`. No prior career-ops knowledge
 > assumed.
 
+### About career-ops
+
+[career-ops](https://career-ops.org) is an open-source job-search system
+that runs as slash commands inside any AI coding CLI (Claude Code,
+Codex, Cursor, Gemini CLI, GitHub Copilot CLI). Model-agnostic. It
+evaluates each posting against your CV with a six-dimension 0.0–5.0
+rubric, generates tailored PDF résumés, and tracks every application
+locally on your machine.
+
+**Defining principles** (from [career-ops.org/docs](https://career-ops.org/docs)):
+
+- **Open source, seriously** — MIT, no paid tier, no waitlist, no
+  telemetry, no accounts.
+- **Data sovereignty** — `cv.md`, `config/profile.yml`, `data/`,
+  `reports/`, `interview-prep/` never leave your laptop unless you
+  explicitly push them.
+- **Human-controlled submissions** — career-ops drafts answers and
+  opens the form, but **you click Submit**. The system never
+  auto-applies.
+- **Structured search** — built for an active, deliberate job hunt;
+  not a recommendation engine.
+
+**Key concepts**
+
+| Concept | What it is |
+|---|---|
+| **Mode** | A prompt template under `modes/<slug>.md`. Built-in: `oferta`, `deep`, `apply`, `pipeline`, `batch`, `contacto`, `followup`, `interview-prep`, `patterns`, `project`, `training`. |
+| **Archetype** | A target-role profile in `config/profile.yml`. The rubric weights skill matches against the active archetype — **the single most important field**. |
+| **Pipeline** | `data/pipeline.md` — inbox of JD URLs waiting to be evaluated. |
+| **Tracker** | `data/applications.md` — historical GFM table of every evaluation + application status. |
+| **Report** | `reports/<NNN>-<company>-<DATE>.md` — full A–G evaluation per JD, with score + legitimacy. |
+| **Scan history** | `data/scan-history.tsv` — append-only log; prevents duplicates across scans. |
+
+### career-ops vs career-ops-ui (this app)
+
+| | career-ops (CLI) | career-ops-ui (this app) |
+|---|---|---|
+| Where it runs | inside Claude Code / Codex / Cursor / Gemini CLI | `http://127.0.0.1:4317` in your browser |
+| Surface | `/career-ops <mode>` slash commands | sidebar with one page per workflow |
+| Form-fill | yes, via Playwright MCP | no — generates the checklist, you finish in the CLI |
+| PDF | `generate-pdf.mjs` | `📄 Generate PDF` on `#/cv`, `#/reports/:slug`, `#/evaluate`, `#/deep`, `#/interview-prep` |
+| Data files | shared with career-ops-ui | shared with career-ops |
+
+career-ops-ui is **pure additions**. Nothing inside `career-ops/`
+changes. Both surfaces share the same `cv.md`, `config/profile.yml`,
+`portals.yml`, `data/`, `reports/`, `interview-prep/`, `modes/`.
+
+### Action thresholds by score
+
+Once a JD has an evaluation, the score determines what to do next:
+
+| Score | Next step |
+|---|---|
+| **≥ 4.5** | Run `/career-ops apply` — high fit, push immediately. |
+| **4.0 – 4.4** | Apply, or `/career-ops contacto` for warm intro first. |
+| **3.5 – 3.9** | Run `/career-ops deep` — research the company / role before deciding. |
+| **< 3.5** | Skip unless you have a specific personal reason. |
+
+career-ops-ui's `#/dashboard` and `#/tracker` highlight every row at or
+above 4.0 so you can pick action without re-running anything.
+
+### External docs
+
+Full reference for the underlying career-ops engine
+(scanning, evaluation rubric, batch processing, apply flow,
+Playwright setup) is at
+[career-ops.org/docs](https://career-ops.org/docs):
+
+- [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+- [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+- [Apply for a job](https://career-ops.org/docs/introduction/guides/apply-for-a-job)
+- [Batch-evaluate offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+- [Set up Playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright)
+
 ---
 
 ## 1. Quick start — full step-by-step from "create CV" to "applied & messaged"

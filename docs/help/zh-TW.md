@@ -7,6 +7,58 @@ TOC 跳轉到所需部分。
 > **適用對象:** 剛把這個 UI 放到 `career-ops` checkout 中並執行了
 > `bash bin/start.sh` 的人。不假設你了解 career-ops。
 
+
+### 關於 career-ops
+
+[career-ops](https://career-ops.org) 是一個開源求職系統,作為 slash 命令運行在任何 AI 編碼 CLI(Claude Code、Codex、Cursor、Gemini CLI、GitHub Copilot CLI)內。模型無關。用 6 維 0.0–5.0 評分體系將每個職位與你的 CV 配對,生成客製化 PDF 履歷,並在本地追蹤每次申請。
+
+**原則** (來自 [career-ops.org/docs](https://career-ops.org/docs)):
+
+- **開源,認真的** — MIT 授權,無付費階層,無等候名單,無遙測,無帳號。
+- **資料主權** — `cv.md`、`config/profile.yml`、`data/`、`reports/`、`interview-prep/` 不會離開你的機器,除非你顯式推送。
+- **人工提交** — career-ops 起草答案並開啟表單,但 **由你點擊 Submit**。絕不自動申請。
+- **結構化搜尋** — 為主動、有意識的求職而設,不是推薦引擎。
+
+**核心概念**
+
+| 概念 | 含義 |
+|---|---|
+| **Mode** | `modes/<slug>.md` 下的提示模板。內建: `oferta`、`deep`、`apply`、`pipeline`、`batch`、`contacto`、`followup`、`interview-prep`、`patterns`、`project`、`training`。 |
+| **Archetype** | `config/profile.yml` 中的目標角色畫像。評分體系會按活動 archetype 加權技能配對 — **最重要的欄位**。 |
+| **Pipeline** | `data/pipeline.md` — 等待評估的 JD URL inbox。 |
+| **Tracker** | `data/applications.md` — 所有評估和申請狀態的 GFM markdown 表。 |
+| **Report** | `reports/<NNN>-<company>-<DATE>.md` — 每個 JD 的完整 A–G 評估 + score + 合法性。 |
+| **Scan history** | `data/scan-history.tsv` — 僅追加日誌,跨掃描去重。 |
+
+### career-ops vs career-ops-ui
+
+| | career-ops (CLI) | career-ops-ui (本應用) |
+|---|---|---|
+| 運行位置 | Claude Code / Codex / Cursor / Gemini CLI 內 | 瀏覽器中的 `http://127.0.0.1:4317` |
+| 介面 | `/career-ops <mode>` slash 命令 | 側邊欄,每個工作流一頁 |
+| 表單填寫 | 有,經 Playwright MCP | 無 — 生成清單,在 CLI 中完成 |
+| PDF | `generate-pdf.mjs` | `📄 Generate PDF` (`#/cv`、`#/reports/:slug`、`#/evaluate`、`#/deep`、`#/interview-prep`) |
+| 資料檔案 | 與 career-ops-ui 共享 | 與 career-ops 共享 |
+
+### 按 Score 的行動門檻
+
+| Score | 下一步 |
+|---|---|
+| **≥ 4.5** | `/career-ops apply` — 高配對,立即申請。 |
+| **4.0 – 4.4** | 申請,或 `/career-ops contacto` 先 warm intro。 |
+| **3.5 – 3.9** | `/career-ops deep` — 先研究公司/角色再決定。 |
+| **< 3.5** | 除非有特定理由,跳過。 |
+
+### 外部文件
+
+career-ops 引擎的完整參考(掃描、評分體系、batch、apply、Playwright)在 [career-ops.org/docs](https://career-ops.org/docs):
+
+- [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+- [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+- [Apply for a job](https://career-ops.org/docs/introduction/guides/apply-for-a-job)
+- [Batch-evaluate offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+- [Set up Playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright)
+
 ---
 
 ## 1. 快速入門 — 從「建立 CV」到「投遞 + 發送訊息」的逐步指南

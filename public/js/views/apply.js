@@ -36,6 +36,21 @@ Router.register('apply', async () => {
       c('strong', null, 'ℹ ' + t('apply.bannerTitle', 'Checklist only')),
       c('p', { style: { margin: '6px 0 0', fontSize: '14px' } },
         t('apply.bannerBody', 'This page generates a checklist + paste-ready text. Real Playwright form-fill (with a final-confirm) lives in Claude Code: /career-ops apply <url>')),
+      c('p', { style: { margin: '6px 0 0', fontSize: '13px' } }, [
+        // PR-9: surface the canonical Playwright setup guide so users
+        // who hit a "browser not installed" error in the CLI have an
+        // exact, vendor-blessed install path.
+        t('apply.playwrightHint', 'Need Playwright? See '),
+        c('a', {
+          href: 'https://career-ops.org/docs/introduction/guides/set-up-playwright',
+          target: '_blank', rel: 'noopener noreferrer',
+        }, 'career-ops.org/docs/.../set-up-playwright'),
+        ' · ',
+        c('a', {
+          href: 'https://career-ops.org/docs/introduction/guides/apply-for-a-job',
+          target: '_blank', rel: 'noopener noreferrer',
+        }, t('apply.docsLink', 'Apply guide')),
+      ]),
     ]),
     c('div', { className: 'card' }, [
       c('div', { className: 'field' }, [c('label', null, t('apply.urlLbl')), url]),
