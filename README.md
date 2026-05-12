@@ -9,7 +9,7 @@
 [![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.11.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.11.0)
+[![release](https://img.shields.io/badge/release-v1.11.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.11.1)
 
 ![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
 

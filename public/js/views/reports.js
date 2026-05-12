@@ -73,6 +73,53 @@ Router.register('reports', async (params) => {
   }
   render();
 
+  // PR-9 follow-up — surface the canonical career-ops.org action-by-score
+  // table inline so users see what to do with each report without
+  // jumping to help. Collapsible <details>: open by default first time
+  // (no localStorage gate; cheap & obvious).
+  const thresholdsCard = c('details', {
+    className: 'card',
+    style: { marginBottom: '16px' },
+    open: true,
+  }, [
+    c('summary', { style: { cursor: 'pointer', fontWeight: 600 } },
+      '🎯 ' + t('rep.thresholdsTitle', 'Score → next step')),
+    c('div', { style: { marginTop: '8px', fontSize: '14px' } }, [
+      c('table', { style: { width: '100%', borderCollapse: 'collapse' } }, [
+        c('thead', null, c('tr', null, [
+          c('th', { style: { textAlign: 'left', padding: '4px 8px' } }, t('rep.score', 'Score')),
+          c('th', { style: { textAlign: 'left', padding: '4px 8px' } }, t('rep.thrAction', 'Next step')),
+        ])),
+        c('tbody', null, [
+          c('tr', null, [
+            c('td', { style: { padding: '4px 8px', fontWeight: 600 } }, '≥ 4.5'),
+            c('td', { style: { padding: '4px 8px' } }, t('rep.thr45', 'Run /career-ops apply — high fit, push immediately')),
+          ]),
+          c('tr', null, [
+            c('td', { style: { padding: '4px 8px', fontWeight: 600 } }, '4.0 – 4.4'),
+            c('td', { style: { padding: '4px 8px' } }, t('rep.thr40', 'Apply, or /career-ops contacto for warm intro first')),
+          ]),
+          c('tr', null, [
+            c('td', { style: { padding: '4px 8px', fontWeight: 600 } }, '3.5 – 3.9'),
+            c('td', { style: { padding: '4px 8px' } }, t('rep.thr35', 'Run /career-ops deep — research the company / role first')),
+          ]),
+          c('tr', null, [
+            c('td', { style: { padding: '4px 8px', fontWeight: 600 } }, '< 3.5'),
+            c('td', { style: { padding: '4px 8px' } }, t('rep.thrLow', 'Skip unless you have a specific personal reason')),
+          ]),
+        ]),
+      ]),
+      c('p', { style: { fontSize: '12px', color: 'var(--foggy)', marginTop: '8px' } }, [
+        t('rep.thresholdsSource', 'From '),
+        c('a', {
+          href: 'https://career-ops.org/docs/introduction/guides/scan-job-portals',
+          target: '_blank', rel: 'noopener noreferrer',
+        }, 'career-ops.org/docs'),
+        '.',
+      ]),
+    ]),
+  ]);
+
   return c('div', null, [
     c('header', { className: 'page-header' }, [
       c('div', null, [
@@ -80,6 +127,7 @@ Router.register('reports', async (params) => {
         c('p', { className: 'page-subtitle' }, `${reports.length} ${t('rep.inDir')} reports/`),
       ]),
     ]),
+    thresholdsCard,
     cardsWrap,
     pgWrap,
   ]);

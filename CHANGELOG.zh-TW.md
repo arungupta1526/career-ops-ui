@@ -6,6 +6,37 @@
 
 ---
 
+## [1.11.1] — 2026-05-13
+
+Глубокая интеграция career-ops.org/docs — follow-up к v1.11.0. v1.11.0 добавил summary блок; v1.11.1 обогащает существующие §5 Portals / §7 Scan / §14 Apply каждого help-бандла **полными CLI-флоу** (команды verbatim, нумерованные apply-шаги, batch-evaluate runner, Playwright setup). `#/reports` получает карточку score → action.
+
+### 📝 Документация
+
+- **Help-бандлы (все 8 локалей)** — три новые подсекции в каждом, переведено:
+  - **§5 Portals → `CLI flow`** — `cp templates/portals.example.yml`, schema title_filter / tracked_companies / search_queries.
+  - **§7 Scan → `CLI scan flow`** — Option A (`npm run scan`) для Greenhouse/Ashby/Lever, Option B (`/career-ops scan`) для non-API discovery, таблица action thresholds.
+  - **§14 Apply → `Full CLI apply flow` + `Batch evaluate` + `Playwright setup`** — 8-шаговый apply, `./batch/batch-runner.sh --parallel`, `npx playwright install chromium`.
+- Все 8 бандлов сохраняют 16-H2 parity.
+
+### ✨ UI
+
+- **`#/reports`** — новая свёртываемая карточка над списком с канонической таблицей score → действие. 7 новых i18n-ключей × 8 локалей.
+
+### 📋 QA
+
+- **`qa/claude-cowork-browser-test-prompt.md`** — добавлены Сценарий 17 (career-ops.org/docs coverage, 5 подпунктов) + Сценарий 18 (help bundle parity).
+
+### Тесты
+
+- **348 / 349** юнит (1 pre-existing drift), 94.59% линий, 23/23 E2E, 28/28 Playwright.
+
+### Документация
+
+- `docs/reviews/REVIEW-2026-05-13-v1.11.1.md`.
+- Полный текст: [CHANGELOG.md](CHANGELOG.md#1111--2026-05-13).
+
+---
+
 ## [1.11.0] — 2026-05-13
 
 Интеграция career-ops.org/docs. Все изменения аддитивные (нет breakage API, нет смены маршрутов SPA, нет смены формы данных). Закрывает PR-9, отложенный из v1.10.3.

@@ -271,6 +271,24 @@ russian_portals:
 
 ---
 
+
+### CLI 플로우 ([career-ops.org/docs/.../scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
+
+career-ops 표준 setup (부모 디렉터리에서 한 번 실행):
+
+```bash
+cp templates/portals.example.yml portals.yml
+$EDITOR portals.yml
+```
+
+`portals.yml`은 세 섹션을 가지며, career-ops.org 표준 schema는 위 SPA의 세 섹션과 1:1 매칭됩니다:
+
+- **title_filter** — `positive`, `negative`, `seniority_boost` 키워드 리스트(case-insensitive). 공고는 ≥ 1개 `positive` 매칭 + 0개 `negative` 매칭 필요. `seniority_boost`는 필터링 없이 랭킹만 올림.
+- **tracked_companies** — 각 엔트리는 `name`과 `careers_url` 필수. 선택: `api`(Greenhouse / Ashby / Lever 엔드포인트), `enabled: true|false`.
+- **search_queries** — 사전 빌드된 더 광범위한 웹 검색. 디폴트로 충분.
+
+---
+
 ## 6. Health (`#/health`)
 
 모든 setup 게이트가 OK / OPTIONAL / FAIL 배지로 표시.
@@ -322,6 +340,36 @@ russian_portals:
 
 **이름 클릭** → 위 결과 필터를 채움. **↗ 클릭** → 새 탭에서
 `careers_url`.
+
+---
+
+
+### CLI 스캔 플로우 ([career-ops.org/docs/.../scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
+
+CLI에서 스캔하는 두 가지 방법(둘 다 SPA가 읽는 `data/pipeline.md`에 기록):
+
+**Option A — 직접 스크립트(~30초, AI 토큰 0):**
+
+```bash
+npm run scan
+npm run scan -- --dry-run
+npm run scan -- --company Anthropic
+```
+
+Greenhouse / Ashby / Lever만 작동(인식 가능한 ATS URL).
+
+**Option B — AI 브라우저 스캔:** `/career-ops scan`을 Claude Code / Codex / Cursor / Gemini CLI에서 실행. 모델 토큰 사용. `tracked_companies` 각 페이지 직접 방문, non-API 보드 발견 가능.
+
+**Output(둘 다)** — 새 JD URL이 `data/pipeline.md`에 추가, 방문한 URL은 `data/scan-history.tsv`에 기록(모든 향후 스캔에서 dedup).
+
+**Score 별 액션 임계값:**
+
+| Score | 다음 단계 |
+|---|---|
+| **≥ 4.5** | `/career-ops apply` — 높은 적합도 |
+| **4.0 – 4.4** | 지원 또는 `/career-ops contacto` |
+| **3.5 – 3.9** | `/career-ops deep` — 먼저 리서치 |
+| **< 3.5** | 특별한 이유 없으면 건너뜀 |
 
 ---
 
@@ -506,6 +554,59 @@ Claude Code의 `/career-ops apply`에 남습니다.
 5. 답변을 `interview-prep/{company}-{role}.md`에 저장 후 제출.
 6. **자동 제출 절대 안 됨** — 사람(당신)이 마지막 버튼 클릭.
 7. 제출 후: `data/applications.md`에 행 추가.
+
+---
+
+
+### 전체 CLI apply 플로우 ([career-ops.org/docs/.../apply-for-a-job](https://career-ops.org/docs/introduction/guides/apply-for-a-job))
+
+선행 조건: `/career-ops pipeline` 먼저(JD에 평가 리포트 필요); Playwright 설치(`npx playwright install chromium`) 권장; 없으면 WebFetch로 폴백.
+
+번호 매겨진 플로우:
+
+1. **명령 실행** `/career-ops apply <company>` (예: `/career-ops apply Anthropic`). 인수 없으면 다음 턴에 폼 스크린샷/텍스트/URL 제공.
+2. **Playwright가 브라우저 자동 오픈**하고 폼 읽음. 사용자가 브라우저를 직접 열지 않음.
+3. **초안 답변** 폼 필드 순서대로 번호 매겨진 리스트로 반환. 리포트의 proof points와 STAR stories에서 가져옴.
+4. **플래그된 항목** — salary anchor, 누락된 CV 필드, 선택적 질문 등 사람 검토 필요.
+5. **각 답변 검토**, 폼 채우고 **Submit은 본인이 클릭**. career-ops는 절대 Submit 누르지 않음.
+6. **제출 확인** 채팅에서: `Submitted.`
+7. **자동 업데이트** — `data/applications.md`에서 `Evaluated → Applied` 전환.
+8. **Tracker로 핸드오프:** `/career-ops tracker`.
+
+### Batch evaluate ([career-ops.org/docs/.../batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers))
+
+10개 이상 JD를 한 번에(`#/evaluate` 하나씩은 비현실적):
+
+1. `batch/batch-input.tsv`를 탭 구분 컬럼 `id | url | source | notes`로 편집. JD당 한 줄.
+2. Dry-run: `./batch/batch-runner.sh --dry-run`.
+3. 실행:
+
+   ```bash
+   ./batch/batch-runner.sh
+   ./batch/batch-runner.sh --parallel 2
+   ./batch/batch-runner.sh --parallel 3 --min-score 4.0
+   ```
+
+4. 재시도: `./batch/batch-runner.sh --retry-failed --max-retries 3`.
+5. **Reports**는 `reports/`에(형식 `NNN-company-YYYY-MM-DD.md`); 요약은 `batch/tracker-additions/`.
+6. 머지: `node merge-tracker.mjs` (또는 `--dry-run`).
+
+SPA가 결과 리포트를 `#/reports`에, 트래커 행을 `#/tracker`에 표시.
+
+### Playwright 설정 ([career-ops.org/docs/.../set-up-playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright))
+
+```bash
+npm install
+npx playwright install chromium
+claude mcp add playwright npx @playwright/mcp@latest
+npm run doctor
+```
+
+MCP 대체 등록은 `.claude/settings.local.json`:
+
+```json
+{ "mcpServers": { "playwright": { "command": "npx", "args": ["-y", "@playwright/mcp@latest"] } } }
+```
 
 ---
 

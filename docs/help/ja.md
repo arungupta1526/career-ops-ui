@@ -274,6 +274,24 @@ russian_portals:
 
 ---
 
+
+### CLI フロー ([career-ops.org/docs/.../scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
+
+career-ops 標準セットアップ(親ディレクトリで一度実行):
+
+```bash
+cp templates/portals.example.yml portals.yml
+$EDITOR portals.yml
+```
+
+`portals.yml` には 3 つのセクションがあり、career-ops.org の正規スキーマは上記の SPA の 3 セクションと 1:1 で一致します:
+
+- **title_filter** — `positive`、`negative`、`seniority_boost` キーワードリスト(case-insensitive)。求人は `positive` マッチ ≥ 1 件かつ `negative` マッチ 0 件が必要。`seniority_boost` はフィルタせずランクのみ上昇。
+- **tracked_companies** — 各エントリは `name` と `careers_url` 必須。任意: `api`(Greenhouse / Ashby / Lever エンドポイント)、`enabled: true|false`。
+- **search_queries** — 事前構築されたより広範な Web 検索。デフォルトでほぼ十分。
+
+---
+
 ## 6. Health (`#/health`)
 
 すべての setup ゲートが OK / OPTIONAL / FAIL バッジで表示。
@@ -326,6 +344,36 @@ Lever、hh.ru、Habr Career)。ライブ SSE ログが右に流れます。**Sto
 
 **名前クリック** → 上の結果フィルタを記入。**↗ クリック** → 新しい
 タブで `careers_url`。
+
+---
+
+
+### CLI スキャンフロー ([career-ops.org/docs/.../scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
+
+CLI からスキャンする 2 つの方法(両方とも SPA が読む同じ `data/pipeline.md` に書き込み):
+
+**Option A — 直接スクリプト(~30 秒、AI トークン 0):**
+
+```bash
+npm run scan
+npm run scan -- --dry-run
+npm run scan -- --company Anthropic
+```
+
+Greenhouse / Ashby / Lever のみ動作(認識可能な ATS URL)。
+
+**Option B — AI ブラウザスキャン:** Claude Code / Codex / Cursor / Gemini CLI で `/career-ops scan`。モデルトークン使用。`tracked_companies` の各ページを直接訪問し、非 API ボードも発見可能。
+
+**Output(両方)** — 新 JD URL が `data/pipeline.md` に追加、訪問した URL が `data/scan-history.tsv` に記録(将来のすべてのスキャン間で dedup)。
+
+**Score 別アクション閾値:**
+
+| Score | 次のステップ |
+|---|---|
+| **≥ 4.5** | `/career-ops apply` — 高フィット |
+| **4.0 – 4.4** | 応募または `/career-ops contacto` |
+| **3.5 – 3.9** | `/career-ops deep` — 先に調査 |
+| **< 3.5** | 特別な理由がなければスキップ |
 
 ---
 
@@ -521,6 +569,59 @@ Claude Code の `/career-ops apply` に残ります。
    から提出。
 6. **絶対に自動提出しない** — 人間 (あなた) が最終ボタンをクリック。
 7. 提出後: `data/applications.md` に行を追加。
+
+---
+
+
+### 完全な CLI apply フロー ([career-ops.org/docs/.../apply-for-a-job](https://career-ops.org/docs/introduction/guides/apply-for-a-job))
+
+前提条件: 先に `/career-ops pipeline`(JD に evaluation report が必要); Playwright インストール(`npx playwright install chromium`)推奨; なければ WebFetch にフォールバック。
+
+番号付きフロー:
+
+1. **コマンド実行** `/career-ops apply <company>` (例: `/career-ops apply Anthropic`)。引数なしの場合は次のターンでフォームのスクリーンショット/テキスト/URL を提供。
+2. **Playwright がブラウザを自動オープン**しフォームを読み取り。ユーザーはブラウザを開かない。
+3. **下書きの回答** フォームフィールド順の番号付きリストとして返却。レポートの proof points と STAR stories から取得。
+4. **フラグ付き項目** — salary anchor、欠落 CV フィールド、オプション質問など人間レビュー必要。
+5. **各回答をレビュー**、フォーム入力、**Submit は本人がクリック**。career-ops は決して Submit を押さない。
+6. **送信確認** チャットで: `Submitted.`
+7. **自動更新** — `data/applications.md` で `Evaluated → Applied` に遷移。
+8. **Tracker へハンドオフ:** `/career-ops tracker`。
+
+### Batch evaluate ([career-ops.org/docs/.../batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers))
+
+10 件以上の JD を一度に(SPA の 1 件ずつの `#/evaluate` は非実用的):
+
+1. `batch/batch-input.tsv` をタブ区切り列 `id | url | source | notes` で編集。
+2. Dry-run: `./batch/batch-runner.sh --dry-run`。
+3. 実行:
+
+   ```bash
+   ./batch/batch-runner.sh
+   ./batch/batch-runner.sh --parallel 2
+   ./batch/batch-runner.sh --parallel 3 --min-score 4.0
+   ```
+
+4. リトライ: `./batch/batch-runner.sh --retry-failed --max-retries 3`。
+5. **Reports** が `reports/` に(形式 `NNN-company-YYYY-MM-DD.md`); サマリは `batch/tracker-additions/`。
+6. マージ: `node merge-tracker.mjs`(または `--dry-run`)。
+
+SPA は結果レポートを `#/reports` に、トラッカー行を `#/tracker` に表示。
+
+### Playwright セットアップ ([career-ops.org/docs/.../set-up-playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright))
+
+```bash
+npm install
+npx playwright install chromium
+claude mcp add playwright npx @playwright/mcp@latest
+npm run doctor
+```
+
+MCP の代替登録は `.claude/settings.local.json`:
+
+```json
+{ "mcpServers": { "playwright": { "command": "npx", "args": ["-y", "@playwright/mcp@latest"] } } }
+```
 
 ---
 

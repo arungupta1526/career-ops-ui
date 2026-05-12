@@ -268,6 +268,24 @@ russian_portals:
 
 ---
 
+
+### CLI 流程 ([career-ops.org/docs/.../scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
+
+career-ops 標準 setup(在父目錄執行一次):
+
+```bash
+cp templates/portals.example.yml portals.yml
+$EDITOR portals.yml
+```
+
+`portals.yml` 有三個區塊;career-ops.org 正規 schema 與上述 SPA 三區塊 1:1 對應:
+
+- **title_filter** — `positive`、`negative`、`seniority_boost` 關鍵字清單(case-insensitive)。職缺需要 ≥ 1 個 `positive` 配對且 0 個 `negative` 配對。`seniority_boost` 僅升排名不過濾。
+- **tracked_companies** — 每條記錄必須有 `name` 和 `careers_url`。選填: `api`(Greenhouse / Ashby / Lever 端點)、`enabled: true|false`。
+- **search_queries** — 預構建的更廣泛網路搜尋。預設對大多數使用者足夠。
+
+---
+
 ## 6. Health (`#/health`)
 
 每個 setup gate 在 OK / OPTIONAL / FAIL 徽章中。
@@ -319,6 +337,36 @@ russian_portals:
 
 **點擊名稱** → 填入上方結果篩選器。**點擊 ↗** → 在新分頁開啟
 `careers_url`。
+
+---
+
+
+### CLI 掃描流程 ([career-ops.org/docs/.../scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
+
+從 CLI 掃描的兩種方式(都寫入 SPA 讀取的同一個 `data/pipeline.md`):
+
+**Option A — 直接腳本(~30 秒,零 AI tokens):**
+
+```bash
+npm run scan
+npm run scan -- --dry-run
+npm run scan -- --company Anthropic
+```
+
+僅適用於 Greenhouse / Ashby / Lever(可識別的 ATS URL)。
+
+**Option B — AI 瀏覽器掃描:** 在 Claude Code / Codex / Cursor / Gemini CLI 中 `/career-ops scan`。使用模型 tokens。直接訪問每個 `tracked_companies` 頁面,可發現非 API 板。
+
+**Output(兩者)** — 新 JD URL 追加到 `data/pipeline.md`,每個訪問的 URL 記錄到 `data/scan-history.tsv`(跨所有未來掃描去重)。
+
+**按 Score 的行動門檻:**
+
+| Score | 下一步 |
+|---|---|
+| **≥ 4.5** | `/career-ops apply` — 高配對 |
+| **4.0 – 4.4** | 申請或 `/career-ops contacto` |
+| **3.5 – 3.9** | `/career-ops deep` — 先研究 |
+| **< 3.5** | 除非有特定理由,跳過 |
 
 ---
 
@@ -504,6 +552,59 @@ profile + `_shared.md` 透過 `bundleProjectContext` 內聯。結果在頁面
 5. 提交前把答案儲存到 `interview-prep/{company}-{role}.md`。
 6. **絕不自動提交** — 你 (人類) 點擊最終按鈕。
 7. 提交後: 在 `data/applications.md` 加行。
+
+---
+
+
+### 完整 CLI apply 流程 ([career-ops.org/docs/.../apply-for-a-job](https://career-ops.org/docs/introduction/guides/apply-for-a-job))
+
+前置條件: 先 `/career-ops pipeline`(JD 需要 evaluation report);推薦安裝 Playwright(`npx playwright install chromium`);否則回退到 WebFetch。
+
+編號流程:
+
+1. **執行** `/career-ops apply <company>`(例: `/career-ops apply Anthropic`)。無參數時下一輪提供截圖/文字/URL。
+2. **Playwright 自動開啟瀏覽器**並讀取表單。你不需自己開啟瀏覽器。
+3. **草稿答案**按表單欄位順序以編號清單回傳,來自 report 的 proof points 與 STAR stories。
+4. **標記的項目** — salary anchor、缺失 CV 欄位、可選問題等需人工審查。
+5. **你審查每個答案**、填寫表單、**自己點擊 Submit**。career-ops 絕不點擊 Submit。
+6. **確認提交**在聊天中: `Submitted.`
+7. **自動更新** — `data/applications.md` 中狀態由 `Evaluated → Applied`。
+8. **交接到 tracker:** `/career-ops tracker`。
+
+### Batch evaluate ([career-ops.org/docs/.../batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers))
+
+10+ JD 一次評估時(SPA 的逐一 `#/evaluate` 不適合此規模):
+
+1. 編輯 `batch/batch-input.tsv`,Tab 分隔欄 `id | url | source | notes`。
+2. Dry-run: `./batch/batch-runner.sh --dry-run`。
+3. 執行:
+
+   ```bash
+   ./batch/batch-runner.sh
+   ./batch/batch-runner.sh --parallel 2
+   ./batch/batch-runner.sh --parallel 3 --min-score 4.0
+   ```
+
+4. 重試: `./batch/batch-runner.sh --retry-failed --max-retries 3`。
+5. **Reports** 落在 `reports/`(格式 `NNN-company-YYYY-MM-DD.md`);摘要在 `batch/tracker-additions/`。
+6. 合併: `node merge-tracker.mjs`(或 `--dry-run`)。
+
+SPA 在 `#/reports` 顯示結果報告,`#/tracker` 顯示追蹤列。
+
+### Playwright 設定 ([career-ops.org/docs/.../set-up-playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright))
+
+```bash
+npm install
+npx playwright install chromium
+claude mcp add playwright npx @playwright/mcp@latest
+npm run doctor
+```
+
+替代 MCP 註冊透過 `.claude/settings.local.json`:
+
+```json
+{ "mcpServers": { "playwright": { "command": "npx", "args": ["-y", "@playwright/mcp@latest"] } } }
+```
 
 ---
 

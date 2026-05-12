@@ -279,6 +279,24 @@ documentada si falta (idempotente).
 
 ---
 
+
+### Flujo CLI ([career-ops.org/docs/.../scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
+
+Setup canónico de career-ops (ejecutar desde el padre una vez):
+
+```bash
+cp templates/portals.example.yml portals.yml
+$EDITOR portals.yml
+```
+
+`portals.yml` tiene tres secciones; el schema canónico de career-ops.org coincide 1:1 con las tres secciones SPA de arriba:
+
+- **title_filter** — listas de palabras clave `positive`, `negative`, `seniority_boost` (case-insensitive). Una vacante necesita ≥ 1 match `positive` y cero `negative`. `seniority_boost` sube el ranking sin filtrar. Empieza con 3–5 positivas para claridad.
+- **tracked_companies** — cada entrada DEBE tener `name` y `careers_url`. Opcional: `api` (endpoint Greenhouse / Ashby / Lever), `enabled: true|false` para incluir/excluir sin borrar.
+- **search_queries** — búsquedas web más amplias preconstruidas (LinkedIn / Indeed). Los defaults sirven para la mayoría.
+
+---
+
 ## 6. Health (`#/health`)
 
 Cada gate de setup en badges OK / OPTIONAL / FAIL.
@@ -334,6 +352,42 @@ Tarjeta colapsable con cada compañía:
 
 **Click en el nombre** → llena el filtro. **Click en ↗** → abre
 `careers_url` en pestaña nueva.
+
+---
+
+
+### Flujo CLI de scan ([career-ops.org/docs/.../scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
+
+Dos formas de escanear desde el CLI (ambas escriben al mismo `data/pipeline.md` que lee la SPA):
+
+**Option A — script directo (~30 s, cero AI tokens):**
+
+```bash
+npm run scan                          # todos los boards Greenhouse/Ashby/Lever
+npm run scan -- --dry-run             # preview sin persistir
+npm run scan -- --company Anthropic   # una sola compañía
+```
+
+Funciona solo para Greenhouse / Ashby / Lever (URLs ATS reconocibles).
+
+**Option B — AI-powered browser scan:**
+
+```
+/career-ops scan
+```
+
+Dentro de Claude Code / Codex / Cursor / Gemini CLI. Usa tokens del modelo. Visita cada página de `tracked_companies` directamente y puede descubrir boards no-API. Más lento pero más amplio.
+
+**Output (ambos paths)** — nuevos JD URLs añadidos a `data/pipeline.md`, cada URL visitada loggeada en `data/scan-history.tsv` (dedup entre todos los scans futuros).
+
+**Umbrales de acción por score:**
+
+| Score | Siguiente paso |
+|---|---|
+| **≥ 4.5** | `/career-ops apply` — alto fit |
+| **4.0 – 4.4** | aplica o `/career-ops contacto` |
+| **3.5 – 3.9** | `/career-ops deep` — investiga primero |
+| **< 3.5** | salta salvo razón específica |
 
 ---
 
@@ -531,6 +585,75 @@ La checklist cubre:
    de enviar.
 6. **NUNCA auto-enviar** — usted (humano) hace click final.
 7. Tras submit: agregar fila al tracker.
+
+---
+
+
+### Flujo CLI completo de apply ([career-ops.org/docs/.../apply-for-a-job](https://career-ops.org/docs/introduction/guides/apply-for-a-job))
+
+Prerequisitos: `/career-ops pipeline` previamente (la JD necesita un evaluation report) · Playwright instalado (`npx playwright install chromium`) recomendado · fallback a WebFetch sin él.
+
+Flujo numerado:
+
+1. **Ejecuta** `/career-ops apply <company>` (ej.: `/career-ops apply Anthropic`). Sin argumento, comparte screenshot del form, texto pegado, o URL en el siguiente turno.
+2. **Playwright abre el navegador** automáticamente y lee el form. NO abres el navegador tú.
+3. **Respuestas en borrador** vienen como lista numerada en el orden de los campos del form, desde los proof points y STAR stories del report.
+4. **Items marcados** apuntan a lo que requiere atención humana — salary anchor, campos de CV ausentes, preguntas opcionales.
+5. **Revisas cada respuesta**, llenas el form, y haces clic en **Submit** tú. career-ops nunca clickea Submit.
+6. **Confirma envío** en chat:
+
+   ```
+   Submitted.
+   ```
+
+7. **Actualizaciones automáticas** — el status pasa `Evaluated → Applied` en `data/applications.md`; las respuestas persisten en la Section G del report.
+8. **Handoff a tracker:** `/career-ops tracker`.
+
+### Batch evaluate ([career-ops.org/docs/.../batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers))
+
+Cuando tienes 10+ JDs para evaluar a la vez (el `#/evaluate` uno-por-uno del SPA es impráctico a ese volumen) — usa el batch runner desde CLI:
+
+1. **Edita** `batch/batch-input.tsv` con columnas tab-separadas `id | url | source | notes`. Una fila por JD.
+2. **Dry-run** primero: `./batch/batch-runner.sh --dry-run`.
+3. **Ejecuta** — secuencial o paralelo:
+
+   ```bash
+   ./batch/batch-runner.sh                       # uno a uno
+   ./batch/batch-runner.sh --parallel 2          # dos concurrentes
+   ./batch/batch-runner.sh --parallel 3
+   ./batch/batch-runner.sh --parallel 2 --min-score 4.0
+   ```
+
+4. **Retry fallos:** `./batch/batch-runner.sh --retry-failed --max-retries 3`.
+5. **Reports** aterrizan en `reports/` (formato `NNN-company-YYYY-MM-DD.md`); summary rows en `batch/tracker-additions/`.
+6. **Merge a tracker:** `node merge-tracker.mjs` (o `--dry-run`).
+
+El SPA muestra los reports en `#/reports` y los tracker rows en `#/tracker` — exactamente igual que si los hubieras agregado por `#/evaluate`.
+
+### Setup de Playwright ([career-ops.org/docs/.../set-up-playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright))
+
+Requerido para el form-fill apply y para `📄 Generate PDF` en este SPA. Sin él, apply hace fallback a WebFetch (text-only).
+
+```bash
+# desde career-ops root
+npm install
+npx playwright install chromium
+claude mcp add playwright npx @playwright/mcp@latest
+npm run doctor
+```
+
+Alternativa MCP vía `.claude/settings.local.json`:
+
+```json
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    }
+  }
+}
+```
 
 ---
 

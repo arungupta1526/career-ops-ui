@@ -408,6 +408,14 @@ window.I18n = (function () {
 
     // Reports
     'rep.title':      { en: 'Reports', es: 'Reportes', 'pt-BR': 'Relatórios', ko: '보고서', ja: 'レポート', ru: 'Отчёты', 'zh-CN': '报告', 'zh-TW': '報告' },
+    'rep.thresholdsTitle': { en: 'Score → next step', es: 'Score → siguiente paso', 'pt-BR': 'Score → próximo passo', ko: 'Score → 다음 단계', ja: 'Score → 次のステップ', ru: 'Score → следующий шаг', 'zh-CN': 'Score → 下一步', 'zh-TW': 'Score → 下一步' },
+    'rep.score':      { en: 'Score', es: 'Score', 'pt-BR': 'Score', ko: 'Score', ja: 'Score', ru: 'Score', 'zh-CN': 'Score', 'zh-TW': 'Score' },
+    'rep.thrAction':  { en: 'Next step', es: 'Siguiente paso', 'pt-BR': 'Próximo passo', ko: '다음 단계', ja: '次のステップ', ru: 'Следующий шаг', 'zh-CN': '下一步', 'zh-TW': '下一步' },
+    'rep.thr45':      { en: 'Run /career-ops apply — high fit, push immediately', es: 'Ejecuta /career-ops apply — alto fit, aplica de inmediato', 'pt-BR': 'Execute /career-ops apply — alto fit, candidate-se já', ko: '/career-ops apply 실행 — 높은 적합도, 즉시 지원', ja: '/career-ops apply を実行 — 高フィット、即応募', ru: '/career-ops apply — высокий fit, подавайте сразу', 'zh-CN': '运行 /career-ops apply — 高匹配,立即申请', 'zh-TW': '執行 /career-ops apply — 高配對,立即申請' },
+    'rep.thr40':      { en: 'Apply, or /career-ops contacto for warm intro first', es: 'Aplica, o /career-ops contacto para warm intro primero', 'pt-BR': 'Candidate-se, ou /career-ops contacto para warm intro primeiro', ko: '지원 또는 /career-ops contacto로 warm intro 먼저', ja: '応募、または先に /career-ops contacto (warm intro)', ru: 'Подавайте или /career-ops contacto для warm intro', 'zh-CN': '申请,或先 /career-ops contacto (warm intro)', 'zh-TW': '申請,或先 /career-ops contacto (warm intro)' },
+    'rep.thr35':      { en: 'Run /career-ops deep — research the company / role first', es: 'Ejecuta /career-ops deep — investiga primero la empresa / rol', 'pt-BR': 'Execute /career-ops deep — pesquise primeiro a empresa / papel', ko: '/career-ops deep — 회사/롤 먼저 리서치', ja: '/career-ops deep — 先に会社/ロールを調査', ru: '/career-ops deep — сначала research компании/роли', 'zh-CN': '运行 /career-ops deep — 先调研公司/角色', 'zh-TW': '執行 /career-ops deep — 先研究公司/角色' },
+    'rep.thrLow':     { en: 'Skip unless you have a specific personal reason', es: 'Salta salvo razón específica personal', 'pt-BR': 'Pule, salvo razão específica pessoal', ko: '특별한 개인적 이유 없으면 건너뜀', ja: '特別な個人的理由がなければスキップ', ru: 'Пропустите, если нет персональной причины', 'zh-CN': '除非有特定个人理由,跳过', 'zh-TW': '除非有特定個人理由,跳過' },
+    'rep.thresholdsSource': { en: 'From ', es: 'De ', 'pt-BR': 'De ', ko: '출처: ', ja: '出典: ', ru: 'Из ', 'zh-CN': '来自 ', 'zh-TW': '來自 ' },
     'rep.empty':      { en: 'No reports yet. Make your first evaluation.', es: 'Aún no hay reportes. Haz tu primera evaluación.', 'pt-BR': 'Ainda sem relatórios. Faça sua primeira avaliação.', ko: '아직 보고서가 없습니다. 첫 평가를 수행하세요.', ja: 'まだレポートがありません。最初の評価を行ってください。', ru: 'Отчётов пока нет. Сделайте первую оценку.', 'zh-CN': '尚无报告。进行首次评估。', 'zh-TW': '尚無報告。進行首次評估。' },
 
     // CV

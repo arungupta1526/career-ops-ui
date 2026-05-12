@@ -412,3 +412,92 @@ LOCALE   = ru   (можно en, es, pt-BR, ko-KR, ja, zh-CN, zh-TW)
 - Сценарий 6 — отсутствие Playwright (зависит от стенда)
 - Сценарий 7b — отсутствие ключа Anthropic/Gemini
 - Сценарий 4d/4e — отсутствие pdftotext/pandoc на хосте (тогда тест должен фейлиться gracefully с hint-текстом — ЭТО ожидаемое поведение, не warning)
+
+---
+
+## Сценарий 17. career-ops.org/docs coverage в Help (v1.11.0+)
+
+**Цель.** v1.11.0+ интегрирует все 5 канонических гайдов career-ops.org/docs в help-бандлы. Этот сценарий проверяет, что интеграция полная и работает на всех 8 локалях.
+
+**Канонические URL** (фетчатся из help / README):
+
+- <https://career-ops.org/docs/introduction/what-is-career-ops>
+- <https://career-ops.org/docs/introduction/guides/scan-job-portals>
+- <https://career-ops.org/docs/introduction/guides/apply-for-a-job>
+- <https://career-ops.org/docs/introduction/guides/batch-evaluate-offers>
+- <https://career-ops.org/docs/introduction/guides/set-up-playwright>
+
+### 17.1. О career-ops секция присутствует в каждой локали Help
+
+Для каждой из 8 локалей (`en`, `ru`, `es`, `pt-BR`, `ko`, `ja`, `zh-CN`, `zh-TW`):
+
+```bash
+curl -sf "http://127.0.0.1:4317/api/help/<lang>" | jq -r .markdown | head -100
+```
+
+**Assertions:**
+
+- Раздел «About career-ops» / «О career-ops» / эквивалент присутствует в первой трети.
+- Все 5 канонических URL career-ops.org встречаются хотя бы один раз.
+- Таблица action thresholds по score (`≥ 4.5` / `4.0–4.4` / `3.5–3.9` / `< 3.5`) присутствует.
+- Концепты Mode / Archetype / Pipeline / Tracker / Report / Scan history перечислены.
+
+### 17.2. CLI-флоу обогащение в §5 / §7 / §14
+
+В каждой из 8 локалей:
+
+- **§5 (Portals)** содержит подсекцию `CLI flow (...)` с командами `cp templates/portals.example.yml portals.yml`.
+- **§7 (Scan)** содержит подсекцию `CLI scan flow (...)` с обеими опциями: `npm run scan` и `/career-ops scan`.
+- **§14 (Apply)** содержит:
+  - Полный нумерованный CLI apply flow с шагами 1–8 (от `/career-ops apply <company>` до `Submitted.`).
+  - Подсекцию `Batch evaluate` с командами `./batch/batch-runner.sh` (включая `--parallel`, `--min-score`, `--retry-failed`).
+  - Подсекцию `Playwright setup` с командами `npx playwright install chromium` и `claude mcp add playwright npx @playwright/mcp@latest`.
+
+**Assertion (грубая регрессия):** в EN-бандле каждая из 5 канонических URL встречается ≥ 2 раз (header front-matter + соответствующая CLI-подсекция).
+
+### 17.3. README имеет «About career-ops» в каждой локали
+
+```bash
+grep -l "career-ops.org/docs" README*.md | wc -l   # должно быть 8
+```
+
+И в каждом из 8: блок `About career-ops` / «О career-ops» / эквивалент с 5 каноническими ссылками + таблицей action thresholds.
+
+### 17.4. #/apply показывает Playwright setup ссылку
+
+1. Открой `#/apply` в любой локали.
+2. Info-баннер должен содержать ссылку на `career-ops.org/docs/.../set-up-playwright` (не просто текст — это `<a href>`).
+3. Клик → открывает `https://career-ops.org/docs/introduction/guides/set-up-playwright` в новой вкладке.
+
+### 17.5. #/reports score-thresholds card (v1.11.1+)
+
+1. Открой `#/reports`.
+2. Над списком отчётов должна быть карточка-подсказка с таблицей score → action.
+3. Карточку можно свернуть (`<details>` с `summary`).
+
+### Финальный gate сценария 17
+
+| Подпункт | Что проверяет | Pass если |
+|---|---|---|
+| 17.1 | Front-matter блок в 8 локалях | все 8 локалей × все 5 URL присутствуют |
+| 17.2 | CLI-флоу подсекции в §5/§7/§14 | в каждой локали все 3 секции содержат подсекцию с командами |
+| 17.3 | README блок в 8 локалях | `grep -l 'career-ops.org/docs' README*.md` = 8 |
+| 17.4 | #/apply ссылка | `<a href="https://career-ops.org/docs/.../set-up-playwright">` присутствует |
+| 17.5 | #/reports подсказка | карточка с таблицей score → action видна на странице |
+
+**PASS = все 5 подпунктов зелёные.**
+
+---
+
+## Сценарий 18. Help bundle parity (i18n)
+
+Регрессия для `tests/help-ui.test.mjs::section-parity` контракта.
+
+```bash
+for f in docs/help/*.md; do
+  echo "$f: $(grep -c '^## ' "$f") H2 sections"
+done
+```
+
+**Assertion:** все 8 бандлов должны вернуть ровно **16** H2 секций. Любое расхождение — blocker (parity-тест в CI упадёт).
+

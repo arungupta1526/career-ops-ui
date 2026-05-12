@@ -417,6 +417,24 @@ hh.ru и Habr Career. **Осторожно с пересечением с negati
 
 ---
 
+
+### CLI-флоу ([career-ops.org/docs/.../scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
+
+Канонический career-ops setup (запустите из родителя один раз):
+
+```bash
+cp templates/portals.example.yml portals.yml
+$EDITOR portals.yml
+```
+
+`portals.yml` имеет три секции; канонический career-ops.org schema совпадает с тремя SPA-секциями выше 1:1:
+
+- **title_filter** — списки ключевых слов `positive`, `negative`, `seniority_boost` (case-insensitive). Вакансия должна иметь ≥ 1 матч `positive` и ноль `negative`. `seniority_boost` поднимает ранг без фильтрации. Начните с 3–5 положительных слов для ясности.
+- **tracked_companies** — каждая запись ОБЯЗАНА иметь `name` и `careers_url`. Опционально: `api` (endpoint Greenhouse / Ashby / Lever), `enabled: true|false` для включения/исключения без удаления.
+- **search_queries** — встроенные более широкие веб-поиски (LinkedIn / Indeed). Дефолты работают для большинства.
+
+---
+
 ## 6. Health (`#/health`)
 
 Все setup-проверки в OK / OPTIONAL / FAIL badges. Прочитайте перед
@@ -485,6 +503,44 @@ Live SSE log стримит справа. **Stop** (или просто нави
 
 **Клик по имени** → заполняет фильтр результатов выше. **Клик ↗** →
 открывает `careers_url` в новой вкладке.
+
+---
+
+
+### CLI-флоу сканирования ([career-ops.org/docs/.../scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
+
+Два способа сканирования из CLI (оба пишут в тот же `data/pipeline.md`, который читает SPA):
+
+**Option A — direct script (~30 с, ноль AI-токенов):**
+
+```bash
+npm run scan                          # все доски Greenhouse/Ashby/Lever
+npm run scan -- --dry-run             # превью без записи
+npm run scan -- --company Anthropic   # одна компания
+```
+
+Работает только для Greenhouse / Ashby / Lever (распознаваемые ATS URL).
+
+**Option B — AI-powered browser scan:**
+
+```
+/career-ops scan
+```
+
+Внутри Claude Code / Codex / Cursor / Gemini CLI. Использует токены модели. Заходит на каждую страницу `tracked_companies` напрямую, умеет находить не-API доски (career-страницы, кастомный ATS, региональные порталы). Медленнее, но шире.
+
+**Output (оба пути)** — новые JD URL добавляются в `data/pipeline.md`, каждый посещённый URL пишется в `data/scan-history.tsv` (дедуп через все будущие сканы), печатается summary: companies scanned · jobs found · filtered by title · duplicates skipped · new offers added.
+
+**Пороги действий по score** (применяйте после `/career-ops pipeline`, который batch-оценивает новые URL):
+
+| Score | Рекомендуемый следующий шаг |
+|---|---|
+| **≥ 4.5** | `/career-ops apply` — высокий fit, подавайте сразу |
+| **4.0 – 4.4** | подача или `/career-ops contacto` для warm intro |
+| **3.5 – 3.9** | `/career-ops deep` — сначала research |
+| **< 3.5** | пропустите, если нет персональной причины |
+
+`#/dashboard` и `#/tracker` в SPA подсвечивают каждую строку ≥ 4.0, чтобы было видно действие без повторного запуска.
 
 ---
 
@@ -734,6 +790,120 @@ Playwright в родительском проекте.
    кнопку.
 7. После submit: добавить строку в `data/applications.md` (или TSV
    в `batch/tracker-additions/`).
+
+---
+
+
+### Полный CLI apply-флоу ([career-ops.org/docs/.../apply-for-a-job](https://career-ops.org/docs/introduction/guides/apply-for-a-job))
+
+Предусловия:
+
+1. Запустите `/career-ops pipeline` сначала, чтобы у JD был evaluation report.
+2. Профиль и отчёт загружены.
+3. **Рекомендуется:** Playwright установлен (`npx playwright install chromium`). Без него — fallback на WebFetch (text-only).
+
+Нумерованный флоу:
+
+1. **Запустите команду** с названием компании:
+
+   ```
+   /career-ops apply <company>
+   ```
+
+   Пример: `/career-ops apply Anthropic`. Без аргумента — на следующем шаге дайте скриншот формы, текст формы вставленный, или URL заявки.
+
+2. **Playwright открывает браузер** автоматически и читает форму. Вы НЕ открываете браузер сами.
+
+3. **Черновые ответы возвращаются** нумерованным списком в порядке полей формы, из proof points и STAR stories отчёта.
+
+4. **Помеченные пункты** указывают, что требует внимания человека — salary anchor, недостающие поля CV, опциональные вопросы.
+
+5. **Вы проверяете каждый ответ**, заполняете форму и нажимаете **Submit** сами. career-ops никогда не нажимает Submit.
+
+6. **Подтвердите отправку** в чате:
+
+   ```
+   Submitted.
+   ```
+
+7. **Автоматические обновления** — статус меняется `Evaluated → Applied` в `data/applications.md`; заполненные ответы остаются в Section G отчёта.
+
+8. **Handoff в tracker**:
+
+   ```
+   /career-ops tracker
+   ```
+
+### Batch evaluate ([career-ops.org/docs/.../batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers))
+
+Когда у вас 10+ JD для оценки за раз (one-at-a-time `#/evaluate` в SPA непрактичен для такого объёма) — используйте batch runner из CLI:
+
+1. **Отредактируйте** `batch/batch-input.tsv` с tab-разделёнными колонками `id | url | source | notes`. Одна строка на JD. Пример:
+
+   ```
+   1<TAB>https://jobs.example.com/senior<TAB>LinkedIn<TAB>
+   ```
+
+2. **Dry-run** (рекомендуется первым):
+
+   ```bash
+   ./batch/batch-runner.sh --dry-run
+   ```
+
+3. **Запуск** — последовательно или параллельно:
+
+   ```bash
+   ./batch/batch-runner.sh                       # по одному
+   ./batch/batch-runner.sh --parallel 2          # два одновременно
+   ./batch/batch-runner.sh --parallel 3          # три одновременно
+   ./batch/batch-runner.sh --parallel 2 --min-score 4.0  # сохранять только высокий fit
+   ```
+
+4. **Retry упавших** (network / rate-limit):
+
+   ```bash
+   ./batch/batch-runner.sh --retry-failed --max-retries 3
+   ```
+
+5. **Reports** уезжают в `reports/` (формат `NNN-company-YYYY-MM-DD.md`). Summary-строки добавляются в `batch/tracker-additions/`.
+
+6. **Merge в tracker**:
+
+   ```bash
+   node merge-tracker.mjs                 # применить batch additions
+   node merge-tracker.mjs --dry-run       # превью merge
+   ```
+
+SPA показывает получившиеся отчёты в `#/reports` (пагинация, цветные score-pill) и tracker rows в `#/tracker` — ровно так же, как если бы вы добавили каждый через `#/evaluate`.
+
+### Установка Playwright ([career-ops.org/docs/.../set-up-playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright))
+
+Требуется для apply form-fill (и для `📄 Generate PDF` на `#/cv` / `#/reports/:slug` / `#/evaluate` / `#/deep` / `#/interview-prep` в SPA). Без Playwright apply-флоу падает на WebFetch (text-only preview формы, без click-fill).
+
+```bash
+# из career-ops root
+npm install
+npx playwright install chromium
+
+# Зарегистрировать Playwright MCP, чтобы Claude Code мог управлять формами
+claude mcp add playwright npx @playwright/mcp@latest
+
+# Проверка
+npm run doctor
+```
+
+Альтернатива — регистрация MCP через `.claude/settings.local.json`:
+
+```json
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    }
+  }
+}
+```
 
 ---
 
