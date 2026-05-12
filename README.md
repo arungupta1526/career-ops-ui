@@ -1,15 +1,15 @@
 # career-ops-ui
 
-> An Airbnb-styled web interface for the [career-ops](https://github.com/santifer/career-ops) AI job-search pipeline.
+> A clean, docs-style web interface for the [career-ops](https://github.com/santifer/career-ops) AI job-search pipeline.
 > Search, evaluate, deep-dive, apply, and track every offer from a single browser tab — instead of bouncing between Claude Code, terminals, and markdown files.
 
 **English** | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-348%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-360%20passed-brightgreen)](#tests)
 [![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.11.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.11.1)
+[![release](https://img.shields.io/badge/release-v1.12.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.12.0)
 
 ![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
 
@@ -249,7 +249,7 @@ career-ops-ui/
 │        └─ tracker.mjs      # /api/tracker
 ├─ public/                   # static SPA — no build step
 │  ├─ index.html
-│  ├─ css/app.css            # design tokens (Airbnb-inspired)
+│  ├─ css/app.css            # design tokens (docs-style palette)
 │  └─ js/
 │     ├─ api.js              # fetch wrapper + connection-banner state + UI helpers + safe markdown renderer
 │     ├─ router.js           # hash-based router with 404 fallback + alias support

@@ -66,12 +66,35 @@ I18n.onChange(() => {
       const r = await UI.withSpinner(e.currentTarget, () => API.post('/api/run/doctor'));
       UI.modal('doctor', UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n' + r.stderr : '')));
     } catch (err) {
-      UI.toast(err.message, 'error');
+      // err may be undefined / null when a Promise rejects without an Error
+      // payload (rare but possible during teardown). Guard the property read.
+      UI.toast((err && err.message) || 'doctor failed', 'error');
     }
   });
   document.getElementById('btn-quick-scan').addEventListener('click', () => Router.go('/scan'));
   // connection-banner refresh button (was inline onclick — moved out for CSP)
   document.getElementById('conn-refresh-btn')?.addEventListener('click', () => location.reload());
+
+  // v1.12.0 — Theme toggle. Click cycles light → dark → light and persists.
+  // The icon swaps to ☀ in dark mode so the affordance reads correctly.
+  function readEffectiveTheme() {
+    const explicit = document.documentElement.getAttribute('data-theme');
+    if (explicit === 'light' || explicit === 'dark') return explicit;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    try { localStorage.setItem('theme', t); } catch {}
+    const btn = document.getElementById('theme-toggle');
+    if (btn) btn.textContent = t === 'dark' ? '☀' : '🌙';
+  }
+  const themeBtn = document.getElementById('theme-toggle');
+  if (themeBtn) {
+    themeBtn.textContent = readEffectiveTheme() === 'dark' ? '☀' : '🌙';
+    themeBtn.addEventListener('click', () => {
+      applyTheme(readEffectiveTheme() === 'dark' ? 'light' : 'dark');
+    });
+  }
 
   // global search
   const search = document.getElementById('global-search');
@@ -85,7 +108,7 @@ I18n.onChange(() => {
           UI.toast(I18n.t('pipe.added', 'Added to pipeline'), 'success');
           search.value = '';
           if (Router.current().name === 'pipeline') Router.render();
-        }).catch((err) => UI.toast(err.message, 'error'));
+        }).catch((err) => UI.toast((err && err.message) || 'add failed', 'error'));
       } else {
         Router.go('/tracker');
       }

@@ -109,7 +109,7 @@ async function runFix(btn, path, t) {
     UI.toast(t('track.done') + ' · exit ' + r.code, r.code === 0 ? 'success' : 'error');
     UI.modal('Output', UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n\n' + r.stderr : '')));
   } catch (e) {
-    UI.toast(e.message, 'error');
+    UI.toast((e && e.message) || 'tracker error', 'error');
   }
 }
 

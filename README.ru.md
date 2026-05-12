@@ -1,15 +1,15 @@
 # career-ops-ui
 
-> Веб-интерфейс в стиле Airbnb для AI-пайплайна поиска работы [career-ops](https://github.com/santifer/career-ops).
+> Чистый docs-style веб-интерфейс для AI-пайплайна поиска работы [career-ops](https://github.com/santifer/career-ops).
 > Искать, оценивать, делать deep-dive, подавать заявки и трекать каждый оффер из одной вкладки браузера — вместо беготни между Claude Code, терминалами и markdown-файлами.
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | **Русский** | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-348%20passed-brightgreen)](README.md#tests)
+[![tests](https://img.shields.io/badge/tests-360%20passed-brightgreen)](README.md#tests)
 [![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.11.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.11.1)
+[![release](https://img.shields.io/badge/release-v1.12.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.12.0)
 
 ![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
 

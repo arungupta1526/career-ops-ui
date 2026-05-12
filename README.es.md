@@ -1,6 +1,6 @@
 # career-ops-ui
 
-> Interfaz web estilo Airbnb para la pipeline de búsqueda de empleo con IA [career-ops](https://github.com/santifer/career-ops).
+> Interfaz web limpia, estilo docs para la pipeline de búsqueda de empleo con IA [career-ops](https://github.com/santifer/career-ops).
 > Buscar, evaluar, investigar a fondo, aplicar y rastrear cada oferta desde una sola pestaña del navegador — en lugar de saltar entre Claude Code, terminales y archivos markdown.
 
 [English](README.md) | **Español** | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)

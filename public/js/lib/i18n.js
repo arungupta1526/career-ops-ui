@@ -255,6 +255,8 @@ window.I18n = (function () {
     'scan.chip.dynamic':{ en: 'Keywords', es: 'Palabras clave', 'pt-BR': 'Palavras-chave', ko: '키워드', ja: 'キーワード', ru: 'Ключевые слова', 'zh-CN': '关键词', 'zh-TW': '關鍵字' },
     'scan.dryRun':    { en: 'Dry run (no write)', es: 'Dry run (sin escribir)', 'pt-BR': 'Dry run (sem escrever)', ko: 'Dry run (기록 없음)', ja: 'ドライラン (書込なし)', ru: 'Dry run (без записи)', 'zh-CN': '干运行 (不写入)', 'zh-TW': '乾運行 (不寫入)' },
     'scan.companyLbl':{ en: 'Company (optional)', es: 'Empresa (opcional)', 'pt-BR': 'Empresa (opcional)', ko: '회사 (선택사항)', ja: '会社 (オプション)', ru: 'Компания (опционально)', 'zh-CN': '公司 (可选)', 'zh-TW': '公司 (可選)' },
+    'scan.boosted':   { en: 'boosted', es: 'boost', 'pt-BR': 'boost', ko: '부스트', ja: 'ブースト', ru: 'буст', 'zh-CN': '提升', 'zh-TW': '提升' },
+    'scan.boostedBy': { en: 'Boosted by', es: 'Boost por', 'pt-BR': 'Boost por', ko: '부스트 키워드', ja: 'ブーストキーワード', ru: 'Буст по', 'zh-CN': '提升关键字', 'zh-TW': '提升關鍵字' },
     'scan.allCompanies':{ en: 'all companies', es: 'todas las empresas', 'pt-BR': 'todas as empresas', ko: '모든 회사', ja: 'すべての会社', ru: 'все компании', 'zh-CN': '所有公司', 'zh-TW': '所有公司' },
     'scan.results':   { en: 'Vacancies found', es: 'Vacantes encontradas', 'pt-BR': 'Vagas encontradas', ko: '찾은 채용 공고', ja: '見つかった求人', ru: 'Найденные вакансии', 'zh-CN': '找到的职位', 'zh-TW': '找到的職位' },
     'scan.scopeAll':  { en: 'all matching', es: 'todas las coincidencias', 'pt-BR': 'todas correspondências', ko: '모든 일치', ja: 'すべての一致', ru: 'все matching', 'zh-CN': '所有匹配', 'zh-TW': '所有匹配' },

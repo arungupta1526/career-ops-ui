@@ -51,6 +51,9 @@ export function loadConfig() {
 
   const queries = ru.queries || DEFAULT_QUERIES;
   const negative = (titleFilter.negative || DEFAULT_NEGATIVE).map((s) => s.toLowerCase());
+  // v1.12.0 — surface seniority_boost on the regional scanner too.
+  // Lowercased once here for cheap per-row matching downstream.
+  const boosts = (titleFilter.seniority_boost || []).map((s) => String(s).toLowerCase());
   // FIX-H3 — surface the most common config mistake: a query keyword
   // also appears in the negative list, so every result is filtered out.
   // Caller can ignore `warnings` if it doesn't care.
@@ -59,12 +62,24 @@ export function loadConfig() {
   return {
     queries,
     negative,
+    boosts,
     sources: ru.sources || ['hh', 'habr'],
     area: ru.area ?? 113, // Russia
     perPage: ru.per_page ?? 50,
     onlyRemote: ru.only_remote ?? false,
     warnings,
   };
+}
+
+/** Stamp `_boosted: true` on every job whose title contains a boost keyword. */
+function applyBoostStamps(jobs, boosts) {
+  if (!boosts.length) return jobs;
+  return jobs.map((j) => {
+    if (!j || !j.title) return j;
+    const t = String(j.title).toLowerCase();
+    const hit = boosts.find((b) => t.includes(b));
+    return hit ? { ...j, _boosted: true, _boostedBy: hit } : j;
+  });
 }
 
 /**
@@ -176,7 +191,12 @@ export async function runRuScan(opts = {}) {
   for (const j of allFound) uniq.set(j.url, j);
   const flat = [...uniq.values()];
 
-  const filtered = flat.filter((j) => passesNegative(j.title, cfg.negative));
+  // Apply negative-filter first, then stamp boost flags. Boost is
+  // informational only — it doesn't change which rows are returned,
+  // only marks the boosted ones so the SPA can render a "⬆ boosted"
+  // badge on them.
+  const filteredRaw = flat.filter((j) => passesNegative(j.title, cfg.negative));
+  const filtered = applyBoostStamps(filteredRaw, cfg.boosts);
   const removedNeg = flat.length - filtered.length;
   const fresh = filtered.filter((j) => !seen.has(j.url));
   const dup = filtered.length - fresh.length;

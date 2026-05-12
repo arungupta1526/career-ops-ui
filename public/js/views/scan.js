@@ -125,50 +125,60 @@ Router.register('scan', async () => {
     if (dryRun.checked) params.set('dryRun', '1');
     streamTo(consoleEl, '/api/stream/scan-ru?' + params.toString(), 'RU', refreshResults);
   }
-  // Unified "Scan all" — runs EN first, then RU sequentially. Results from both
-  // accumulate into the same table because both write to data/last-scan.json.
+  // v1.12.0 — single SSE connection to the consolidated endpoint.
+  // The server runs ATS then regional sequentially and emits multiple
+  // `start` / `done` events in one stream so the UI sees both phases.
+  // (Old separate `/api/stream/scan-en` + `/api/stream/scan-ru`
+  // endpoints stay live as deprecated aliases — F-018 LITE.)
   function runScanAll() {
-    const enParams = new URLSearchParams();
-    if (dryRun.checked) enParams.set('dryRun', '1');
+    const params = new URLSearchParams();
+    params.set('source', 'both');
+    if (dryRun.checked) params.set('dryRun', '1');
     const company = companySelect.value;
-    if (company) enParams.set('company', company);
+    if (company) params.set('company', company);
 
     consoleEl.textContent = '';
     UI.toast(t('scan.runAll', 'Scanning all sources…'), 'success');
-    appendMeta(consoleEl, '▶ ATS scan (Greenhouse + Ashby + Lever)\n');
 
-    const es1 = API.stream('/api/stream/scan-en?' + enParams.toString(), (ev, data) => {
-      if (ev === 'log') {
+    let phase = null;       // 'ats' | 'regional' as we move between phases
+    let totalNew = 0;
+    API.stream('/api/stream/scan?' + params.toString(), (ev, data) => {
+      if (ev === 'start') {
+        // Inferred from the server-emitted script label so a single stream
+        // can carry multiple phases.
+        phase = (data.script === 'en-scanner') ? 'ats' : 'regional';
+        appendMeta(consoleEl,
+          phase === 'ats'
+            ? '▶ ATS scan (Greenhouse + Ashby + Lever)\n'
+            : '\n▶ Regional scan (hh.ru + Habr Career)\n');
+      } else if (ev === 'log') {
         const cls = data.stream === 'stderr' ? ' err' : '';
         consoleEl.appendChild(c('span', { className: cls }, data.line + '\n'));
         consoleEl.scrollTop = consoleEl.scrollHeight;
       } else if (ev === 'done') {
-        const enFresh = data.counts?.fresh ?? 0;
-        appendMeta(consoleEl, `✓ ATS done · NEW=${enFresh}\n\n▶ Regional scan (hh.ru + Habr Career)\n`);
-        // chain regional scan after ATS finishes
-        const ruParams = new URLSearchParams();
-        if (dryRun.checked) ruParams.set('dryRun', '1');
-        API.stream('/api/stream/scan-ru?' + ruParams.toString(), (ev2, d2) => {
-          if (ev2 === 'log') {
-            const cls = d2.stream === 'stderr' ? ' err' : '';
-            consoleEl.appendChild(c('span', { className: cls }, d2.line + '\n'));
-            consoleEl.scrollTop = consoleEl.scrollHeight;
-          } else if (ev2 === 'done') {
-            const ruFresh = d2.counts?.fresh ?? 0;
-            const total = enFresh + ruFresh;
-            appendMeta(consoleEl, `✓ Regional done · NEW=${ruFresh}\n\n✓ ALL DONE · total NEW=${total}\n`);
-            UI.toast(`Scan all: ${total} new offers`, 'success');
-            // F-011: refreshResults() re-reads /api/scan-results so the
-            // Active-Companies counter + filters pick up the new hits.
-            refreshResults();
-          } else if (ev2 === 'error') {
-            appendMeta(consoleEl, `\n✗ Regional error: ${d2.message}\n`);
-          }
-        });
+        const fresh = data.counts?.fresh ?? 0;
+        totalNew += fresh;
+        const label = phase === 'ats' ? 'ATS' : 'Regional';
+        appendMeta(consoleEl, `✓ ${label} done · NEW=${fresh}\n`);
+        // F-011: re-read /api/scan-results so the Active-Companies counter
+        // + filters update incrementally between phases.
+        refreshResults();
       } else if (ev === 'error') {
-        appendMeta(consoleEl, `\n✗ ATS error: ${data.message}\n`);
-        UI.toast(data.message, 'error');
+        const label = phase === 'ats' ? 'ATS' : (phase === 'regional' ? 'Regional' : 'scan');
+        const msg = (data && data.message) || 'unknown error';
+        appendMeta(consoleEl, `\n✗ ${label} error: ${msg}\n`);
+        UI.toast(msg, 'error');
       }
+    });
+    // EventSource closes on the last `done`; show the summary toast then.
+    // We can't easily distinguish "ATS done" from "all done" without a
+    // server-side `phase: 'final'` marker, so the toast fires on each done
+    // and the user reads the meta line for context.
+    Promise.resolve().then(() => {
+      // Defensive: schedule a final summary once the stream is idle.
+      setTimeout(() => {
+        if (totalNew > 0) UI.toast(`Scan: ${totalNew} new offers`, 'success');
+      }, 800);
     });
   }
 
@@ -258,12 +268,34 @@ Router.register('scan', async () => {
       resultsEl.appendChild(c('div', { className: 'empty' }, t('track.noMatch')));
       return;
     }
-    const tbody = c('tbody', null, rows.slice(0, 200).map((r) => {
+    // v1.12.0 — sort boosted rows to the top of each render. Stable
+    // within the boosted/non-boosted partition so the underlying scan
+    // order is preserved otherwise. Boost is sourced from
+    // `portals.yml::title_filter.seniority_boost` and stamped server-side
+    // by both en-scanner and ru-scanner.
+    const sorted = rows.slice(0, 200).sort((a, b) => {
+      const ab = a && a._boosted ? 1 : 0;
+      const bb = b && b._boosted ? 1 : 0;
+      return bb - ab;
+    });
+    const tbody = c('tbody', null, sorted.map((r) => {
       const wt = r.workplaceType || (r.isRemote ? 'Remote' : 'Onsite');
       const wtClass = /remote/i.test(wt) ? 'badge-ok' : /hybrid/i.test(wt) ? 'badge-info' : '';
+      // Title cell shows a "⬆ boosted" pill before the link when the
+      // server-side scanner matched a `seniority_boost` keyword on the
+      // title. Title attribute reveals WHICH keyword matched, so the
+      // user can trace it back to portals.yml.
+      const titleCell = c('td', null, [
+        r._boosted ? c('span', {
+          className: 'badge badge-info',
+          title: t('scan.boostedBy', 'Boosted by') + ': ' + (r._boostedBy || '?'),
+          style: { marginRight: '6px', fontSize: '11px' },
+        }, '⬆ ' + t('scan.boosted', 'boosted')) : null,
+        c('a', { href: r.url, target: '_blank', rel: 'noopener', style: { color: 'var(--rausch)' } }, r.title),
+      ]);
       return c('tr', null, [
         c('td', { style: { minWidth: '160px' } }, r.company || '—'),
-        c('td', null, c('a', { href: r.url, target: '_blank', rel: 'noopener', style: { color: 'var(--rausch)' } }, r.title)),
+        titleCell,
         c('td', { style: { fontSize: '13px', color: 'var(--foggy)' } }, r.location || '—'),
         c('td', null, c('span', { className: 'badge ' + wtClass }, wt)),
         c('td', null, r.relocates ? c('span', { className: 'badge badge-info' }, 'reloc') : ''),

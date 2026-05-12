@@ -1,7 +1,7 @@
 {
   "name": "@fighter90/career-ops-ui",
-  "version": "1.11.1",
-  "description": "Airbnb-styled web interface for the career-ops AI job-search pipeline — search, evaluate, deep-dive, apply, track every offer from a single browser tab.",
+  "version": "1.12.0",
+  "description": "Clean, docs-style web interface for the career-ops AI job-search pipeline — search, evaluate, deep-dive, apply, track every offer from a single browser tab.",
   "type": "module",
   "license": "MIT",
   "author": "Sergey Emelyanov",

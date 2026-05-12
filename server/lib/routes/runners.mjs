@@ -97,7 +97,11 @@ export function registerRunnerRoutes(app) {
     });
   }
 
-  app.get('/api/stream/scan', (req, res) => {
+  // v1.12.0 — renamed from `/api/stream/scan` to `/api/stream/scan-parent`
+  // so the namespace is free for the consolidated in-process scanner
+  // (F-018 LITE) registered in `routes/scan.mjs`. The parent-spawned
+  // scan.mjs runner stays available for the kitchen-sink fallback.
+  app.get('/api/stream/scan-parent', (req, res) => {
     const args = [];
     if (req.query.dryRun === '1') args.push('--dry-run');
     if (req.query.company) args.push('--company', String(req.query.company));

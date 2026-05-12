@@ -1,6 +1,6 @@
 # career-ops-ui
 
-> [career-ops](https://github.com/santifer/career-ops) AI 求人検索パイプラインのための Airbnb スタイルの Web インターフェース。
+> [career-ops](https://github.com/santifer/career-ops) AI 求人検索パイプラインのための クリーンな docs-style Web インターフェース。
 > Claude Code、ターミナル、Markdown ファイルの間を行き来する代わりに — 単一のブラウザタブから、すべてのオファーを検索、評価、ディープダイブ、応募、追跡できます。
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | **日本語** | [Русский](README.ru.md) | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)

@@ -18,7 +18,7 @@ Router.register('apply', async () => {
       ]));
     } catch (e) {
       out.innerHTML = '';
-      out.appendChild(c('div', { className: 'empty' }, e.message));
+      out.appendChild(c('div', { className: 'empty' }, (e && e.message) || 'apply failed'));
     }
   }
 

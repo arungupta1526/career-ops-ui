@@ -12,7 +12,7 @@ Stack at a glance:
 |---|---|---|
 | Server | Node ≥18, Express 4, js-yaml | `server/index.mjs` (~130 lines, orchestrator only), `server/lib/*.mjs`, `server/lib/routes/*.mjs` (12 modules) |
 | SPA | Vanilla JS, hash-router, no framework | `public/index.html`, `public/js/{app,router,api}.js`, `public/js/views/*.js` |
-| Styling | Hand-written CSS, Airbnb-inspired tokens | `public/css/app.css` |
+| Styling | Hand-written CSS, docs-style tokens | `public/css/app.css` |
 | Tests | `node --test` (TAP), in-process Express, fetch | `tests/*.test.mjs`, `tests/e2e*.mjs` |
 | Build | None — files served as-is from `public/` | — |
 

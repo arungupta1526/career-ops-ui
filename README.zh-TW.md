@@ -1,6 +1,6 @@
 # career-ops-ui
 
-> 用於 [career-ops](https://github.com/santifer/career-ops) AI 求職流水線的 Airbnb 風格 Web 介面。
+> 用於 [career-ops](https://github.com/santifer/career-ops) AI 求職流水線的 簡潔 docs-style Web 介面。
 > 在單個瀏覽器標籤中搜尋、評估、深入研究、申請和追蹤每個職位 — 而不是在 Claude Code、終端機和 markdown 檔案之間來回切換。
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.cn.md) | **繁體中文**

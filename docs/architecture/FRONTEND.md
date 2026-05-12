@@ -90,7 +90,7 @@ Each view file:
 
 `public/css/app.css` (~700 LOC). Token-based custom properties at top:
 
-- `--ink, --foggy, --rausch, --kazan, --teal` (Airbnb-inspired palette)
+- `--ink, --foggy, --rausch, --kazan, --teal` (docs-style palette)
 - `--space-1..6, --radius, --shadow-1..3`
 
 Mobile-first. `@media (max-width: 900px)` toggles the sidebar drawer (off-canvas) — `body.sidebar-open` is the open state, set/cleared by hamburger button + backdrop in `app.js`.

@@ -29,7 +29,7 @@ Router.register('evaluate', async () => {
       renderResult(r);
     } catch (e) {
       out.innerHTML = '';
-      out.appendChild(c('div', { className: 'empty' }, t('common.error') + ': ' + e.message));
+      out.appendChild(c('div', { className: 'empty' }, t('common.error') + ': ' + ((e && e.message) || 'failed')));
     }
   }
 

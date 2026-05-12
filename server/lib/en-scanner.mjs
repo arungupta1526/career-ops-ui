@@ -110,6 +110,14 @@ export async function runEnScan(opts = {}) {
   const tf = portals.title_filter || {};
   const positives = tf.positive || [];
   const negatives = tf.negative || [];
+  // v1.12.0 — surface seniority_boost from portals.yml. Canonical
+  // career-ops.org schema documents this as keywords that "rank matching
+  // positions higher without filtering" (third list alongside positive /
+  // negative). The scanner persists a `_boosted` flag on every job whose
+  // title contains a boost keyword (case-insensitive); SPA renders a
+  // "⬆ boosted" badge on those rows so the user can see WHY they're
+  // ranked higher.
+  const boosts = (tf.seniority_boost || []).map((s) => String(s).toLowerCase());
   const seen = loadSeenUrls();
 
   let companies = portals.tracked_companies || portals.companies || [];
@@ -150,9 +158,17 @@ export async function runEnScan(opts = {}) {
 
   const allRaw = fetchedPerCo.flat();
   // Apply title filter (positive must match, negative must NOT match)
-  const filtered = allRaw.filter(
-    (j) => passesPositive(j.title, positives) && passesNegative(j.title, negatives)
-  );
+  // and stamp `_boosted` for any title containing a seniority_boost keyword.
+  // The boost stamp is INFORMATIONAL — it doesn't filter; the SPA uses it
+  // to surface a badge so users see why a row is ranked higher.
+  const filtered = allRaw
+    .filter((j) => passesPositive(j.title, positives) && passesNegative(j.title, negatives))
+    .map((j) => {
+      if (!boosts.length || !j.title) return j;
+      const t = j.title.toLowerCase();
+      const hit = boosts.find((b) => t.includes(b));
+      return hit ? { ...j, _boosted: true, _boostedBy: hit } : j;
+    });
   const removedTitle = allRaw.length - filtered.length;
   const fresh = filtered.filter((j) => !seen.has(j.url));
   const dup = filtered.length - fresh.length;
