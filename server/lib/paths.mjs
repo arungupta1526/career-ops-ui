@@ -49,6 +49,13 @@ export const PATHS = {
   jdsDir: path('jds'),
   outputDir: path('output'),
   modesDir: path('modes'),
+  // G-008 (v1.15.0) — `modes/_profile.md` is the canonical "Career framing"
+  // file per career-ops.org/docs/.../what-is-career-ops §Step-5. It holds
+  // target roles, framing, exit narrative, comp targets, location policy.
+  // Never committed (.gitignore in parent). Surfaced via the new
+  // #/config → Modes tab and a read-only card on #/profile.
+  modesProfile: path('modes', '_profile.md'),
+  modesProfileTemplate: path('modes', '_profile.template.md'),
   interviewPrepDir: path('interview-prep'),
   // v1.13.0 — batch evaluate flow (canonical career-ops.org guide §4).
   batchDir: path('batch'),

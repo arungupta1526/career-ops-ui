@@ -242,6 +242,66 @@ Router.register('config', async () => {
     ]),
   ]);
 
+  // ─── G-008 (v1.15.0) — Modes tab: editor for modes/_profile.md ───
+  // This is the canonical "Career framing" file per career-ops.org Quick
+  // Start §Step-5 (Target Roles, Adaptive Framing, Exit Narrative, Comp
+  // Targets, Location Policy). Most-edited file per the docs. Until
+  // v1.15 it had no UI surface — users had to shell into the parent.
+  const modesTextarea = c('textarea', {
+    className: 'textarea',
+    rows: 24,
+    style: { width: '100%', fontFamily: 'ui-monospace, monospace', fontSize: '13px', minHeight: '420px' },
+    placeholder: '# Career framing (modes/_profile.md)\n\n## Target Roles\n- …',
+  });
+  let modesLoaded = false;
+  let modesScaffolded = false;
+  async function loadModesTab() {
+    if (modesLoaded) return;
+    try {
+      const data = await API.get('/api/modes/_profile');
+      modesTextarea.value = (data && data.markdown) || '';
+      modesScaffolded = !!(data && data.scaffolded);
+      modesLoaded = true;
+      if (modesScaffolded) {
+        UI.toast(t('config.modesScaffolded',
+          'Scaffolded from _profile.template.md — review then Save'), 'info');
+      }
+    } catch (e) {
+      modesTextarea.value = '# error: ' + (e.message || e);
+    }
+  }
+  async function saveModes(btn) {
+    if (!modesTextarea.value.trim()) {
+      UI.toast(t('config.modesEmpty', 'modes/_profile.md is empty'), 'error');
+      return;
+    }
+    try {
+      const r = await UI.withSpinner(btn, () =>
+        API.put('/api/modes/_profile', { markdown: modesTextarea.value }));
+      UI.toast(t('config.modesSaved', 'modes/_profile.md saved') +
+        (r.sanitized ? ` (${t('config.sanitized', 'sanitized')})` : ''), 'success');
+      modesScaffolded = false;
+    } catch (e) {
+      UI.toast((e && e.message) || 'failed to save', 'error');
+    }
+  }
+
+  const modesPanel = c('div', { className: 'card' }, [
+    c('p', { style: { color: 'var(--foggy)', fontSize: '13px', margin: '0 0 12px' } },
+      t('config.modesHint',
+        'modes/_profile.md is your private career framing — never committed to git. Drives every evaluation, deep-research, and outreach prompt.')),
+    modesTextarea,
+    c('div', { className: 'flex gap-3 mt-3' }, [
+      c('button', {
+        className: 'btn btn-primary',
+        onClick: (e) => saveModes(e.currentTarget),
+      }, '💾 ' + t('common.save', 'Save')),
+      c('a', { href: 'https://career-ops.org/docs/introduction/what-is-career-ops',
+              target: '_blank', rel: 'noopener', className: 'btn btn-ghost' },
+        t('config.modesDocsLink', 'Canonical docs ↗')),
+    ]),
+  ]);
+
   function tabBtn(label, panel, activate) {
     return c('button', {
       className: 'tab-btn',
@@ -259,14 +319,27 @@ Router.register('config', async () => {
       b.classList.toggle('is-active', b.textContent === label);
     });
     if (panel === profilePanel) loadProfileTab();
+    if (panel === modesPanel)   loadModesTab();
   }
 
   const apiLabel = t('config.tabApi', 'API keys & runtime');
   const profileLabel = t('config.tabProfile', 'Profile');
+  const modesLabel = t('config.tabModes', 'Modes');
   tabsHost.appendChild(c('div', { className: 'flex gap-3' }, [
     tabBtn(apiLabel, apiPanel, activate),
     tabBtn(profileLabel, profilePanel, activate),
+    tabBtn(modesLabel, modesPanel, activate),
   ]));
+
+  // G-008: support deep-linking via /#/config?tab=modes — when the SPA
+  // navigates to this view with that query, jump straight to the Modes
+  // tab so the "Career framing" card on /#/profile can deep-link to it.
+  function tabFromHash() {
+    const hash = (window.location.hash || '').toLowerCase();
+    if (hash.includes('tab=modes')) return modesLabel;
+    if (hash.includes('tab=profile')) return profileLabel;
+    return apiLabel;
+  }
 
   return c('div', null, [
     c('header', { className: 'page-header' }, [
@@ -287,7 +360,11 @@ Router.register('config', async () => {
     tabsHost,
     panelHost,
   ]).also((root) => {
-    // Default to the API-keys tab.
-    activate(apiLabel, apiPanel);
+    // Default to the API-keys tab unless the hash deep-links elsewhere.
+    const want = tabFromHash();
+    const panel = want === modesLabel ? modesPanel
+                : want === profileLabel ? profilePanel
+                : apiPanel;
+    activate(want, panel);
   });
 });

@@ -67,6 +67,21 @@ Router.register('profile', async () => {
       ]),
     ]) : null,
 
+    // G-008 (v1.15.0): surface the existence of modes/_profile.md, the
+    // canonical "Career framing" file (Quick Start §Step-5). Until now
+    // the UI had no pointer to it and users discovered it only via
+    // career-ops.org docs.
+    c('section', { className: 'section' }, [
+      c('h2', { className: 'section-title' }, t('profile.framingTitle', 'Career framing')),
+      c('div', { className: 'card' }, [
+        c('p', { style: { color: 'var(--foggy)', fontSize: '14px', margin: '0 0 12px' } },
+          t('profile.framingHint',
+            "modes/_profile.md is the canonical career-framing file (target roles, framing, exit narrative, comp targets, location policy). Never committed. Read by every evaluation, deep-research, and outreach prompt.")),
+        c('a', { href: '#/config?tab=modes', className: 'btn btn-primary btn-sm' },
+          '✎ ' + t('profile.editModes', 'Edit in App settings → Modes')),
+      ]),
+    ]),
+
     c('section', { className: 'section' }, [
       c('h2', { className: 'section-title' }, t('set.targetRoles')),
       c('div', { className: 'card' }, [

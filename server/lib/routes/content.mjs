@@ -20,6 +20,7 @@ import { dirname } from 'node:path';
 import yaml from 'js-yaml';
 import { PATHS, path as projPath } from '../paths.mjs';
 import { stripDangerousMarkdown } from '../security.mjs';
+import { logActivity } from '../activity-log.mjs';
 import { importDocumentToMarkdown, MAX_UPLOAD_BYTES } from '../cv-import.mjs';
 
 // v1.13.0 (PR-4 full) — multer for proper multipart parsing. The
@@ -237,6 +238,83 @@ export function registerContentRoutes(app) {
       .filter((f) => f.endsWith('.md'))
       .map((f) => f.replace(/\.md$/, ''));
     res.json({ modes: list });
+  });
+
+  // G-008 (v1.15.0) — modes/_profile.md as a first-class editable file.
+  // MUST be registered BEFORE /api/modes/:name (next handler) so the
+  // literal path wins. Returns JSON {markdown, bytes} (not text/plain
+  // like the generic mode getter) because the editor needs metadata.
+  // Scaffold from _profile.template.md if missing on first read.
+  app.get('/api/modes/_profile', (_req, res) => {
+    try {
+      let markdown = '';
+      if (existsSync(PATHS.modesProfile)) {
+        markdown = readFileSync(PATHS.modesProfile, 'utf8');
+      } else if (existsSync(PATHS.modesProfileTemplate)) {
+        markdown = readFileSync(PATHS.modesProfileTemplate, 'utf8');
+        // Don't persist on read — let the user opt in by hitting Save.
+      } else {
+        markdown = [
+          '# Career framing (modes/_profile.md)',
+          '',
+          '> This file is the most-edited per career-ops.org Quick Start §Step-5.',
+          '> Never committed. Fill in your target roles, framing, exit narrative,',
+          '> comp targets, and location policy here.',
+          '',
+          '## Target Roles',
+          '',
+          '- ',
+          '',
+          '## Adaptive Framing',
+          '',
+          '- ',
+          '',
+          '## Exit Narrative',
+          '',
+          '',
+          '',
+          '## Comp Targets',
+          '',
+          '- ',
+          '',
+          '## Location Policy',
+          '',
+          '',
+          '',
+        ].join('\n');
+      }
+      res.json({
+        markdown,
+        bytes: Buffer.byteLength(markdown),
+        scaffolded: !existsSync(PATHS.modesProfile),
+      });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.put('/api/modes/_profile', (req, res) => {
+    const md = req.body?.markdown;
+    if (typeof md !== 'string') {
+      return res.status(400).json({ error: 'markdown body required (string under "markdown" key)' });
+    }
+    if (Buffer.byteLength(md) > 256 * 1024) {
+      return res.status(413).json({ error: 'modes/_profile.md too large (max 256 KB)' });
+    }
+    const sanitized = stripDangerousMarkdown(md);
+    const dir = dirname(PATHS.modesProfile);
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    writeFileSync(PATHS.modesProfile, sanitized);
+    logActivity({
+      type: 'modes_profile.save',
+      target: 'modes/_profile.md',
+      bytes: Buffer.byteLength(sanitized),
+    });
+    res.json({
+      ok: true,
+      sanitized: sanitized !== md,
+      bytes: Buffer.byteLength(sanitized),
+    });
   });
 
   app.get('/api/modes/:name', (req, res) => {
