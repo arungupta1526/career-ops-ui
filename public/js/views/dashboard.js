@@ -49,6 +49,13 @@ Router.register('dashboard', async () => {
       c('div', { className: 'flex gap-3' }, [
         c('button', { className: 'btn btn-ghost', onClick: () => Router.go('/pipeline') }, t('dash.openPipeline')),
         c('button', { className: 'btn btn-primary', onClick: () => Router.go('/scan') }, '🌐 ' + t('dash.scanNow', 'Scan now')),
+        // G-007 (v1.15.0) — auto-pipeline 1-click flow. Paste a job URL →
+        // get JD + evaluation + PDF + ready-to-add tracker row in one
+        // observable timeline. The canonical career-ops.org promise.
+        c('button', {
+          className: 'btn btn-primary',
+          onClick: () => window.AutoPipeline.open(),
+        }, '✨ ' + t('dash.autoPipeline', 'Auto-pipeline a URL')),
       ]),
     ]),
 
