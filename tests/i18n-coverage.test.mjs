@@ -96,3 +96,49 @@ test('i18n: notFound.body has {path} placeholder', () => {
     );
   }
 });
+
+// v1.20.1 (H-3) — every `t('key', …)` call in views/* must point at a
+// DICT entry. Without this canary, missing keys silently fall back to
+// the inline EN default, masking the entire purpose of i18n for
+// non-English locales (Russian/Japanese/Chinese screen-reader users
+// were hearing English aria-labels in v1.20.0 because four new keys
+// were referenced but never added to DICT).
+import { readdirSync, statSync } from 'node:fs';
+import { join, extname } from 'node:path';
+const VIEWS_DIR = resolve(__dirname, '..', 'public', 'js');
+
+function* walkJs(dir) {
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name);
+    const s = statSync(p);
+    if (s.isDirectory()) yield* walkJs(p);
+    else if (extname(p) === '.js') yield p;
+  }
+}
+
+test('i18n: every t(key) call in public/js/** maps to a DICT entry', () => {
+  // Match both t('key') and t("key"). Captures the key string.
+  // Caveat: dynamic keys like t(`mode.${name}`) are not catchable
+  //         statically and are skipped — view authors must ensure
+  //         the template expansions are covered.
+  const callRx = /\bt\(\s*['"]([a-zA-Z0-9_.\-]+)['"]/g;
+  const usedKeys = new Set();
+  const fileByKey = new Map();
+  for (const file of walkJs(VIEWS_DIR)) {
+    if (file === I18N_PATH) continue;
+    const src = readFileSync(file, 'utf8');
+    for (const m of src.matchAll(callRx)) {
+      usedKeys.add(m[1]);
+      if (!fileByKey.has(m[1])) fileByKey.set(m[1], file.replace(VIEWS_DIR + '/', ''));
+    }
+  }
+  const missing = [];
+  for (const k of usedKeys) {
+    if (!DICT[k]) missing.push(`${k}  (first seen in ${fileByKey.get(k)})`);
+  }
+  if (missing.length) {
+    console.error('Keys referenced via t(...) but missing from DICT:\n  ' + missing.join('\n  '));
+  }
+  assert.equal(missing.length, 0,
+    `${missing.length} undefined i18n keys leak through inline EN fallbacks`);
+});

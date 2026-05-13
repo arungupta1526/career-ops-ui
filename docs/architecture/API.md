@@ -4,6 +4,13 @@
 
 All paths are prefixed with `http://127.0.0.1:4317` (default). Body / query types are described informally; see the route handler for exact validation.
 
+## Cross-cutting security envelope (v1.21.0+)
+
+- **DNS-rebind safety:** `/api/pipeline/preview` and `/api/auto-pipeline` route through `server/lib/safe-fetch.mjs::safeGet` — one DNS lookup, pinned TCP connection. Per-hop redirect revalidation. Fail-CLOSED on lookup error.
+- **Path-traversal sanitization:** every `:name` / `:slug` / `?slug=` / `?name=` route param goes through `sanitizePathName()` from `server/lib/security.mjs`. Empty result → 400.
+- **Rate limiting:** `/api/evaluate`, `/api/deep`, `/api/mode/:slug`, `/api/auto-pipeline` wear `llmRateLimit` from `server/lib/rate-limit.mjs`. **No-op on loopback (`HOST=127.0.0.1`); 10 req/min/IP on public bind (`HOST=0.0.0.0`).** Configurable via `LLM_RATE_LIMIT="N/Ws"`. 429 + `Retry-After` + `X-RateLimit-*` headers on overflow.
+- **Concurrent writes:** `/api/tracker` (POST), `/api/pipeline` (POST + DELETE), and `/api/auto-pipeline`'s tracker step are wrapped in `withFileLock(path, fn)` from `server/lib/file-lock.mjs`. Read-modify-write on the same data file is serialized per-process. Independent files run in parallel.
+
 ## Categories
 
 1. [Configuration](#configuration)

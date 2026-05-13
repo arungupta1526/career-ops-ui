@@ -14,6 +14,7 @@
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { PATHS, path as projPath } from '../paths.mjs';
 import { slugify, today } from '../parsers.mjs';
+import { sanitizePathName } from '../security.mjs';
 
 export function registerJdsRoutes(app) {
   app.get('/api/jds', (_req, res) => {
@@ -28,7 +29,8 @@ export function registerJdsRoutes(app) {
   });
 
   app.get('/api/jds/:name', (req, res) => {
-    const name = req.params.name.replace(/[^\w\-.]/g, '');
+    const name = sanitizePathName(req.params.name);
+    if (!name) return res.status(400).json({ error: 'invalid jd name' });
     const file = projPath('jds', name);
     if (!existsSync(file)) return res.status(404).json({ error: 'not found' });
     res.type('text/plain').send(readFileSync(file, 'utf8'));
@@ -37,7 +39,7 @@ export function registerJdsRoutes(app) {
   app.delete('/api/jds/:name', (req, res) => {
     // Strip path-traversal characters; require the canonical .txt suffix
     // so we cannot accidentally remove an unrelated file.
-    const safe = req.params.name.replace(/[^\w\-.]/g, '');
+    const safe = sanitizePathName(req.params.name);
     if (!safe || !safe.endsWith('.txt')) {
       return res.status(400).json({ error: 'invalid jd name' });
     }

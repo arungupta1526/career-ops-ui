@@ -6,6 +6,87 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.21.0] — 2026-05-14
+
+**Security + concurrency + a11y polish from two independent code-review passes.** Seven findings from [`docs/specs/V1.20.1-BACKLOG.md`](docs/specs/V1.20.1-BACKLOG.md) shipped in one release: one blocker (DNS-rebind TOCTOU), six high-severity bugs (path-traversal sanitization spread, rate-limit gap on LAN deploy, concurrent-write race, i18n coverage hole, dangling aria-describedby, missing label associations). 34 new tests; baseline rose from 427 → 461 unit + 32/32 Playwright. Every fix lands behind a named regression test.
+
+### 🛡️ Security
+
+- **`fix(security): B-1 — close DNS-rebind TOCTOU via safe-fetch.mjs`** ([`server/lib/safe-fetch.mjs`](server/lib/safe-fetch.mjs)) — the previous pattern did one explicit `dnsLookup` for validation, then let `fetch()` do its own independent lookup. A DNS rebind attacker with TTL=0 could return a public IP on lookup 1 and `127.0.0.1` / `169.254.169.254` / a LAN address on lookup 2, bypassing `isPrivateOrLoopbackHost`. The new `safeGet` resolves ONCE, pins the TCP connection to that exact IP via node:http(s), and sets SNI/Host so cert validation still targets the original hostname. Used by `/api/pipeline/preview` and `/api/auto-pipeline`. Fail-CLOSED on lookup error (reverses the prior `try { … } catch { /* fall through */ }`). Validated by 8 new tests in [`tests/ssrf-redirect-rebind.test.mjs`](tests/ssrf-redirect-rebind.test.mjs).
+
+- **`fix(security): H-4 — consolidate sanitizePathName across 10 routes`** ([`server/lib/security.mjs`](server/lib/security.mjs)) — the bare `replace(/[^\w\-.]/g, '')` regex was duplicated across `jds.mjs`, `content.mjs`, `reports.mjs`, `llm.mjs`, `runners.mjs` and kept `.` characters, so `..pdf`, `....md`, leading-dot names survived. Only `reports.mjs::sanitizeSlug` did it right. v1.21.0 hoists the correct version (`sanitizePathName`) into `security.mjs`, deletes 10 broken copies, and rejects empty results with 400. Validated by 12 tests in [`tests/path-traversal.test.mjs`](tests/path-traversal.test.mjs).
+
+- **`fix(security): H-5 — rate-limit LLM endpoints on public bind`** ([`server/lib/rate-limit.mjs`](server/lib/rate-limit.mjs)) — `/api/evaluate`, `/api/deep`, `/api/mode/:slug`, `/api/auto-pipeline` previously had no per-IP throttle. Loopback users are unaffected; LAN-exposed deploys (`HOST=0.0.0.0`) get 10 req/min/IP with `Retry-After` and `X-RateLimit-*` headers on overflow. Configurable via `LLM_RATE_LIMIT="N/Ws"`. Cheap interim defense ahead of the v2.0 P-12 auth gate. Validated by 6 tests in [`tests/rate-limit.test.mjs`](tests/rate-limit.test.mjs).
+
+### 🔒 Concurrency
+
+- **`fix(data): H-6 — per-file mutex on applications.md / pipeline.md`** ([`server/lib/file-lock.mjs`](server/lib/file-lock.mjs)) — concurrent `POST /api/tracker` (or auto-pipeline racing a manual add) used to both read `num=42`, both write `num=43`, and silently drop the earlier row. `withFileLock(path, fn)` serializes read-modify-write per path; independent paths still run in parallel. Wired into `tracker.mjs`, `pipeline.mjs` (POST + DELETE), and `auto-pipeline.mjs` tracker step. Validated by 5 tests in [`tests/concurrent-tracker-write.test.mjs`](tests/concurrent-tracker-write.test.mjs) including a 20-concurrent-POST integration check that asserts rows 001..020 land sequentially.
+
+### ♿ Accessibility
+
+- **`fix(a11y): H-1 — id="batch-tsv-hint" on the batch.js hint paragraph`** ([`public/js/views/batch.js`](public/js/views/batch.js)) — v1.20.0 added `aria-describedby="batch-tsv-hint"` to the TSV textarea but never gave the hint `<p>` a matching `id`. Screen readers had nothing to voice. Fixed.
+
+- **`fix(a11y): H-2 — htmlFor on batch-parallel / batch-min-score labels`** ([`public/js/views/batch.js`](public/js/views/batch.js)) — four v1.20.0 inputs got new ids but their labels weren't programmatically associated. WCAG 3.3.2 now satisfied.
+
+- New static-analysis canary in [`tests/a11y-form-wires.test.mjs`](tests/a11y-form-wires.test.mjs) — walks every view file and asserts every `aria-describedby` / `htmlFor` IDREF points at a sibling `id:` declaration. Catches typo-class regressions at CI time.
+
+### 🌐 i18n
+
+- **`fix(i18n): H-3 — 13 keys from v1.20.0 silently fell through to EN for 7 locales`** ([`public/js/lib/i18n.js`](public/js/lib/i18n.js)) — `pipe.filter`, `pipe.count`, `pipe.preview*`, `pipe.openTab`, `pipe.evaluateAll*`, `eval.jdHint`, `batch.parallelAria`, `batch.minScoreAria`, plus `common.delete`, `config.group{Core,Runtime,Regional}`, `config.profileEmpty`, `config.viewProfile`, `scan.atsBadge`, `scan.regionalBadge` were referenced via `t('key', 'EN fallback')` but never added to DICT. Russian, Japanese, Chinese screen-reader users heard English `aria-label`s — directly defeating the WCAG 3.3.2 win v1.20.0 claimed. v1.21.0 adds all 19 keys × 8 locales (≈ 150 new translations) and extends [`tests/i18n-coverage.test.mjs`](tests/i18n-coverage.test.mjs) with a static-analysis pass that scans every `t('key', …)` call in `public/js/**/*.js` and asserts each key exists in DICT. Future drift caught at CI time.
+
+### 🧪 Tests
+
+- **427 → 461 unit** (+34) + 32/32 Playwright unchanged.
+- New test files: `ssrf-redirect-rebind`, `path-traversal`, `concurrent-tracker-write`, `rate-limit`, `a11y-form-wires`.
+- Existing `pipeline-preview.test.mjs` rewired from `globalThis.fetch` mock to the new `_setTransport` injection point in `safe-fetch.mjs` — the SSRF path no longer goes through fetch, so the old mock was bypassed silently.
+
+### Verification
+
+```bash
+npm test                              # 461 / 461
+npm run test:e2e:browser              # 32 / 32
+node --test tests/ssrf-redirect-rebind.test.mjs tests/path-traversal.test.mjs \
+  tests/concurrent-tracker-write.test.mjs tests/rate-limit.test.mjs \
+  tests/a11y-form-wires.test.mjs      # 34 new tests, all green
+
+# Path-traversal: every traversal-style :name returns 400 / 404
+curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:4317/api/jds/..pdf
+# → 400
+
+# Rate-limit on public bind:
+HOST=0.0.0.0 LLM_RATE_LIMIT=3/60s npm start &
+for i in 1 2 3 4; do
+  curl -sS -o /dev/null -w '%{http_code} ' -X POST -H 'Content-Type: application/json' \
+    -d '{"jd":"…"}' http://0.0.0.0:4317/api/evaluate
+done
+# → 200 200 200 429
+
+# Concurrent tracker writes: 20 parallel POSTs, 20 rows land:
+node tests/concurrent-tracker-write.test.mjs
+# 20 sequential rows 001..020
+
+# Aria wires sanity:
+grep -r 'aria-describedby' public/js/views/ | wc -l
+# matching `id:` lookups all resolve (a11y-form-wires.test.mjs canary)
+```
+
+### Out of scope (v1.22+)
+
+| Item | Notes |
+|---|---|
+| `pipeline-preview` body-size streaming cap (M-2) | `await upstream.text()` reads full body before the 8 KB slice; malicious 1 GB stream could exhaust memory. Stream-read with byte counter + abort. |
+| WCAG 1.4.1 — color-only state on `.connection-banner` + score pills (M-3) | Hue alone signals state; add icon prefix (✓ / ◐ / ○) or text suffix. |
+| `stripDangerousMarkdown` bypasses via HTML entities (M-4) | `&lt;script&gt;`, `java&#115;cript:`, `<img src="data:image/svg+xml,<svg onload=…>">` survive the regex. Defense-in-depth via UI.md still holds; doc + lock bypasses in a test sweep. |
+| Safari private-mode `localStorage` access without try/catch (M-5) | `i18n.js:544/571` throws → SPA renders raw keys. Wrap in try/catch with `'en'` default. |
+| `setInterval(checkHealth, 3000)` polls forever with no backoff (M-6) | Exponential 3s → 6s → 12s → cap 60s. |
+| `htmlFor` alias missing null-guard (M-7) | One-line `if (v != null && v !== false)` defense. |
+| 404 canary for retired `/api/scan-ru/config` (M-8) | Three-line test mirroring v1.18 precedent. |
+| Locale CHANGELOG body translations (M-9) | Bulk translation candidate after release cadence slows. |
+| Inline-hint paragraphs for every mode-page field (M-1) | ~168 i18n keys × 8 locales; held back as polish item. |
+| L-1 through L-5 nits | parseInt radix, bash --noprofile, Windows-safe fileURLToPath, multi-line SSE, scan.js timer cleanup. |
+
+---
+
 ## [1.20.0] — 2026-05-13
 
 **Per-component a11y polish + non-EN README parity + `/api/scan-ru/config` alias retired.** Closes the four items the v1.19.0 "Out of scope" table flagged for v1.20.

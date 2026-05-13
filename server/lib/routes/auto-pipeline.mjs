@@ -30,22 +30,20 @@
  * from #/reports/<slug> after auto-pipeline completes.
  */
 import { writeFileSync, readFileSync, mkdirSync, existsSync } from 'node:fs';
-import { lookup as dnsLookupCb } from 'node:dns';
-import { promisify } from 'node:util';
 
 import { PATHS, path as projPath } from '../paths.mjs';
-import { isValidJobUrl, isPrivateOrLoopbackHost, sanitizeJobDescription } from '../security.mjs';
+import { isValidJobUrl, sanitizeJobDescription } from '../security.mjs';
 import { runAnthropic, hasAnthropicKey, hasGeminiKey } from '../anthropic.mjs';
 import { runNodeScript } from '../runner.mjs';
 import { bundleProjectContext, buildEvaluationPrompt } from '../prompts.mjs';
 import { stripDangerousMarkdown } from '../security.mjs';
 import { parseApplications, today } from '../parsers.mjs';
 import { logActivity } from '../activity-log.mjs';
-
-const dnsLookup = promisify(dnsLookupCb);
+import { safeGet } from '../safe-fetch.mjs';
+import { withFileLock } from '../file-lock.mjs';
+import { llmRateLimit } from '../rate-limit.mjs';
 
 const FETCH_TIMEOUT_MS = 30_000;
-const FETCH_MAX_REDIRECTS = 3;
 const FETCH_MAX_BODY_BYTES = 64 * 1024;
 const EVAL_TIMEOUT_MS = 180_000;       // 3 min — Anthropic can take 60-90s
 const PROMPT_SIZE_SOFT_CAP = 200 * 1024;
@@ -71,43 +69,32 @@ function openSse(res) {
 }
 
 async function fetchJobDescription(url, signal) {
-  let current = url;
-  let hops = 0;
-  while (true) {
-    try {
-      const host = new URL(current).hostname;
-      const { address } = await dnsLookup(host, { verbatim: true });
-      if (isPrivateOrLoopbackHost(address)) {
-        return { ok: false, error: `host resolves to private address: ${address}` };
-      }
-    } catch { /* fall through; fetch surfaces its own error */ }
-    const upstream = await fetch(current, {
+  // v1.20.1 (B-1) — safeGet pins the DNS lookup at validation time
+  // and reuses the IP for the actual TCP connection, closing the
+  // DNS-rebind TOCTOU window between an explicit dnsLookup and the
+  // second lookup `fetch()` would do internally. Redirect targets
+  // are re-validated per hop inside safeGet itself.
+  try {
+    const r = await safeGet(url, {
       signal,
-      redirect: 'manual',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (career-ops-ui auto-pipeline) AppleWebKit/537.36',
-        Accept: 'text/html,application/xhtml+xml',
-      },
+      maxBytes: FETCH_MAX_BODY_BYTES * 4, // raw HTML budget before strip
+      userAgent: 'Mozilla/5.0 (career-ops-ui auto-pipeline) AppleWebKit/537.36',
     });
-    const isRedirect = upstream.status >= 300 && upstream.status < 400 && upstream.headers.get('location');
-    if (!isRedirect) {
-      if (!upstream.ok) return { ok: false, error: `HTTP ${upstream.status}` };
-      const html = await upstream.text();
-      const text = html
-        .replace(/<script[\s\S]*?<\/script>/gi, '')
-        .replace(/<style[\s\S]*?<\/style>/gi, '')
-        .replace(/<[^>]+>/g, ' ')
-        .replace(/&[a-z]+;/gi, ' ')
-        .replace(/[ \t]+/g, ' ')
-        .replace(/\n\s*\n+/g, '\n\n')
-        .trim()
-        .slice(0, FETCH_MAX_BODY_BYTES);
-      return { ok: true, text };
+    if (r.status < 200 || r.status >= 300) {
+      return { ok: false, error: `HTTP ${r.status}` };
     }
-    if (++hops > FETCH_MAX_REDIRECTS) return { ok: false, error: `>${FETCH_MAX_REDIRECTS} redirects` };
-    const next = new URL(upstream.headers.get('location'), current).toString();
-    if (!isValidJobUrl(next)) return { ok: false, error: 'unsafe redirect target' };
-    current = next;
+    const text = r.text
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&[a-z]+;/gi, ' ')
+      .replace(/[ \t]+/g, ' ')
+      .replace(/\n\s*\n+/g, '\n\n')
+      .trim()
+      .slice(0, FETCH_MAX_BODY_BYTES);
+    return { ok: true, text };
+  } catch (e) {
+    return { ok: false, error: e.message || String(e) };
   }
 }
 
@@ -168,7 +155,7 @@ function buildSlug(company, role) {
 }
 
 export function registerAutoPipelineRoutes(app) {
-  app.post('/api/auto-pipeline', async (req, res) => {
+  app.post('/api/auto-pipeline', llmRateLimit, async (req, res) => {
     const url = (req.body && req.body.url || '').toString();
     const lang = (req.body && req.body.lang) || 'en';
     const lockEvalMode = req.body && req.body.evalMode; // optional override: 'anthropic' / 'gemini' / 'manual'
@@ -311,17 +298,20 @@ export function registerAutoPipelineRoutes(app) {
         const safeReport  = `[${slug}](reports/${slug}.md)`;
         const safeNotes   = `auto-pipeline · ${cell(url).slice(0, 160)}`;
 
-        let content = '';
-        try { content = readFileSync(PATHS.applications, 'utf8'); } catch { content = ''; }
-        const existing = parseApplications(content);
-        const dup = existing.find((r) => (r.company || '').toLowerCase() === safeCompany.toLowerCase()
-          && (r.role || '').toLowerCase() === safeRole.toLowerCase());
-        if (dup) {
-          step(4, 'done', `deduped #${dup.num}`);
-          trackerNum = dup.num;
-        } else {
+        // v1.20.1 (H-6) — auto-pipeline races a manual POST /api/tracker
+        // for the same race window described in tracker.mjs. Hold the lock
+        // for the read-modify-write so dedup and nextNum see consistent state.
+        trackerNum = await withFileLock(PATHS.applications, async () => {
+          let content = '';
+          try { content = readFileSync(PATHS.applications, 'utf8'); } catch { content = ''; }
+          const existing = parseApplications(content);
+          const dup = existing.find((r) => (r.company || '').toLowerCase() === safeCompany.toLowerCase()
+            && (r.role || '').toLowerCase() === safeRole.toLowerCase());
+          if (dup) {
+            step(4, 'done', `deduped #${dup.num}`);
+            return dup.num;
+          }
           const nextNum = String((Math.max(0, ...existing.map((r) => parseInt(r.num, 10) || 0))) + 1).padStart(3, '0');
-          trackerNum = nextNum;
           const row = `| ${nextNum} | ${safeDate} | ${safeCompany} | ${safeRole} | ${safeScore} | ${safeStatus} | ❌ | ${safeReport} | ${safeNotes} |`;
           let updated;
           if (!content || !/^\|\s*#/m.test(content)) {
@@ -338,7 +328,8 @@ export function registerAutoPipelineRoutes(app) {
           writeFileSync(PATHS.applications, updated);
           logActivity({ type: 'auto-pipeline.tracker.added', num: nextNum, company: safeCompany });
           step(4, 'done', `#${nextNum}`);
-        }
+          return nextNum;
+        });
       }
     } catch (e) {
       step(4, 'failed', e.message);

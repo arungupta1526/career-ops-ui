@@ -104,11 +104,38 @@ Hardcoded model: see source. Bump model in a versioned commit; don't quietly swi
 Project-wide sanitizers and host-trust checks — single source of truth.
 
 - `isValidJobUrl(url)` — SSRF guard. Rejects loopback, `file://`, `data:`, IP literals, oversized strings.
+- `isPrivateOrLoopbackHost(host)` — RFC1918 + loopback + link-local + CGNAT + IPv6 ULA detector (PR-3).
 - `stripDangerousMarkdown(md)` — strip `<script>`, `<iframe>`, `on*=` handlers, `javascript:` URIs, etc. before persisting CV.
 - `sanitizeJobDescription(s)` — JD ingress: cap length, strip control chars, normalize whitespace.
-- `isPubliclyExposed()` — true when `HOST` is non-loopback (gates CSP attachment + path redaction).
+- `sanitizePathName(s)` — **v1.21.0 (H-4)** — `:name` / `:slug` route-param sanitizer. Strips non-`[\w\-.]`, drops leading dot-runs, collapses internal dot-runs, caps at 200 chars. Returns `''` for inputs with no usable characters — callers MUST treat empty as 400. Replaces 10 duplicated `replace(/[^\w\-.]/g, '')` copies that kept `.` chars and let `..pdf`, `....md` through.
+- `isPubliclyExposed()` — true when `HOST` is non-loopback (gates CSP attachment + path redaction + rate-limit activation).
 
 Re-exported from `index.mjs` for backward-compat with earlier external consumers.
+
+### `safe-fetch.mjs` *(v1.21.0, B-1)*
+
+DNS-rebind-safe GET fetcher used by `/api/pipeline/preview` and `/api/auto-pipeline`. The previous pattern did one explicit `dnsLookup` for validation, then let `fetch()` do its own independent lookup — a DNS rebind attacker with TTL=0 could return a public IP on lookup 1 and a private/loopback IP on lookup 2.
+
+- `safeGet(url, opts)` — resolves the hostname ONCE, validates against `isPrivateOrLoopbackHost`, then pins the TCP connection to that exact IP via `node:http(s)` with `servername` set so TLS SNI / cert validation still target the canonical hostname. Follows up to 3 redirects with per-hop revalidation. Fail-CLOSED on lookup error.
+- `_setTransport(fn)` — test-only injection point. Lets tests stub the network layer without monkey-patching `globalThis.fetch`. Returns a `restore` function.
+
+Why `node:http(s)` and not undici Agent — Node ≥ 18 ships undici as the fetch implementation but doesn't expose `import { Agent } from 'undici'` directly. Adding `undici` as an npm dep would contradict the "no new runtime deps lightly" rule.
+
+### `file-lock.mjs` *(v1.21.0, H-6)*
+
+Per-path async mutex for read-modify-write operations on `applications.md` / `pipeline.md`.
+
+- `withFileLock(path, fn)` — serializes critical sections on the same path; independent paths run in parallel. ~76 LOC, in-memory `Map<path, Promise>` chain. Releases the lock even when `fn` throws.
+
+Without this, two concurrent `POST /api/tracker` would both read `num=42`, both write `num=43`, and silently drop the earlier row. Used by `routes/tracker.mjs`, `routes/pipeline.mjs` (POST + DELETE), and `routes/auto-pipeline.mjs` tracker step. Single-process Express assumption documented in the module header.
+
+### `rate-limit.mjs` *(v1.21.0, H-5)*
+
+In-memory rate limiter for LLM-calling routes. No-op on loopback (`HOST=127.0.0.1`); 10 req/min/IP on public bind (`HOST=0.0.0.0`).
+
+- `llmRateLimit(req, res, next)` — Express middleware. Returns 429 with `Retry-After` + `X-RateLimit-Limit` + `X-RateLimit-Reset` headers on bucket overflow.
+- Configurable via `LLM_RATE_LIMIT="N/Ws"` env (e.g. `"3/30s"`).
+- Wired into `/api/evaluate`, `/api/deep`, `/api/mode/:slug`, `/api/auto-pipeline`. v2.0 P-12 auth gate will eventually replace this with proper per-user accounting.
 
 ### `prompts.mjs` (post-P-2)
 

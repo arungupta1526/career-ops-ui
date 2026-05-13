@@ -163,8 +163,14 @@ Router.register('batch', async () => {
     // Editor pane
     c('div', { className: 'card mb-3' }, [
       c('h2', { className: 'section-title' }, t('batch.inputTitle', 'batch/batch-input.tsv')),
-      c('p', { style: { color: 'var(--foggy)', fontSize: '13px', margin: '4px 0 12px' } },
-        t('batch.inputHint', 'Tab-separated: id<TAB>url<TAB>source<TAB>notes (one row per JD)')),
+      c('p', {
+        // v1.20.1 (H-1) — id matches the textarea's aria-describedby
+        // so screen readers actually voice this hint when the editor
+        // is focused. The wire was promised in v1.20.0 but the id was
+        // missing.
+        id: 'batch-tsv-hint',
+        style: { color: 'var(--foggy)', fontSize: '13px', margin: '4px 0 12px' },
+      }, t('batch.inputHint', 'Tab-separated: id<TAB>url<TAB>source<TAB>notes (one row per JD)')),
       textarea,
       c('div', { className: 'flex gap-3 mt-3' }, [
         c('button', {
@@ -180,11 +186,14 @@ Router.register('batch', async () => {
       c('h2', { className: 'section-title' }, t('batch.runTitle', 'Run')),
       c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap', alignItems: 'flex-end' } }, [
         c('div', { className: 'field', style: { marginBottom: 0, minWidth: '180px' } }, [
-          c('label', null, t('batch.parallelLbl', 'Parallel')),
+          // v1.20.1 (H-2) — explicit htmlFor wires the label to the
+          // select's id so screen readers announce "Parallel,
+          // combobox" instead of just "combobox". WCAG 3.3.2.
+          c('label', { htmlFor: 'batch-parallel' }, t('batch.parallelLbl', 'Parallel')),
           parallelSel,
         ]),
         c('div', { className: 'field', style: { marginBottom: 0 } }, [
-          c('label', null, t('batch.minScoreLbl', 'Min score (optional)')),
+          c('label', { htmlFor: 'batch-min-score' }, t('batch.minScoreLbl', 'Min score (optional)')),
           minScoreIn,
         ]),
         c('label', { className: 'flex', style: { gap: '8px', userSelect: 'none' } }, [

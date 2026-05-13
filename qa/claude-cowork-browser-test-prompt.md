@@ -1,6 +1,6 @@
-# Промпт для Claude Cowork — браузерное E2E тестирование career-ops-ui v1.20.0
+# Промпт для Claude Cowork — браузерное E2E тестирование career-ops-ui v1.21.0
 
-> Версия живёт вместе с релизами. На 2026-05-13 последний релиз — **v1.20.0** (per-component a11y polish: touch-targets + aria-describedby; non-EN README parity 7 локалей × ~580 строк; `/api/scan-ru/config` legacy alias retired). Сценарии 0–19 покрывают всё что было до v1.11.x, сценарии 20–23 — функционал v1.12.0–v1.14.0, сценарии 24–27 — релизы v1.15.0–v1.20.0.
+> Версия живёт вместе с релизами. На 2026-05-14 последний релиз — **v1.21.0** (security + concurrency + a11y polish from two code-review passes: DNS-rebind TOCTOU closed, sanitizePathName consolidated, LLM rate-limit, file-lock for concurrent writes, 19 i18n keys, batch.js a11y fixes). Сценарии 0–19 покрывают всё что было до v1.11.x, сценарии 20–23 — функционал v1.12.0–v1.14.0, сценарии 24–27 — релизы v1.15.0–v1.20.0, сценарии 28–30 — функционал v1.21.0.
 >
 > ⚠️ **Перед запуском:** Claude Cowork работает с публичными URL — а у вас приложение крутится на `127.0.0.1:4317`. Самый быстрый способ открыть его наружу — запустить `ngrok http 4317` (или `cloudflared tunnel --url http://127.0.0.1:4317`) и подставить полученный HTTPS-URL в `BASE_URL` ниже. Без этого облачный браузер до приложения не достучится.
 
@@ -64,7 +64,16 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 - **v1.19.0** — **WCAG 1.4.3 contrast pass** (badges + score pills через `*-text` варианты, AA на light + dark); scan unification finished в доке; **HH_USER_AGENT удалён из UI** (но parent `.env` всё ещё читает его). Покрывается сценарием 26.
 - **v1.20.0** — per-component a11y polish: **WCAG 2.5.5 / 2.5.8 touch-target audit** (`.chip` 28px + 8px gap, `.nav-item` / `.tab-btn` 44px); **WCAG 1.3.1 / 3.3.2 aria-describedby** на form hints (config / pipeline / evaluate / batch / mode-page); non-EN README parity (7 локалей × ~580 строк); `/api/scan-ru/config` legacy alias retired (404 now). Покрывается сценарием 27.
 
-**Baseline счётчики на v1.20.0:** 427/427 unit + 20/20 smoke E2E + 23/23 comprehensive E2E + 32/32 Playwright = 502 теста, 0 фейлов.
+**Что нового в v1.21.0** (новые сценарии 28–30):
+
+- **B-1 (Security):** новый `server/lib/safe-fetch.mjs` закрывает DNS-rebind TOCTOU в `/api/pipeline/preview` и `/api/auto-pipeline`. Один DNS lookup, pinned TCP connection через `node:http(s)`. Покрывается сценарием 28.
+- **H-4 (Security):** `sanitizePathName` поднят в `security.mjs`; 10 broken regex копий удалены. `..pdf`, `....md`, leading-dot names теперь → 400. Покрывается сценарием 29.
+- **H-5 (Security):** новый `llmRateLimit` middleware. No-op на loopback; 10 req/min/IP на `HOST=0.0.0.0`. Покрывается сценарием 30.
+- **H-6 (Concurrency):** новый `server/lib/file-lock.mjs::withFileLock(path, fn)` сериализует read-modify-write на applications.md / pipeline.md. Конкурентные POSTы tracker не теряют строки.
+- **H-3 (i18n):** 19 keys × 8 locales добавлено в DICT. Russian/Japanese/Chinese screen-reader users больше не слышат English `aria-label`s.
+- **H-1 / H-2 (a11y):** `id="batch-tsv-hint"` на hint paragraph + `htmlFor` на двух labels. WCAG 1.3.1 / 3.3.2 wires валидны.
+
+**Baseline счётчики на v1.21.0:** 461/461 unit (+34 от v1.20.0) + 20/20 smoke E2E + 23/23 comprehensive E2E + 32/32 Playwright = 536 тестов, 0 фейлов.
 
 ```
 BASE_URL = <вставь сюда https://...ngrok-free.app>
@@ -414,7 +423,7 @@ curl -s -o /dev/null -w "%{http_code}" -X POST -F "file=@/tmp/v13-cv.md" http://
 
 ## Финальный отчёт
 
-После всех **27 сценариев** (0–16 базовые + 17–19 v1.11.x/v1.14.0 + 20–23 v1.12.0/v1.13.0/v1.14.0 + 24–27 v1.15.0–v1.20.0) выдай таблицу:
+После всех **30 сценариев** (0–16 базовые + 17–19 v1.11.x/v1.14.0 + 20–23 v1.12.0/v1.13.0/v1.14.0 + 24–27 v1.15.0–v1.20.0 + 28–30 v1.21.0) выдай таблицу:
 
 | Сценарий | Шаги | PASS | FAIL | SKIP | Заметки |
 |---|---|---|---|---|---|
@@ -446,7 +455,10 @@ curl -s -o /dev/null -w "%{http_code}" -X POST -F "file=@/tmp/v13-cv.md" http://
 | 25. WCAG 2.2 AA (v1.18.0) | 5 (25.1-25.5) | ... | ... | ... | ... |
 | 26. Contrast + HH_USER_AGENT (v1.19.0) | 3 (26.1-26.3) | ... | ... | ... | ... |
 | 27. v1.20.0 a11y + alias retired | 5 (27.1-27.5) | ... | ... | ... | ... |
-| **Итого** | **~210** | **N** | **M** | **K** | |
+| 28. v1.21.0 DNS-rebind TOCTOU closed (B-1) | 3 (28.1-28.3) | ... | ... | ... | ... |
+| 29. v1.21.0 path-traversal hardening (H-4) | 4 (29.1-29.4) | ... | ... | ... | ... |
+| 30. v1.21.0 LLM rate-limit (H-5) | 3 (30.1-30.3) | ... | ... | ... | ... |
+| **Итого** | **~220** | **N** | **M** | **K** | |
 
 Плюс:
 
@@ -479,6 +491,9 @@ curl -s -o /dev/null -w "%{http_code}" -X POST -F "file=@/tmp/v13-cv.md" http://
 - Сценарий 26.2 — score pill / badge тёмный текст на тёмном фоне (v1.19.0 контраст регрессия)
 - Сценарий 27.1 — `/api/scan-ru/config` всё ещё возвращает 200 (v1.20.0 alias-retired регрессия)
 - Сценарий 27.4 — есть `<input>` или `<textarea>` без `<label htmlFor=…>` / `aria-label` (v1.20.0 WCAG 3.3.2 регрессия)
+- Сценарий 28.1 — `/api/pipeline/preview` или `/api/auto-pipeline` использует `globalThis.fetch` (v1.21.0 SSRF регрессия — should go through safe-fetch.mjs)
+- Сценарий 29.2 — какой-то роут принимает `..pdf` или `....md` и возвращает 200 (v1.21.0 path-traversal регрессия)
+- Сценарий 30.1 — `HOST=0.0.0.0` deploy + LLM endpoint без `llmRateLimit` middleware (v1.21.0 H-5 регрессия)
 
 **Warning** (репортишь, но релиз пропускаешь):
 
@@ -1001,4 +1016,142 @@ wc -l /Users/sergejemelanov/Projects/career-ops/web-ui/README*.md | head -8
 ```
 
 **PASS = 27.1 alias 404, 27.2 canonical OK, 27.3 все три селектора = 0, 27.4 все form controls с label, 27.5 все aria-describedby ссылки валидны.**
+
+---
+
+## Сценарий 28. v1.21.0 — DNS-rebind TOCTOU closed (B-1)
+
+**Цель.** v1.21.0 ввёл `server/lib/safe-fetch.mjs`: один DNS lookup, pinned TCP connection через `node:http(s)`, fail-CLOSED on lookup error. Закрывает TOCTOU между explicit `dnsLookup` и второй lookup внутри `fetch()`. Используется в `/api/pipeline/preview` и `/api/auto-pipeline`.
+
+### 28.1. `safe-fetch.mjs` exists и используется в SSRF routes
+
+Через cloud-shell (если есть доступ к файловой системе):
+
+```bash
+test -f server/lib/safe-fetch.mjs && echo OK || echo MISSING
+grep -l "safeGet" server/lib/routes/{pipeline,auto-pipeline}.mjs | wc -l
+# → 2 (both routes use safeGet)
+
+grep -E "globalThis\.fetch|^fetch\(" server/lib/routes/pipeline.mjs server/lib/routes/auto-pipeline.mjs
+# → 0 matches (SSRF paths must NOT use fetch directly)
+```
+
+**Assertion:** safe-fetch.mjs exists, both SSRF routes import safeGet, neither uses raw fetch.
+
+### 28.2. `/api/pipeline/preview` rejects private-IP host
+
+```bash
+# Try a hostname that would resolve to a private IP. The server should reject.
+curl -sf "http://127.0.0.1:4317/api/pipeline/preview?url=https://localhost/x" \
+  -o /dev/null -w "%{http_code}\n"
+# → 400 (isValidJobUrl rejects localhost)
+
+curl -sf "http://127.0.0.1:4317/api/pipeline/preview?url=https://example.invalid/x" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('text', '')[:100])"
+# Expected: error text mentioning DNS lookup failure or private address — NOT the upstream HTML body.
+```
+
+### 28.3. `tests/ssrf-redirect-rebind.test.mjs` passes
+
+```bash
+node --test tests/ssrf-redirect-rebind.test.mjs 2>&1 | tail -3
+# → tests 8 / pass 8 / fail 0
+```
+
+**PASS = 28.1 safeGet wired in both SSRF routes; 28.2 private-host rejected; 28.3 all 8 rebind tests green.**
+
+---
+
+## Сценарий 29. v1.21.0 — path-traversal hardening (H-4)
+
+**Цель.** v1.21.0 поднял `sanitizePathName` в `server/lib/security.mjs` и заменил 10 broken regex копий по 7 route файлам. `..pdf`, `....md`, leading-dot names теперь → 400.
+
+### 29.1. Broken regex copies удалены
+
+```bash
+grep -r "replace(/\[\^\\\\w\\\\\\-\.\]/g," server/ | wc -l
+# → 0 (все консолидированы в sanitizePathName)
+```
+
+### 29.2. Each route returns 400 for traversal-style names
+
+```bash
+for path in /api/jds /api/reports /api/modes /api/output/pdfs /api/interview-prep; do
+  for name in "..pdf" "....md" "..%2fpasswd" ".hidden"; do
+    code=$(curl -sf -o /dev/null -w "%{http_code}" "http://127.0.0.1:4317${path}/${name}")
+    echo "$path/$name → $code"
+  done
+done
+# Expected: каждая строка должна быть 400 или 404 (никогда 200)
+```
+
+### 29.3. Тесты path-traversal зелёные
+
+```bash
+node --test tests/path-traversal.test.mjs 2>&1 | tail -3
+# → tests 12 / pass 12 / fail 0
+```
+
+### 29.4. Valid names ещё работают (regression sanity)
+
+Создай файл `jds/valid-name-2026.txt` в parent fixture, потом:
+
+```bash
+curl -sf "http://127.0.0.1:4317/api/jds/valid-name-2026.txt" | head -c 50
+# → contents of the file (200, не 400)
+```
+
+**PASS = 29.1 = 0, 29.2 все 4xx, 29.3 все 12 тестов, 29.4 valid names ещё работают.**
+
+---
+
+## Сценарий 30. v1.21.0 — LLM rate-limit (H-5)
+
+**Цель.** v1.21.0 ввёл `llmRateLimit` middleware на `/api/evaluate`, `/api/deep`, `/api/mode/:slug`, `/api/auto-pipeline`. No-op на loopback; 10 req/min/IP на `HOST=0.0.0.0`. Конфигурируется через `LLM_RATE_LIMIT="N/Ws"`.
+
+### 30.1. Loopback deploy — никакого throttling
+
+С default `HOST=127.0.0.1`:
+
+```bash
+# Прогнать 20 запросов подряд — все должны быть 200/202/4xx (но НЕ 429)
+for i in $(seq 1 20); do
+  code=$(curl -sf -o /dev/null -w "%{http_code}" -X POST \
+    -H "Content-Type: application/json" \
+    -d '{"jd":"Senior Backend Engineer..."}' \
+    http://127.0.0.1:4317/api/evaluate)
+  echo "req $i: $code"
+done
+# Ни одного 429 (loopback мode — limit неактивен)
+```
+
+### 30.2. Public bind с custom limit — fires правильно
+
+Перезапусти сервер с `HOST=0.0.0.0 LLM_RATE_LIMIT=3/60s` (cloud-shell):
+
+```bash
+HOST=0.0.0.0 LLM_RATE_LIMIT=3/60s npm start &
+sleep 3
+for i in 1 2 3 4; do
+  code=$(curl -sf -o /dev/null -w "%{http_code}" -X POST \
+    -H "Content-Type: application/json" \
+    -d '{"jd":"Senior Backend Engineer..."}' \
+    http://0.0.0.0:4317/api/evaluate)
+  echo "req $i: $code"
+done
+# Expected: 200 200 200 429 (4-й hit лимит)
+```
+
+### 30.3. Заголовки на 429
+
+```bash
+HOST=0.0.0.0 LLM_RATE_LIMIT=1/60s curl -sI -X POST \
+  -H "Content-Type: application/json" -d '{"jd":"..."}' \
+  http://0.0.0.0:4317/api/evaluate
+curl -sI -X POST -H "Content-Type: application/json" -d '{"jd":"..."}' \
+  http://0.0.0.0:4317/api/evaluate | grep -E "Retry-After|X-RateLimit"
+# Expected: Retry-After: <seconds>, X-RateLimit-Limit: 1, X-RateLimit-Reset: <epoch>
+```
+
+**PASS = 30.1 нет 429 на loopback, 30.2 4-й запрос на public bind → 429, 30.3 правильные headers.**
+
 

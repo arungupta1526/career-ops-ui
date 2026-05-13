@@ -4,19 +4,24 @@
  * inputs with isValidJobUrl() so SSRF surface mirrors the existing
  * POST /api/pipeline contract.
  *
- * Mocks `globalThis.fetch` instead of binding a real HTTP upstream so
- * the test is portable across macOS / Linux / CI without needing a
- * 127.0.0.2 loopback alias.
+ * v1.20.1 (B-1) — preview now uses `safeGet` from
+ * server/lib/safe-fetch.mjs which pins DNS at validation time and
+ * connects via node:http(s), bypassing globalThis.fetch. Tests inject
+ * a stub via `_setTransport(fn)` instead of mocking fetch. The stub
+ * receives `(url, pinned, opts)` and returns `{ status, headers, body,
+ * location }`. Each upstreamHandler call still receives the canonical
+ * URL string for back-compat with the previous test shape.
  */
 import { test, before, after, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
+import { _setTransport } from '../server/lib/safe-fetch.mjs';
 
 let server, baseUrl;
-let originalFetch;
 let upstreamHandler = null;
+let restoreTransport = null;
 
 before(async () => {
   const dir = mkdtempSync(resolve(tmpdir(), 'pipe-preview-'));
@@ -39,31 +44,62 @@ before(async () => {
       r();
     });
   });
-  originalFetch = globalThis.fetch;
 });
 
 after(() => {
-  globalThis.fetch = originalFetch;
+  if (restoreTransport) restoreTransport();
   delete process.env.CAREER_OPS_ROOT;
   return new Promise((r) => server.close(r));
 });
 
-beforeEach(() => {
-  // Default upstream: returns a tiny HTML page. Tests can override
-  // upstreamHandler before issuing the GET. Calls into 127.0.0.1 (the
-  // server-under-test itself) bypass the mock so /api/* still works.
-  globalThis.fetch = async (url, opts) => {
-    const u = String(url);
-    if (u.startsWith(baseUrl)) return originalFetch(url, opts);
-    if (upstreamHandler) return upstreamHandler(url, opts);
-    return new Response('<html><body><h1>OK</h1></body></html>', {
+// Adapter shim: lets each test keep its `upstreamHandler` returning a
+// Response-like object (so existing handler bodies don't have to be
+// rewritten). The shim translates Response → {status, headers, body,
+// location} that safeGet's transport contract expects. We also stub
+// DNS by returning a pinned dummy address — safeGet doesn't actually
+// connect anywhere when transport is mocked, so the address is just
+// a witness for the test.
+async function responseAdapter(url, pinned, opts) {
+  const fakeUrl = url.toString();
+  let resp;
+  if (upstreamHandler) {
+    resp = await upstreamHandler(fakeUrl, opts);
+  } else {
+    resp = new Response('<html><body><h1>OK</h1></body></html>', {
       status: 200,
       headers: { 'content-type': 'text/html' },
     });
+  }
+  const body = Buffer.from(await resp.arrayBuffer());
+  const headers = {};
+  resp.headers.forEach((v, k) => { headers[k.toLowerCase()] = v; });
+  return {
+    status: resp.status,
+    headers,
+    body,
+    location: headers.location,
   };
+}
+
+// Stub the DNS lookup so the test never hits a real resolver. safe-fetch's
+// resolvePinned() goes through node:dns; we monkey-patch the promise API
+// for the duration of the test. The address returned is the loopback
+// of the test server — safeGet's privacy check would reject it for a
+// real call, but the transport is mocked so no real connect happens.
+//
+// Actually simpler: since the transport is fully stubbed, we patch
+// dns.lookup to return a benign public-looking IPv4. That keeps the
+// existing isPrivateOrLoopbackHost check passing.
+import { promises as _dns } from 'node:dns';
+const _origDnsLookup = _dns.lookup;
+beforeEach(() => {
+  _dns.lookup = async () => ({ address: '93.184.216.34', family: 4 }); // example.com public IP
+  restoreTransport = _setTransport(responseAdapter);
 });
 
 afterEach(() => {
+  if (restoreTransport) { restoreTransport(); restoreTransport = null; }
+  _dns.lookup = _origDnsLookup;
   upstreamHandler = null;
 });
 

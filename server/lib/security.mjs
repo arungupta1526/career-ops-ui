@@ -94,6 +94,34 @@ export function isValidJobUrl(input) {
 }
 
 /**
+ * Sanitize a request-path component (`:name` / `:slug` route parameters)
+ * before joining it onto a project-relative directory. v1.20.1 (H-4)
+ * consolidates the previously-duplicated `.replace(/[^\w\-.]/g, '')`
+ * pattern that lived in 10 call sites across `routes/`.
+ *
+ * The bare-regex form kept `.` characters — so `..pdf`, `....md`,
+ * leading-dot names survived. There was no `/` in the allowed set
+ * (escape from `output/` is impossible), but the duplication invited
+ * regression by copy-paste. This helper also:
+ *   - strips leading dots / dot-runs (`.`, `..`, `...`)
+ *   - collapses internal dot-runs (`foo..bar` → `foo.bar`)
+ *   - caps length at 200 chars
+ *   - returns an empty string when no usable characters remain
+ *
+ * Callers MUST check for the empty-string result and return a 400.
+ *
+ * @param {string|null|undefined} s — raw `req.params.name` / `:slug`
+ * @returns {string} — safe name, or `''` if input contained no allowed chars
+ */
+export function sanitizePathName(s) {
+  return String(s || '')
+    .replace(/[^\w\-.]/g, '')   // allow only \w, hyphen, dot
+    .replace(/^\.+/, '')         // no leading "." or ".." prefixes
+    .replace(/\.{2,}/g, '.')     // collapse internal "..."
+    .slice(0, 200);
+}
+
+/**
  * Sanitize a job-description text before it joins a prompt destined for
  * an LLM. Removes:
  *   - control bytes (NUL, ANSI escapes, etc.) that would confuse downstream

@@ -21,7 +21,8 @@ import { PATHS, path as projPath } from '../paths.mjs';
 import { slugify, today } from '../parsers.mjs';
 import { runNodeScript } from '../runner.mjs';
 import { runAnthropic, hasAnthropicKey, hasGeminiKey } from '../anthropic.mjs';
-import { sanitizeJobDescription } from '../security.mjs';
+import { sanitizeJobDescription, sanitizePathName } from '../security.mjs';
+import { llmRateLimit } from '../rate-limit.mjs';
 import {
   bundleProjectContext,
   buildEvaluationPrompt,
@@ -51,7 +52,7 @@ const PROMPT_SIZE_SOFT_CAP = 200 * 1024;
 
 export function registerLlmRoutes(app) {
   // ─── /api/evaluate ──────────────────────────────────────────────────
-  app.post('/api/evaluate', async (req, res) => {
+  app.post('/api/evaluate', llmRateLimit, async (req, res) => {
     const { jd: rawJd, save, mode } = req.body || {};
     const jd = sanitizeJobDescription(rawJd);
     if (!jd || jd.length < 50) {
@@ -159,7 +160,7 @@ export function registerLlmRoutes(app) {
   });
 
   // ─── /api/deep ──────────────────────────────────────────────────────
-  app.post('/api/deep', async (req, res) => {
+  app.post('/api/deep', llmRateLimit, async (req, res) => {
     const { company, role, run } = req.body || {};
     if (!company) return res.status(400).json({ error: 'company required' });
     const lang = resolveLocale(req);
@@ -230,7 +231,7 @@ export function registerLlmRoutes(app) {
   });
 
   app.get('/api/interview-prep/:name', (req, res) => {
-    const safe = req.params.name.replace(/[^\w\-.]/g, '');
+    const safe = sanitizePathName(req.params.name);
     if (!safe || !safe.endsWith('.md')) return res.status(400).json({ error: 'invalid name' });
     const file = projPath('interview-prep', safe);
     if (!existsSync(file)) return res.status(404).json({ error: 'not found' });
@@ -238,7 +239,7 @@ export function registerLlmRoutes(app) {
   });
 
   app.delete('/api/interview-prep/:name', (req, res) => {
-    const safe = req.params.name.replace(/[^\w\-.]/g, '');
+    const safe = sanitizePathName(req.params.name);
     if (!safe || !safe.endsWith('.md')) return res.status(400).json({ error: 'invalid name' });
     const file = projPath('interview-prep', safe);
     if (!existsSync(file)) return res.status(404).json({ error: 'not found' });
@@ -247,7 +248,7 @@ export function registerLlmRoutes(app) {
   });
 
   // ─── /api/mode/:slug — generic mode runner ──────────────────────────
-  app.post('/api/mode/:slug', async (req, res) => {
+  app.post('/api/mode/:slug', llmRateLimit, async (req, res) => {
     const slug = req.params.slug;
     if (!MODE_ALLOWLIST.includes(slug)) {
       return res.status(404).json({ error: `unknown mode "${slug}"` });

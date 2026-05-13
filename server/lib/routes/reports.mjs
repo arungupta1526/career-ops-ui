@@ -21,19 +21,16 @@ import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { PATHS, path as projPath } from '../paths.mjs';
 import { parseReportHeader } from '../parsers.mjs';
 import { safeListReports } from '../store.mjs';
-import { stripDangerousMarkdown } from '../security.mjs';
+import { stripDangerousMarkdown, sanitizePathName } from '../security.mjs';
 import { logActivity } from '../activity-log.mjs';
 
 const MAX_REPORT_BYTES = 1024 * 1024; // 1 MB
 
+// v1.20.1 (H-4) — local helper folds in reports-specific `.md` suffix
+// stripping on top of the canonical sanitizePathName from security.mjs.
+// All other call sites use sanitizePathName directly.
 function sanitizeSlug(s) {
-  // Strip non-[\w-.] AND any leading dots / dot-runs (path-traversal guard).
-  return String(s || '')
-    .replace(/[^\w\-.]/g, '')
-    .replace(/\.md$/, '')
-    .replace(/^\.+/, '')     // no leading "." or ".." prefixes
-    .replace(/\.{2,}/g, '.') // collapse internal "..."
-    .slice(0, 200);
+  return sanitizePathName(String(s || '').replace(/\.md$/, ''));
 }
 
 export function registerReportsRoutes(app) {
@@ -42,8 +39,9 @@ export function registerReportsRoutes(app) {
   });
 
   app.get('/api/reports/:slug', (req, res) => {
-    const slug = req.params.slug.replace(/[^\w\-.]/g, '');
-    const file = projPath('reports', slug.endsWith('.md') ? slug : `${slug}.md`);
+    const slug = sanitizeSlug(req.params.slug);
+    if (!slug) return res.status(400).json({ error: 'invalid slug' });
+    const file = projPath('reports', `${slug}.md`);
     if (!existsSync(file)) return res.status(404).json({ error: 'not found' });
     const text = readFileSync(file, 'utf8');
     res.json({ slug, ...parseReportHeader(text), markdown: text });

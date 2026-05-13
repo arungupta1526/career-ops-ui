@@ -19,7 +19,7 @@ import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 
 import { dirname } from 'node:path';
 import yaml from 'js-yaml';
 import { PATHS, path as projPath } from '../paths.mjs';
-import { stripDangerousMarkdown } from '../security.mjs';
+import { stripDangerousMarkdown, sanitizePathName } from '../security.mjs';
 import { logActivity } from '../activity-log.mjs';
 import { importDocumentToMarkdown, MAX_UPLOAD_BYTES } from '../cv-import.mjs';
 
@@ -318,7 +318,8 @@ export function registerContentRoutes(app) {
   });
 
   app.get('/api/modes/:name', (req, res) => {
-    const name = req.params.name.replace(/[^\w\-.]/g, '');
+    const name = sanitizePathName(req.params.name);
+    if (!name) return res.status(400).json({ error: 'invalid mode name' });
     const file = projPath('modes', `${name}.md`);
     if (!existsSync(file)) return res.status(404).json({ error: 'not found' });
     res.type('text/plain').send(readFileSync(file, 'utf8'));

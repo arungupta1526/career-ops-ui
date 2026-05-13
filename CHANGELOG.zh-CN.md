@@ -8,6 +8,27 @@
 
 ---
 
+## [1.21.0] — 2026-05-14
+
+**Security + concurrency + a11y polish from two independent code-review passes.** Seven findings from `docs/specs/V1.20.1-BACKLOG.md` shipped in one release. 34 new tests; baseline **461 / 461** unit + 32/32 Playwright.
+
+### Highlights
+
+- **B-1 (Security):** new `server/lib/safe-fetch.mjs` closes the DNS-rebind TOCTOU window in `/api/pipeline/preview` and `/api/auto-pipeline`.
+- **H-4 (Security):** `sanitizePathName` hoisted into `security.mjs`; 10 broken regex copies deleted.
+- **H-5 (Security):** new `llmRateLimit` middleware — 10 req/min/IP on `HOST=0.0.0.0`.
+- **H-6 (Concurrency):** new `server/lib/file-lock.mjs::withFileLock(path, fn)` serializes read-modify-write.
+- **H-3 (i18n):** 19 missing keys × 8 locales added; static-analysis canary in `tests/i18n-coverage.test.mjs`.
+- **H-1 / H-2 (a11y):** `id="batch-tsv-hint"` + `htmlFor` on two labels.
+
+### Breaking changes
+
+None. `LLM_RATE_LIMIT` is opt-in via env.
+
+See [`CHANGELOG.md`](CHANGELOG.md) for the full English changelog.
+
+---
+
 ## [1.20.0] — 2026-05-13
 
 **Per-component a11y polish + non-EN README parity + `/api/scan-ru/config` alias retired.** Closes the four items the v1.19.0 "Out of scope" table flagged for v1.20.

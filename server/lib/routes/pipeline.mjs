@@ -12,14 +12,14 @@
  * loopback, file://, IP literals, etc.
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { lookup as dnsLookup } from 'node:dns/promises';
 import { PATHS, path as projPath } from '../paths.mjs';
 import { parsePipeline, addPipelineUrl, removePipelineUrl } from '../parsers.mjs';
-import { isValidJobUrl, isPrivateOrLoopbackHost } from '../security.mjs';
+import { isValidJobUrl } from '../security.mjs';
 import { safeReadPipeline } from '../store.mjs';
+import { safeGet } from '../safe-fetch.mjs';
+import { withFileLock } from '../file-lock.mjs';
 
 const PREVIEW_TIMEOUT_MS = 15_000;
-const PREVIEW_MAX_REDIRECTS = 3;
 const PREVIEW_MAX_BODY_BYTES = 8000;
 
 export function registerPipelineRoutes(app) {
@@ -27,24 +27,32 @@ export function registerPipelineRoutes(app) {
     res.json({ urls: safeReadPipeline() });
   });
 
-  app.post('/api/pipeline', (req, res) => {
+  app.post('/api/pipeline', async (req, res) => {
     const url = (req.body?.url || req.body?.text || '').toString().trim();
     if (!url) return res.status(400).json({ error: 'url required' });
     if (!isValidJobUrl(url)) {
       return res.status(400).json({ error: 'invalid url (must be http/https, no script/template chars)' });
     }
-    let content = '';
-    try {
-      content = readFileSync(PATHS.pipeline, 'utf8');
-    } catch {
-      content = '';
-    }
-    const before = parsePipeline(content);
-    const deduped = before.includes(url);
-    const updated = addPipelineUrl(content, url);
-    mkdirSync(projPath('data'), { recursive: true });
-    writeFileSync(PATHS.pipeline, updated);
-    res.json({ ok: true, deduped, urls: parsePipeline(updated) });
+    // v1.20.1 (H-6) — same read-modify-write race as tracker.mjs. Two
+    // concurrent POST /api/pipeline with distinct URLs would both read
+    // the same content, both compute their own append, and the later
+    // write would clobber the earlier. Serialize via the per-path
+    // mutex.
+    const result = await withFileLock(PATHS.pipeline, async () => {
+      let content = '';
+      try {
+        content = readFileSync(PATHS.pipeline, 'utf8');
+      } catch {
+        content = '';
+      }
+      const before = parsePipeline(content);
+      const deduped = before.includes(url);
+      const updated = addPipelineUrl(content, url);
+      mkdirSync(projPath('data'), { recursive: true });
+      writeFileSync(PATHS.pipeline, updated);
+      return { ok: true, deduped, urls: parsePipeline(updated) };
+    });
+    res.json(result);
   });
 
   // Server-side fetch proxy for the pipeline preview pane. Most ATS
@@ -54,56 +62,26 @@ export function registerPipelineRoutes(app) {
   app.get('/api/pipeline/preview', async (req, res) => {
     const url = (req.query.url || '').toString();
     if (!isValidJobUrl(url)) return res.status(400).json({ error: 'invalid url' });
+    // v1.20.1 (B-1) — safeGet does the DNS resolve ONCE, validates the
+    // address against isPrivateOrLoopbackHost, then pins the TCP
+    // connection to that exact IP (with SNI/Host targeting the original
+    // hostname for cert validation). The DNS-rebind TOCTOU window
+    // between an explicit dnsLookup and the second lookup `fetch()`
+    // would do is closed because there is no second lookup.
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), PREVIEW_TIMEOUT_MS);
     try {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), PREVIEW_TIMEOUT_MS);
-      let current = url;
-      let upstream;
-      let hops = 0;
-      while (true) {
-        // Defeat DNS-rebind: re-resolve the host on every hop and reject if it
-        // points into private/loopback space. isValidJobUrl rejects literal
-        // private IPs in the URL string; this guard catches public-looking
-        // hostnames that resolve to private addresses (PR-3).
-        // Fail-OPEN when the lookup itself errors — fetch() does its own DNS
-        // and surfaces the error via the existing catch path. Failing closed
-        // here would break test stubs (and any sandboxed host without DNS)
-        // for no security gain.
-        try {
-          const host = new URL(current).hostname;
-          const { address } = await dnsLookup(host, { verbatim: true });
-          if (isPrivateOrLoopbackHost(address)) {
-            clearTimeout(timer);
-            return res.json({ status: 0, text: '(blocked: host resolves to private address)' });
-          }
-        } catch { /* lookup failed; fetch will produce a real error below */ }
-        upstream = await fetch(current, {
-          signal: ctrl.signal,
-          redirect: 'manual',
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (career-ops-ui preview) AppleWebKit/537.36',
-            Accept: 'text/html,application/xhtml+xml',
-          },
-        });
-        const isRedirect = upstream.status >= 300 && upstream.status < 400 && upstream.headers.get('location');
-        if (!isRedirect) break;
-        if (++hops > PREVIEW_MAX_REDIRECTS) {
-          clearTimeout(timer);
-          return res.json({ status: upstream.status, text: `(too many redirects: >${PREVIEW_MAX_REDIRECTS})` });
-        }
-        const next = new URL(upstream.headers.get('location'), current).toString();
-        if (!isValidJobUrl(next)) {
-          clearTimeout(timer);
-          return res.json({ status: upstream.status, text: `(unsafe redirect target rejected)` });
-        }
-        current = next;
+      const r = await safeGet(url, {
+        signal: ctrl.signal,
+        maxBytes: PREVIEW_MAX_BODY_BYTES * 4, // raw HTML budget before strip
+        userAgent: 'Mozilla/5.0 (career-ops-ui preview) AppleWebKit/537.36',
+      });
+      // Preserve the historical "(HTTP 4xx)" preview text for non-2xx
+      // upstreams — the SPA renders this directly in the preview pane.
+      if (r.status < 200 || r.status >= 300) {
+        return res.json({ status: r.status, text: '(HTTP ' + r.status + ')' });
       }
-      clearTimeout(timer);
-      if (!upstream.ok) {
-        return res.json({ status: upstream.status, text: '(HTTP ' + upstream.status + ')' });
-      }
-      const html = await upstream.text();
-      const text = html
+      const text = r.text
         .replace(/<script[\s\S]*?<\/script>/gi, '')
         .replace(/<style[\s\S]*?<\/style>/gi, '')
         .replace(/<[^>]+>/g, ' ')
@@ -112,26 +90,45 @@ export function registerPipelineRoutes(app) {
         .replace(/\n\s*\n+/g, '\n\n')
         .trim()
         .slice(0, PREVIEW_MAX_BODY_BYTES);
-      res.json({ status: upstream.status, text });
+      res.json({ status: r.status, text });
     } catch (e) {
-      res.json({ status: 0, text: '(' + (e.name === 'AbortError' ? 'timeout' : e.message) + ')' });
+      const msg = e.message || String(e);
+      // Map known safeGet errors to user-friendly preview text.
+      if (msg.includes('resolves to private address')) {
+        res.json({ status: 0, text: '(blocked: host resolves to private address)' });
+      } else if (msg.includes('redirects from')) {
+        res.json({ status: 0, text: '(too many redirects)' });
+      } else if (msg.includes('unsafe redirect target')) {
+        res.json({ status: 0, text: '(unsafe redirect target rejected)' });
+      } else if (msg === 'aborted') {
+        res.json({ status: 0, text: '(timeout)' });
+      } else {
+        res.json({ status: 0, text: '(' + msg + ')' });
+      }
+    } finally {
+      clearTimeout(timer);
     }
   });
 
-  app.delete('/api/pipeline', (req, res) => {
+  app.delete('/api/pipeline', async (req, res) => {
     const url = (req.query.url || (req.body && req.body.url) || '').toString().trim();
     if (!url) return res.status(400).json({ error: 'url required (query ?url= or body.url)' });
-    let content = '';
-    try {
-      content = readFileSync(PATHS.pipeline, 'utf8');
-    } catch {
-      return res.status(404).json({ error: 'pipeline not found' });
-    }
-    const before = parsePipeline(content);
-    if (!before.includes(url)) {
-      return res.status(404).json({ error: 'url not found in pipeline', url });
-    }
-    writeFileSync(PATHS.pipeline, removePipelineUrl(content, url));
-    res.json({ ok: true, removed: 1, url });
+    // v1.20.1 (H-6) — guard the read-modify-write so DELETE doesn't
+    // race a concurrent POST add.
+    const outcome = await withFileLock(PATHS.pipeline, async () => {
+      let content = '';
+      try {
+        content = readFileSync(PATHS.pipeline, 'utf8');
+      } catch {
+        return { _status: 404, body: { error: 'pipeline not found' } };
+      }
+      const before = parsePipeline(content);
+      if (!before.includes(url)) {
+        return { _status: 404, body: { error: 'url not found in pipeline', url } };
+      }
+      writeFileSync(PATHS.pipeline, removePipelineUrl(content, url));
+      return { _status: 200, body: { ok: true, removed: 1, url } };
+    });
+    res.status(outcome._status).json(outcome.body);
   });
 }

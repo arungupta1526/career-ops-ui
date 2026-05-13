@@ -18,6 +18,7 @@
 import { existsSync, readdirSync, statSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { PATHS, path as projPath } from '../paths.mjs';
 import { runNodeScript, streamNodeScript } from '../runner.mjs';
+import { sanitizePathName } from '../security.mjs';
 
 /**
  * Minimal markdown → HTML for PDF rendering. Mirrors what the SPA's
@@ -159,7 +160,7 @@ export function registerRunnerRoutes(app) {
   });
 
   app.get('/api/output/pdfs/:name', (req, res) => {
-    const safe = req.params.name.replace(/[^\w\-.]/g, '');
+    const safe = sanitizePathName(req.params.name);
     if (!safe || !safe.endsWith('.pdf')) return res.status(400).json({ error: 'invalid name' });
     const file = projPath('output', safe);
     if (!existsSync(file)) return res.status(404).json({ error: 'not found' });
@@ -198,7 +199,7 @@ export function registerRunnerRoutes(app) {
 
   // GET /api/stream/pdf/report?slug=<slug> — renders reports/<slug>.md
   app.get('/api/stream/pdf/report', (req, res) => {
-    const slug = String(req.query.slug || '').replace(/[^\w\-.]/g, '');
+    const slug = sanitizePathName(req.query.slug);
     if (!slug) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ error: 'slug required' }));
@@ -219,7 +220,7 @@ export function registerRunnerRoutes(app) {
 
   // GET /api/stream/pdf/deep?name=<name> — renders interview-prep/<name>
   app.get('/api/stream/pdf/deep', (req, res) => {
-    const name = String(req.query.name || '').replace(/[^\w\-.]/g, '');
+    const name = sanitizePathName(req.query.name);
     if (!name || !name.endsWith('.md')) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ error: 'name required (must end with .md)' }));
