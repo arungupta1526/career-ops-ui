@@ -1,6 +1,6 @@
-# Промпт для Claude Cowork — браузерное E2E тестирование career-ops-ui v1.14.0
+# Промпт для Claude Cowork — браузерное E2E тестирование career-ops-ui v1.20.0
 
-> Версия живёт вместе с релизами. На 2026-05-13 последний релиз — **v1.14.0** (3 новых ATS адаптера: Workable / SmartRecruiters / Workday-beta поверх v1.13.0 registry). Сценарии 0–19 покрывают всё что было до v1.11.x, сценарии 20–23 — функционал v1.12.0–v1.14.0.
+> Версия живёт вместе с релизами. На 2026-05-13 последний релиз — **v1.20.0** (per-component a11y polish: touch-targets + aria-describedby; non-EN README parity 7 локалей × ~580 строк; `/api/scan-ru/config` legacy alias retired). Сценарии 0–19 покрывают всё что было до v1.11.x, сценарии 20–23 — функционал v1.12.0–v1.14.0, сценарии 24–27 — релизы v1.15.0–v1.20.0.
 >
 > ⚠️ **Перед запуском:** Claude Cowork работает с публичными URL — а у вас приложение крутится на `127.0.0.1:4317`. Самый быстрый способ открыть его наружу — запустить `ngrok http 4317` (или `cloudflared tunnel --url http://127.0.0.1:4317`) и подставить полученный HTTPS-URL в `BASE_URL` ниже. Без этого облачный браузер до приложения не достучится.
 
@@ -46,7 +46,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 
 ## Контекст
 
-Я тестирую **career-ops-ui** v1.14.0 — это веб-интерфейс на Express + vanilla JS поверх AI-пайплайна для поиска работы. Хеш-роутер, **17 страниц** (Dashboard / Scan / Pipeline / Evaluate / Reports / Tracker / Activity / CV / Profile / App settings / Health / Help + Batch + Deep / Apply / Modes), 8 локалей, режим работы single-tenant на loopback. Тема **dark / light** переключается через `🌓` в sidebar.
+Я тестирую **career-ops-ui** v1.20.0 — это веб-интерфейс на Express + vanilla JS поверх AI-пайплайна для поиска работы. Хеш-роутер, **17 страниц** (Dashboard / Scan / Pipeline / Evaluate / Reports / Tracker / Activity / CV / Profile / App settings / Health / Help + Batch + Deep / Apply / Modes), 8 локалей, режим работы single-tenant на loopback. Тема **dark / light** переключается через `🌓` в sidebar.
 
 **Что нового в v1.11.x–v1.14.0** (важно для тестировщика):
 
@@ -54,6 +54,17 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 - **v1.12.0** — `🌓` theme toggle (dark/light), brand strip в footer.
 - **v1.13.0** — `#/batch` SPA (batch evaluate offers); CV multer multipart upload (curl `-F file=@...` теперь работает напрямую); locale-aware mode-template scaffolding × 8 локалей; dark-theme table hover fix.
 - **v1.14.0** — 3 новых ATS adapter'а: **Workable / SmartRecruiters / Workday-beta** (поверх v1.13.0 registry; теперь 6 ATSes). 42 docs-фразы обновлены с "3 ATSes" на "6 ATSes" в READMEs / help-бандлах / PROJECT.md.
+
+**Что нового в v1.15.0–v1.20.0** (новые сценарии 24–27):
+
+- **v1.15.0** — `/api/stream/scan` consolidated (один endpoint вместо `scan-en` + `scan-ru`); SSE auto-pipeline ground work; sidebar route renames (data-route attributes стабильные).
+- **v1.16.0** — **server-side auto-pipeline orchestrator** через SSE: один `POST /api/auto-pipeline` запускает validate → fetch JD → evaluate → save report → tracker за один проход. Покрывается сценарием 24.
+- **v1.17.0** — polish + a11y + CI fix (9 follow-ups); legacy `/#/batch-prompt` удалён (был в sunset с v1.15.0); 3 v1.17 subagents (`web-ui-route-reviewer`, `spa-view-reviewer`, `test-isolation-reviewer`).
+- **v1.18.0** — `/api/stream/scan-{en,ru}` legacy aliases retired (404 now); **WCAG 2.2 AA**: Skip link (2.4.1), Focus Visible (2.4.7), Target Size (`.btn` 44px / `.btn-sm` 32px), Language of Page (`<html lang>`), Info & Relationships (`#content tabindex`). Покрывается сценарием 25.
+- **v1.19.0** — **WCAG 1.4.3 contrast pass** (badges + score pills через `*-text` варианты, AA на light + dark); scan unification finished в доке; **HH_USER_AGENT удалён из UI** (но parent `.env` всё ещё читает его). Покрывается сценарием 26.
+- **v1.20.0** — per-component a11y polish: **WCAG 2.5.5 / 2.5.8 touch-target audit** (`.chip` 28px + 8px gap, `.nav-item` / `.tab-btn` 44px); **WCAG 1.3.1 / 3.3.2 aria-describedby** на form hints (config / pipeline / evaluate / batch / mode-page); non-EN README parity (7 локалей × ~580 строк); `/api/scan-ru/config` legacy alias retired (404 now). Покрывается сценарием 27.
+
+**Baseline счётчики на v1.20.0:** 427/427 unit + 20/20 smoke E2E + 23/23 comprehensive E2E + 32/32 Playwright = 502 теста, 0 фейлов.
 
 ```
 BASE_URL = <вставь сюда https://...ngrok-free.app>
@@ -403,7 +414,7 @@ curl -s -o /dev/null -w "%{http_code}" -X POST -F "file=@/tmp/v13-cv.md" http://
 
 ## Финальный отчёт
 
-После всех **23 сценариев** (0–16 базовые + 17–19 v1.11.x/v1.14.0 + 20–23 v1.12.0/v1.13.0/v1.14.0) выдай таблицу:
+После всех **27 сценариев** (0–16 базовые + 17–19 v1.11.x/v1.14.0 + 20–23 v1.12.0/v1.13.0/v1.14.0 + 24–27 v1.15.0–v1.20.0) выдай таблицу:
 
 | Сценарий | Шаги | PASS | FAIL | SKIP | Заметки |
 |---|---|---|---|---|---|
@@ -431,7 +442,11 @@ curl -s -o /dev/null -w "%{http_code}" -X POST -F "file=@/tmp/v13-cv.md" http://
 | 21. Batch SPA | 4 | ... | ... | ... | ... |
 | 22. Locale scaffold | 2 | ... | ... | ... | ... |
 | 23. Doc parity finale | 4 | ... | ... | ... | ... |
-| **Итого** | **~180** | **N** | **M** | **K** | |
+| 24. Auto-pipeline SSE (v1.16.0) | 4 (24.1-24.4) | ... | ... | ... | ... |
+| 25. WCAG 2.2 AA (v1.18.0) | 5 (25.1-25.5) | ... | ... | ... | ... |
+| 26. Contrast + HH_USER_AGENT (v1.19.0) | 3 (26.1-26.3) | ... | ... | ... | ... |
+| 27. v1.20.0 a11y + alias retired | 5 (27.1-27.5) | ... | ... | ... | ... |
+| **Итого** | **~210** | **N** | **M** | **K** | |
 
 Плюс:
 
@@ -458,6 +473,12 @@ curl -s -o /dev/null -w "%{http_code}" -X POST -F "file=@/tmp/v13-cv.md" http://
 - Сценарий 20.2 — белый фон на hover в dark theme (v1.13.0 регрессия)
 - Сценарий 23.1 — голые "Greenhouse / Ashby / Lever" фразы в user-facing docs (v1.14.0 регрессия)
 - Сценарий 23.3 — какая-то локаль help-бандла имеет ≠16 H2 (parity сломалась)
+- Сценарий 24.2 — `POST /api/auto-pipeline` возвращает 5xx или зависает > 90 секунд (v1.16.0 регрессия)
+- Сценарий 25.1 — Skip link отсутствует или не работает по `Tab` (v1.18.0 WCAG 2.4.1 регрессия)
+- Сценарий 25.4 — `<html lang="...">` отсутствует / неправильный (v1.18.0 WCAG 3.1.1 регрессия)
+- Сценарий 26.2 — score pill / badge тёмный текст на тёмном фоне (v1.19.0 контраст регрессия)
+- Сценарий 27.1 — `/api/scan-ru/config` всё ещё возвращает 200 (v1.20.0 alias-retired регрессия)
+- Сценарий 27.4 — есть `<input>` или `<textarea>` без `<label htmlFor=…>` / `aria-label` (v1.20.0 WCAG 3.3.2 регрессия)
 
 **Warning** (репортишь, но релиз пропускаешь):
 
@@ -752,4 +773,232 @@ grep -l "## \[1.14.0\]" CHANGELOG*.md | wc -l
 ```
 
 **PASS = 23.1=0, 23.2=42, 23.3 каждый файл=16, 23.4=8.**
+
+---
+
+## Сценарий 24. Server-side auto-pipeline (v1.16.0)
+
+**Цель.** v1.16.0 добавил `POST /api/auto-pipeline` + соответствующий SSE-стрим: один запрос прогоняет полный pipeline `validate URL → fetch JD → evaluate → save report → add to tracker` без необходимости кликать каждый шаг вручную. Этот сценарий покрывает happy-path + три edge-кейса.
+
+### 24.1. Endpoint существует и принимает POST
+
+```bash
+curl -sS -o /dev/null -w "%{http_code}\n" \
+  -X POST -H "Content-Type: application/json" \
+  -d '{"url":"https://job-boards.greenhouse.io/anthropic/jobs/test-cycle-cloud-1"}' \
+  http://127.0.0.1:4317/api/auto-pipeline
+```
+
+**Assertion:** код 200 ИЛИ 202 (запущено) ИЛИ 400 если URL не проходит `isValidJobUrl` — НЕ 404 (endpoint должен существовать).
+
+### 24.2. SSE stream до конца
+
+Если у cloud-агента есть EventSource или `curl --no-buffer`:
+
+```bash
+curl --no-buffer -N \
+  -H "Accept: text/event-stream" \
+  "http://127.0.0.1:4317/api/stream/auto-pipeline?url=https://job-boards.greenhouse.io/anthropic/jobs/test"
+```
+
+**Assertion:** видишь поток событий `event: stage` с фазами:
+
+- `stage: validate` → `status: ok` (или `skip` если URL invalid)
+- `stage: fetch` → длина тела > 0
+- `stage: evaluate` → если ANTHROPIC_API_KEY / GEMINI_API_KEY задан, получаешь score; иначе manual-prompt fallback
+- `stage: save-report` → путь к файлу в `reports/`
+- `stage: tracker` → добавлено в `data/applications.md`
+- `event: done` финальное событие за < 90 секунд
+
+### 24.3. Negative: invalid URL (SSRF)
+
+```bash
+curl -sf -X POST -H "Content-Type: application/json" \
+  -d '{"url":"http://127.0.0.1:22/etc/passwd"}' \
+  http://127.0.0.1:4317/api/auto-pipeline
+```
+
+**Assertion:** HTTP 400 (или 422), JSON-ответ упоминает `loopback`, `invalid`, или `SSRF`. Никаких писаний в `data/pipeline.md` / `data/applications.md` (проверь diff после теста).
+
+### 24.4. Activity log audit
+
+После сценариев 24.1-24.3 проверь `#/activity`:
+
+**Assertion:** появилась запись типа `auto-pipeline` с timestamp ISO, URL = тот что в 24.1, и `status: success` (для happy) или `error` (для 24.3).
+
+**PASS = 24.1 endpoint exists, 24.2 SSE даёт все 5 фаз + done, 24.3 SSRF rejected, 24.4 запись в activity log.**
+
+---
+
+## Сценарий 25. WCAG 2.2 AA — Skip link + Focus Visible + Target Size + Lang (v1.18.0)
+
+**Цель.** v1.18.0 закрыл WCAG 2.2 AA по 5 критериям. Этот сценарий — регрессия каждой проверки в реальном DOM.
+
+### 25.1. Skip link (2.4.1 Bypass Blocks)
+
+1. Открой `BASE_URL` в текущей локали.
+2. Нажми `Tab` один раз.
+3. **Assertion:** первый focusable — это **skip link** с текстом локализованным («Skip to main content» / «Перейти к основному содержимому» / эквивалент), видимый visually (не `display: none`).
+4. Нажми `Enter`.
+5. **Assertion:** фокус прыгнул на `#content` (или `<main>`) — не на sidebar nav.
+
+### 25.2. Focus Visible (2.4.7)
+
+1. Tab через 5+ интерактивных элементов на любой странице.
+2. **Assertion:** у каждого сфокусированного элемента видимая outline (не `outline: none` без замены). CSS должен иметь `*:focus-visible { outline: 2px solid var(--linen); outline-offset: 2px }` (или эквивалент с min 2px и контраст 3:1).
+
+### 25.3. Target Size (2.5.5 — global floor)
+
+1. Открой DevTools.
+2. Выполни:
+
+   ```js
+   Array.from(document.querySelectorAll('.btn:not(.btn-sm)')).filter(b => {
+     const r = b.getBoundingClientRect();
+     return r.height < 44 || r.width < 44;
+   }).length
+   ```
+
+3. **Assertion:** 0. (Все `.btn` ≥ 44 × 44 px.)
+4. То же для `.btn-sm`:
+
+   ```js
+   Array.from(document.querySelectorAll('.btn-sm')).filter(b => {
+     const r = b.getBoundingClientRect();
+     return r.height < 32;
+   }).length
+   ```
+
+5. **Assertion:** 0. (`.btn-sm` ≥ 32 px высота.)
+
+### 25.4. Language of Page (3.1.1)
+
+```js
+document.documentElement.getAttribute('lang')
+```
+
+**Assertion:** возвращает текущий язык SPA (`en`, `ru`, `es`, `pt-BR`, `ko-KR`, `ja`, `zh-CN`, `zh-TW`). При смене языка через `.lang-btn[data-lang-btn]` атрибут должен обновляться без перезагрузки.
+
+### 25.5. Info & Relationships — `#content tabindex="-1"` (1.3.1)
+
+```js
+document.getElementById('content').getAttribute('tabindex')
+```
+
+**Assertion:** возвращает `"-1"`. (Это позволяет Skip link перевести фокус программно.)
+
+**PASS = все 5 подпунктов зелёные.**
+
+---
+
+## Сценарий 26. WCAG 1.4.3 contrast + HH_USER_AGENT удалён (v1.19.0)
+
+### 26.1. Badge / score pill контраст в light theme
+
+1. Включи light theme (`🌓` в sidebar).
+2. Открой `#/reports` или `#/tracker` — там есть бейджи (`.badge-ok`, `.badge-warn`, `.badge-bad`, `.badge-info`) и score pills (`.score-high`, `.score-mid`, `.score-low`).
+3. Через DevTools → Inspect → Contrast (или axe browser ext) проверь каждый текст на цветном фоне.
+4. **Assertion:** все ≥ 4.5:1 (AA для normal text). v1.19.0 добавил `*-text` варианты — должны использоваться.
+
+### 26.2. Badge / score pill контраст в dark theme
+
+1. Переключи `🌓` → dark theme.
+2. Та же проверка.
+3. **Assertion:** все ≥ 4.5:1 на dark background `#161a22`.
+
+### 26.3. HH_USER_AGENT отсутствует в `/#/config`
+
+1. Открой `#/config` → таб «App settings» (API keys).
+2. **Assertion:** среди полей **НЕТ** `HH_USER_AGENT`. Известные ключи в v1.19+: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `HOST`, `PORT`. И никакой `regional` группы.
+
+**Endpoint sweep:**
+
+```bash
+curl -sf http://127.0.0.1:4317/api/config | python3 -c "import sys,json; print('HH_USER_AGENT' in json.load(sys.stdin).get('values', {}))"
+# → False
+```
+
+**PASS = 26.1 light AA, 26.2 dark AA, 26.3 HH_USER_AGENT отсутствует.**
+
+---
+
+## Сценарий 27. v1.20.0 — per-component a11y polish + `/api/scan-ru/config` alias retired
+
+### 27.1. `/api/scan-ru/config` legacy alias retired
+
+```bash
+curl -sS -o /dev/null -w "%{http_code}\n" http://127.0.0.1:4317/api/scan-ru/config
+# → 404
+```
+
+**Assertion:** код 404. v1.19.0 был sunset релизом, v1.20.0 удалил окончательно.
+
+### 27.2. Canonical regional config работает
+
+```bash
+curl -sf http://127.0.0.1:4317/api/scan/regional/config | python3 -c "import sys,json; d=json.load(sys.stdin); print('queries=', len(d.get('queries', [])), 'sources=', d.get('sources'))"
+```
+
+**Assertion:** код 200, JSON с непустыми `queries` и `sources`.
+
+### 27.3. Touch targets — chips / nav-item / tab-btn (WCAG 2.5.5 / 2.5.8)
+
+В DevTools на `#/scan` (есть chip-row):
+
+```js
+// Chips: min-height 28px + chip-row gap 8px
+Array.from(document.querySelectorAll('.chip')).filter(c =>
+  c.getBoundingClientRect().height < 28
+).length
+// → 0
+
+// Nav items: min-height 44px
+Array.from(document.querySelectorAll('.nav-item')).filter(n =>
+  n.getBoundingClientRect().height < 44
+).length
+// → 0
+
+// Tab buttons: min-height 44px
+Array.from(document.querySelectorAll('.tab-btn')).filter(t =>
+  t.getBoundingClientRect().height < 44
+).length
+// → 0
+```
+
+**Assertion:** каждый из трёх = 0.
+
+### 27.4. Form labels association (WCAG 3.3.2)
+
+Открой `#/config` → таб «App settings», `#/evaluate`, `#/pipeline`, `#/batch` и каждый из 7 modes (`#/project`, etc). На каждой странице:
+
+```js
+Array.from(document.querySelectorAll('input:not([type="checkbox"]), textarea, select')).filter(el =>
+  !el.labels?.length && !el.getAttribute('aria-label')
+).map(el => el.outerHTML.slice(0, 100))
+// → []
+```
+
+**Assertion:** пустой массив. Каждый control имеет `<label for=…>` (через `htmlFor`) или `aria-label`.
+
+### 27.5. aria-describedby на hint paragraphs
+
+На `#/config → Profile`, `#/evaluate`, `#/pipeline`, `#/batch`:
+
+```js
+Array.from(document.querySelectorAll('[aria-describedby]')).map(el =>
+  ({ id: el.id, describedBy: el.getAttribute('aria-describedby'), valid: !!document.getElementById(el.getAttribute('aria-describedby')) })
+).filter(x => !x.valid)
+// → []
+```
+
+**Assertion:** пустой массив. Каждый `aria-describedby` указывает на существующий ID.
+
+### Bonus — non-EN README parity (offline check)
+
+```bash
+wc -l /Users/sergejemelanov/Projects/career-ops/web-ui/README*.md | head -8
+# Все 8 должны быть в диапазоне 555-585 строк (EN master = 585).
+```
+
+**PASS = 27.1 alias 404, 27.2 canonical OK, 27.3 все три селектора = 0, 27.4 все form controls с label, 27.5 все aria-describedby ссылки валидны.**
 
