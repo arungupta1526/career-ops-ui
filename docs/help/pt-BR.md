@@ -440,8 +440,10 @@ Cole o JD ou chegue de `#/pipeline` com `?url=…`.
 
 ### Saída
 
-A. Role Summary · B. CV Match · C. Risks · D. Compensation · E.
-Application Strategy · F. Verdict (0–5) · G. Posting Legitimacy.
+A. Role Summary · B. CV Match · C. Strategy · D. Compensation · E.
+Personalization · F. STAR stories (score + legitimacy no header do
+report). **A–F canônico a partir da v1.15.0** — reports pre-v1.15 com
+A–G (C=Risks, F=Verdict, G=Legitimacy) seguem renderizando como antes.
 
 **💾 Save report** salva em `reports/<date>-<company>-<role>.md`.
 

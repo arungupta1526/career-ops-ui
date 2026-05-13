@@ -702,18 +702,29 @@ effect).
 3. **Manual** — no key set. The page returns a fully-formed prompt
    you can paste into Claude Code, ChatGPT, or any other LLM.
 
-### Output sections
+### Output sections (canonical career-ops.org A-F)
 
-A. **Role Summary** — 3-bullet recap.
+> **v1.15.0 realignment.** Block letters now match the
+> [canonical career-ops.org schema](https://career-ops.org/docs).
+> Pre-v1.15 reports used A–G (with `C=Risks`, `F=Verdict`,
+> `G=Legitimacy`); we still render them as-is for backward
+> compatibility, but new reports emit A–F with the canonical
+> semantics below. Score and Legitimacy now live in the report
+> header (`score: 4.2/5`, `legitimacy: High|Medium|Low`).
+
+A. **Role Summary** — 3-bullet recap (risks called out inline).
 B. **CV Match** — top 3 skills hit + top 3 missing.
-C. **Risks** — 1–3 concrete concerns (compensation, role ambiguity,
-seniority drift, etc.).
-D. **Compensation** — relative to your `target.comp_total_min_usd`.
-E. **Application Strategy** — should we apply? Yes/No + 1-line
-reason.
-F. **Verdict** — final 0–5 score with 0.1 precision.
-G. **Posting Legitimacy** — flags obvious red flags (vague company,
-zero salary band, "rockstar/ninja" copy, no email contact).
+C. **Strategy** — recommendation: apply now / contacto first /
+deep first / skip. Was `Risks` before v1.15.
+D. **Compensation** — relative to your
+`target.comp_total_min_usd` (legacy) or `compensation.target_range`
+(canonical).
+E. **Personalization** — angle to lead with, framing per archetype,
+hooks to mention in cover letter / outreach. Was `Application
+Strategy` before v1.15.
+F. **STAR stories** — 1–3 ready-to-paste S-T-A-R blocks tailored
+to the role. Was `Verdict` (raw score) before v1.15; score now
+appears in the report header alongside `legitimacy`.
 
 ### Saving the report
 

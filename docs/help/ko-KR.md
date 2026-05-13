@@ -446,9 +446,10 @@ JD를 textarea에 붙여넣거나 `#/pipeline`에서 `?url=…`로 도착.
 
 ### 출력
 
-A. Role Summary · B. CV Match · C. Risks · D. Compensation · E.
-Application Strategy · F. Verdict (0.1 정밀도 0–5) · G. Posting
-Legitimacy.
+A. Role Summary · B. CV Match · C. Strategy · D. Compensation · E.
+Personalization · F. STAR stories(score와 legitimacy는 리포트
+헤더로 이동). **v1.15.0부터 표준 A–F** — pre-v1.15의 A–G 리포트
+(C=Risks, F=Verdict, G=Legitimacy)는 그대로 렌더링합니다.
 
 **💾 Save report** → `reports/<date>-<company>-<role>.md`.
 

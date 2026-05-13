@@ -469,9 +469,10 @@ fetcha vía el proxy SSRF-safe).
 
 ### Salida
 
-A. Role Summary · B. CV Match · C. Risks · D. Compensation · E.
-Application Strategy · F. Verdict (0–5 con precisión 0.1) · G.
-Posting Legitimacy.
+A. Role Summary · B. CV Match · C. Strategy · D. Compensation · E.
+Personalization · F. STAR stories (score + legitimacy en el header del
+reporte). **A–F canónico desde v1.15.0** — reportes pre-v1.15 con A–G
+(C=Risks, F=Verdict, G=Legitimacy) siguen renderizándose tal cual.
 
 **💾 Save report** persiste el markdown a
 `reports/<date>-<company>-<role>.md`.

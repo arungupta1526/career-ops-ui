@@ -626,17 +626,26 @@ trail).
 3. **Manual** — без ключа. Страница даёт готовый prompt для
    копирования в Claude Code / ChatGPT / любой другой LLM.
 
-### Output sections
+### Output sections (канонический career-ops.org A–F)
 
-A. **Role Summary** — 3 буллета.
+> **v1.15.0 — канонический A–F.** Буквы блоков теперь совпадают с
+> [career-ops.org/docs](https://career-ops.org/docs). Pre-v1.15
+> отчёты использовали A–G (`C=Risks`, `F=Verdict`, `G=Legitimacy`);
+> мы рендерим их как есть для совместимости, но новые отчёты
+> эмитят A–F. Score и Legitimacy теперь в header'е отчёта
+> (`score: 4.2/5`, `legitimacy: High|Medium|Low`).
+
+A. **Role Summary** — 3 буллета (риски вынесены сюда инлайном).
 B. **CV Match** — топ 3 совпадения и топ 3 пропуска.
-C. **Risks** — 1–3 конкретных риска (комп, размытость роли,
-сениорити-дрифт).
-D. **Compensation** — относительно `target.comp_total_min_usd`.
-E. **Application Strategy** — apply? Yes/No + причина.
-F. **Verdict** — финальный 0–5 score с точностью 0.1.
-G. **Posting Legitimacy** — флагит red flags (vague компания, нет
-salary band, "rockstar/ninja" copy).
+C. **Strategy** — рекомендация: apply now / contacto first /
+deep first / skip. Было `Risks` до v1.15.
+D. **Compensation** — относительно `target.comp_total_min_usd`
+(legacy) или `compensation.target_range` (canonical).
+E. **Personalization** — angle для письма / outreach, framing
+по архетипу. Было `Application Strategy` до v1.15.
+F. **STAR stories** — 1–3 готовых S-T-A-R блока под роль. Было
+`Verdict` (raw score) до v1.15; score теперь в header'е отчёта
+вместе с `legitimacy`.
 
 ### Сохранение report
 

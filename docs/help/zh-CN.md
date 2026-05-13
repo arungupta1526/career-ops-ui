@@ -444,9 +444,10 @@ npm run scan -- --company Anthropic
 
 ### 输出
 
-A. Role Summary · B. CV Match · C. Risks · D. Compensation · E.
-Application Strategy · F. Verdict (0.1 精度 0–5) · G. Posting
-Legitimacy。
+A. Role Summary · B. CV Match · C. Strategy · D. Compensation · E.
+Personalization · F. STAR stories(score 和 legitimacy 移到报告
+头部)。**v1.15.0 起规范 A–F** — pre-v1.15 的 A–G 报告
+(C=Risks, F=Verdict, G=Legitimacy)继续按原样渲染。
 
 **💾 Save report** 把 markdown 持久化到
 `reports/<date>-<company>-<role>.md`。
