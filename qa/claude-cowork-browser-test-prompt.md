@@ -46,7 +46,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 
 ## Контекст
 
-Я тестирую **career-ops-ui** v1.20.0 — это веб-интерфейс на Express + vanilla JS поверх AI-пайплайна для поиска работы. Хеш-роутер, **17 страниц** (Dashboard / Scan / Pipeline / Evaluate / Reports / Tracker / Activity / CV / Profile / App settings / Health / Help + Batch + Deep / Apply / Modes), 8 локалей, режим работы single-tenant на loopback. Тема **dark / light** переключается через `🌓` в sidebar.
+Я тестирую **career-ops-ui** v1.21.0 — это веб-интерфейс на Express + vanilla JS поверх AI-пайплайна для поиска работы. Хеш-роутер, **17 страниц** (Dashboard / Scan / Pipeline / Evaluate / Reports / Tracker / Activity / CV / Profile / App settings / Health / Help + Batch + Deep / Apply / Modes), 8 локалей, режим работы single-tenant на loopback. Тема **dark / light** переключается через `🌓` в sidebar.
 
 **Что нового в v1.11.x–v1.14.0** (важно для тестировщика):
 
