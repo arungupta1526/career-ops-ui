@@ -45,9 +45,15 @@
       ],
     },
     {
-      slug: 'batch',
+      // G-011 (v1.15.0): the canonical /#/batch is now the v1.13.0 TSV SPA
+      // (server/lib/routes/batch.mjs + public/js/views/batch.js). The
+      // legacy mode-prompt builder stays accessible at /#/batch-prompt for
+      // any deep-linked bookmarks; a deprecation banner is rendered on top.
+      // Scheduled for removal in v1.16.0.
+      slug: 'batch-prompt',
       titleKey: 'batch.title',
       subtitleKey: 'batch.subtitle',
+      deprecation: 'batch-prompt.deprecated',
       fields: [
         { name: 'urls',    type: 'textarea', i18n: { label: 'batch.urlsLbl', placeholder: 'batch.urlsPh' }, required: true, rows: 8 },
         { name: 'workers', type: 'input',    i18n: { label: 'batch.workersLbl', placeholder: 'batch.workersPh' } },
@@ -261,7 +267,23 @@
       onClick: (e) => submit(e.currentTarget, true),
     }, '⚡ ' + t('mode.runLive', 'Run live'));
 
+    // G-011: surface a deprecation banner on /#/batch-prompt so anyone
+    // hitting the legacy mode-prompt route from an old bookmark sees
+    // the migration target.
+    const deprecationBanner = cfg.deprecation
+      ? c('div', { className: 'card', style: { borderLeft: '3px solid var(--warn)', marginBottom: '16px' } }, [
+          c('strong', null, '⚠ '),
+          c('span', null, t(cfg.deprecation,
+            'This route is deprecated. The canonical Batch evaluate page is now at #/batch (TSV editor + parallel runner). This legacy prompt-builder will be removed in v1.16.0.')),
+          c('div', { className: 'mt-2' }, [
+            c('a', { href: '#/batch', className: 'btn btn-primary btn-sm' },
+              '↗ ' + t('batch-prompt.goCanonical', 'Open #/batch')),
+          ]),
+        ])
+      : null;
+
     return c('div', null, [
+      deprecationBanner,
       c('header', { className: 'page-header' }, [
         c('div', null, [
           c('h1', { className: 'page-title' }, t(cfg.titleKey)),
