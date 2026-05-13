@@ -1,5 +1,7 @@
-# Промпт для Claude Cowork — браузерное E2E тестирование career-ops-ui v1.10.0
+# Промпт для Claude Cowork — браузерное E2E тестирование career-ops-ui v1.14.0
 
+> Версия живёт вместе с релизами. На 2026-05-13 последний релиз — **v1.14.0** (3 новых ATS адаптера: Workable / SmartRecruiters / Workday-beta поверх v1.13.0 registry). Сценарии 0–19 покрывают всё что было до v1.11.x, сценарии 20–23 — функционал v1.12.0–v1.14.0.
+>
 > ⚠️ **Перед запуском:** Claude Cowork работает с публичными URL — а у вас приложение крутится на `127.0.0.1:4317`. Самый быстрый способ открыть его наружу — запустить `ngrok http 4317` (или `cloudflared tunnel --url http://127.0.0.1:4317`) и подставить полученный HTTPS-URL в `BASE_URL` ниже. Без этого облачный браузер до приложения не достучится.
 
 ---
@@ -44,7 +46,14 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 
 ## Контекст
 
-Я тестирую **career-ops-ui** v1.10.0 — это веб-интерфейс на Express + vanilla JS поверх AI-пайплайна для поиска работы. Хеш-роутер, 16 страниц, 8 локалей, режим работы single-tenant на loopback.
+Я тестирую **career-ops-ui** v1.14.0 — это веб-интерфейс на Express + vanilla JS поверх AI-пайплайна для поиска работы. Хеш-роутер, **17 страниц** (Dashboard / Scan / Pipeline / Evaluate / Reports / Tracker / Activity / CV / Profile / App settings / Health / Help + Batch + Deep / Apply / Modes), 8 локалей, режим работы single-tenant на loopback. Тема **dark / light** переключается через `🌓` в sidebar.
+
+**Что нового в v1.11.x–v1.14.0** (важно для тестировщика):
+
+- **v1.11.x** — career-ops.org/docs интегрирован в help bundles + READMEs во всех 8 локалях; score-thresholds card на `#/reports`; Active Companies card на `#/scan`; Playwright setup link на `#/apply`.
+- **v1.12.0** — `🌓` theme toggle (dark/light), brand strip в footer.
+- **v1.13.0** — `#/batch` SPA (batch evaluate offers); CV multer multipart upload (curl `-F file=@...` теперь работает напрямую); locale-aware mode-template scaffolding × 8 локалей; dark-theme table hover fix.
+- **v1.14.0** — 3 новых ATS adapter'а: **Workable / SmartRecruiters / Workday-beta** (поверх v1.13.0 registry; теперь 6 ATSes). 42 docs-фразы обновлены с "3 ATSes" на "6 ATSes" в READMEs / help-бандлах / PROJECT.md.
 
 ```
 BASE_URL = <вставь сюда https://...ngrok-free.app>
@@ -54,7 +63,7 @@ LOCALE   = ru   (можно en, es, pt-BR, ko-KR, ja, zh-CN, zh-TW)
 На стенде уже:
 
 - ANTHROPIC_API_KEY и/или GEMINI_API_KEY заданы в `.env` (если нет — manual-fallback всё равно работает, см. сценарий 7)
-- Демо-CV «Alex Doe» (8 лет PHP+Go) и стартовый `portals.yml` с GitLab/Vercel/Linear
+- Демо-CV «Alex Doe» (8 лет PHP+Go) и стартовый `portals.yml` с минимум 1 company per ATS (Greenhouse + Ashby + Lever — для сценария 19 желательно и Workable / SmartRecruiters / Workday, см. `docs/portals-examples.md`)
 
 Открой `BASE_URL` в браузере — должна загрузиться страница `/#/dashboard`. Если нет — упади с понятным error-репортом и не продолжай дальнейшие сценарии.
 
@@ -74,18 +83,21 @@ LOCALE   = ru   (можно en, es, pt-BR, ko-KR, ja, zh-CN, zh-TW)
 ## Сценарий 1 — Дым-тест навигации (60 секунд)
 
 Зайди на `BASE_URL` и пройди по каждому пункту sidebar. Кликни по очереди:
-**Dashboard → Scan → Pipeline → Evaluate → Reports → Tracker → Activity → CV → Profile → App settings → Health → Help**.
+**Dashboard → Scan → Pipeline → Evaluate → Batch → Reports → Tracker → Activity → CV → Profile → App settings → Health → Help**.
 
 Для каждого:
 
-- Проверь, что URL содержит ожидаемый хеш (`#/scan`, `#/pipeline`, ...)
+- Проверь, что URL содержит ожидаемый хеш (`#/scan`, `#/pipeline`, `#/batch`, ...)
 - Проверь, что отрисовался `<h1.page-title>` (заголовок страницы)
 - Проверь, что в консоли браузера НЕТ красных ошибок (только warnings допустимы)
 - Сделай скриншот
 
+Дополнительно проверь mode-страницы (открываются прямой ссылкой, не из sidebar):
+`#/deep`, `#/apply`, `#/project`, `#/training`, `#/followup`, `#/contacto`, `#/interview-prep`, `#/patterns` — каждая должна рендерить форму без console errors.
+
 Отдельно проверь back-compat: открой `BASE_URL/#/settings` — должен резолвиться в Profile-вью, в sidebar должен подсвечиваться пункт Profile (старая ссылка не должна 404-иться).
 
-**PASS = 13 страниц + 1 алиас, 0 console errors.**
+**PASS = 13 sidebar-страниц + 8 mode-страниц + 1 алиас (`#/settings`→Profile), 0 console errors.**
 
 ---
 
@@ -105,7 +117,7 @@ LOCALE   = ru   (можно en, es, pt-BR, ko-KR, ja, zh-CN, zh-TW)
 
 ---
 
-## Сценарий 3 — Profile editor (новинка v1.10.0)
+## Сценарий 3 — Profile editor (v1.10.0+)
 
 1. `#/config` → клик по табу **«Profile»** (вторая вкладка)
 2. Должен появиться textarea с YAML, начинающимся с `# Career-Ops Profile Configuration`
@@ -125,9 +137,11 @@ LOCALE   = ru   (можно en, es, pt-BR, ko-KR, ja, zh-CN, zh-TW)
 
 ---
 
-## Сценарий 4 — CV import (главная новинка v1.10.0)
+## Сценарий 4 — CV import (v1.10.0; v1.13.0 multer-multipart)
 
 Тестируем все форматы загрузки. Перед каждой загрузкой `#/cv` должна быть открыта; после успешной загрузки textarea заполняется конвертированным markdown.
+
+**v1.13.0 контракт:** `/api/cv/import` принимает И `Content-Type: application/octet-stream` + `X-Filename` (UI-путь), И `multipart/form-data` через multer (curl `-F`, Postman default). v1.10.2 415-reject для multipart был заглушкой; v1.13.0 принимает оба.
 
 ### 4a. .md (passthrough)
 
@@ -175,7 +189,18 @@ LOCALE   = ru   (можно en, es, pt-BR, ko-KR, ja, zh-CN, zh-TW)
 1. Сгенерируй файл `huge.txt` размером ровно 11 MB (`dd if=/dev/zero of=huge.txt bs=1M count=11`)
 2. Загрузи → ожидается ошибка `413` или сообщение `too large`
 
-**PASS = 4a, 4b, 4c, 4d, 4f, 4g обязательные; 4e желательный.**
+### 4h. v1.13.0 multer-multipart contract (curl -F path)
+
+Через cloud-shell (если есть shell-доступ):
+
+```bash
+echo "# Multipart test\nBody." > /tmp/v13-cv.md
+curl -s -o /dev/null -w "%{http_code}" -X POST -F "file=@/tmp/v13-cv.md" http://127.0.0.1:4317/api/cv/import
+```
+
+**Assertion:** код **200** (не 415, как было в v1.10.2). Если 415 — это v1.13.0 регрессия и blocker.
+
+**PASS = 4a, 4b, 4c, 4d, 4f, 4g, 4h обязательные; 4e желательный.**
 
 ---
 
@@ -378,13 +403,35 @@ LOCALE   = ru   (можно en, es, pt-BR, ko-KR, ja, zh-CN, zh-TW)
 
 ## Финальный отчёт
 
-После всех 16 сценариев выдай таблицу:
+После всех **23 сценариев** (0–16 базовые + 17–19 v1.11.x/v1.14.0 + 20–23 v1.12.0/v1.13.0/v1.14.0) выдай таблицу:
 
 | Сценарий | Шаги | PASS | FAIL | SKIP | Заметки |
 |---|---|---|---|---|---|
-| 1. Smoke nav | 13 | ... | ... | ... | ... |
-| ... | ... | ... | ... | ... | ... |
-| **Итого** | **~120** | **N** | **M** | **K** | |
+| 0. Bootstrap | 6 | ... | ... | ... | ... |
+| 1. Smoke nav | 14 sidebar + 8 modes + 1 alias | ... | ... | ... | ... |
+| 2. Health | 5 | ... | ... | ... | ... |
+| 3. Profile editor | 10 | ... | ... | ... | ... |
+| 4. CV import | 8 (4a-4h) | ... | ... | ... | ... |
+| 5. CV save XSS | 5 | ... | ... | ... | ... |
+| 6. Generate PDF | 5 | ... | ... | ... | ... |
+| 7. Evaluate | 5 (7a+7b) | ... | ... | ... | ... |
+| 8. Pipeline + SSRF | 8 | ... | ... | ... | ... |
+| 9. Tracker pipe | 6 | ... | ... | ... | ... |
+| 10. Reports | 3 | ... | ... | ... | ... |
+| 11. Deep research | 5 | ... | ... | ... | ... |
+| 12. Mode prompts | 7 модов × 4 | ... | ... | ... | ... |
+| 13. Apply checklist | 5 | ... | ... | ... | ... |
+| 14. Activity log | 4 | ... | ... | ... | ... |
+| 15. Help bundles | 5 | ... | ... | ... | ... |
+| 16. Full E2E | 6 фаз | ... | ... | ... | ... |
+| 17. career-ops docs coverage | 5 (17.1-17.5) | ... | ... | ... | ... |
+| 18. Help parity | 1 | ... | ... | ... | ... |
+| 19. 6 ATS registry | 4 (19.1-19.4) | ... | ... | ... | ... |
+| 20. Theme toggle | 3 | ... | ... | ... | ... |
+| 21. Batch SPA | 4 | ... | ... | ... | ... |
+| 22. Locale scaffold | 2 | ... | ... | ... | ... |
+| 23. Doc parity finale | 4 | ... | ... | ... | ... |
+| **Итого** | **~180** | **N** | **M** | **K** | |
 
 Плюс:
 
@@ -399,19 +446,26 @@ LOCALE   = ru   (можно en, es, pt-BR, ko-KR, ja, zh-CN, zh-TW)
 
 **Blocker** (заваливает релиз):
 
-- Сценарий 1 — не загрузилась хоть одна страница
+- Сценарий 1 — не загрузилась хоть одна страница sidebar или mode
 - Сценарий 2 — required-чек красный без обоснования
 - Сценарий 3 — Profile YAML save уронил сервер (5xx) или потерял данные после reload
 - Сценарий 4c — XSS payload пробрался в textarea (это security-баг)
+- Сценарий 4h — multer multipart возвращает 415 (v1.13.0 регрессия)
 - Сценарий 5 — `<script>` или `javascript:` оказался в сохранённом cv.md после round-trip
 - Сценарий 9 — pipe в company name всё ещё ломает таблицу (BF-1 регрессия)
 - Сценарий 16 — упал хоть один из 6 шагов полного flow
+- Сценарий 19.1 — `ALL_ADAPTERS.length !== 6` (v1.14.0 регрессия)
+- Сценарий 20.2 — белый фон на hover в dark theme (v1.13.0 регрессия)
+- Сценарий 23.1 — голые "Greenhouse / Ashby / Lever" фразы в user-facing docs (v1.14.0 регрессия)
+- Сценарий 23.3 — какая-то локаль help-бандла имеет ≠16 H2 (parity сломалась)
 
 **Warning** (репортишь, но релиз пропускаешь):
 
 - Сценарий 6 — отсутствие Playwright (зависит от стенда)
 - Сценарий 7b — отсутствие ключа Anthropic/Gemini
 - Сценарий 4d/4e — отсутствие pdftotext/pandoc на хосте (тогда тест должен фейлиться gracefully с hint-текстом — ЭТО ожидаемое поведение, не warning)
+- Сценарий 19.3 — пустой `portals.yml::tracked_companies` для какого-то ATS (soft, ожидаемый SKIP)
+- Сценарий 21.4 — `runnerExists: false` если parent не имеет `batch/batch-runner.sh` (warning, не blocker)
 
 ---
 
@@ -557,4 +611,145 @@ done
 **Assertion:** каждый id встречается минимум 1 раз.
 
 **PASS = 19.1 + 19.2 зелёные. 19.3 soft. 19.4 структурный.**
+
+---
+
+## Сценарий 20. Theme toggle — dark / light (v1.12.0)
+
+**Цель.** v1.12.0 добавил `🌓` toggle в sidebar и `var(--*)` токены в `public/css/app.css`. v1.13.0 закрыл регрессию контраста на hover-таблиц.
+
+### 20.1. Переключение theme и persist
+
+1. Открой `BASE_URL` (любая страница).
+2. Скриншот текущей темы → запиши какая активна (`data-theme` атрибут на `<html>` или `<body>`).
+3. Клик на `🌓` в sidebar.
+4. Тема инвертируется (была light → теперь dark, или наоборот). Скриншот.
+5. Перезагрузи страницу (`F5`).
+6. Тема сохранилась (`localStorage.theme` хранится).
+
+### 20.2. Контраст в dark theme — table hover (v1.13.0 fix)
+
+1. Включи dark theme.
+2. Открой `#/tracker` (или `#/reports`, или `#/activity` — любая страница с таблицей).
+3. Наведи мышь на любую строку таблицы.
+4. **Assertion:** background строки на hover **не белый** (не `#fafafa` / `#fff` / `#f7f7f7`). Должен быть `var(--beach)` или равноценный тёмный токен.
+5. Скриншот hover в dark — текст должен быть читаемым.
+
+### 20.3. Tab buttons в dark theme
+
+1. Dark theme активна.
+2. Открой `#/config` — там есть табы (API keys / Profile / Portals / Modes).
+3. Tab buttons должны иметь читаемый контраст в dark (фон `var(--paper)`, активный `var(--beach)`, не белые).
+
+**PASS = 20.1 toggle + persist, 20.2 hover читаем, 20.3 табы читаемы.**
+
+---
+
+## Сценарий 21. Batch evaluate SPA page (v1.13.0)
+
+**Цель.** v1.13.0 добавил `#/batch` SPA-страницу + 4 endpoint'а вокруг `batch/batch-runner.sh` parent-проекта.
+
+### 21.1. `#/batch` рендерится
+
+1. Открой `#/batch` (через прямой URL или sidebar под группой Decision).
+2. Должна быть: TSV editor pane (`<textarea>`), панель run-controls (parallel select `1 / 2 / 3`, min-score input, dry-run checkbox, retry checkbox), live SSE console (пустой пока что), pending-additions list.
+3. Если `batch/batch-runner.sh` отсутствует в parent — должна быть warning-card (не падать с 500).
+
+### 21.2. TSV редактор + save
+
+1. В TSV editor вставь (символы между колонками — настоящие tab'ы, не пробелы):
+
+   ```tsv
+   1	https://example.com/job1	LinkedIn	test
+   2	https://example.com/job2	Greenhouse	priority
+   ```
+
+2. Клик `💾 Save` (или эквивалентный кнопочный текст).
+3. Toast / status: `{ ok: true, rows: 2 }` или эквивалент.
+
+### 21.3. Negative: empty rows
+
+1. Очисти editor.
+2. Save → ожидается ошибка (400) с сообщением о пустой строке или "no URLs".
+
+### 21.4. Endpoint sweep (cloud-shell)
+
+```bash
+curl -sf http://127.0.0.1:4317/api/batch | python3 -c "import sys,json; d=json.load(sys.stdin); print('  exists=', d.get('exists'), ' runnerExists=', d.get('runnerExists'), ' rows=', len(d.get('rows', [])))"
+```
+
+**Assertion:** `exists` true (после 21.2), `runnerExists` зависит от parent (может быть false — это warning, не blocker).
+
+**PASS = 21.1 рендер + 21.2 happy-path + 21.3 negative + 21.4 endpoint живой.**
+
+---
+
+## Сценарий 22. Locale-aware mode scaffolding (v1.13.0)
+
+**Цель.** v1.13.0 добавил `SCAFFOLD_STRINGS` в `server/lib/prompts.mjs` — обёрточный текст в mode/evaluation промптах теперь локализован в 8 локалях. Парент `modes/<slug>.md` body остаётся EN (read-only per CLAUDE.md hard rule #1), но scaffolding вокруг — переводится.
+
+### 22.1. Evaluate manual prompt на разных локалях
+
+1. Переключи язык на `ru`.
+2. `#/evaluate` → вставь любой JD → клик `▶ Evaluate` (manual fallback если ключей нет).
+3. В результате (`<pre>` блок) ищи русские scaffolding-фразы: `Контекст`, `Прочитай эти файлы` или эквивалент.
+4. Переключи на `ja` → повтори → ищи японский scaffold (например `コンテキスト`, `これらのファイルを読んでください`).
+5. Переключи на `en` → повтори → должен быть английский scaffold (`Context`, `Read these files`).
+
+**Assertion:** при смене языка scaffolding-обёртка переводится; тело mode-template (EN) остаётся как есть.
+
+### 22.2. Endpoint sweep (cloud-shell)
+
+```bash
+curl -sf -X POST -H "Content-Type: application/json" \
+  -d '{"jd":"Senior Backend Engineer Python Go PostgreSQL.","mode":"manual","lang":"ru"}' \
+  http://127.0.0.1:4317/api/evaluate \
+  | python3 -c "import sys,json; p=json.load(sys.stdin).get('prompt',''); print('  has-ru-scaffold=', 'Контекст от пользователя' in p or 'career-ops' in p)"
+```
+
+Повтори с `lang: ja`, `lang: en`, `lang: ko-KR`. Каждый ответ должен иметь свой scaffold.
+
+**PASS = 22.1 видишь разный scaffold в 3+ локалях; 22.2 endpoint возвращает prompt с правильным локалем.**
+
+---
+
+## Сценарий 23. Doc parity finale (v1.14.0)
+
+**Цель.** v1.14.0 сделал 42 phrase upgrades в 17 user-facing файлах ("Greenhouse / Ashby / Lever" → "Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday"). Sanity-check что 0 голых 3-ATS фраз не осталось.
+
+### 23.1. Phrase-sweep cloud-shell
+
+```bash
+# Должно вернуть 0 строк (все upgraded):
+grep -rEn "Greenhouse / Ashby / Lever\b" README*.md docs/help/*.md docs/PROJECT.md \
+  | grep -v "Greenhouse / Ashby / Lever / Workable" \
+  | wc -l
+# → 0
+```
+
+### 23.2. 6-ATS phrase count
+
+```bash
+grep -rEcn "Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday" README*.md docs/help/*.md docs/PROJECT.md \
+  | awk -F: '{s+=$2} END {print s}'
+# → 42
+```
+
+### 23.3. Help bundle parity (8 locales × 16 H2)
+
+```bash
+for f in docs/help/*.md; do
+  echo -n "$f: "; grep -c "^## " "$f"
+done
+# Каждая строка должна заканчиваться на ": 16"
+```
+
+### 23.4. CHANGELOG locale presence (8 файлов с v1.14.0)
+
+```bash
+grep -l "## \[1.14.0\]" CHANGELOG*.md | wc -l
+# → 8
+```
+
+**PASS = 23.1=0, 23.2=42, 23.3 каждый файл=16, 23.4=8.**
 

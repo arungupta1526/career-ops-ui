@@ -8,32 +8,32 @@
 
 ## [1.14.0] — 2026-05-13
 
-3 новых ATS-адаптера поверх v1.13.0 registry, итого 3 → 6 поддерживаемых ATSes (Greenhouse / Ashby / Lever **+ Workable / SmartRecruiters / Workday-beta**). User-facing документация по всем 17 файлам обновлена с "3 ATSes" на "6 ATSes" за один проход (42 фразы): README × 8 локалей, help-бандл × 8 локалей, PROJECT.md. Добавлены ready-to-paste YAML блоки для 13 trending компаний в `docs/portals-examples.md` для родительского `portals.yml`.
+在 v1.13.0 registry 之上新增 3 个 ATS 适配器,支持的 ATS 总数从 3 → 6 (Greenhouse / Ashby / Lever **+ Workable / SmartRecruiters / Workday-beta**)。面向用户的文档在 17 个文件中一次性从 "3 ATSes" 升级为 "6 ATSes"(42 处短语):README × 8 语言、help bundle × 8 语言、PROJECT.md。在 `docs/portals-examples.md` 中加入 13 个 trending 公司的 paste-ready YAML 块,可粘贴到父项目 `portals.yml`。
 
-### ✨ Фичи
+### ✨ 功能
 
-- **`feat(portals): 3 новых ATS — Workable, SmartRecruiters, Workday-beta`** — registry теперь резолвит 6 ATSes (было 3). Новые файлы: `server/lib/portals/adapters/{workable,smartrecruiters,workday}.mjs` (тонкие обёртки uniform contract) + `server/lib/sources/{workable,smartrecruiters,workday}.mjs` (raw HTTP + нормализация).
-  - **Workable**: детектит `apply.workable.com/<slug>` И legacy `<subdomain>.workable.com`. Endpoint: `https://apply.workable.com/api/v3/accounts/<slug>/jobs?details=true`.
-  - **SmartRecruiters**: детектит `jobs.smartrecruiters.com/<slug>` И `careers.smartrecruiters.com/<slug>`. Endpoint: `https://api.smartrecruiters.com/v1/companies/<slug>/postings`.
-  - **Workday (beta)**: детектит `<tenant>.wd<N>.myworkdayjobs.com/<lang>/<site>`. Endpoint: POST к `/wday/cxs/<tenant>/<site>/jobs`. Default `site=External` если URL без site. Beta потому что часть тенантов закрывает CXS CAPTCHA-ой — fallback на родительский `/career-ops scan` (Playwright).
+- **`feat(portals): 3 个新 ATS — Workable, SmartRecruiters, Workday-beta`** — registry 现在解析 6 ATSes(之前 3)。新文件:`server/lib/portals/adapters/{workable,smartrecruiters,workday}.mjs`(uniform contract 薄包装器)+ `server/lib/sources/{workable,smartrecruiters,workday}.mjs`(原始 HTTP + 规范化)。
+  - **Workable**:检测 `apply.workable.com/<slug>` 以及 legacy `<subdomain>.workable.com`。Endpoint:`https://apply.workable.com/api/v3/accounts/<slug>/jobs?details=true`。
+  - **SmartRecruiters**:检测 `jobs.smartrecruiters.com/<slug>` 以及 `careers.smartrecruiters.com/<slug>`。Endpoint:`https://api.smartrecruiters.com/v1/companies/<slug>/postings`。
+  - **Workday (beta)**:检测 `<tenant>.wd<N>.myworkdayjobs.com/<lang>/<site>`。Endpoint:POST 到 `/wday/cxs/<tenant>/<site>/jobs`。URL 无 site 时默认 `site=External`。Beta 是因为部分 tenant 用 CAPTCHA 封锁 CXS feed — fallback 到父项目 `/career-ops scan`(Playwright)。
 
-### 📚 Документация
+### 📚 文档
 
-- **`docs(portals-examples): trending boards block`** — `docs/portals-examples.md` расширен v1.14.0 секцией с 13 trending компаниями как ready-to-paste YAML для `tracked_companies`: Greenhouse-hosted (Stripe, GitLab, HashiCorp, Cloudflare, Datadog, Hugging Face) + Ashby-hosted (Notion, Linear, PostHog, Replicate, Modal Labs, Fly.io, Render). Все с `enabled: false` — пользователь сам верифицирует slug. Плюс примеры Workable / SmartRecruiters / Workday.
-- **`docs(framing): 42 ATS-фраз обновлены в 17 user-facing файлах`** — каждое появление "Greenhouse / Ashby / Lever" в пользовательской документации теперь читается как "Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday". Затронуты README × 8 локалей, help-бандл × 8 локалей, PROJECT.md. Исторические CHANGELOG записи и bug-fix-prescription документы (`qa/fixes/F-014`, `qa/FIX-PROMPT`) умышленно не тронуты — они описывают прошлое состояние или уже корректны.
-- **`docs(qa): browser test scenario 19`** — `qa/claude-cowork-browser-test-prompt.md` расширен Scenario 19: `ALL_ADAPTERS.length === 6` инвариант, `resolveAdapter()` URL-детекция для всех 6, soft-check Active Companies карточки в `#/scan`, структурная проверка `docs/portals-examples.md`.
+- **`docs(portals-examples): trending boards block`** — `docs/portals-examples.md` 扩展 v1.14.0 部分,把 13 个 trending 公司列为 `tracked_companies` 的 paste-ready YAML:Greenhouse-hosted (Stripe, GitLab, HashiCorp, Cloudflare, Datadog, Hugging Face) + Ashby-hosted (Notion, Linear, PostHog, Replicate, Modal Labs, Fly.io, Render)。全部 `enabled: false` — 用户启用前自行验证 slug。还有 Workable / SmartRecruiters / Workday 示例块。
+- **`docs(framing): 17 个面向用户的文件中 42 处 ATS 短语更新`** — 用户文档中每处 "Greenhouse / Ashby / Lever" 现在显示为 "Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday"。受影响:README × 8 语言、help bundle × 8 语言、PROJECT.md。历史 CHANGELOG 条目和 bug-fix 处方文档(`qa/fixes/F-014`、`qa/FIX-PROMPT`)有意未触 — 描述过去状态或已正确。
+- **`docs(qa): browser test scenario 19`** — `qa/claude-cowork-browser-test-prompt.md` 扩展 Scenario 19:`ALL_ADAPTERS.length === 6` 不变量、对 6 个全部进行 `resolveAdapter()` URL 检测扫描、`#/scan` Active Companies 卡片 soft-check、`docs/portals-examples.md` 结构检查。
 
-### 🧪 Тесты
+### 🧪 测试
 
-- `tests/adapter-registry.test.mjs` расширен 7 новыми кейсами для 3 новых адаптеров (Workable apply-URL, Workable legacy subdomain, SmartRecruiters jobs.* + careers.*, Workday tenant.wd5.* с явным site, Workday default-site fallback, `ALL_ADAPTERS.length === 6` инвариант, `detectApi()` legacy-shape совместимость).
-- Итого: **386 / 386** unit-тестов (было 379; +7). 0 падений.
+- `tests/adapter-registry.test.mjs` 扩展 7 个新案例,覆盖 3 个新适配器(Workable apply-URL、Workable legacy subdomain、SmartRecruiters jobs.* + careers.*、显式 site 的 Workday tenant.wd5.*、Workday default-site fallback、`ALL_ADAPTERS.length === 6` 不变量、`detectApi()` legacy-shape 兼容性)。
+- 总计:**386 / 386** unit 测试(之前 379;+7 净增)。0 失败。
 
 ### Out of scope
 
-| Item | Notes |
+| 项 | 说明 |
 |---|---|
-| Записи per-company для 13 trending Greenhouse/Ashby компаний | `docs/portals-examples.md` v1.14.0 блок содержит их как user-pasteable YAML; bulk-add в родительский `portals.yml` — отдельная фаза. |
-| Workday CAPTCHA-fallback автоматизация | Workday adapter throws когда CXS feed gated; планируемый fallback делегирует на родительский `/career-ops scan` (Playwright). Wiring в SPA scan UX — v1.15+. |
+| 13 个 trending Greenhouse/Ashby 公司的 per-company 条目 | `docs/portals-examples.md` v1.14.0 块以 paste 可用 YAML 列出;批量加入父项目 `portals.yml` 是独立阶段。 |
+| Workday CAPTCHA-fallback 自动化 | Workday adapter 在 CXS feed 被封时抛出;计划的 fallback 委托给父项目 `/career-ops scan`(Playwright)。SPA scan UX 接线为 v1.15+。 |
 
 ---
 
