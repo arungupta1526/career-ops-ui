@@ -157,9 +157,20 @@
           const parts = buf.split('\n\n'); buf = parts.pop();
           for (const p of parts) {
             const evMatch = p.match(/^event:\s*([\w-]+)/m);
-            const daMatch = p.match(/^data:\s*(.+)$/m);
-            if (!evMatch || !daMatch) continue;
-            let data; try { data = JSON.parse(daMatch[1]); } catch { data = {}; }
+            // v1.22.0 (L-4) — per SSE spec, an event may carry multiple
+            // `data:` lines; the consumer concatenates them with "\n".
+            // Today the server sends single-line JSON, so the old
+            // single-match worked — but it would silently drop the
+            // 2nd+ line of any multi-line payload. Join all `data:`
+            // lines for the event block before parsing.
+            const dataLines = [];
+            for (const line of p.split('\n')) {
+              const m = line.match(/^data:\s?(.*)$/);
+              if (m) dataLines.push(m[1]);
+            }
+            if (!evMatch || dataLines.length === 0) continue;
+            const dataRaw = dataLines.join('\n');
+            let data; try { data = JSON.parse(dataRaw); } catch { data = {}; }
             switch (evMatch[1]) {
               case 'start':
                 // already rendered the empty timeline; nothing to do.

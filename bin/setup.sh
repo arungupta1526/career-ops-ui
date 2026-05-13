@@ -14,7 +14,7 @@
 #   1. Clones (or updates) santifer/career-ops into ./career-ops
 #   2. Clones (or updates) Fighter90/career-ops-ui into career-ops/web-ui
 #   3. Adds /web-ui/ to career-ops/.gitignore (so the parent doesn't track it)
-#   4. Installs npm deps for web-ui (only on first run, two deps)
+#   4. Installs npm deps for web-ui (only on first run, three deps: express + js-yaml + multer)
 #   5. Starts the server on http://127.0.0.1:4317
 #
 # Env knobs:
@@ -56,7 +56,7 @@ need git "Install: brew install git  /  apt install git"
 need node "Install Node.js >= 18 from https://nodejs.org"
 need npm
 
-NODE_MAJOR=$(node -p "parseInt(process.versions.node)")
+NODE_MAJOR=$(node -p "parseInt(process.versions.node, 10)")
 if [ "$NODE_MAJOR" -lt 18 ]; then
   red "  error: Node.js >= 18 required (found $(node -v))"
   exit 1
@@ -97,7 +97,7 @@ fi
 
 # ── 4. npm install ────────────────────────────────────────────────────
 if [ ! -d "$UI_DIR/node_modules" ]; then
-  green "  → installing npm deps (one-time, two packages)"
+  green "  → installing npm deps (one-time, three packages: express + js-yaml + multer)"
   ( cd "$UI_DIR" && npm install --silent --no-audit --no-fund )
 else
   green "  ✓ npm deps already installed"

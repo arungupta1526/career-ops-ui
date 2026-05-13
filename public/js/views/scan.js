@@ -4,10 +4,18 @@
 // view renders so navigating away from /scan during an in-flight scan
 // doesn't leak setInterval timers (one per scan) into the page lifetime.
 let __activeScanPollHandle = null;
+// v1.22.0 (L-5) — also track the post-done setTimeout below; navigating
+// off `#/scan` in the 300 ms window between an `event: done` and the
+// final refreshResults() used to leak the timer + the toast.
+let __activeScanDoneTimeout = null;
 function __cancelActiveScanPoll() {
   if (__activeScanPollHandle) {
     clearInterval(__activeScanPollHandle);
     __activeScanPollHandle = null;
+  }
+  if (__activeScanDoneTimeout) {
+    clearTimeout(__activeScanDoneTimeout);
+    __activeScanDoneTimeout = null;
   }
 }
 // Cancel on every route change — the renderer always begins from a clean slate.
@@ -107,8 +115,10 @@ Router.register('scan', async () => {
           'success'
         );
         // Final refresh + onDone, with a small delay so the JSON file
-        // is flushed to disk on the server side.
-        setTimeout(() => {
+        // is flushed to disk on the server side. v1.22.0 (L-5) — capture
+        // the handle so hashchange cleanup can clear it.
+        __activeScanDoneTimeout = setTimeout(() => {
+          __activeScanDoneTimeout = null;
           refreshResults().catch(() => {});
           if (onDone) onDone();
         }, 300);

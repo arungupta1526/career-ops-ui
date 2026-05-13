@@ -423,7 +423,7 @@ curl -s -o /dev/null -w "%{http_code}" -X POST -F "file=@/tmp/v13-cv.md" http://
 
 ## Финальный отчёт
 
-После всех **30 сценариев** (0–16 базовые + 17–19 v1.11.x/v1.14.0 + 20–23 v1.12.0/v1.13.0/v1.14.0 + 24–27 v1.15.0–v1.20.0 + 28–30 v1.21.0) выдай таблицу:
+После всех **31 сценариев** (0–16 базовые + 17–19 v1.11.x/v1.14.0 + 20–23 v1.12.0/v1.13.0/v1.14.0 + 24–27 v1.15.0–v1.20.0 + 28–30 v1.21.0 + 31 v1.22.0 docs alignment) выдай таблицу:
 
 | Сценарий | Шаги | PASS | FAIL | SKIP | Заметки |
 |---|---|---|---|---|---|
@@ -458,6 +458,7 @@ curl -s -o /dev/null -w "%{http_code}" -X POST -F "file=@/tmp/v13-cv.md" http://
 | 28. v1.21.0 DNS-rebind TOCTOU closed (B-1) | 3 (28.1-28.3) | ... | ... | ... | ... |
 | 29. v1.21.0 path-traversal hardening (H-4) | 4 (29.1-29.4) | ... | ... | ... | ... |
 | 30. v1.21.0 LLM rate-limit (H-5) | 3 (30.1-30.3) | ... | ... | ... | ... |
+| 31. v1.22.0 docs alignment (career-ops.org/docs) | 6 (31.1-31.6) | ... | ... | ... | ... |
 | **Итого** | **~220** | **N** | **M** | **K** | |
 
 Плюс:
@@ -1153,5 +1154,139 @@ curl -sI -X POST -H "Content-Type: application/json" -d '{"jd":"..."}' \
 ```
 
 **PASS = 30.1 нет 429 на loopback, 30.2 4-й запрос на public bind → 429, 30.3 правильные headers.**
+
+---
+
+## Сценарий 31. career-ops.org/docs alignment (v1.22.0)
+
+**Цель.** UI должен соответствовать описанному функционалу в 5 канонических гайдах на [career-ops.org/docs](https://career-ops.org/docs):
+
+- <https://career-ops.org/docs/introduction/what-is-career-ops>
+- <https://career-ops.org/docs/introduction/guides/scan-job-portals>
+- <https://career-ops.org/docs/introduction/guides/apply-for-a-job>
+- <https://career-ops.org/docs/introduction/guides/batch-evaluate-offers>
+- <https://career-ops.org/docs/introduction/guides/set-up-playwright>
+
+Этот сценарий — сверка реального поведения UI с описанием в документации. Если UI отклоняется от описанного behavior, фиксируй как defect.
+
+### 31.1. Score thresholds от docs соответствуют UI
+
+Откой [career-ops.org/docs/introduction/what-is-career-ops](https://career-ops.org/docs/introduction/what-is-career-ops) — там action thresholds:
+
+- ≥ 4.5 → `/career-ops apply` (push immediately)
+- 4.0 – 4.4 → apply, or `/career-ops contacto` for warm intro
+- 3.5 – 3.9 → `/career-ops deep` (research first)
+- < 3.5 → skip
+
+**Verify:**
+
+- Open `#/reports`. Score pills использует тот же threshold-mapping (high ≥ 4.0, mid ≥ 3.0, low < 3.0)? Допустимая дельта — score pill brackets могут быть чуть мягче (UI: ≥4, ≥3, <3; docs: ≥4.5, ≥4.0, ≥3.5, <3.5).
+- Reports page карточка score-thresholds (v1.11.1) присутствует и читается? `#/reports` → expandable `<details>` с таблицей.
+- Help bundle на текущей локали (`/api/help/<lang>`) упоминает все 4 бакета score → action в первой трети текста.
+
+### 31.2. Scan job portals workflow
+
+Сверь UI flow с [scan-job-portals.md](https://career-ops.org/docs/introduction/guides/scan-job-portals) описанием:
+
+- Конфигурация: `portals.yml` → `tracked_companies`, `russian_portals`, `title_filter.positive` / `.negative`
+- Запуск: single 🌐 Scan button → консолидированный SSE → 6 ATS + hh.ru + Habr
+- Output: `data/last-scan.json` (filterable) + `data/scan-history.tsv` (history) + новые URLs в `data/pipeline.md` (filtered)
+
+**Endpoint sweep:**
+
+```bash
+# v1.18.0+: один consolidated endpoint, никаких -en / -ru aliases.
+curl -sf -o /dev/null -w "%{http_code}\n" "http://127.0.0.1:4317/api/stream/scan?source=ats&dryRun=1"
+# → 200 (SSE начинается)
+
+# Legacy aliases должны быть мёртвы:
+curl -sf -o /dev/null -w "%{http_code}\n" http://127.0.0.1:4317/api/stream/scan-en
+curl -sf -o /dev/null -w "%{http_code}\n" http://127.0.0.1:4317/api/stream/scan-ru
+curl -sf -o /dev/null -w "%{http_code}\n" http://127.0.0.1:4317/api/scan-ru/config
+# → 404 404 404 (v1.18.0 + v1.20.0 retirements)
+
+# Canonical regional config:
+curl -sf http://127.0.0.1:4317/api/scan/regional/config | python3 -c "import sys,json; d=json.load(sys.stdin); print('queries=', len(d.get('queries', [])))"
+```
+
+**UI verify:** На `#/scan` есть единая 🌐 Scan кнопка (НЕ две отдельные EN/RU), активна Active Companies card с health-чипами для каждого ATS.
+
+### 31.3. Apply for a job workflow
+
+Сверь с [apply-for-a-job.md](https://career-ops.org/docs/introduction/guides/apply-for-a-job):
+
+- `/career-ops apply` (Claude Code command) — autonomous form-fill через Playwright MCP
+- UI `#/apply` — НЕ автозаполняет, генерирует **checklist** для пользователя
+- Чеклист включает: URL валидацию, JD intent, manual review steps, ATS-specific hints
+- Banner на `#/apply` ссылается на `set-up-playwright.md` гайд (v1.11.1+)
+
+**Verify:**
+
+- Открой `#/apply` → проверь, что info-banner содержит `<a href="https://career-ops.org/docs/introduction/guides/set-up-playwright">` (не plain text).
+- POST `/api/apply-helper` с `{ "url": "https://job-boards.greenhouse.io/anthropic/jobs/x", "jd": "Senior Backend" }` — body содержит и `career-ops apply` (упоминание parent-команды), и `NEVER auto-submit` warning.
+- Help bundle §14 (Apply) содержит CLI flow с шагами 1–8 от `/career-ops apply <company>` до `Submitted.`
+
+### 31.4. Batch evaluate offers workflow
+
+Сверь с [batch-evaluate-offers.md](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers):
+
+- `batch/batch-input.tsv` — `id<TAB>url<TAB>source<TAB>notes` per row
+- `batch/batch-runner.sh --parallel N --min-score X --retry-failed`
+- Output: `batch/results/run-<ts>.tsv` + `batch/tracker-additions/*.md` (pending merge)
+- UI surface: `#/batch` (canonical, v1.13.0+)
+
+**Verify:**
+
+- `#/batch` рендерит TSV editor + 4 контролы (parallel, min-score, dry-run, retry) + live console
+- Endpoint `GET /api/batch` возвращает `{ exists, runnerExists, rows: [...] }` (runnerExists может быть false на стенде — soft)
+- `batch.parallel`, `batch.minScore`, `batch.dryRun`, `batch.retry` ARIA-описаны (v1.20.0 wiring, v1.21.0 H-2 fix)
+- TSV save → backend парсит таб-разделители корректно (НЕ split по пробелам)
+
+### 31.5. Playwright setup workflow
+
+Сверь с [set-up-playwright.md](https://career-ops.org/docs/introduction/guides/set-up-playwright):
+
+- `npx playwright install chromium` (one-time) — установка браузеров для PDF + apply
+- `claude mcp add playwright npx @playwright/mcp@latest` (для apply form-fill)
+- Setup нужен только для PDF generation (`#/cv → Generate PDF`) + apply workflow
+
+**Verify:**
+
+- `#/apply` banner ссылается на этот URL
+- Если Playwright НЕТ — `📄 Generate PDF` падает с graceful hint, не 500
+- Help bundle §14 (Apply) подсекция `Playwright setup` содержит обе команды
+
+### 31.6. Help bundle ↔ docs URL coverage в 8 локалях
+
+```bash
+for lang in en es pt-BR ko-KR ja ru zh-CN zh-TW; do
+  echo -n "$lang: "
+  for url in 'what-is-career-ops' 'scan-job-portals' 'apply-for-a-job' 'batch-evaluate-offers' 'set-up-playwright'; do
+    if curl -sf "http://127.0.0.1:4317/api/help/${lang%-*}" | grep -q "$url"; then echo -n "✓ "; else echo -n "✗ "; fi
+  done
+  echo ""
+done
+# Expected: каждая локаль показывает 5 ✓
+```
+
+### Финальный gate сценария 31
+
+| Подпункт | Что проверяет | PASS если |
+|---|---|---|
+| 31.1 | Score thresholds | UI score pills + reports card матчат docs action-thresholds |
+| 31.2 | Scan workflow | один 🌐 Scan endpoint, legacy aliases 404 |
+| 31.3 | Apply workflow | `#/apply` banner + checklist response соответствуют docs |
+| 31.4 | Batch workflow | `#/batch` рендерит TSV-editor + 4 controls, batch endpoints работают |
+| 31.5 | Playwright setup | gracefully fails если нет Playwright, banner ссылается на гайд |
+| 31.6 | Help docs coverage | 5 URLs × 8 локалей = 40 ✓ |
+
+**PASS = все 6 подпунктов зелёные.**
+
+**BLOCKER если:**
+
+- Сценарий 31.1 — score thresholds в UI противоречат docs (e.g. UI mid начинается с 2.5 вместо 3.0)
+- Сценарий 31.2 — legacy alias всё ещё возвращает 200 (v1.18 или v1.20 регрессия)
+- Сценарий 31.3 — `#/apply` form-fill автозаполняет (нарушает CLAUDE.md "Never auto-submit")
+- Сценарий 31.6 — какая-то локаль help-бандла теряет хотя бы 1 из 5 URLs
 
 

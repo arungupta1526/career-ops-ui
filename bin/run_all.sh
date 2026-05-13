@@ -90,7 +90,7 @@ run_suite() {
 }
 
 # ─── 1. Unit + integration via node:test ──────────────────────────────
-# Always runs. Fast (~17 s for 298 tests on a recent macbook).
+# Always runs. Fast (~7-18 s for 474+ tests on a recent macbook).
 run_suite "unit + integration"             npm test --silent
 
 # ─── 2. Playwright browser tests (smoke + lifecycle) ──────────────────

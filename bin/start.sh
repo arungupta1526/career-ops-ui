@@ -13,7 +13,7 @@
 #
 # What it does:
 #   1. Verifies Node ≥ 18.
-#   2. npm install (only on first run, two deps).
+#   2. npm install (only on first run, three deps: express + js-yaml + multer).
 #   3. Starts the Express server.
 #   4. Opens the browser when ready (macOS / Linux).
 
@@ -52,7 +52,7 @@ if ! command -v node >/dev/null 2>&1; then
   exit 1
 fi
 
-NODE_MAJOR=$(node -p "parseInt(process.versions.node)")
+NODE_MAJOR=$(node -p "parseInt(process.versions.node, 10)")
 if [ "$NODE_MAJOR" -lt 18 ]; then
   echo "  error: Node.js >= 18 required (found $(node -v))"
   exit 1

@@ -151,6 +151,16 @@ export function sanitizeJobDescription(input) {
 export function stripDangerousMarkdown(text) {
   if (!text) return '';
   let s = String(text).replace(/\x00/g, '');
+  // v1.22.0 (M-4) — entity-normalize before applying the strip regex.
+  // The pre-v1.22 implementation missed:
+  //   &lt;script&gt;…&lt;/script&gt;     — entity-encoded tags
+  //   java&#115;cript:                 — entity-encoded scheme letter
+  //   ja&#x76;ascript:                — hex-entity-encoded scheme letter
+  //   <img src="data:image/svg+xml,<svg onload=…>">  — nested SVG vector
+  // Decoding numeric / named entities first lets the same regex pass
+  // catch the decoded payload. The result is rewritten with HTML entities
+  // re-escaped for `<`, `>`, `&` so the output is still safe to embed.
+  s = decodeHtmlEntities(s);
   s = s
     .replace(/<script\b[\s\S]*?<\/script\s*>/gi, '')
     .replace(/<iframe\b[\s\S]*?<\/iframe\s*>/gi, '')
@@ -166,4 +176,33 @@ export function stripDangerousMarkdown(text) {
     .replace(/vbscript\s*:/gi, '')
     .replace(/data\s*:\s*text\/html/gi, '');
   return s;
+}
+
+/**
+ * Minimal HTML entity decoder used as a pre-pass by stripDangerousMarkdown.
+ * Decodes:
+ *   - numeric decimal entities `&#NNN;`
+ *   - numeric hex entities `&#xHH;`
+ *   - the four named entities that matter for XSS rewriting: `&lt;`,
+ *     `&gt;`, `&amp;`, `&quot;`
+ *
+ * We deliberately do NOT decode every named entity — that would expand
+ * `&copy;` to `©` and other non-XSS sequences in stored CVs, which
+ * would change unrelated text. The four above are sufficient to defeat
+ * the bypass class observed in the audit.
+ */
+function decodeHtmlEntities(s) {
+  return s
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => {
+      const code = parseInt(hex, 16);
+      return Number.isFinite(code) && code > 0 && code < 0x10ffff ? String.fromCodePoint(code) : '';
+    })
+    .replace(/&#(\d+);/g, (_, dec) => {
+      const code = parseInt(dec, 10);
+      return Number.isFinite(code) && code > 0 && code < 0x10ffff ? String.fromCodePoint(code) : '';
+    })
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&amp;/gi, '&');
 }

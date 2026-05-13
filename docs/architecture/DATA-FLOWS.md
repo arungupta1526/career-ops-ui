@@ -51,9 +51,9 @@ Every row below corresponds to a documented HTTP action initiated by a UI contro
 
 | Path | Triggered by | Route | Notes |
 |---|---|---|---|
-| `cv.md` | "Save" in CV view | `PUT /api/cv` | Sanitized via `stripDangerousMarkdown`. 1 MB cap. |
-| `data/applications.md` | "Add to tracker" | `POST /api/tracker` | Dedup by (company, role) case-insensitive. Bootstraps header if file empty. |
-| `data/pipeline.md` | "Add URL" / paste in global search | `POST /api/pipeline`, `DELETE /api/pipeline?url=` | URL gated by `isValidJobUrl`. Dedup. |
+| `cv.md` | "Save" in CV view | `PUT /api/cv` | Sanitized via `stripDangerousMarkdown` (v1.22.0 M-4: entity-decoded before regex strip). 1 MB cap. |
+| `data/applications.md` | "Add to tracker" | `POST /api/tracker` | Dedup by (company, role) case-insensitive. Bootstraps header if file empty. **v1.21.0 (H-6):** read-modify-write serialized via `withFileLock(PATHS.applications, fn)` from `server/lib/file-lock.mjs` — concurrent POSTs no longer drop rows. |
+| `data/pipeline.md` | "Add URL" / paste in global search | `POST /api/pipeline`, `DELETE /api/pipeline?url=` | URL gated by `isValidJobUrl`. Dedup. **v1.21.0 (H-6):** both POST and DELETE wrapped in `withFileLock(PATHS.pipeline, fn)`. |
 | `data/scan-history.tsv` | Scan run | `GET /api/stream/scan?source=ats\|regional\|both` (v1.18.0+) | Append-only. Skipped on `dryRun=1`. |
 | `data/last-scan.json` | Scan run | (same) | Replaced atomically. Skipped on `dryRun=1`. |
 | `data/activity.jsonl` | Every state-changing request | `activityMiddleware` | Append. Redacts `SECRET_KEYS`. |
@@ -72,6 +72,30 @@ Watch-outs:
 - The spawned script may write anywhere inside the parent project — that's outside our auditing surface. Trust comes from the user owning the parent code.
 - Hard timeout: 60 s buffered, 180 s for `gemini-eval.mjs`, no fixed cap on streaming runners (they live until client disconnect or natural exit).
 - On client disconnect (SSE), the runner sends `SIGTERM` and falls through to `SIGKILL` after a grace period.
+
+## Outbound URL fetches (DNS-rebind-safe)
+
+**v1.21.0 (B-1).** Two endpoints fetch user-supplied URLs from the public internet: `/api/pipeline/preview` (HTML snippet for the preview pane) and `/api/auto-pipeline` (JD body for the LLM call). Both go through `server/lib/safe-fetch.mjs::safeGet`.
+
+The previous implementation did one explicit `dnsLookup()` for the privacy check, then let `fetch()` do its own independent lookup — a DNS-rebind attacker with TTL=0 could return a public IP on lookup #1 and a private IP on lookup #2. The new `safeGet`:
+
+1. Resolves the hostname **once** via `dns.promises.lookup`.
+2. Checks the address against `isPrivateOrLoopbackHost` — rejects RFC1918, loopback, link-local 169.254/16 (AWS IMDS), CGNAT, IPv6 ULA / link-local.
+3. Issues the request via `node:http`/`node:https` with `host`/`hostname` set to the validated IP — **no second lookup**. Sets `servername` (TLS SNI) and the `Host` header to the original hostname so cert validation and virtual hosting still target the right name.
+4. Follows up to 3 HTTP redirects, re-validating each `Location` through `isValidJobUrl` + `isPrivateOrLoopbackHost`.
+5. Streams the body and caps at `opts.maxBytes` (preview: 32 KB raw / 8 KB after strip; auto-pipeline: 256 KB raw / 64 KB after strip). v1.22.0 (M-2) confirmed via `tests/ssrf-redirect-rebind.test.mjs` cap test.
+
+**Fail-CLOSED on DNS errors** — reverses the pre-v1.21 fail-OPEN catch in `pipeline.mjs:68-71`. Test stubs that need to bypass real DNS use the `_setTransport(fn)` injection point.
+
+## LLM endpoint rate-limiting
+
+**v1.21.0 (H-5).** `/api/evaluate`, `/api/deep`, `/api/mode/:slug`, `/api/auto-pipeline` wear `llmRateLimit` from `server/lib/rate-limit.mjs`. The middleware:
+
+- **No-op on loopback** (`HOST=127.0.0.1` or default unset).
+- **Active on public bind** (`HOST=0.0.0.0` or any non-loopback): 10 req/min/IP token bucket. Returns 429 with `Retry-After`, `X-RateLimit-Limit`, `X-RateLimit-Reset` headers on overflow.
+- Configurable via `LLM_RATE_LIMIT="N/Ws"` (or `N/Wms`).
+
+This is interim defense ahead of v2.0 P-12 auth gate.
 
 ## In-process portal fetches (NOT spawned)
 

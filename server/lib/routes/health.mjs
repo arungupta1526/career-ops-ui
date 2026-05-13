@@ -29,7 +29,7 @@ export function registerHealthRoutes(app) {
     const hidden = isPubliclyExposed() ? 'hidden' : null;
 
     // Required checks — system can't function without these
-    checks.push({ name: 'Node version', required: true, ok: parseInt(process.versions.node) >= 18, value: hidden ?? `v${process.versions.node}` });
+    checks.push({ name: 'Node version', required: true, ok: parseInt(process.versions.node, 10) >= 18, value: hidden ?? `v${process.versions.node}` });
     checks.push({ name: 'Project root', required: true, ok: existsSync(PROJECT_ROOT), value: hidden ?? PROJECT_ROOT });
     checks.push({ name: 'cv.md', required: true, ok: existsSync(PATHS.cv) });
     checks.push({ name: 'config/profile.yml', required: true, ok: existsSync(PATHS.profile) });

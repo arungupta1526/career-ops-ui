@@ -102,7 +102,10 @@ export function registerBatchRoutes(app) {
     if (req.query.retry === '1') args.push('--retry-failed');
 
     send('start', { script: 'batch-runner.sh', args });
-    const child = spawn('bash', [PATHS.batchRunner, ...args], {
+    // v1.22.0 (L-2) — --noprofile --norc skips ~/.bashrc / ~/.bash_profile
+    // so a hostile or broken rc file in CAREER_OPS_ROOT cannot influence
+    // the runner. Defense-in-depth; the runner script itself is trusted.
+    const child = spawn('bash', ['--noprofile', '--norc', PATHS.batchRunner, ...args], {
       cwd: PATHS.root,
       env: { ...process.env },
     });

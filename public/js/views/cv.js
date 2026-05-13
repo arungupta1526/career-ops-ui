@@ -138,7 +138,7 @@ Router.register('cv', async () => {
     },
   });
 
-  return c('div', null, [
+  const root = c('div', null, [
     c('header', { className: 'page-header' }, [
       c('div', null, [
         c('h1', { className: 'page-title' }, t('cv.title')),
@@ -185,17 +185,15 @@ Router.register('cv', async () => {
     ]),
 
     c('div', { className: 'mt-5' }, pdfBox),
-  ]).also((root) => {
-    ta.addEventListener('input', () => {
-      const p = root.querySelector('#cv-preview');
-      p.innerHTML = UI.md(ta.value);
-    });
-    // Lazy-load the PDF list so the page first paint isn't blocked.
-    loadPdfList();
+  ]);
+  // v1.22.0 (N-2) — was `.also(fn)` via Element.prototype monkey-patch;
+  // replaced with a free function so we don't pollute the global DOM
+  // prototype (would conflict with any future library defining `.also`).
+  ta.addEventListener('input', () => {
+    const p = root.querySelector('#cv-preview');
+    p.innerHTML = UI.md(ta.value);
   });
+  // Lazy-load the PDF list so the page first paint isn't blocked.
+  loadPdfList();
+  return root;
 });
-
-// Tiny chainable .also helper (declared once for the app)
-if (!Element.prototype.also) {
-  Element.prototype.also = function (fn) { fn(this); return this; };
-}

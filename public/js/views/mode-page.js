@@ -14,14 +14,20 @@
  * view file required.
  */
 (function () {
+  // v1.22.0 (M-1) — each field carries a `hint` key that maps to a
+  // per-field hint paragraph i18n entry. The hint <p> is associated
+  // to the control via aria-describedby so screen readers voice the
+  // intent when the user focuses the input. The README walkthroughs
+  // still own the long-form prose; these strings are the bite-sized
+  // version that fits inline.
   const MODES = [
     {
       slug: 'project',
       titleKey: 'project.title',
       subtitleKey: 'project.subtitle',
       fields: [
-        { name: 'idea',        type: 'textarea', i18n: { label: 'project.ideaLbl', placeholder: 'project.ideaPh' }, required: true, rows: 6 },
-        { name: 'targetRole',  type: 'input',    i18n: { label: 'project.roleLbl', placeholder: 'project.rolePh' } },
+        { name: 'idea',        type: 'textarea', i18n: { label: 'project.ideaLbl', placeholder: 'project.ideaPh', hint: 'project.ideaHint' }, required: true, rows: 6 },
+        { name: 'targetRole',  type: 'input',    i18n: { label: 'project.roleLbl', placeholder: 'project.rolePh', hint: 'project.roleHint' } },
       ],
     },
     {
@@ -29,8 +35,8 @@
       titleKey: 'training.title',
       subtitleKey: 'training.subtitle',
       fields: [
-        { name: 'course',  type: 'input',    i18n: { label: 'training.courseLbl', placeholder: 'training.coursePh' }, required: true },
-        { name: 'goals',   type: 'textarea', i18n: { label: 'training.goalsLbl', placeholder: 'training.goalsPh' }, rows: 4 },
+        { name: 'course',  type: 'input',    i18n: { label: 'training.courseLbl', placeholder: 'training.coursePh', hint: 'training.courseHint' }, required: true },
+        { name: 'goals',   type: 'textarea', i18n: { label: 'training.goalsLbl', placeholder: 'training.goalsPh', hint: 'training.goalsHint' }, rows: 4 },
       ],
     },
     {
@@ -38,10 +44,10 @@
       titleKey: 'followup.title',
       subtitleKey: 'followup.subtitle',
       fields: [
-        { name: 'company', type: 'input',    i18n: { label: 'followup.companyLbl', placeholder: 'followup.companyPh' }, required: true },
-        { name: 'role',    type: 'input',    i18n: { label: 'followup.roleLbl', placeholder: 'followup.rolePh' }, required: true },
-        { name: 'lastContact', type: 'input', i18n: { label: 'followup.lastLbl', placeholder: 'followup.lastPh' } },
-        { name: 'notes',   type: 'textarea', i18n: { label: 'followup.notesLbl', placeholder: 'followup.notesPh' }, rows: 4 },
+        { name: 'company', type: 'input',    i18n: { label: 'followup.companyLbl', placeholder: 'followup.companyPh', hint: 'followup.companyHint' }, required: true },
+        { name: 'role',    type: 'input',    i18n: { label: 'followup.roleLbl', placeholder: 'followup.rolePh', hint: 'followup.roleHint' }, required: true },
+        { name: 'lastContact', type: 'input', i18n: { label: 'followup.lastLbl', placeholder: 'followup.lastPh', hint: 'followup.lastHint' } },
+        { name: 'notes',   type: 'textarea', i18n: { label: 'followup.notesLbl', placeholder: 'followup.notesPh', hint: 'followup.notesHint' }, rows: 4 },
       ],
     },
     {
@@ -60,8 +66,8 @@
       subtitleKey: 'batch.subtitle',
       deprecation: 'batch-prompt.deprecated',
       fields: [
-        { name: 'urls',    type: 'textarea', i18n: { label: 'batch.urlsLbl', placeholder: 'batch.urlsPh' }, required: true, rows: 8 },
-        { name: 'workers', type: 'input',    i18n: { label: 'batch.workersLbl', placeholder: 'batch.workersPh' } },
+        { name: 'urls',    type: 'textarea', i18n: { label: 'batch.urlsLbl', placeholder: 'batch.urlsPh', hint: 'batch.urlsHint' }, required: true, rows: 8 },
+        { name: 'workers', type: 'input',    i18n: { label: 'batch.workersLbl', placeholder: 'batch.workersPh', hint: 'batch.workersHint' } },
       ],
     },
     {
@@ -69,10 +75,10 @@
       titleKey: 'contacto.title',
       subtitleKey: 'contacto.subtitle',
       fields: [
-        { name: 'recipient', type: 'input',    i18n: { label: 'contacto.recipientLbl', placeholder: 'contacto.recipientPh' }, required: true },
-        { name: 'company',   type: 'input',    i18n: { label: 'contacto.companyLbl', placeholder: 'contacto.companyPh' }, required: true },
-        { name: 'role',      type: 'input',    i18n: { label: 'contacto.roleLbl', placeholder: 'contacto.rolePh' } },
-        { name: 'context',   type: 'textarea', i18n: { label: 'contacto.contextLbl', placeholder: 'contacto.contextPh' }, rows: 5 },
+        { name: 'recipient', type: 'input',    i18n: { label: 'contacto.recipientLbl', placeholder: 'contacto.recipientPh', hint: 'contacto.recipientHint' }, required: true },
+        { name: 'company',   type: 'input',    i18n: { label: 'contacto.companyLbl', placeholder: 'contacto.companyPh', hint: 'contacto.companyHint' }, required: true },
+        { name: 'role',      type: 'input',    i18n: { label: 'contacto.roleLbl', placeholder: 'contacto.rolePh', hint: 'contacto.roleHint' } },
+        { name: 'context',   type: 'textarea', i18n: { label: 'contacto.contextLbl', placeholder: 'contacto.contextPh', hint: 'contacto.contextHint' }, rows: 5 },
       ],
     },
     {
@@ -80,9 +86,9 @@
       titleKey: 'interviewPrep.title',
       subtitleKey: 'interviewPrep.subtitle',
       fields: [
-        { name: 'company', type: 'input',    i18n: { label: 'interviewPrep.companyLbl', placeholder: 'interviewPrep.companyPh' }, required: true },
-        { name: 'role',    type: 'input',    i18n: { label: 'interviewPrep.roleLbl', placeholder: 'interviewPrep.rolePh' }, required: true },
-        { name: 'stage',   type: 'input',    i18n: { label: 'interviewPrep.stageLbl', placeholder: 'interviewPrep.stagePh' } },
+        { name: 'company', type: 'input',    i18n: { label: 'interviewPrep.companyLbl', placeholder: 'interviewPrep.companyPh', hint: 'interviewPrep.companyHint' }, required: true },
+        { name: 'role',    type: 'input',    i18n: { label: 'interviewPrep.roleLbl', placeholder: 'interviewPrep.rolePh', hint: 'interviewPrep.roleHint' }, required: true },
+        { name: 'stage',   type: 'input',    i18n: { label: 'interviewPrep.stageLbl', placeholder: 'interviewPrep.stagePh', hint: 'interviewPrep.stageHint' } },
       ],
     },
     {
@@ -90,8 +96,8 @@
       titleKey: 'patterns.title',
       subtitleKey: 'patterns.subtitle',
       fields: [
-        { name: 'window', type: 'input',    i18n: { label: 'patterns.windowLbl', placeholder: 'patterns.windowPh' } },
-        { name: 'focus',  type: 'textarea', i18n: { label: 'patterns.focusLbl', placeholder: 'patterns.focusPh' }, rows: 4 },
+        { name: 'window', type: 'input',    i18n: { label: 'patterns.windowLbl', placeholder: 'patterns.windowPh', hint: 'patterns.windowHint' } },
+        { name: 'focus',  type: 'textarea', i18n: { label: 'patterns.focusLbl', placeholder: 'patterns.focusPh', hint: 'patterns.focusHint' }, rows: 4 },
       ],
     },
   ];
@@ -142,19 +148,33 @@
       // label can target it via htmlFor. Per-mode prefix keeps ids unique
       // when more than one mode view is in the DOM (Router only mounts one
       // at a time, but defence-in-depth here is cheap).
+      // v1.22.0 (M-1) — if the field spec carries `i18n.hint`, render an
+      // inline hint paragraph + wire aria-describedby. The hint key is
+      // looked up at render time so locale switches refresh both the
+      // label and the hint without a re-render.
       const inputId = `mode-${cfg.slug}-${spec.name}`;
+      const hintId = spec.i18n.hint ? `${inputId}-hint` : null;
       const opts = {
         id: inputId,
         className: spec.type === 'textarea' ? 'textarea' : 'input',
         placeholder: t(spec.i18n.placeholder, spec.i18n.placeholder),
       };
+      if (hintId) opts['aria-describedby'] = hintId;
       if (spec.type === 'textarea') opts.rows = spec.rows || 4;
       const el = c(spec.type, opts);
       fields[spec.name] = el;
-      return c('div', { className: 'field' }, [
+      const children = [
         c('label', { htmlFor: inputId }, t(spec.i18n.label, spec.i18n.label)),
         el,
-      ]);
+      ];
+      if (hintId) {
+        children.push(c('p', {
+          id: hintId,
+          className: 'field-hint',
+          style: { color: 'var(--foggy)', fontSize: '13px', margin: '4px 0 0' },
+        }, t(spec.i18n.hint, '')));
+      }
+      return c('div', { className: 'field' }, children);
     }
 
     const out = c('div');

@@ -448,11 +448,15 @@ You can also extend any company entry with an explicit `api:` URL. See [`docs/po
 ## Security notes
 
 - Server binds to `127.0.0.1` by default — never exposed to the internet without explicit `HOST=0.0.0.0`.
-- All file path inputs from the client are sanitized (`replace(/[^\w\-.]/g, '')`).
-- Subprocess invocations use `spawn` with arg arrays — **no shell interpolation, ever**.
+- **Path sanitization (v1.21.0)**: every `:name` / `:slug` route param goes through `sanitizePathName()` in `server/lib/security.mjs` — strips non-`[\w-.]`, drops leading dot-runs, collapses internal dot-runs, caps at 200 chars, empty → 400. Replaces 10 duplicated regex copies that previously kept `..pdf` / `....md` through.
+- **DNS-rebind defense (v1.21.0)**: `/api/pipeline/preview` and `/api/auto-pipeline` route through `server/lib/safe-fetch.mjs::safeGet` — one DNS lookup, pinned TCP connection, SNI/Host targeted at the original hostname. No second lookup, no TOCTOU window.
+- **Concurrent-write mutex (v1.21.0)**: `tracker.mjs`, `pipeline.mjs` (POST + DELETE), and `auto-pipeline.mjs`'s tracker step wrap read-modify-write in `withFileLock(path, fn)` from `server/lib/file-lock.mjs`. Concurrent POSTs no longer drop rows.
+- **LLM rate-limit (v1.21.0)**: `/api/evaluate`, `/api/deep`, `/api/mode/:slug`, `/api/auto-pipeline` wear `llmRateLimit` from `server/lib/rate-limit.mjs`. **No-op on loopback**; 10 req/min/IP on `HOST=0.0.0.0`. Configurable via `LLM_RATE_LIMIT="N/Ws"`. 429 + `Retry-After`.
+- **CV XSS strip (v1.22.0 hardening)**: `stripDangerousMarkdown` is now entity-aware — decodes `&lt;`, `&gt;`, `&#NN;`, `&#xHH;` before regex strip so `&lt;script&gt;` and `java&#115;cript:` payloads can't bypass.
+- Subprocess invocations use `spawn` with arg arrays — **no shell interpolation, ever**. `bash` runner uses `--noprofile --norc` to ignore `~/.bashrc`.
 - Streaming endpoints kill the child process on client disconnect (no orphaned scanners).
-- Write endpoints touch only known career-ops paths: `data/`, `jds/`, `cv.md`, `config/`, `portals.yml`, `output/`. Never anywhere else.
-- The connection banner pings `/api/health` every 3 s while disconnected and auto-clears on recovery — no toast spam.
+- Write endpoints touch only known career-ops paths: `data/`, `jds/`, `cv.md`, `config/`, `portals.yml`, `output/`, `reports/`, `interview-prep/`, `modes/_profile.md`. Never anywhere else.
+- The connection banner pings `/api/health` with exponential backoff (3 s → 6 s → 12 s → 24 s → 60 s) while disconnected and auto-clears on recovery (v1.22.0 M-6).
 
 ---
 

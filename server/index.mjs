@@ -13,6 +13,8 @@
  *   GEMINI_API_KEY   forwarded to gemini-eval.mjs if present
  */
 import express from 'express';
+import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 import { PATHS, PROJECT_ROOT, PUBLIC_DIR } from './lib/paths.mjs';
 import { activityMiddleware } from './lib/activity-log.mjs';
 import { loadEnvFile } from './lib/dotenv.mjs';
@@ -154,7 +156,10 @@ export function createApp() {
 
 // ───────────────────────────── boot ─────────────────────────────
 
-const isMain = import.meta.url === `file://${process.argv[1]}`;
+// v1.22.0 (L-3) — Windows-safe entrypoint check. The string-template
+// `file://${argv[1]}` form mishandles drive letters and backslashes on
+// Windows. fileURLToPath + path.resolve normalize both sides.
+const isMain = fileURLToPath(import.meta.url) === resolve(process.argv[1] || '');
 if (isMain) {
   const port = parseInt(process.env.PORT || '4317', 10);
   const host = process.env.HOST || '127.0.0.1';

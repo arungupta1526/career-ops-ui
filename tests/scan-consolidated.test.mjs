@@ -110,3 +110,11 @@ test('F-018 v1.18.0: legacy /api/stream/scan-ru returns 404', async () => {
   const res = await fetch(baseUrl + '/api/stream/scan-ru');
   assert.equal(res.status, 404);
 });
+
+// v1.22.0 (M-8) — `/api/scan-ru/config` was retired in v1.20.0. The
+// v1.18 retirements have explicit 404 canaries; this one didn't, so
+// nothing would fire if someone re-introduced the alias by accident.
+test('v1.20.0: retired /api/scan-ru/config returns 404', async () => {
+  const res = await fetch(baseUrl + '/api/scan-ru/config');
+  assert.equal(res.status, 404);
+});

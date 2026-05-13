@@ -6,6 +6,107 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.22.0] — 2026-05-14
+
+**M/L/N backlog clearout + docs alignment + translation quality pass.** The entire v1.20.1-BACKLOG.md medium-and-below tier shipped in one release: nine M-items, five L-items, two nits. Plus a docs-alignment audit against the five canonical [career-ops.org/docs](https://career-ops.org/docs) guides, refreshed system prompts under `.claude/` and `.github/`, and quality-refreshed READMEs in all 7 non-English locales.
+
+### 🛡️ Security hardening (defense-in-depth)
+
+- **`fix(security): M-4 — entity-aware stripDangerousMarkdown`** ([`server/lib/security.mjs`](server/lib/security.mjs)) — the pre-v1.22 regex matched `<script>`, `javascript:`, `on*=` as literal substrings. `&lt;script&gt;`, `java&#115;cript:`, and `<img src="data:image/svg+xml,<svg onload=…>">` slipped through. The strip now decodes `&lt;`, `&gt;`, `&amp;`, `&quot;`, numeric (`&#NN;`) and hex (`&#xHH;`) entities **before** the strip regex runs. Validated by 11 tests in [`tests/cv-xss-bypasses.test.mjs`](tests/cv-xss-bypasses.test.mjs). Real defense is still the client-side `UI.md` escape-first pipeline; this hardens the at-rest file.
+
+- **`fix(security): L-2 — bash --noprofile --norc on the batch runner`** ([`server/lib/routes/batch.mjs:108`](server/lib/routes/batch.mjs#L108)) — `spawn('bash', [PATHS.batchRunner, ...])` used to inherit the user's `~/.bashrc`. A hostile rc file could influence the run. Now `spawn('bash', ['--noprofile', '--norc', PATHS.batchRunner, ...])`.
+
+### 🔒 Resilience
+
+- **`fix(client): M-6 — exponential backoff on health ping`** ([`public/js/api.js:22-48`](public/js/api.js#L22-L48)) — the disconnected-state poller used to fire 28,800 fetches against a dead server overnight. Now 3 s → 6 s → 12 s → 24 s → 60 s; resets to 3 s on first 2xx recovery. Setup is a `setTimeout` chain (not `setInterval`) so each step picks up the new delay.
+
+- **`fix(client): M-5 — Safari private-mode localStorage guard`** ([`public/js/lib/i18n.js:572-583`](public/js/lib/i18n.js#L572-L583)) — Safari private-mode throws `SecurityError` on every `localStorage.getItem/setItem`. The IIFE-during-load used to fail the entire i18n module, leaving the SPA rendering raw keys. Wrapped both calls in try/catch with the `detect()` browser-language fallback.
+
+- **`fix(server): M-2 — body-size cap on outbound preview fetches (test + verify)`** — the v1.21.0 `safeGet` already streamed chunks and capped at `opts.maxBytes`. v1.22 adds an explicit regression test in [`tests/ssrf-redirect-rebind.test.mjs`](tests/ssrf-redirect-rebind.test.mjs) to lock the contract: 100 KB upstream + 4 KB cap → response ≤ 4 KB.
+
+- **`fix(client): L-5 — clear setTimeout on hashchange in scan.js`** ([`public/js/views/scan.js:6-22, :113-120`](public/js/views/scan.js#L6-L22)) — the post-done 300 ms `refreshResults()` timer used to leak when the user navigated off `#/scan` in that window. Handle is now captured and cleared in `__cancelActiveScanPoll`.
+
+- **`fix(client): L-4 — multi-line SSE data: joiner`** ([`public/js/lib/auto-pipeline.js:158-176`](public/js/lib/auto-pipeline.js#L158-L176)) — the SSE parser used `match()` (single-line). Per spec, an event may carry multiple `data:` lines that the consumer joins with `\n`. Server currently sends single-line JSON, so the old code worked — but was brittle to any future multi-line payload.
+
+### ♿ Accessibility
+
+- **`feat(a11y): M-3 — WCAG 1.4.1 redundant cues on score pills + connection banner`** ([`public/css/app.css:602-625, :812-822`](public/css/app.css#L602-L625)) — score-high / score-mid / score-low used to convey state by hue alone (red/amber/green). Users who can't perceive hue had no fallback. Each tier now gets a redundant glyph via `::before` (✓ / ◐ / ○). Connection banner gets a leading `⚠` glyph in the offline state. Render sites untouched — pure CSS hardening.
+
+- **`feat(a11y): M-1 — inline hint paragraphs for every mode-page field`** ([`public/js/views/mode-page.js`](public/js/views/mode-page.js), [`public/js/lib/i18n.js`](public/js/lib/i18n.js)) — v1.20.0 wired `htmlFor → id` for every mode-page field but didn't carry inline hint copy; only the README walkthroughs documented field intent. v1.22.0 adds 19 hint i18n keys × 8 locales = **152 new translations** and the `field()` builder now renders a `<p id="…-hint">` with `aria-describedby` wiring per field. Screen-reader users hear the hint when the input is focused.
+
+- **`fix(a11y): M-7 — null-guard on UI.el() htmlFor alias`** ([`public/js/api.js:194-198`](public/js/api.js#L194-L198)) — `htmlFor: null` used to render literal `for="null"`. One-liner mirror of the fallthrough branch's `v != null && v !== false` guard.
+
+### 🧹 Quality / portability
+
+- **`fix(server): L-1 — parseInt radix in health.mjs + bin/start.sh + bin/setup.sh`** — `parseInt(process.versions.node)` without radix triggers a lint warning and is brittle if Node ever ships hex versions. Added `10` everywhere.
+
+- **`fix(server): L-3 — Windows-safe entrypoint check`** ([`server/index.mjs:159-163`](server/index.mjs#L159-L163)) — `import.meta.url === \`file://${process.argv[1]}\`` mishandles drive letters and backslashes on Windows. Replaced with `fileURLToPath(import.meta.url) === path.resolve(process.argv[1])`.
+
+- **`refactor(client): N-2 — drop Element.prototype.also monkey-patch`** ([`public/js/views/cv.js:188-201`](public/js/views/cv.js#L188-L201)) — global DOM prototype pollution. Replaced with a local variable for the tree root.
+
+- **`test(canary): M-8 — 404 regression test for retired /api/scan-ru/config`** ([`tests/scan-consolidated.test.mjs`](tests/scan-consolidated.test.mjs)) — v1.20.0 retired the alias but added no canary. Three-line addition mirroring the v1.18 retirement tests.
+
+### 📚 Docs + system prompts
+
+- **`docs(architecture): refresh OVERVIEW + DATA-FLOWS for v1.21+ surface`** — added `safe-fetch.mjs` (DNS-pinned GET), `file-lock.mjs` (per-path mutex), `rate-limit.mjs` (LLM throttle), and `sanitizePathName` to OVERVIEW.md. DATA-FLOWS.md gained two new sections: "Outbound URL fetches (DNS-rebind-safe)" and "LLM endpoint rate-limiting".
+
+- **`docs(readme): security envelope section refresh`** — README.md "Security notes" now documents every helper in the v1.21+ security envelope (sanitizePathName, safeGet, withFileLock, llmRateLimit, entity-aware stripDangerousMarkdown).
+
+- **`docs(qa): scenario 31 — career-ops.org/docs alignment`** ([`qa/claude-cowork-browser-test-prompt.md`](qa/claude-cowork-browser-test-prompt.md)) — six new sub-tests (31.1–31.6) that verify the UI matches behavior described in the five canonical career-ops.org/docs guides: score thresholds, scan workflow (one button), apply workflow (checklist, not auto-submit), batch workflow (TSV editor), Playwright setup (graceful failure), help-bundle coverage (5 URLs × 8 locales).
+
+- **`docs(translate): README quality refresh × 7 non-EN locales`** — every non-EN README rewritten to publication-grade technical style in its native language. Common clunky calques replaced; v1.21/v1.22 security envelope mentions added; release/test badges bumped.
+
+- **`docs(system): .claude/PROJECT-CONTEXT.md + .github/copilot-instructions.md`** — single-file orientation for agents joining a session. Compressed CLAUDE.md, names the v1.21+ helpers, lists common pitfalls.
+
+- **`docs(bin): actualize start.sh / setup.sh / run_all.sh comments`** — "two deps" → "three deps" (express + js-yaml + multer); "298 tests" → "474+ tests"; `parseInt` radix added.
+
+### 🧪 Tests
+
+- **461 → 474 unit** (+13) + 32/32 Playwright unchanged.
+- New test files: `cv-xss-bypasses.test.mjs` (M-4, 11 tests).
+- Extended: `ssrf-redirect-rebind.test.mjs` (+1 for M-2 body cap), `scan-consolidated.test.mjs` (+1 for M-8 alias canary).
+- Zero behavioral test deltas on existing suites — every fix is additive or covered by a new canary.
+
+### Verification
+
+```bash
+npm test                          # 474 / 474
+npm run test:e2e:browser          # 32 / 32
+
+# Entity-encoded XSS strip:
+node -e "import('./server/lib/security.mjs').then(({stripDangerousMarkdown}) => console.log(stripDangerousMarkdown('&lt;script&gt;alert(1)&lt;/script&gt;')))"
+# → '' (no <script> survives)
+
+# Health-ping backoff (open devtools, kill server, watch network panel):
+#   3 s → 6 s → 12 s → 24 s → 60 s, then resets on first successful ping
+
+# Score-pill glyph (open #/reports in light + dark theme):
+#   .score-high shows ✓ + numeric score
+#   .score-mid  shows ◐ + numeric score
+#   .score-low  shows ○ + numeric score
+
+# Mode-page hints (#/contacto, etc):
+#   <input aria-describedby="mode-contacto-recipient-hint">  ← targets <p id="…">
+
+# Retired alias:
+curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:4317/api/scan-ru/config
+# → 404
+```
+
+### Breaking changes
+
+None. Every fix is additive or preserves existing endpoint contracts.
+
+### Out of scope (v1.23+)
+
+| Item | Notes |
+|---|---|
+| M-9 — locale CHANGELOG body translations | All `CHANGELOG.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md` v1.13+ entries are EN-bodied stop-gaps. Bulk translation candidate after release cadence slows. |
+| N-1 — `public/js/lib/i18n.js` over the 400-LOC target | Splitting per locale increases HTTP cost without a bundler. Defer until the build-step decision lands. |
+| Help-bundle content refresh from career-ops.org/docs | The five canonical URLs already appear in every locale's help bundle (since v1.11.x). Scenario 31.6 in the QA prompt verifies coverage. Content depth refresh is a v1.23 candidate. |
+
+---
+
 ## [1.21.0] — 2026-05-14
 
 **Security + concurrency + a11y polish from two independent code-review passes.** Seven findings from [`docs/specs/V1.20.1-BACKLOG.md`](docs/specs/V1.20.1-BACKLOG.md) shipped in one release: one blocker (DNS-rebind TOCTOU), six high-severity bugs (path-traversal sanitization spread, rate-limit gap on LAN deploy, concurrent-write race, i18n coverage hole, dangling aria-describedby, missing label associations). 34 new tests; baseline rose from 427 → 461 unit + 32/32 Playwright. Every fix lands behind a named regression test.

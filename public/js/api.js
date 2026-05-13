@@ -18,17 +18,33 @@ window.API = (function () {
       banner.hidden = true;
     }
   }
-  // Periodic ping to detect server recovery
-  setInterval(async () => {
-    if (!connectionLost) return;
-    try {
-      const r = await fetch('/api/health', { cache: 'no-store' });
-      if (r.ok) {
-        setConnectionState(false);
-        if (window.UI) UI.toast((window.I18n && I18n.t('conn.recovered', 'Connection restored')) || 'Connection restored', 'success');
+  // v1.22.0 (M-6) — exponential backoff on the health ping. Tab left
+  // open overnight against a dead server used to fire 28,800 failed
+  // fetches; now the interval grows 3s → 6s → 12s → 24s → 60s and
+  // resets to 3s on the first successful recovery. Use setTimeout
+  // chain instead of setInterval so each step picks up the new delay.
+  let _healthDelay = 3000;
+  const _HEALTH_MIN = 3000;
+  const _HEALTH_MAX = 60000;
+  function _scheduleHealthCheck() {
+    setTimeout(async () => {
+      if (!connectionLost) { _healthDelay = _HEALTH_MIN; _scheduleHealthCheck(); return; }
+      try {
+        const r = await fetch('/api/health', { cache: 'no-store' });
+        if (r.ok) {
+          setConnectionState(false);
+          _healthDelay = _HEALTH_MIN;
+          if (window.UI) UI.toast((window.I18n && I18n.t('conn.recovered', 'Connection restored')) || 'Connection restored', 'success');
+        } else {
+          _healthDelay = Math.min(_healthDelay * 2, _HEALTH_MAX);
+        }
+      } catch {
+        _healthDelay = Math.min(_healthDelay * 2, _HEALTH_MAX);
       }
-    } catch {}
-  }, 3000);
+      _scheduleHealthCheck();
+    }, _healthDelay);
+  }
+  _scheduleHealthCheck();
 
   function currentLang() {
     try {
@@ -191,7 +207,9 @@ window.UI = (function () {
       // v1.20.0 — `htmlFor` is the React-style alias for `for` on
       // <label> elements. Translate to the real attribute so a11y
       // associations land correctly.
-      else if (k === 'htmlFor') e.setAttribute('for', v);
+      // v1.22.0 (M-7) — null-guard mirrors the fallthrough branch so
+      // `htmlFor: null` doesn't render `for="null"`.
+      else if (k === 'htmlFor') { if (v != null && v !== false) e.setAttribute('for', v); }
       else if (v !== false && v != null) e.setAttribute(k, v);
     }
     if (children) {

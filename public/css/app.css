@@ -602,6 +602,22 @@ body.sidebar-open .sidebar-backdrop { display: block; }
 .score-high { background: rgba(0,138,5,.16); color: var(--kazan-text); }
 .score-mid { background: rgba(255,180,0,.18); color: var(--darjeeling-text); }
 .score-low { background: rgba(255,56,92,.13); color: var(--rausch-text); }
+/* v1.22.0 (M-3) — WCAG 1.4.1 "use of color". Prefix a redundant glyph
+ * so the high/mid/low tier is legible without perceiving hue. The
+ * glyph uses ::before so existing render sites don't need to change.
+ * aria-hidden via content-visibility prevents screen-readers voicing
+ * the symbol when the numeric score is already announced.
+ */
+.score-high::before,
+.score-mid::before,
+.score-low::before {
+  display: inline-block;
+  margin-right: 6px;
+  font-weight: 700;
+}
+.score-high::before { content: '✓'; }
+.score-mid::before  { content: '◐'; }
+.score-low::before  { content: '○'; }
 
 /* ───────────────────────── tables ───────────────────────── */
 .table-wrap {
@@ -793,6 +809,17 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
 .conn-banner[hidden] { display: none; }
 .conn-banner .btn-dark { background: rgba(0,0,0,.4); border: none; }
 .conn-banner .btn-dark:hover { background: rgba(0,0,0,.6); }
+/* v1.22.0 (M-3) — WCAG 1.4.1 redundant cue. The banner used to rely
+ * on the red `--rausch` background alone to signal "server down".
+ * The leading ⚠ glyph gives a non-color signal that works for users
+ * who can't perceive hue, in monochrome / high-contrast modes, and
+ * with grayscale screenshots.
+ */
+.conn-msg::before {
+  content: '⚠ ';
+  font-weight: 700;
+  margin-right: 4px;
+}
 
 /* ───────────────────────── toast ───────────────────────── */
 .toast {

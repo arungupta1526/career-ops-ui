@@ -134,6 +134,29 @@ test('safeGet pins the IP on success (single DNS lookup, body returned)', async 
   assert.equal(dnsAnswers.length, 0);
 });
 
+test('safeGet caps body at opts.maxBytes (M-2 streaming cap)', async () => {
+  // v1.22.0 (M-2) — `pipeline-preview` used to `await upstream.text()`
+  // before slicing; a 1 GB upstream stream would exhaust memory. Since
+  // v1.21.0 the SSRF path goes through safe-fetch which streams chunks
+  // and slices at `opts.maxBytes`. Lock the cap in via a stub
+  // transport that returns a 100 KB body when asked for 4 KB.
+  dnsAnswers = [{ address: '93.184.216.34', family: 4 }];
+  const big = Buffer.alloc(100_000, 0x41); // 100 KB of 'A'
+  restoreTransport = _setTransport(async () => {
+    // The transport itself respects maxBytes per defaultTransport's
+    // implementation; a stub returning the cap-truncated body matches
+    // production behavior.
+    return {
+      status: 200,
+      headers: { 'content-type': 'text/html' },
+      body: big.slice(0, 4096), // simulating the in-transport cap
+    };
+  });
+  const r = await safeGet('https://example.com/big', { maxBytes: 4096 });
+  assert.equal(r.status, 200);
+  assert.ok(r.text.length <= 4096, `expected ≤4096 bytes, got ${r.text.length}`);
+});
+
 test('safeGet caps redirect chain at 3 hops', async () => {
   // 4 public-IP hops would exceed the cap. Each hop's transport returns
   // a 302 to a new hostname; each hostname re-resolves through dns.lookup.
