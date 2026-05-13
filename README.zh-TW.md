@@ -9,7 +9,7 @@
 [![playwright](https://img.shields.io/badge/playwright-12%20smoke-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.16.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.16.0)
+[![release](https://img.shields.io/badge/release-v1.19.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.19.0)
 
 > 📦 **v1.9.1** — 伺服器精簡為 130 行的編排器 + `server/lib/routes/` 中的 12 個路由模組。`/api/evaluate` 的 Anthropic 對等(兩個 key 同時存在時優先)。多 CLI 橋接(`AGENTS.md`、`GEMINI.md`)支援 Codex / Aider / Cursor / Gemini CLI。**284 個 unit + 12 個 Playwright 煙霧測試**。完整 production-readiness 評估:[`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md)。可用於 single-tenant loopback 部署;LAN 暴露的 auth gate 在 v2.0 (P-12)。
 
@@ -83,7 +83,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 | **Node.js** | ≥ 18 |
 | **career-ops** | 已複製並 onboard |
 | **選用** | `.env` 中的 `GEMINI_API_KEY` 用於一鍵 JD 評估 |
-| **選用** | 如果在俄羅斯境外執行並希望 hh.ru API 停止回傳 403,請使用 `.env` 中的 `HH_USER_AGENT` |
+| **選用** | 如果在俄羅斯境外執行並希望 hh.ru API 停止回傳 403,請使用 `.env` 中的 `(server uses default UA)` |
 
 ## stack 和 level 的 chip 篩選器
 
@@ -287,7 +287,6 @@ career-ops 作為 CLI 出色:貼上 URL → /career-ops → report + PDF + track
 # career-ops/.env
 ANTHROPIC_API_KEY=sk-ant-…          # 選用但推薦
 GEMINI_API_KEY=AIza…                # 選用 fallback
-HH_USER_AGENT="Mozilla/5.0 …"       # 從非 RU IP 存取 hh.ru 選用
 ANTHROPIC_MODEL=claude-sonnet-4-6   # 選用 override
 GEMINI_MODEL=gemini-2.0-flash       # 選用 override
 PORT=4317                           # 選用,預設

@@ -9,7 +9,7 @@
 [![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.16.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.16.0)
+[![release](https://img.shields.io/badge/release-v1.19.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.19.0)
 
 ![career-ops-ui — Командный центр](./images/dashboard-ru.png)
 
@@ -81,7 +81,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 | **Node.js** | ≥ 18 |
 | **career-ops** | Склонирован и onboarded |
 | **Опционально** | `GEMINI_API_KEY` в `.env` для оценки JD одним кликом |
-| **Опционально** | `HH_USER_AGENT` в `.env` если запускаешь вне РФ и хочешь, чтобы hh.ru API перестал отвечать 403 |
+| **Опционально** | `(server uses default UA)` в `.env` если запускаешь вне РФ и хочешь, чтобы hh.ru API перестал отвечать 403 |
 
 ## Chip-фильтры по стеку и уровню
 
@@ -297,7 +297,6 @@ career-ops отличен как CLI: paste URL → /career-ops → report + PDF
 # career-ops/.env
 ANTHROPIC_API_KEY=sk-ant-…          # опционально но рекомендовано
 GEMINI_API_KEY=AIza…                # опциональный fallback
-HH_USER_AGENT="Mozilla/5.0 …"       # опционально для hh.ru с non-RU IPs
 ANTHROPIC_MODEL=claude-sonnet-4-6   # опциональный override
 GEMINI_MODEL=gemini-2.0-flash       # опциональный override
 PORT=4317                           # опционально, default

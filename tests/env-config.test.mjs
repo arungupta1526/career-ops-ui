@@ -60,7 +60,6 @@ test('validateConfig: known keys + valid values → ok', () => {
   const r = validateConfig({
     ANTHROPIC_API_KEY: 'sk-ant-api03-' + 'x'.repeat(40),
     GEMINI_MODEL: 'gemini-2.0-flash',
-    HH_USER_AGENT: 'Mozilla/5.0 …',
     PORT: '4317',
     HOST: '127.0.0.1',
   });
@@ -159,10 +158,14 @@ test('updateEnvFile: values with spaces / quotes get quoted', () => {
 
 // ────────────────────── KNOWN_KEYS / SECRET_KEYS sanity ──────────────────────
 
-test('KNOWN_KEYS includes Anthropic + Gemini + HH + server runtime', () => {
-  for (const k of ['ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'HH_USER_AGENT', 'PORT', 'HOST']) {
+test('KNOWN_KEYS includes Anthropic + Gemini + server runtime (v1.19.0 dropped HH_USER_AGENT)', () => {
+  for (const k of ['ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'PORT', 'HOST']) {
     assert.ok(KNOWN_KEYS.includes(k), `${k} missing from KNOWN_KEYS`);
   }
+  // v1.19.0: HH_USER_AGENT removed from KNOWN_KEYS so the UI doesn't
+  // expose it. Power users can still set it via raw `.env`; the
+  // server reads from process.env directly in server/lib/sources/hh.mjs.
+  assert.ok(!KNOWN_KEYS.includes('HH_USER_AGENT'), 'HH_USER_AGENT should NOT be in KNOWN_KEYS post v1.19.0');
 });
 
 test('SECRET_KEYS only contains the actual secrets', () => {

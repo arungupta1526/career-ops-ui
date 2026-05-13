@@ -145,7 +145,7 @@ Health → App settings → Profile → CV → Scan → Pipeline → Evaluate
 | `ANTHROPIC_MODEL` | デフォルト `claude-sonnet-4-6` を上書き。 | — |
 | `GEMINI_API_KEY` | Anthropic 無しのフォールバック。`gemini-eval.mjs` で `oferta` mode に使用。 | <https://aistudio.google.com/apikey> |
 | `GEMINI_MODEL` | Gemini モデルを上書き。 | — |
-| `HH_USER_AGENT` | ロシア外から `hh.ru` をスキャンする時に必要。 | dev.hh.ru |
+| `(server uses default UA)` | ロシア外から `hh.ru` をスキャンする時に必要。 | dev.hh.ru |
 | `PORT` | Express ポート。デフォルト 4317。 | — |
 | `HOST` | バインド。`0.0.0.0` は LAN 公開 — **auth gate なし**。 | — |
 
@@ -323,7 +323,7 @@ $EDITOR portals.yml
 ### オプション (警告のみ)
 
 `Profile customized`、`GEMINI_API_KEY`、`ANTHROPIC_API_KEY`、
-`HH_USER_AGENT`、Playwright、親 deps、ディレクトリ。
+`(server uses default UA)`、Playwright、親 deps、ディレクトリ。
 
 `HOST=0.0.0.0` の時、絶対パスと正確な Node バージョンは隠されます。
 
@@ -702,7 +702,7 @@ action prefix でフィルタ (`pipeline.`、`cv.`、`evaluate`、`scan.`)。
 |---|---|---|
 | Health が `cv.md` で赤 | 初回実行、ファイル未存在 | `touch $CAREER_OPS_ROOT/cv.md` + refresh。 |
 | Health が `Profile customized` で赤 | `full_name` がまだ `Jane Smith` | `config/profile.yml` を編集。 |
-| `hh.ru: HTTP 403` | 非ロシア IP、`HH_USER_AGENT` なし | `dev.hh.ru/admin` で登録、`HH_USER_AGENT` 設定。 |
+| `hh.ru: HTTP 403` | 非ロシア IP、`(server uses default UA)` なし | `dev.hh.ru/admin` で登録、`(server uses default UA)` 設定。 |
 | `gemini-eval.mjs: ERR_MODULE_NOT_FOUND` | 親の deps 未インストール | `cd $CAREER_OPS_ROOT && npm install`。 |
 | Generate PDF エラー | Playwright 未インストール | `npx playwright install chromium`。 |
 | サーバ `EADDRINUSE: 4317` | 古いインスタンス実行中 | `pkill -f 'node server/index.mjs'`。 |

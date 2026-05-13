@@ -3,7 +3,7 @@
  *
  * Routes registered:
  *   GET /api/stream/scan?source=ats|regional|both  — consolidated SSE entrypoint
- *   GET /api/scan-ru/config     — current russian_portals: config
+ *   GET /api/scan/regional/config — current russian_portals: config (legacy alias: /api/scan-ru/config)
  *   GET /api/scan-results       — latest run snapshot from data/last-scan.json
  *
  * F-018: v1.18.0 retires the legacy `/api/stream/scan-{en,ru}` aliases
@@ -39,9 +39,9 @@ function openSse(res) {
 }
 
 /**
- * Single SSE driver for one scanner. Both `/api/stream/scan-en` and
- * `/api/stream/scan-ru` defer to this; the new consolidated
- * `/api/stream/scan?source=` route uses it twice when source=both.
+ * Single SSE driver for one scanner. The consolidated
+ * `/api/stream/scan?source=` route uses this once for ats / regional,
+ * twice for both. (v1.18.0 retired the legacy scan-{en,ru} aliases.)
  */
 async function driveOne({ res, send, runner, label, query }) {
   send('start', {
@@ -97,13 +97,17 @@ export function registerScanRoutes(app) {
   // Sunset header had been live since v1.15.0 (RFC 8594) — the migration
   // window is now closed.
 
-  app.get('/api/scan-ru/config', (_req, res) => {
+  // v1.19.0 — canonical regional-scanner config endpoint.
+  // /api/scan-ru/config kept as a thin alias for one release (v1.19→v1.20).
+  function regionalConfigHandler(_req, res) {
     try {
       res.json(loadRuConfig());
     } catch (e) {
       res.status(500).json({ error: e.message });
     }
-  });
+  }
+  app.get('/api/scan/regional/config', regionalConfigHandler);
+  app.get('/api/scan-ru/config', regionalConfigHandler);
 
   // ─── Latest scan results (for table view in UI) ───
   app.get('/api/scan-results', (_req, res) => {

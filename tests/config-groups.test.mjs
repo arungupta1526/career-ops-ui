@@ -1,6 +1,12 @@
 /**
  * F-013 — /api/config exposes `groups` + `regionalActive` so the SPA
- * can render HH_USER_AGENT under a "Regional sources" collapse.
+ * can render the right config sections.
+ *
+ * v1.19.0 update: the `regional` group (HH_USER_AGENT only) was
+ * collapsed — the bundled default UA handles non-RU IPs well enough
+ * that exposing the override through the UI was confusing for most
+ * users. `regionalActive` is still in the payload for SPA back-compat
+ * but no group has `regional` classification anymore.
  */
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -51,8 +57,10 @@ test('F-013: /api/config returns groups + regionalActive', async () => {
   const r = await fetch(baseUrl + '/api/config').then((r) => r.json());
   assert.ok(r.groups, 'groups must be in payload');
   assert.equal(r.groups.ANTHROPIC_API_KEY, 'core');
-  assert.equal(r.groups.HH_USER_AGENT, 'regional');
   assert.equal(r.groups.PORT, 'runtime');
+  // v1.19.0: HH_USER_AGENT removed from KNOWN_KEYS + KEY_GROUPS.
+  assert.equal(r.groups.HH_USER_AGENT, undefined,
+    'HH_USER_AGENT should no longer appear in groups post v1.19.0');
   // No regional source in fixture → regionalActive false.
   assert.equal(r.regionalActive, false);
 });

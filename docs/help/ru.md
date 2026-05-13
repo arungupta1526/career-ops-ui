@@ -251,7 +251,7 @@ behavioral / coding). Тянет данные из deep-research брифа ав
 | `ANTHROPIC_MODEL` | Переопределяет дефолтный `claude-sonnet-4-6`. Используйте `claude-opus-4-7` для сложных задач, `claude-haiku-4-5-20251001` для быстрого/дешёвого. | — |
 | `GEMINI_API_KEY` | Fallback при отсутствии Anthropic. Используется `gemini-eval.mjs` для `oferta` mode. Free tier работает для малого объёма. | <https://aistudio.google.com/apikey> |
 | `GEMINI_MODEL` | Переопределение Gemini-модели. | — |
-| `HH_USER_AGENT` | Нужен для скана `hh.ru` из-за пределов России (API возвращает 403 на обычные UA). Зарегистрируйте app на <https://dev.hh.ru/admin> и используйте его UA. | dev.hh.ru |
+| `(server uses default UA)` | Нужен для скана `hh.ru` из-за пределов России (API возвращает 403 на обычные UA). Зарегистрируйте app на <https://dev.hh.ru/admin> и используйте его UA. | dev.hh.ru |
 | `PORT` | Порт Express. По умолчанию 4317. | — |
 | `HOST` | Bind-адрес. По умолчанию `127.0.0.1`. `0.0.0.0` открывает UI в LAN — **auth-gate'а нет**, см. Production-readiness doc. | — |
 
@@ -469,7 +469,7 @@ $EDITOR portals.yml
 
 - `Profile customized` — `candidate.full_name` не placeholder.
 - `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` — заданы в `.env`.
-- `HH_USER_AGENT` — нужен только для скана hh.ru вне РФ.
+- `(server uses default UA)` — нужен только для скана hh.ru вне РФ.
 - `Playwright (parent node_modules)` — для PDF-генерации.
 - `Parent project dependencies` — `npm install` в родителе.
 - `data/`, `reports/`, `output/`, `jds/` — auto-create при первом
@@ -997,7 +997,7 @@ runs, deep-research runs, scan runs, config changes, mode runs.
 |---|---|---|
 | Health красная на `cv.md` | Первый запуск, файла нет | `touch $CAREER_OPS_ROOT/cv.md` + refresh. |
 | Health красная на `Profile customized` | `full_name` всё ещё `Jane Smith` | Edit `config/profile.yml`. |
-| `hh.ru: HTTP 403` в scan log | Не-РФ IP, нет `HH_USER_AGENT` | Зарегиться на `dev.hh.ru/admin`, set `HH_USER_AGENT`. |
+| `hh.ru: HTTP 403` в scan log | Не-РФ IP, нет `(server uses default UA)` | Зарегиться на `dev.hh.ru/admin`, use a Russian IP / VPN. |
 | `gemini-eval.mjs: ERR_MODULE_NOT_FOUND` | Deps родителя не установлены | `cd $CAREER_OPS_ROOT && npm install`. |
 | Generate PDF errors | Playwright не установлен | `cd $CAREER_OPS_ROOT && npx playwright install chromium`. |
 | Server `EADDRINUSE: 4317` | Старый instance запущен | `pkill -f 'node server/index.mjs'` + restart. |

@@ -9,7 +9,7 @@
 [![playwright](https://img.shields.io/badge/playwright-12%20smoke-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.16.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.16.0)
+[![release](https://img.shields.io/badge/release-v1.19.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.19.0)
 
 > 📦 **v1.9.1** — 서버를 130줄 오케스트레이터 + `server/lib/routes/`의 12개 라우트 모듈로 리팩터링. `/api/evaluate`의 Anthropic 패리티(두 키 모두 있을 때 우선). 멀티 CLI 심(`AGENTS.md`, `GEMINI.md`)으로 Codex / Aider / Cursor / Gemini CLI 지원. **unit 284개 + Playwright smoke 12개**. 전체 production-readiness 평가: [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md). 싱글 테넌트 loopback 배포 준비 완료; LAN 노출용 auth gate는 v2.0 (P-12)에서 제공.
 
@@ -83,7 +83,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 | **Node.js** | ≥ 18 |
 | **career-ops** | 클론되고 onboarded됨 |
 | **선택사항** | 원클릭 JD 평가를 위한 `.env`의 `GEMINI_API_KEY` |
-| **선택사항** | 러시아 외부에서 실행 중이고 hh.ru API의 403 응답을 줄이고 싶다면 `.env`의 `HH_USER_AGENT` |
+| **선택사항** | 러시아 외부에서 실행 중이고 hh.ru API의 403 응답을 줄이고 싶다면 `.env`의 `(server uses default UA)` |
 
 ## 스택 및 레벨용 칩 필터
 
@@ -287,7 +287,6 @@ career-ops는 CLI로서 훌륭합니다: URL 붙여넣기 → /career-ops → re
 # career-ops/.env
 ANTHROPIC_API_KEY=sk-ant-…          # 선택 사항이지만 권장
 GEMINI_API_KEY=AIza…                # 선택적 fallback
-HH_USER_AGENT="Mozilla/5.0 …"       # non-RU IP에서 hh.ru용 선택사항
 ANTHROPIC_MODEL=claude-sonnet-4-6   # 선택적 override
 GEMINI_MODEL=gemini-2.0-flash       # 선택적 override
 PORT=4317                           # 선택, default

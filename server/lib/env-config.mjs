@@ -19,27 +19,25 @@ export const KNOWN_KEYS = [
   'ANTHROPIC_MODEL',
   'GEMINI_API_KEY',
   'GEMINI_MODEL',
-  // ── Scanner-specific knobs ──
-  'HH_USER_AGENT',
   // ── Server runtime ──
   'PORT',
   'HOST',
 ];
 
 /**
- * Group classification for the SPA config view (F-013). The UI renders
- * three sections: `core` (LLM keys), `runtime` (PORT/HOST), and
- * `regional` (auto-collapsed; shown only when there's a regional
- * source configured in portals.yml). `HH_USER_AGENT` is the only
- * regional knob today; moving it into a group avoids the impression
- * that hh.ru is a first-class scanner the user must configure.
+ * Group classification for the SPA config view (F-013). v1.19.0 collapsed
+ * to two groups: `core` (LLM keys) and `runtime` (PORT/HOST). The
+ * previous "regional" group (only HH_USER_AGENT) was removed — the
+ * bundled default User-Agent in `server/lib/sources/hh.mjs` handles
+ * non-RU IPs well enough that exposing the override through the UI
+ * was confusing for most users. Power users can still set
+ * HH_USER_AGENT directly in `career-ops/.env`.
  */
 export const KEY_GROUPS = {
   ANTHROPIC_API_KEY: 'core',
   ANTHROPIC_MODEL: 'core',
   GEMINI_API_KEY: 'core',
   GEMINI_MODEL: 'core',
-  HH_USER_AGENT: 'regional',
   PORT: 'runtime',
   HOST: 'runtime',
 };

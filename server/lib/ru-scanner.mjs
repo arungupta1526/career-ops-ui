@@ -5,8 +5,9 @@
  * Filters by negative keywords. Dedups against data/scan-history.tsv.
  * Appends new URLs to data/pipeline.md and the scan-history TSV.
  *
- * Designed to be invoked from /api/stream/scan-ru and stream live progress
- * via an `onLog(stream, line)` callback.
+ * Designed to be invoked from `/api/stream/scan?source=regional` (or
+ * `source=both`) and stream live progress via an `onLog(stream, line)`
+ * callback. v1.18.0 retired the legacy `/api/stream/scan-ru` alias.
  */
 import { readFileSync, existsSync, appendFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import yaml from 'js-yaml';

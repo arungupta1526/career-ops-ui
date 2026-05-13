@@ -68,12 +68,11 @@ Router.register('config', async () => {
       hintKey: 'config.geminiModelHint',
       hintFallback: 'Default: gemini-2.0-flash (free-tier, fast). Pro tier: gemini-1.5-pro.',
     },
-    {
-      key: 'HH_USER_AGENT', secret: false,
-      labelKey: 'config.hhUserAgent', label: 'HH_USER_AGENT',
-      hintKey: 'config.hhUserAgentHint',
-      hintFallback: 'Real-browser User-Agent for hh.ru API. Required when scanning from non-RU IPs.',
-    },
+    // v1.19.0 — HH_USER_AGENT removed from the UI per user direction.
+    // The server still honors the env var if a power user sets it via
+    // career-ops/.env, but it's no longer advertised through #/config —
+    // the bundled default UA in server/lib/sources/hh.mjs handles
+    // non-RU IPs well enough for most users.
     {
       key: 'PORT', secret: false,
       labelKey: 'config.port', label: 'PORT',

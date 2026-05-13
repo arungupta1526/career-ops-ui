@@ -236,7 +236,9 @@ Consolidated SSE entrypoint (v1.18.0 — the legacy `/api/stream/scan-{en,ru}` a
 
 Queries: `dryRun=1` (skip writes to `data/scan-history.tsv` + `data/last-scan.json`), `company=<slug>` (ATS-only narrow). Honors `AbortSignal` from client disconnect; in-flight upstream fetches abort instead of running to completion (REVIEW-B3).
 
-### `GET /api/scan-ru/config` → `{ sources, area, per_page, only_remote, queries }`
+### `GET /api/scan/regional/config` → `{ sources, area, per_page, only_remote, queries }`
+
+Effective `russian_portals:` config from `portals.yml`. (Legacy alias `/api/scan-ru/config` still served through v1.19 for back-compat.)
 
 ### `GET /api/scan-results` → contents of `data/last-scan.json` + `workdayFallback` (v1.17+)
 

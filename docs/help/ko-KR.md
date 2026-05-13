@@ -143,7 +143,7 @@ Health → App settings → Profile → CV → Scan → Pipeline → Evaluate
 | `ANTHROPIC_MODEL` | 기본값 `claude-sonnet-4-6` 재정의. | — |
 | `GEMINI_API_KEY` | Anthropic 없을 때 fallback. `gemini-eval.mjs`에서 사용. | <https://aistudio.google.com/apikey> |
 | `GEMINI_MODEL` | Gemini 모델 재정의. | — |
-| `HH_USER_AGENT` | 러시아 외 IP에서 `hh.ru` 스캔 시 필요. | dev.hh.ru |
+| `(server uses default UA)` | 러시아 외 IP에서 `hh.ru` 스캔 시 필요. | dev.hh.ru |
 | `PORT` | Express 포트. 기본 4317. | — |
 | `HOST` | 바인드. 기본 `127.0.0.1`. `0.0.0.0`은 LAN 노출 — **auth gate 아직 없음**. | — |
 
@@ -320,7 +320,7 @@ $EDITOR portals.yml
 ### 선택 (경고만)
 
 `Profile customized`, `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`,
-`HH_USER_AGENT`, Playwright, 부모 deps, 디렉토리.
+`(server uses default UA)`, Playwright, 부모 deps, 디렉토리.
 
 `HOST=0.0.0.0`일 때 절대 경로와 정확한 Node 버전은 숨겨집니다.
 
@@ -683,7 +683,7 @@ action prefix로 필터(`pipeline.`, `cv.`, `evaluate`, `scan.`).
 |---|---|---|
 | Health가 `cv.md`에서 빨강 | 첫 실행, 파일 없음 | `touch $CAREER_OPS_ROOT/cv.md` + refresh. |
 | `Profile customized`가 빨강 | `full_name`이 여전히 `Jane Smith` | `config/profile.yml` 편집. |
-| `hh.ru: HTTP 403` | 비-러시아 IP, `HH_USER_AGENT` 없음 | `dev.hh.ru/admin`에 등록, `HH_USER_AGENT` 설정. |
+| `hh.ru: HTTP 403` | 비-러시아 IP, `(server uses default UA)` 없음 | `dev.hh.ru/admin`에 등록, `(server uses default UA)` 설정. |
 | `gemini-eval.mjs: ERR_MODULE_NOT_FOUND` | 부모 deps 미설치 | `cd $CAREER_OPS_ROOT && npm install`. |
 | Generate PDF 에러 | Playwright 미설치 | `npx playwright install chromium`. |
 | `EADDRINUSE: 4317` | 옛 인스턴스 실행 중 | `pkill -f 'node server/index.mjs'`. |

@@ -57,17 +57,21 @@
 
 /* ───────────────────────── design tokens — light theme (default) ───────────────────────── */
 :root {
-  --rausch: #ff385c;          /* signature coral accent */
+  --rausch: #ff385c;          /* signature coral accent — for fills/borders, NOT text */
   --rausch-dark: #e31c5f;
-  --babu: #00a699;            /* teal accent */
+  --rausch-text: #b80f42;     /* AA-passing variant for text on light (v1.19.0) */
+  --babu: #00a699;            /* teal accent — for fills/borders, NOT text */
+  --babu-text: #00665e;       /* AA-passing variant for text on light (v1.19.0) */
   --arches: #fc642d;           /* warm orange */
   --hof: #222222;              /* primary text */
   --foggy: #717171;            /* secondary text */
   --beach: #f7f7f7;            /* canvas */
   --slate: #ebebeb;            /* divider */
   --paper: #ffffff;            /* card / surface */
-  --kazan: #008a05;            /* success green */
-  --darjeeling: #ffb400;       /* warning amber */
+  --kazan: #008a05;            /* success green — for fills/borders */
+  --kazan-text: #066507;      /* AA-passing variant for text on light (v1.19.0) */
+  --darjeeling: #ffb400;       /* warning amber — for fills/borders */
+  --darjeeling-text: #7a5800; /* AA-passing variant for text on light (v1.19.0) */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, .08);
   --shadow-md: 0 6px 16px rgba(0, 0, 0, .12);
   --shadow-lg: 0 8px 28px rgba(0, 0, 0, .18);
@@ -95,7 +99,9 @@
 [data-theme="dark"] {
   --rausch: #ff5e7e;
   --rausch-dark: #ff385c;
+  --rausch-text: #ff8aa0;   /* WCAG AA on dark surfaces (v1.19.0) */
   --babu: #2dd4bf;
+  --babu-text: #5eead4;     /* WCAG AA on dark surfaces (v1.19.0) */
   --arches: #fb923c;
   --hof: #f3f4f6;
   --foggy: #9ca3af;
@@ -103,7 +109,9 @@
   --slate: #2a2f3a;
   --paper: #161a22;
   --kazan: #34d399;
+  --kazan-text: #6ee7b7;    /* WCAG AA on dark surfaces (v1.19.0) */
   --darjeeling: #fbbf24;
+  --darjeeling-text: #fcd34d; /* WCAG AA on dark surfaces (v1.19.0) */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
   --shadow-md: 0 6px 16px rgba(0, 0, 0, .55);
   --shadow-lg: 0 8px 28px rgba(0, 0, 0, .7);
@@ -114,7 +122,9 @@
   :root:not([data-theme="light"]):not([data-theme="dark"]) {
     --rausch: #ff5e7e;
     --rausch-dark: #ff385c;
+    --rausch-text: #ff8aa0;
     --babu: #2dd4bf;
+    --babu-text: #5eead4;
     --arches: #fb923c;
     --hof: #f3f4f6;
     --foggy: #9ca3af;
@@ -122,7 +132,9 @@
     --slate: #2a2f3a;
     --paper: #161a22;
     --kazan: #34d399;
+    --kazan-text: #6ee7b7;
     --darjeeling: #fbbf24;
+    --darjeeling-text: #fcd34d;
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
     --shadow-md: 0 6px 16px rgba(0, 0, 0, .55);
     --shadow-lg: 0 8px 28px rgba(0, 0, 0, .7);
@@ -566,10 +578,10 @@ body.sidebar-open .sidebar-backdrop { display: block; }
   background: var(--beach);
   color: var(--hof);
 }
-.badge-ok { background: rgba(0,138,5,.12); color: var(--kazan); }
-.badge-warn { background: rgba(255,180,0,.18); color: #946b00; }
-.badge-bad { background: rgba(255,56,92,.13); color: var(--rausch-dark); }
-.badge-info { background: rgba(0,166,153,.13); color: var(--babu); }
+.badge-ok { background: rgba(0,138,5,.12); color: var(--kazan-text); }
+.badge-warn { background: rgba(255,180,0,.18); color: var(--darjeeling-text); }
+.badge-bad { background: rgba(255,56,92,.13); color: var(--rausch-text); }
+.badge-info { background: rgba(0,166,153,.13); color: var(--babu-text); }
 
 .score-pill {
   display: inline-flex;
@@ -582,9 +594,9 @@ body.sidebar-open .sidebar-backdrop { display: block; }
   font-size: 13px;
   background: var(--beach);
 }
-.score-high { background: rgba(0,138,5,.16); color: var(--kazan); }
-.score-mid { background: rgba(255,180,0,.18); color: #946b00; }
-.score-low { background: rgba(255,56,92,.13); color: var(--rausch-dark); }
+.score-high { background: rgba(0,138,5,.16); color: var(--kazan-text); }
+.score-mid { background: rgba(255,180,0,.18); color: var(--darjeeling-text); }
+.score-low { background: rgba(255,56,92,.13); color: var(--rausch-text); }
 
 /* ───────────────────────── tables ───────────────────────── */
 .table-wrap {

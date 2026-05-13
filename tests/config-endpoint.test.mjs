@@ -68,9 +68,11 @@ test('GET /api/config returns the known keys + envFile path', async () => {
   const r = await get('/api/config');
   assert.equal(r.status, 200);
   assert.ok(r.body.envFile.endsWith('.env'));
-  for (const k of ['ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'HH_USER_AGENT', 'PORT', 'HOST']) {
+  for (const k of ['ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'PORT', 'HOST']) {
     assert.ok(k in r.body.values, `missing ${k} in values`);
   }
+  // v1.19.0: HH_USER_AGENT removed from UI-exposed keys.
+  assert.ok(!('HH_USER_AGENT' in r.body.values), 'HH_USER_AGENT should be UI-hidden post v1.19');
 });
 
 test('GET /api/config: secret values are masked, never echoed in plain text', async () => {
@@ -93,16 +95,18 @@ test('GET /api/config: non-secret values are returned in clear text', async () =
 // ─────────────── POST ───────────────
 
 test('POST /api/config writes to parent .env', async () => {
+  // v1.19.0: HH_USER_AGENT no longer in KNOWN_KEYS, so PUT body uses
+  // GEMINI_MODEL as a second non-secret known key for multi-write
+  // verification.
   const r = await postJson('/api/config', {
     ANTHROPIC_MODEL: 'claude-haiku-4-5',
-    HH_USER_AGENT: 'Mozilla/5.0 test',
+    GEMINI_MODEL: 'gemini-2.0-flash',
   });
   assert.equal(r.status, 200);
-  assert.deepEqual(r.body.written.sort(), ['ANTHROPIC_MODEL', 'HH_USER_AGENT']);
+  assert.deepEqual(r.body.written.sort(), ['ANTHROPIC_MODEL', 'GEMINI_MODEL']);
   const text = readFileSync(resolve(projectRoot, '.env'), 'utf8');
   assert.match(text, /ANTHROPIC_MODEL=claude-haiku-4-5/);
-  assert.match(text, /HH_USER_AGENT=/);
-  assert.match(text, /Mozilla\/5\.0 test/);
+  assert.match(text, /GEMINI_MODEL=gemini-2.0-flash/);
 });
 
 test('POST /api/config applies values to running process.env', async () => {

@@ -141,7 +141,7 @@ career-ops Node 脚本启动时读取的同一文件);**Profile** 是
 | `ANTHROPIC_MODEL` | 覆盖默认 `claude-sonnet-4-6`。 | — |
 | `GEMINI_API_KEY` | 没有 Anthropic 时的回退。`gemini-eval.mjs` 用于 `oferta` mode。 | <https://aistudio.google.com/apikey> |
 | `GEMINI_MODEL` | 覆盖 Gemini 模型。 | — |
-| `HH_USER_AGENT` | 在俄罗斯外扫描 `hh.ru` 时需要。 | dev.hh.ru |
+| `(server uses default UA)` | 在俄罗斯外扫描 `hh.ru` 时需要。 | dev.hh.ru |
 | `PORT` | Express 端口。默认 4317。 | — |
 | `HOST` | 绑定。`0.0.0.0` 暴露到 LAN — **尚无 auth gate**。 | — |
 
@@ -317,7 +317,7 @@ $EDITOR portals.yml
 ### 可选 (仅警告)
 
 `Profile customized`、`GEMINI_API_KEY`、`ANTHROPIC_API_KEY`、
-`HH_USER_AGENT`、Playwright、父项目 deps、目录。
+`(server uses default UA)`、Playwright、父项目 deps、目录。
 
 `HOST=0.0.0.0` 时,绝对路径和准确的 Node 版本被隐藏。
 
@@ -680,7 +680,7 @@ post-research、pre-interview 阶段。这个应用的三件物品汇集:
 |---|---|---|
 | Health 在 `cv.md` 红色 | 首次运行,文件不存在 | `touch $CAREER_OPS_ROOT/cv.md`,刷新。 |
 | Health 在 `Profile customized` 红色 | `full_name` 仍是 `Jane Smith` | 编辑 `config/profile.yml`。 |
-| `hh.ru: HTTP 403` | 非俄罗斯 IP,无 `HH_USER_AGENT` | 在 `dev.hh.ru/admin` 注册,设置 `HH_USER_AGENT`。 |
+| `hh.ru: HTTP 403` | 非俄罗斯 IP,无 `(server uses default UA)` | 在 `dev.hh.ru/admin` 注册,设置 `(server uses default UA)`。 |
 | `gemini-eval.mjs: ERR_MODULE_NOT_FOUND` | 父 deps 未安装 | `cd $CAREER_OPS_ROOT && npm install`。 |
 | Generate PDF 错误 | Playwright 未安装 | `npx playwright install chromium`。 |
 | 服务器 `EADDRINUSE: 4317` | 旧实例运行 | `pkill -f 'node server/index.mjs'`。 |

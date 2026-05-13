@@ -9,7 +9,7 @@
 [![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.16.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.16.0)
+[![release](https://img.shields.io/badge/release-v1.19.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.19.0)
 
 ![career-ops-ui — Command Center](./images/dashboard-en.png)
 
@@ -135,7 +135,7 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 | **Node.js** | ≥ 18 (uses native `fetch`, `node:test`) |
 | **career-ops** | Cloned and onboarded — see above |
 | **Optional** | `GEMINI_API_KEY` in `.env` of the parent project (free-tier model `gemini-2.0-flash`) for one-click JD evaluation. Otherwise the UI returns a copy-paste prompt for Claude. |
-| **Optional** | `HH_USER_AGENT` in `.env` if running outside Russia and you want hh.ru API to stop returning 403. Habr Career works from any IP regardless. |
+| **Optional** | Run from a Russian IP / VPN if hh.ru returns 403. Habr Career works from any IP regardless. |
 | **Optional** | Playwright (already a transitive dep of career-ops) for the e2e test suite. |
 
 ---
@@ -155,7 +155,7 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 | **Reports**      | Browse and read every report under `reports/` with parsed header (Score / Legitimacy / URL).                       |
 | **CV**           | Live markdown editor for `cv.md` with side-by-side preview + one-click `cv-sync-check.mjs` + 📁 Upload CV. Server-side XSS strip on save (`<script>`, `javascript:`, `on*=` handlers). |
 | **Profile**      | Read-only view of `config/profile.yml` + archetypes — UI-friendly summary.                                         |
-| **App settings** | In-UI editor for parent `.env` keys: `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `HH_USER_AGENT`, model overrides, port / host. Secrets masked on read. |
+| **App settings** | In-UI editor for parent `.env` keys: `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, model overrides, port / host. Secrets masked on read. |
 | **Health**       | All setup checks in OK / OPTIONAL / FAIL badges + buttons to run `doctor.mjs` and `verify-pipeline.mjs`.           |
 | **Help**         | In-app Markdown user guide (`/#/help`), localized for all 8 supported languages (en / es / pt-BR / ko-KR / ja / ru / zh-CN / zh-TW). |
 | **Activity log** | Audit trail of every state-changing request (writes, runs, scans). Secrets redacted. |
@@ -173,7 +173,7 @@ Global keyboard shortcuts:
 Zero-token portal scanning that actually returns vacancies. **One 🌐 Scan button** in the UI runs every configured source in a single sweep:
 
 - **Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday** — public boards-api for every company in `portals.yml::tracked_companies` with a recognizable ATS pattern. Bundled list covers Stripe, GitLab, Vercel, Cloudflare, Datadog, Discord, Elastic, Grafana Labs, CockroachDB, Fastly, Twilio, Coinbase, Reddit, Robinhood, Affirm, Lyft, Linear, Supabase, PostHog, Ramp, Modal Labs, Railway, Browserbase, JetBrains — extend or trim freely.
-- **hh.ru** — public API (returns 403 from non-RU IPs; set `HH_USER_AGENT` in `.env` to a registered app UA, or run from a Russian IP, or skip — repeated 403s from one source are coalesced and the source is disabled mid-run).
+- **hh.ru** — public API (returns 403 from non-RU IPs; run from a Russian IP / VPN, or skip — repeated 403s from one source are coalesced and the source is disabled mid-run). The server ships a sensible default User-Agent; power users can still override via a Russian IP / VPN.
 - **Habr Career** — HTML scrape of `career.habr.com/vacancies`. Works from any IP, no auth.
 
 All sources go through the same pipeline: normalize → filter (`title_filter.positive` / `title_filter.negative`) → dedup against `data/scan-history.tsv` + `data/pipeline.md` + `data/applications.md` → append to `data/pipeline.md` → save full result set to `data/last-scan.json` for the UI's filterable table.
@@ -196,7 +196,7 @@ russian_portals:
   queries: ["Senior PHP", "Senior Go", "Tech Lead"]
 ```
 
-Under the hood the SSE endpoint is consolidated: `/api/stream/scan?source=ats|regional|both` (v1.18.0 — the legacy `scan-en` / `scan-ru` aliases were retired after the v1.15 Sunset window expired). You can drive each phase independently via the `source` query, and the **🌐 Scan** UI button calls `source=both` so ATS runs first, then regional, in a single SSE connection. Honors `AbortSignal` on client disconnect — no orphan fetches.
+All sources flow through a single SSE endpoint: `/api/stream/scan?source=ats|regional|both`. The **🌐 Scan** UI button calls `source=both` so every adapter (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday + hh.ru + Habr Career) runs in one connection. Honors `AbortSignal` on client disconnect — no orphan fetches.
 
 ---
 
@@ -359,7 +359,7 @@ All buffered runs cap at 60 s; SIGTERM → SIGKILL escalation after a 5 s grace 
 | Method | Path                          | Streams                            |
 | ------ | ----------------------------- | ---------------------------------- |
 | GET    | `/api/stream/scan`            | legacy `node scan.mjs` (subprocess)|
-| GET    | `/api/stream/scan?source=ats\|regional\|both` | consolidated in-process scanner SSE — query: `dryRun=1`, `company=…` (ATS only). v1.18.0 retired the legacy `scan-en`/`scan-ru` aliases. |
+| GET    | `/api/stream/scan?source=ats\|regional\|both` | consolidated in-process scanner SSE — query: `dryRun=1`, `company=…` (ATS only). |
 | GET    | `/api/stream/liveness`        | `node check-liveness.mjs`          |
 | GET    | `/api/stream/pdf`             | `node generate-pdf.mjs`            |
 
@@ -383,7 +383,7 @@ event: error    data: { message }
 | POST   | `/api/mode/:slug`                   | generic mode runner; allowlist: `batch`, `contacto`, `followup`, `interview-prep`, `patterns`, `project`, `training` |
 | POST   | `/api/apply-helper`                 | body `{ url, jd? }` → application checklist                                      |
 | GET    | `/api/scan-results`                 | `{ en: {when, fresh[], filtered[], errors[]}, ru: { ... } }` — last scan         |
-| GET    | `/api/scan-ru/config`               | effective RU-scanner config (queries, negatives, sources)                        |
+| GET    | `/api/scan/regional/config`         | effective regional-scanner config (queries, negatives, sources). Legacy alias: `/api/scan-ru/config`. |
 
 When `run: true` is set on `/api/deep` or `/api/mode/:slug`, the server prefers Anthropic (when both keys present), inlines `cv.md` + `config/profile.yml` + `modes/_shared.md` + the relevant mode template into a `<project_context>` block, and returns the model's grounded markdown directly. Soft cap: 200 KB on the assembled prompt — overflow returns 413.
 
@@ -428,7 +428,7 @@ Environment variables (read at server start, all optional except where noted):
 | `ANTHROPIC_MODEL`    | `claude-sonnet-4-6` | Override Anthropic model.                                                         |
 | `GEMINI_API_KEY`     | unset              | Forwarded to `gemini-eval.mjs` and used as fallback for `/api/evaluate`.           |
 | `GEMINI_MODEL`       | `gemini-2.0-flash` | Override Gemini model.                                                             |
-| `HH_USER_AGENT`      | unset              | Override hh.ru User-Agent (helps reduce 403 from non-RU IPs)                       |
+| `(server uses default UA)`      | unset              | Override hh.ru User-Agent (helps reduce 403 from non-RU IPs)                       |
 
 `portals.yml` extension recognized by this UI (add to your existing file in the parent project):
 

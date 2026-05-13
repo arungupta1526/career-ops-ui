@@ -8,6 +8,64 @@
 
 ---
 
+## [1.19.0] — 2026-05-13
+
+**WCAG 1.4.3 contrast + scan unification (final) + HH_USER_AGENT removed from UI.** Closes the v1.18 out-of-scope contrast audit, finishes the EN/RU split elimination begun in v1.18, and removes the `HH_USER_AGENT` configuration knob from the UI per user direction (a sensible default bundled in the server already handles non-RU IPs for most users).
+
+### ♿ WCAG 1.4.3 contrast pass
+
+- **`a11y(contrast): introduce AA-passing *-text variants for accent tokens`** — light theme: `--rausch-text: #b80f42` (6.59:1 on white, was 3.52:1), `--kazan-text: #066507` (7.31:1, was 4.53:1), `--darjeeling-text: #7a5800` (5.73:1 on amber bg, was 4.24:1), `--babu-text: #00665e` (6.09:1, was 2.70:1). Dark theme: lightened mirrors (`#ff8aa0`, `#6ee7b7`, `#fcd34d`, `#5eead4`) hit the same 4.5:1 floor on `#161a22` paper.
+- Badge classes (`.badge-ok`, `.badge-warn`, `.badge-bad`, `.badge-info`) and score pills (`.score-high`, `.score-mid`, `.score-low`) now route through the new `*-text` variants — every text-on-tinted-bg combo passes AA. The accent fill tokens (`--rausch`, `--kazan`, etc.) stay unchanged for borders and outlines (which only need 3:1 for non-text UI components).
+
+### 🧹 Scan unification (finishes v1.18 work)
+
+- **`docs(scan): scrub remaining EN/RU split references across READMEs + help + architecture docs`** — eight READMEs + eight help bundles + three architecture docs (API.md, SERVER.md, OVERVIEW.md, DATA-FLOWS.md) + scan.js comment now describe a single consolidated scan method. The legacy `/api/stream/scan-{en,ru}` aliases were already gone in v1.18; v1.19 catches the doc/copy that still framed scanning as a two-step EN+RU process.
+- **`feat(scan): canonical /api/scan/regional/config endpoint`** — `/api/scan-ru/config` kept as a thin alias through one release for back-compat. The new path matches the source-naming convention (`?source=regional`).
+
+### 🛠️ HH_USER_AGENT removed from UI
+
+- **`feat!(config): drop HH_USER_AGENT field from /#/config + KNOWN_KEYS`** — power users can still set `HH_USER_AGENT` directly in `career-ops/.env` (the server reads via `process.env.HH_USER_AGENT` in `server/lib/sources/hh.mjs` with the bundled UA as fallback). The UI no longer exposes it because the default works for most users and seeing an inscrutable User-Agent field in the App Settings page was a recurring source of confusion.
+- README mentions across 8 locales + help bundle mentions across 8 locales replaced with "run via a Russian IP / VPN" advice. The `scan.hhWarning` i18n key was rephrased to drop the env-var setup detail.
+- `KEY_GROUPS` collapsed: no more `regional` classification (it only had HH_USER_AGENT). Tests updated; `regionalActive` payload field preserved for SPA back-compat.
+
+### 🧪 Tests
+
+- `tests/env-config.test.mjs` — `KNOWN_KEYS` assertion now excludes HH_USER_AGENT; new assertion that the key is intentionally absent.
+- `tests/config-endpoint.test.mjs` — POST-write multi-key test uses `GEMINI_MODEL` as the second known key instead of HH_USER_AGENT.
+- `tests/config-groups.test.mjs` — `groups.HH_USER_AGENT` is now expected `undefined`.
+- Total: **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive E2E + 32/32 Playwright. Same counts as v1.18.0 because every adjusted test was already counted.
+
+### Verification
+
+```bash
+npm test                              # 427 / 427
+
+# Contrast (Chrome DevTools or axe) on light + dark:
+#   .badge-ok / .badge-warn / .badge-bad / .badge-info → AA pass (4.5:1+)
+#   .score-high / .score-mid / .score-low → AA pass
+
+# HH_USER_AGENT no longer in /api/config:
+curl -s http://127.0.0.1:4317/api/config | jq '.values | keys'
+# → ["ANTHROPIC_API_KEY","ANTHROPIC_MODEL","GEMINI_API_KEY","GEMINI_MODEL","HOST","PORT"]
+# (no HH_USER_AGENT)
+
+# Canonical regional config endpoint:
+curl -s http://127.0.0.1:4317/api/scan/regional/config | jq '.'
+# Legacy alias still alive through v1.20:
+curl -s http://127.0.0.1:4317/api/scan-ru/config | jq '.'
+```
+
+### Out of scope (v1.20+)
+
+| Item | Notes |
+|---|---|
+| Per-component touch-target audit (filter chips, sortable headers, sidebar nav) | v1.18 set the global floor (`.btn` 44 px, `.btn-sm` 32 px); per-component verification across the SPA remains. |
+| `aria-describedby` on inline form hints (`#/config`, `#/pipeline`, `#/evaluate`, `#/batch`) | v1.17 covered `aria-label` on global search + modal close. Per-input hint association is the next polish layer. |
+| Full non-EN README parity (585 lines like EN) | v1.18 brought non-EN to ~307 (53 % of EN). Marketing-heavy "Quick start" + "🌍 Getting Started" walkthroughs remain EN-only. |
+| Remove `/api/scan-ru/config` legacy alias | Sunset planned for v1.20. The canonical `/api/scan/regional/config` is the migration target. |
+
+---
+
 ## [1.18.0] — 2026-05-13
 
 **Scan 엔드포인트 통합 + WCAG 2.2 AA 패스 + i18n long-tail 마무리.** 레거시 `/api/stream/scan-{en,ru}` 별칭을 폐기(Sunset window 2026-10-01을 사용자 방향에 따라 v1.18로 앞당김). non-EN README를 ~307줄로 늘리고, 6개 로케일에서 남은 v1.16.0 + v1.17.0 CHANGELOG의 RU-bodied 항목을 번역.

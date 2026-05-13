@@ -146,7 +146,7 @@ YAML direto de `config/profile.yml` que adiciona o cabeçalho canônico
 | `ANTHROPIC_MODEL` | Sobrescreve `claude-sonnet-4-6`. | — |
 | `GEMINI_API_KEY` | Fallback. Usado por `gemini-eval.mjs` para `oferta`. | <https://aistudio.google.com/apikey> |
 | `GEMINI_MODEL` | Sobrescreve modelo Gemini. | — |
-| `HH_USER_AGENT` | Necessário para escanear `hh.ru` fora da Rússia. | dev.hh.ru |
+| `(server uses default UA)` | Necessário para escanear `hh.ru` fora da Rússia. | dev.hh.ru |
 | `PORT` | Porta Express. Default 4317. | — |
 | `HOST` | Bind. `0.0.0.0` expõe na LAN — **sem auth gate**. | — |
 
@@ -322,7 +322,7 @@ Cada gate de setup em badges OK / OPTIONAL / FAIL.
 ### Optional
 
 `Profile customized`, `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`,
-`HH_USER_AGENT`, Playwright, deps do pai, diretórios.
+`(server uses default UA)`, Playwright, deps do pai, diretórios.
 
 Quando `HOST=0.0.0.0`, paths absolutos e versão Node escondidos.
 
@@ -659,7 +659,7 @@ nunca verá valor real em `data/activity.jsonl`. Filtros por prefixo.
 |---|---|---|
 | Health vermelho em `cv.md` | Primeiro arranque | `touch $CAREER_OPS_ROOT/cv.md`, refresh. |
 | `Profile customized` falha | `full_name` ainda `Jane Smith` | Edite `config/profile.yml`. |
-| `hh.ru: HTTP 403` | IP não-russo, sem `HH_USER_AGENT` | Registre app em `dev.hh.ru/admin`. |
+| `hh.ru: HTTP 403` | IP não-russo, sem `(server uses default UA)` | Registre app em `dev.hh.ru/admin`. |
 | `gemini-eval.mjs: ERR_MODULE_NOT_FOUND` | Deps do pai não instaladas | `cd $CAREER_OPS_ROOT && npm install`. |
 | Erros no Generate PDF | Playwright não instalado | `npx playwright install chromium`. |
 | `EADDRINUSE: 4317` | Instância antiga | `pkill -f 'node server/index.mjs'`. |

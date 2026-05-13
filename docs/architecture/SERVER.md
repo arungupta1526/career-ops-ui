@@ -170,7 +170,7 @@ Defensive readers for parent-project Markdown / YAML, plus first-boot bootstrap.
 
 ### `routes/scan.mjs` *(P-2)*
 
-`registerScanRoutes(app)` — `/api/stream/scan-{ru,en}`, `/api/scan-ru/config`, `/api/scan-results`. Uses the in-process scanners; honors `AbortSignal` from client disconnect (REVIEW-B3).
+`registerScanRoutes(app)` — `/api/stream/scan?source=ats|regional|both`, `/api/scan/regional/config` (+ legacy alias `/api/scan-ru/config`), `/api/scan-results`. Uses the in-process scanners; honors `AbortSignal` from client disconnect (REVIEW-B3). v1.18.0 retired the `/api/stream/scan-{en,ru}` split aliases.
 
 ### `routes/tracker.mjs` *(P-2 phase 2)*
 

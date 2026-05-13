@@ -274,7 +274,7 @@ A save in either tab propagates immediately — no server restart.
 | `ANTHROPIC_MODEL` | Override the default `claude-sonnet-4-6`. Try `claude-opus-4-7` for harder reasoning, `claude-haiku-4-5-20251001` for cheap-and-fast. | — |
 | `GEMINI_API_KEY` | Fallback when no Anthropic key. Used by `gemini-eval.mjs` for `oferta` mode. Free tier works for low volume. | <https://aistudio.google.com/apikey> |
 | `GEMINI_MODEL` | Override default Gemini model. | — |
-| `HH_USER_AGENT` | Required when running `hh.ru` scans from outside Russia (the API returns 403 on plain User-Agents). Register an app at <https://dev.hh.ru/admin> and use its UA string. | dev.hh.ru |
+| `(server uses default UA)` | Required when running `hh.ru` scans from outside Russia (the API returns 403 on plain User-Agents). Register an app at <https://dev.hh.ru/admin> and use its UA string. | dev.hh.ru |
 | `PORT` | Express bind port. Default 4317. | — |
 | `HOST` | Bind address. Default `127.0.0.1`. Setting `0.0.0.0` exposes the UI on the LAN — **no auth gate yet**, see Production-readiness doc. | — |
 
@@ -286,8 +286,7 @@ A save in either tab propagates immediately — no server restart.
 - **Save** (`POST /api/config`) validates each value, writes to
   `<parent>/.env`, and immediately applies to the running process.
   No restart needed.
-- **Empty value deletes** the key. Useful if you want to unset
-  `HH_USER_AGENT` while testing.
+- **Empty value deletes** the key. Useful if you want to unuse a Russian IP / VPN.
 
 ### Smoke-test buttons
 
@@ -516,7 +515,7 @@ filing any "doesn't work" issue.
 - `Profile customized` — `candidate.full_name` is not the template
   placeholder.
 - `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` — set in `.env`.
-- `HH_USER_AGENT` — only matters if you scan hh.ru from outside Russia.
+- `(server uses default UA)` — only matters if you scan hh.ru from outside Russia.
 - `Playwright (parent node_modules)` — required for PDF generation
   and `check-liveness.mjs`. Install with
   `cd $CAREER_OPS_ROOT && npm install && npx playwright install chromium`.
@@ -1100,7 +1099,7 @@ events.
 |---|---|---|
 | Health page red on `cv.md` | First run, file doesn't exist yet | `touch $CAREER_OPS_ROOT/cv.md` then refresh. |
 | Health red on `Profile customized` | `candidate.full_name` still says `Jane Smith` | Edit `config/profile.yml`. |
-| `hh.ru: HTTP 403` in scan log | Non-Russian IP, no `HH_USER_AGENT` | Register at `dev.hh.ru/admin`, set `HH_USER_AGENT` in `.env`. |
+| `hh.ru: HTTP 403` in scan log | Non-Russian IP, no `(server uses default UA)` | Register at `dev.hh.ru/admin`, set a Russian IP / VPN. |
 | `gemini-eval.mjs: ERR_MODULE_NOT_FOUND` | Parent project deps not installed | `cd $CAREER_OPS_ROOT && npm install`. |
 | Generate PDF errors | Playwright not installed in parent | `cd $CAREER_OPS_ROOT && npx playwright install chromium`. |
 | Server reports `EADDRINUSE: 4317` | Old instance still running | `pkill -f 'node server/index.mjs'` then restart. |

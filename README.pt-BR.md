@@ -9,7 +9,7 @@
 [![playwright](https://img.shields.io/badge/playwright-12%20smoke-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.16.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.16.0)
+[![release](https://img.shields.io/badge/release-v1.19.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.19.0)
 
 > 📦 **v1.9.1** — Servidor refatorado para um orquestrador de 130 linhas + 12 módulos de rotas em `server/lib/routes/`. Paridade Anthropic em `/api/evaluate` (preferida sobre Gemini quando ambas as chaves estão presentes). Shims multi-CLI (`AGENTS.md`, `GEMINI.md`) para Codex / Aider / Cursor / Gemini CLI. **284 unit + 12 Playwright smoke tests**. Para a avaliação completa de production-readiness: [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md). Pronto para deploy single-tenant loopback; o gate de auth para LAN chega em v2.0 (P-12).
 
@@ -83,7 +83,7 @@ Esse comando clona ambos os repositórios (career-ops + career-ops-ui), instala 
 | **Node.js** | ≥ 18 |
 | **career-ops** | Clonado e onboarded |
 | **Opcional** | `GEMINI_API_KEY` em `.env` para avaliação de um clique |
-| **Opcional** | `HH_USER_AGENT` em `.env` se estiver fora da Rússia e quiser que a API do hh.ru pare de retornar 403 |
+| **Opcional** | `(server uses default UA)` em `.env` se estiver fora da Rússia e quiser que a API do hh.ru pare de retornar 403 |
 
 ## Filtros chip por stack e nível
 
@@ -287,7 +287,6 @@ Esta UI preserva o CLI como motor (Claude Code / Codex / Cursor) e adiciona um p
 # career-ops/.env
 ANTHROPIC_API_KEY=sk-ant-…          # opcional mas recomendado
 GEMINI_API_KEY=AIza…                # opcional fallback
-HH_USER_AGENT="Mozilla/5.0 …"       # opcional para hh.ru de non-RU IPs
 ANTHROPIC_MODEL=claude-sonnet-4-6   # opcional override
 GEMINI_MODEL=gemini-2.0-flash       # opcional override
 PORT=4317                           # opcional, default

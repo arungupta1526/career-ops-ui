@@ -9,7 +9,7 @@
 [![playwright](https://img.shields.io/badge/playwright-12%20smoke-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.16.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.16.0)
+[![release](https://img.shields.io/badge/release-v1.19.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.19.0)
 
 > 📦 **v1.9.1** — サーバを 130 行のオーケストレータ + `server/lib/routes/` の 12 ルートモジュールに分割。`/api/evaluate` の Anthropic パリティ (両キー存在時は優先)。マルチ CLI シム (`AGENTS.md`、`GEMINI.md`) で Codex / Aider / Cursor / Gemini CLI に対応。**unit 284 + Playwright smoke 12**。Production-readiness 評価: [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md)。シングルテナント loopback デプロイ可能。LAN 公開用の auth gate は v2.0 (P-12)。
 
@@ -83,7 +83,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 | **Node.js** | ≥ 18 |
 | **career-ops** | クローン済みで onboarded |
 | **オプション** | ワンクリック JD 評価のための `.env` の `GEMINI_API_KEY` |
-| **オプション** | ロシア国外で実行していて hh.ru API の 403 を減らしたい場合は `.env` の `HH_USER_AGENT` |
+| **オプション** | ロシア国外で実行していて hh.ru API の 403 を減らしたい場合は `.env` の `(server uses default UA)` |
 
 ## スタックとレベルのチップフィルター
 
@@ -287,7 +287,6 @@ career-ops は CLI として優秀です:URL 貼り付け → /career-ops → re
 # career-ops/.env
 ANTHROPIC_API_KEY=sk-ant-…          # オプションだが推奨
 GEMINI_API_KEY=AIza…                # オプション fallback
-HH_USER_AGENT="Mozilla/5.0 …"       # non-RU IP からの hh.ru 用オプション
 ANTHROPIC_MODEL=claude-sonnet-4-6   # オプション override
 GEMINI_MODEL=gemini-2.0-flash       # オプション override
 PORT=4317                           # オプション、デフォルト

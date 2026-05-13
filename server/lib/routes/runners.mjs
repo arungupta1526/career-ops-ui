@@ -7,7 +7,7 @@
  *
  * Streaming (GET /api/stream/*):
  *   scan       → spawns parent scan.mjs (the SSE sibling of the
- *                in-process scan-en/scan-ru in routes/scan.mjs)
+ *                in-process /api/stream/scan?source= in routes/scan.mjs)
  *   liveness   → check-liveness.mjs
  *   pdf        → generate-pdf.mjs
  *
