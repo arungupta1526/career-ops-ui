@@ -1,11 +1,17 @@
 # portals.yml — ready-to-paste blocks
 
 Drop these into the `tracked_companies:` list of your `career-ops/portals.yml`
-to enable EN scanning against verified Greenhouse / Ashby / Lever boards.
+to enable scanning against the 6 ATS adapters career-ops-ui supports:
+**Greenhouse · Ashby · Lever · Workable · SmartRecruiters · Workday**.
 
-All entries below were live-probed and return jobs as of 2026-05-02. If a
-slug ever 404s upstream, just remove that one entry — the scanner skips
-companies whose API call fails and continues with the rest.
+If a slug ever 404s upstream, just remove that one entry — the scanner
+skips companies whose API call fails and continues with the rest.
+
+> **v1.14.0 update.** Three new adapters joined the registry (Workable,
+> SmartRecruiters, Workday). The blocks below for those three are
+> documented examples — verify the slug in each board's URL before
+> pasting. Workday is **beta** because each customer hosts on a different
+> tenant + site path; the adapter assumes `site=External` when omitted.
 
 ## Greenhouse boards
 
@@ -216,3 +222,112 @@ subdomain of their careers site. Examples:
 - `https://boards.greenhouse.io/instacart` → slug `instacart`
 - `https://jobs.ashbyhq.com/linear` → slug `linear`
 - `https://jobs.lever.co/jetbrains` → slug `jetbrains`
+
+---
+
+## v1.14.0 — 13 trending boards (assign to your registered ATS)
+
+These companies appeared in user requests; each one's `careers_url` is the
+SPA-recognizable form. **Verify the slug before pasting** — companies do
+migrate between ATSes. If you hit a 404, drop the entry or update the URL
+to whichever ATS the company moved to. The `enabled: false` flag below is
+intentional — flip to `true` after you confirm the slug responds.
+
+### Greenhouse-hosted (verify slug at job-boards.greenhouse.io/<slug>)
+
+```yaml
+  - name: Stripe
+    careers_url: https://job-boards.greenhouse.io/stripe
+    enabled: false
+
+  - name: GitLab
+    careers_url: https://job-boards.greenhouse.io/gitlab
+    enabled: false
+
+  - name: HashiCorp
+    careers_url: https://job-boards.greenhouse.io/hashicorp
+    enabled: false
+
+  - name: Cloudflare
+    careers_url: https://job-boards.greenhouse.io/cloudflare
+    enabled: false
+
+  - name: Datadog
+    careers_url: https://job-boards.greenhouse.io/datadog
+    enabled: false
+
+  - name: Hugging Face
+    careers_url: https://job-boards.greenhouse.io/huggingface
+    enabled: false
+```
+
+### Ashby-hosted (verify slug at jobs.ashbyhq.com/<slug>)
+
+```yaml
+  - name: Notion
+    careers_url: https://jobs.ashbyhq.com/notion
+    enabled: false
+
+  - name: Linear
+    careers_url: https://jobs.ashbyhq.com/linear
+    enabled: false
+
+  - name: PostHog
+    careers_url: https://jobs.ashbyhq.com/posthog
+    enabled: false
+
+  - name: Replicate
+    careers_url: https://jobs.ashbyhq.com/replicate
+    enabled: false
+
+  - name: Modal Labs
+    careers_url: https://jobs.ashbyhq.com/modal
+    enabled: false
+
+  - name: Fly.io
+    careers_url: https://jobs.ashbyhq.com/fly
+    enabled: false
+
+  - name: Render
+    careers_url: https://jobs.ashbyhq.com/render
+    enabled: false
+```
+
+---
+
+## Workable boards (v1.14.0)
+
+Public REST: `https://apply.workable.com/api/v3/accounts/<account>/jobs`.
+Detect via `apply.workable.com/<slug>` or legacy `<slug>.workable.com`.
+
+```yaml
+  - name: ExampleWorkable
+    careers_url: https://apply.workable.com/example-corp/
+    enabled: false
+    notes: "Replace example-corp with the account slug from the careers page URL."
+```
+
+## SmartRecruiters boards (v1.14.0)
+
+Public REST: `https://api.smartrecruiters.com/v1/companies/<slug>/postings`.
+Detect via `jobs.smartrecruiters.com/<slug>` or `careers.smartrecruiters.com/<slug>`.
+
+```yaml
+  - name: ExampleSmartRecruiters
+    careers_url: https://jobs.smartrecruiters.com/ExampleCorp
+    enabled: false
+    notes: "Replace ExampleCorp with the slug from the careers page URL."
+```
+
+## Workday boards — BETA (v1.14.0)
+
+Public CXS feed: POST `https://<tenant>.wd<N>.myworkdayjobs.com/wday/cxs/<tenant>/<site>/jobs`.
+Detect via `<tenant>.wdN.myworkdayjobs.com/<lang>/<site>`. The adapter
+defaults `site=External` when not present in the URL.
+
+```yaml
+  - name: ExampleWorkday
+    careers_url: https://example-tenant.wd5.myworkdayjobs.com/en-US/External
+    enabled: false
+    notes: "BETA — some tenants gate CXS behind CAPTCHA; fallback to /career-ops scan."
+```

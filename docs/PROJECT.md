@@ -32,7 +32,7 @@ The UI is **single-tenant by design** — it binds to loopback by default, has n
 
 - Reading and rendering all career-ops state (cv, profile, portals, applications, reports, pipeline, JDs, scan history, follow-ups, interview-prep, output PDFs).
 - Triggering parent-project scripts (`scan.mjs`, `doctor.mjs`, `verify-pipeline.mjs`, `normalize-statuses.mjs`, `dedup-tracker.mjs`, `merge-tracker.mjs`, `generate-pdf.mjs`, `check-liveness.mjs`, `gemini-eval.mjs`) via buffered or SSE-streaming endpoints.
-- In-process portal scanners (Greenhouse / Ashby / Lever / hh.ru / Habr Career) that bypass Playwright when not needed.
+- In-process portal scanners (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday / hh.ru / Habr Career) that bypass Playwright when not needed.
 - A live "Run" pathway via Anthropic / Gemini SDKs when the user provides an API key, or a copy-paste prompt path when no key is present.
 - i18n across 8 locales (en, es, pt-BR, ko-KR, ja, ru, zh-CN, zh-TW).
 

@@ -286,7 +286,7 @@ $EDITOR portals.yml
 `portals.yml` tem três seções; o schema canônico do career-ops.org coincide 1:1 com as três seções SPA acima:
 
 - **title_filter** — listas de keywords `positive`, `negative`, `seniority_boost` (case-insensitive). Uma vaga precisa de ≥ 1 match `positive` e zero `negative`. `seniority_boost` sobe o ranking sem filtrar.
-- **tracked_companies** — toda entrada DEVE ter `name` e `careers_url`. Opcional: `api` (endpoint Greenhouse / Ashby / Lever), `enabled: true|false`.
+- **tracked_companies** — toda entrada DEVE ter `name` e `careers_url`. Opcional: `api` (endpoint Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday), `enabled: true|false`.
 - **search_queries** — buscas web mais amplas pré-construídas. Defaults servem para a maioria.
 
 ---
@@ -351,7 +351,7 @@ npm run scan -- --dry-run
 npm run scan -- --company Anthropic
 ```
 
-Funciona apenas para Greenhouse / Ashby / Lever (URLs ATS reconhecíveis).
+Funciona apenas para Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday (URLs ATS reconhecíveis).
 
 **Option B — AI-powered browser scan:** `/career-ops scan` dentro de Claude Code / Codex / Cursor / Gemini CLI. Usa tokens do modelo. Visita cada página de `tracked_companies` direto e pode descobrir boards não-API. Mais lento, mais amplo.
 

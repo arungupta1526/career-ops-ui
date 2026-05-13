@@ -287,7 +287,7 @@ $EDITOR portals.yml
 `portals.yml` には 3 つのセクションがあり、career-ops.org の正規スキーマは上記の SPA の 3 セクションと 1:1 で一致します:
 
 - **title_filter** — `positive`、`negative`、`seniority_boost` キーワードリスト(case-insensitive)。求人は `positive` マッチ ≥ 1 件かつ `negative` マッチ 0 件が必要。`seniority_boost` はフィルタせずランクのみ上昇。
-- **tracked_companies** — 各エントリは `name` と `careers_url` 必須。任意: `api`(Greenhouse / Ashby / Lever エンドポイント)、`enabled: true|false`。
+- **tracked_companies** — 各エントリは `name` と `careers_url` 必須。任意: `api`(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday エンドポイント)、`enabled: true|false`。
 - **search_queries** — 事前構築されたより広範な Web 検索。デフォルトでほぼ十分。
 
 ---
@@ -360,7 +360,7 @@ npm run scan -- --dry-run
 npm run scan -- --company Anthropic
 ```
 
-Greenhouse / Ashby / Lever のみ動作(認識可能な ATS URL)。
+Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday のみ動作(認識可能な ATS URL)。
 
 **Option B — AI ブラウザスキャン:** Claude Code / Codex / Cursor / Gemini CLI で `/career-ops scan`。モデルトークン使用。`tracked_companies` の各ページを直接訪問し、非 API ボードも発見可能。
 

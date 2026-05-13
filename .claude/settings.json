@@ -76,7 +76,17 @@
       "Bash(node --test tests/cv-upload-multipart-reject.test.mjs)",
       "Bash(node --test tests/adapter-registry.test.mjs)",
       "Bash(node --test tests/batch-endpoints.test.mjs)",
-      "Bash(node --test tests/locale-scaffold.test.mjs)"
+      "Bash(node --test tests/locale-scaffold.test.mjs)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -X POST -F \"file=@/tmp/v13-cv.md\" http://127.0.0.1:4317/api/cv/import)",
+      "Bash(node -e \"import\\('./server/lib/portals/registry.mjs'\\).then\\(m => { const r = m.resolveAdapter\\({name:'Anthropic', careers_url:'https://job-boards.greenhouse.io/anthropic'}\\); console.log\\(' resolved=', r.adapter.id, ' endpoint=', r.endpoint\\); }\\)\")",
+      "Bash(curl -sf http://127.0.0.1:4317/api/batch)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('  exists=', d.get\\('exists'\\), ' runnerExists=', d.get\\('runnerExists'\\), ' rows=', len\\(d.get\\('rows', []\\)\\)\\)\")",
+      "Bash(curl -sf -X POST -H \"Content-Type: application/json\" -d '{\"jd\":\"Senior Backend Engineer Python Go PostgreSQL microservice ownership code review on-call rotation full-stack flexibility for greenfield work.\",\"mode\":\"manual\",\"lang\":\"ru\"}' http://127.0.0.1:4317/api/evaluate)",
+      "Bash(python3 -c \"import sys,json; p=json.load\\(sys.stdin\\).get\\('prompt',''\\); print\\('  has-ru-scaffold=', 'Контекст от пользователя' in p or 'career-ops' in p, ' has-Russian-directive=', 'Respond in Russian' in p\\)\")",
+      "Bash(node -e \"console.log\\(JSON.parse\\(require\\('fs'\\).readFileSync\\('package.json','utf8'\\)\\).version\\)\")",
+      "Bash(perl -i -pe 's|Greenhouse / Ashby / Lever\\(?! / Workable\\)|Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday|g' README.md README.es.md README.cn.md README.ja.md README.ko-KR.md README.pt-BR.md README.ru.md README.zh-TW.md docs/help/en.md docs/help/es.md docs/help/ja.md docs/help/ko-KR.md docs/help/pt-BR.md docs/help/ru.md docs/help/zh-CN.md docs/help/zh-TW.md docs/PROJECT.md)",
+      "Bash(grep -v \":0$\")",
+      "Bash(node -e \"const fs=require\\('fs'\\); const p=JSON.parse\\(fs.readFileSync\\('package.json','utf8'\\)\\); p.version='1.14.0'; fs.writeFileSync\\('package.json', JSON.stringify\\(p, null, 2\\)+'\\\\n'\\);\")"
     ]
   }
 }

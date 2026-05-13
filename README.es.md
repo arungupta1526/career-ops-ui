@@ -53,7 +53,7 @@ Este comando clona ambos repositorios (career-ops + career-ops-ui), instala las 
 `career-ops-ui` añade una UI pulida encima:
 
 - **Explora** el tracker, los reportes y la pipeline como un CRM.
-- **Lanza** scans (Greenhouse / Ashby / Lever **y** hh.ru / Habr Career) y mira los logs SSE en vivo.
+- **Lanza** scans (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **y** hh.ru / Habr Career) y mira los logs SSE en vivo.
 - **Evalúa** una oferta con la API de Gemini o copia un prompt listo para Claude.
 - **Edita** `cv.md` con vista previa markdown lado a lado.
 - **Mantén** el sistema: doctor, verify, normalize, dedup, merge — un click cada uno.
@@ -65,7 +65,7 @@ Es puramente aditivo: nada dentro de `career-ops/` se modifica. Tus personalizac
 | Página           | Qué hace                                                                                                            |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------- |
 | **Dashboard**    | Conteos agregados (apps / pipeline / reports), score promedio, desglose por estado, últimas 5 apps + último reporte. |
-| **Scan**         | **🌐 Botón único 🌐 Scan** — recorre cada fuente activada en un solo barrido (Greenhouse / Ashby / Lever para EN, hh.ru + Habr Career para RU). Streaming SSE en vivo + tabla de resultados con chips de stack/nivel y filtros location / Remote-Hybrid / reloc / source. |
+| **Scan**         | **🌐 Botón único 🌐 Scan** — recorre cada fuente activada en un solo barrido (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday para EN, hh.ru + Habr Career para RU). Streaming SSE en vivo + tabla de resultados con chips de stack/nivel y filtros location / Remote-Hybrid / reloc / source. |
 | **Pipeline**     | CRUD sobre `data/pipeline.md`. Salta directo de URL a evaluar.                                                       |
 | **Evaluate**     | Pega oferta → si `GEMINI_API_KEY` está activo, ejecuta `gemini-eval.mjs`; si no, devuelve un prompt para Claude.    |
 | **Deep research**| Genera el prompt completo de `modes/deep.md` para la empresa/rol indicados.                                         |

@@ -284,7 +284,7 @@ $EDITOR portals.yml
 `portals.yml`은 세 섹션을 가지며, career-ops.org 표준 schema는 위 SPA의 세 섹션과 1:1 매칭됩니다:
 
 - **title_filter** — `positive`, `negative`, `seniority_boost` 키워드 리스트(case-insensitive). 공고는 ≥ 1개 `positive` 매칭 + 0개 `negative` 매칭 필요. `seniority_boost`는 필터링 없이 랭킹만 올림.
-- **tracked_companies** — 각 엔트리는 `name`과 `careers_url` 필수. 선택: `api`(Greenhouse / Ashby / Lever 엔드포인트), `enabled: true|false`.
+- **tracked_companies** — 각 엔트리는 `name`과 `careers_url` 필수. 선택: `api`(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday 엔드포인트), `enabled: true|false`.
 - **search_queries** — 사전 빌드된 더 광범위한 웹 검색. 디폴트로 충분.
 
 ---
@@ -356,7 +356,7 @@ npm run scan -- --dry-run
 npm run scan -- --company Anthropic
 ```
 
-Greenhouse / Ashby / Lever만 작동(인식 가능한 ATS URL).
+Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday만 작동(인식 가능한 ATS URL).
 
 **Option B — AI 브라우저 스캔:** `/career-ops scan`을 Claude Code / Codex / Cursor / Gemini CLI에서 실행. 모델 토큰 사용. `tracked_companies` 각 페이지 직접 방문, non-API 보드 발견 가능.
 

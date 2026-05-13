@@ -163,7 +163,7 @@ bottom of the page keeps every previously generated file.
 **Step 9 — Click `🌐 Scan` in the sidebar.** Confirm `portals.yml`
 lists the boards you care about (sections 5 of this help). Press the
 **🌐 Scan now** button. A live SSE log streams while the scanner
-walks Greenhouse / Ashby / Lever (English boards) and hh.ru / Habr
+walks Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday (English boards) and hh.ru / Habr
 Career (Russian boards if enabled).
 
 **Step 10 — When the scan finishes, review results.** Click any
@@ -457,7 +457,7 @@ matches the SPA's three sections above 1:1:
   zero `negative` matches to pass. `seniority_boost` ranks higher
   without filtering. Start with 3–5 positive keywords for clarity.
 - **tracked_companies** — every entry MUST have `name` and
-  `careers_url`. Optional: `api` (Greenhouse / Ashby / Lever
+  `careers_url`. Optional: `api` (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday
   endpoint), `enabled: true|false` to include/exclude without
   deleting the entry.
 - **search_queries** — pre-built broader web searches (LinkedIn /
@@ -520,7 +520,7 @@ history, and writes hits into `data/last-scan.json` and
 
 **🌐 Scan** runs every enabled source in a single sweep:
 
-- Greenhouse / Ashby / Lever (the ATS sweep) for every company in
+- Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday (the ATS sweep) for every company in
   `tracked_companies` with a recognizable ATS URL.
 - hh.ru API + Habr Career HTML for every query in `russian_portals`.
 
@@ -535,7 +535,7 @@ Below the log, the results table renders rows from `data/last-scan.json`.
 Filters:
 
 - **Free text** — substring match against title / company.
-- **Source** dropdown — Greenhouse / Ashby / Lever / hh.ru / Habr.
+- **Source** dropdown — Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday / hh.ru / Habr.
 - **Remote / Hybrid / Onsite** dropdown.
 - **Stack chips** (PHP / Go / Backend / Senior / …) — auto-detected
   per row by `Skills.detectTech` and `Skills.detectLevel`. Multi-select
@@ -550,7 +550,7 @@ Filters:
 A collapsible card listing every company in `portals.yml` with its
 scan status:
 
-- ✓ green tag — direct API support (Greenhouse / Ashby / Lever).
+- ✓ green tag — direct API support (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday).
 - ○ gray tag — fallback to web-search prompt (no API match).
 
 **Click the company name** → fills the results filter above with that
@@ -570,7 +570,7 @@ npm run scan -- --dry-run             # preview without persisting
 npm run scan -- --company Anthropic   # narrow to one tracked company
 ```
 
-Works only for Greenhouse / Ashby / Lever (recognizable ATS URLs).
+Works only for Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday (recognizable ATS URLs).
 
 **Option B — AI-powered browser scan:**
 

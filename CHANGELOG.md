@@ -6,6 +6,51 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.14.0] — 2026-05-13
+
+3 new ATS adapters land on top of v1.13.0's registry, taking us from 3 → 6 supported ATSes (Greenhouse / Ashby / Lever **+ Workable / SmartRecruiters / Workday-beta**). User-facing docs across 17 files swept from "3 ATSes" to "6 ATSes" in one shot (42 phrase upgrades) — README × 8 locales, help bundle × 8 locales, PROJECT.md. Adds `docs/portals-examples.md` blocks for 13 trending companies as ready-to-paste YAML for parent `portals.yml`.
+
+### ✨ Features
+
+- **`feat(portals): 3 new ATS adapters — Workable, SmartRecruiters, Workday-beta`** — registry now resolves 6 ATSes (was 3). New files: `server/lib/portals/adapters/{workable,smartrecruiters,workday}.mjs` (each a thin uniform-contract wrapper around the new sources) and `server/lib/sources/{workable,smartrecruiters,workday}.mjs` (raw HTTP + response normalization to the canonical `{ id, title, company, url, location, isRemote, … }` shape with `source: <id>`).
+  - **Workable**: detects `apply.workable.com/<slug>` AND legacy `<subdomain>.workable.com`. Endpoint: `https://apply.workable.com/api/v3/accounts/<slug>/jobs?details=true`.
+  - **SmartRecruiters**: detects `jobs.smartrecruiters.com/<slug>` AND `careers.smartrecruiters.com/<slug>`. Endpoint: `https://api.smartrecruiters.com/v1/companies/<slug>/postings`.
+  - **Workday (beta)**: detects `<tenant>.wd<N>.myworkdayjobs.com/<lang>/<site>`. Endpoint: POST to `/wday/cxs/<tenant>/<site>/jobs`. Defaults `site=External` when the careers_url omits it. Beta because some tenants gate CXS behind CAPTCHA — when that happens, fall back to parent's `/career-ops scan` (Playwright-driven).
+
+### 📚 Docs
+
+- **`docs(portals-examples): trending boards block`** — `docs/portals-examples.md` extended with v1.14.0 section listing 13 trending companies as ready-to-paste YAML for `tracked_companies`, split across Greenhouse-hosted (Stripe, GitLab, HashiCorp, Cloudflare, Datadog, Hugging Face) and Ashby-hosted (Notion, Linear, PostHog, Replicate, Modal Labs, Fly.io, Render). Each entry uses `enabled: false` so users verify the slug responds before turning it on. Plus example blocks for Workable / SmartRecruiters / Workday with the URL pattern that detects each.
+- **`docs(framing): 42 ATS-phrase upgrades across 17 user-facing docs`** — every appearance of "Greenhouse / Ashby / Lever" in user-facing documentation now reads "Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday". Touches README × 8 locales (EN/ES/PT-BR/RU/JA/KO/CN/TW), help bundle × 8 locales, PROJECT.md. Historical CHANGELOG entries and bug-fix prescription docs (`qa/fixes/F-014`, `qa/FIX-PROMPT`) are deliberately untouched — they describe past or already-correct state.
+- **`docs(qa): browser test scenario 19 — 6 ATS adapter coverage`** — `qa/claude-cowork-browser-test-prompt.md` extended with Scenario 19: `ALL_ADAPTERS.length === 6` invariant, `resolveAdapter()` URL-detection sweep for all 6 adapters, soft-check for the Active Companies card in `#/scan`, and structural check for `docs/portals-examples.md` blocks per ATS.
+
+### 🧪 Tests
+
+- `tests/adapter-registry.test.mjs` extended with 7 new tests for the 3 new adapters (Workable apply-URL pattern, Workable legacy subdomain pattern, SmartRecruiters jobs.* + careers.* patterns, Workday tenant.wd5.* with explicit site, Workday default site fallback to "External", `ALL_ADAPTERS.length === 6` invariant, `detectApi()` legacy-shape compatibility).
+- Total: **386 / 386** unit tests (was 379; +7 net). 0 failures.
+
+### Verification
+
+```
+npm test                        # 386 / 386
+node -e "import('./server/lib/portals/registry.mjs').then(m => console.log(m.ALL_ADAPTERS.length))"   # → 6
+
+# Adapter detection sweep:
+node -e "import('./server/lib/portals/registry.mjs').then(m => {
+  console.log(m.resolveAdapter({ careers_url: 'https://apply.workable.com/foo/' }).adapter.id);          // → workable
+  console.log(m.resolveAdapter({ careers_url: 'https://jobs.smartrecruiters.com/Bar' }).adapter.id);     // → smartrecruiters
+  console.log(m.resolveAdapter({ careers_url: 'https://baz.wd5.myworkdayjobs.com/en-US' }).adapter.id);  // → workday
+})"
+```
+
+### Out of scope (deferred follow-up)
+
+| Item | Notes |
+|---|---|
+| Per-company adapter records for the 13 trending Greenhouse/Ashby companies | `docs/portals-examples.md` v1.14.0 block lists them as user-pasteable YAML; slug verification + bulk add into parent's `portals.yml` is a separate phase. |
+| Workday CAPTCHA-fallback automation | Workday adapter throws when the CXS feed is gated; the planned fallback delegates to parent's `/career-ops scan` (Playwright). Wiring that into the SPA's "scan" UX is v1.15+. |
+
+---
+
 ## [1.13.0] — 2026-05-13
 
 Big slice. Closes all 4 deferred items from the post-v1.12.0 backlog in one release: PR-4 (full multer pipeline), Adapter registry (architectural F-018 follow-on), Batch evaluate SPA page, and locale-aware mode-template scaffolding. Plus a mid-session dark-theme table fix.

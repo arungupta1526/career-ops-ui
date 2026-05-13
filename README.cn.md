@@ -53,7 +53,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 `career-ops-ui` 在其上添加一个精致的 UI:
 
 - **浏览** — 像 CRM 一样浏览跟踪器、报告和流水线。
-- **触发** — 触发扫描 (Greenhouse / Ashby / Lever **以及** hh.ru / Habr Career) 并查看实时 SSE 日志。
+- **触发** — 触发扫描 (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **以及** hh.ru / Habr Career) 并查看实时 SSE 日志。
 - **评估** — 通过 Gemini API 评估 JD 或获取 Claude 的复制粘贴 prompt。
 - **编辑** — 使用并排 markdown 预览编辑 `cv.md`。
 - **维护** — doctor、verify、normalize、dedup、merge — 每个一键完成。
@@ -65,7 +65,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 | 页面             | 功能                                                                                                              |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
 | **Dashboard**    | 聚合计数 (apps / pipeline / reports)、平均分、按状态分类、最新 5 个 apps + 最新报告。                                       |
-| **Scan**         | **🌐 单个 🌐 Scan 按钮** — 一次性扫描所有已启用的来源(EN:Greenhouse / Ashby / Lever,RU:hh.ru + Habr Career)。实时 SSE 日志 + 带 stack/level chip 过滤器和 location / Remote-Hybrid / reloc / source 过滤器的可点击结果表。 |
+| **Scan**         | **🌐 单个 🌐 Scan 按钮** — 一次性扫描所有已启用的来源(EN:Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday,RU:hh.ru + Habr Career)。实时 SSE 日志 + 带 stack/level chip 过滤器和 location / Remote-Hybrid / reloc / source 过滤器的可点击结果表。 |
 | **Pipeline**     | 对 `data/pipeline.md` 进行 CRUD。从 URL 直接跳转到评估。                                                              |
 | **Evaluate**     | 粘贴 JD → 如果设置了 `GEMINI_API_KEY`,运行 `gemini-eval.mjs`;否则返回 Claude 的复制粘贴 prompt。                       |
 | **Deep research**| 为指定的公司/角色生成完整的 `modes/deep.md` prompt。                                                                  |

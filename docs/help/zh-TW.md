@@ -281,7 +281,7 @@ $EDITOR portals.yml
 `portals.yml` 有三個區塊;career-ops.org 正規 schema 與上述 SPA 三區塊 1:1 對應:
 
 - **title_filter** — `positive`、`negative`、`seniority_boost` 關鍵字清單(case-insensitive)。職缺需要 ≥ 1 個 `positive` 配對且 0 個 `negative` 配對。`seniority_boost` 僅升排名不過濾。
-- **tracked_companies** — 每條記錄必須有 `name` 和 `careers_url`。選填: `api`(Greenhouse / Ashby / Lever 端點)、`enabled: true|false`。
+- **tracked_companies** — 每條記錄必須有 `name` 和 `careers_url`。選填: `api`(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday 端點)、`enabled: true|false`。
 - **search_queries** — 預構建的更廣泛網路搜尋。預設對大多數使用者足夠。
 
 ---
@@ -353,7 +353,7 @@ npm run scan -- --dry-run
 npm run scan -- --company Anthropic
 ```
 
-僅適用於 Greenhouse / Ashby / Lever(可識別的 ATS URL)。
+僅適用於 Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday(可識別的 ATS URL)。
 
 **Option B — AI 瀏覽器掃描:** 在 Claude Code / Codex / Cursor / Gemini CLI 中 `/career-ops scan`。使用模型 tokens。直接訪問每個 `tracked_companies` 頁面,可發現非 API 板。
 

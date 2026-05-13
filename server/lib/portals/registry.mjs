@@ -25,11 +25,17 @@
 import { greenhouseAdapter } from './adapters/greenhouse.mjs';
 import { ashbyAdapter } from './adapters/ashby.mjs';
 import { leverAdapter } from './adapters/lever.mjs';
+import { workableAdapter } from './adapters/workable.mjs';
+import { smartRecruitersAdapter } from './adapters/smartrecruiters.mjs';
+import { workdayAdapter } from './adapters/workday.mjs';
 
 export const ALL_ADAPTERS = [
   greenhouseAdapter,
   ashbyAdapter,
   leverAdapter,
+  workableAdapter,
+  smartRecruitersAdapter,
+  workdayAdapter,
 ];
 
 /**

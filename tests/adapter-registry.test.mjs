@@ -54,6 +54,56 @@ test('registry: resolveAdapter returns null when no adapter matches', () => {
   assert.equal(m, null);
 });
 
+// ─── v1.14.0 — three new ATS adapters ───
+
+test('registry: Workable via apply.workable.com/<slug>', () => {
+  const m = resolveAdapter({ name: 'Foo', careers_url: 'https://apply.workable.com/foo-corp/' });
+  assert.equal(m.adapter.id, 'workable');
+  assert.equal(m.endpoint, 'https://apply.workable.com/api/v3/accounts/foo-corp/jobs?details=true');
+});
+
+test('registry: Workable via legacy <subdomain>.workable.com', () => {
+  const m = resolveAdapter({ name: 'Foo', careers_url: 'https://foocorp.workable.com/careers' });
+  assert.equal(m.adapter.id, 'workable');
+  assert.match(m.endpoint, /accounts\/foocorp\/jobs/);
+});
+
+test('registry: SmartRecruiters via jobs.smartrecruiters.com/<slug>', () => {
+  const m = resolveAdapter({ name: 'Bar', careers_url: 'https://jobs.smartrecruiters.com/BarCorp' });
+  assert.equal(m.adapter.id, 'smartrecruiters');
+  assert.equal(m.endpoint, 'https://api.smartrecruiters.com/v1/companies/BarCorp/postings');
+});
+
+test('registry: SmartRecruiters via careers.smartrecruiters.com/<slug>', () => {
+  const m = resolveAdapter({ name: 'Bar', careers_url: 'https://careers.smartrecruiters.com/BarCorp/jobs' });
+  assert.equal(m.adapter.id, 'smartrecruiters');
+});
+
+test('registry: Workday via <tenant>.wd5.myworkdayjobs.com/...', () => {
+  const m = resolveAdapter({
+    name: 'BigCo',
+    careers_url: 'https://bigco.wd5.myworkdayjobs.com/en-US/External',
+  });
+  assert.equal(m.adapter.id, 'workday');
+  assert.equal(m.endpoint, 'https://bigco.wd5.myworkdayjobs.com/wday/cxs/bigco/External/jobs');
+});
+
+test('registry: Workday defaults site=External when careers_url omits site', () => {
+  const m = resolveAdapter({
+    name: 'BigCo',
+    careers_url: 'https://bigco.wd1.myworkdayjobs.com/en-US',
+  });
+  assert.equal(m.adapter.id, 'workday');
+  assert.match(m.endpoint, /\/wday\/cxs\/bigco\/External\/jobs$/);
+});
+
+test('registry: ALL_ADAPTERS now has 6 entries', async () => {
+  const { ALL_ADAPTERS } = await import('../server/lib/portals/registry.mjs');
+  assert.equal(ALL_ADAPTERS.length, 6);
+  const ids = ALL_ADAPTERS.map((a) => a.id).sort();
+  assert.deepEqual(ids, ['ashby', 'greenhouse', 'lever', 'smartrecruiters', 'workable', 'workday']);
+});
+
 test('registry: detectApi (legacy shape) still returns { type, url }', async () => {
   const { detectApi } = await import('../server/lib/en-scanner.mjs');
   const d = detectApi({ name: 'Anthropic', careers_url: 'https://job-boards.greenhouse.io/anthropic' });

@@ -501,3 +501,60 @@ done
 
 **Assertion:** все 8 бандлов должны вернуть ровно **16** H2 секций. Любое расхождение — blocker (parity-тест в CI упадёт).
 
+---
+
+## Сценарий 19. Adapter registry: 6 ATS adapters (v1.14.0)
+
+**Цель.** v1.14.0 расширил adapter registry с 3 до 6 ATSes (Workable, SmartRecruiters, Workday — beta). Этот сценарий проверяет, что resolver видит все 6 и URL-паттерны детектятся правильно.
+
+### 19.1. Unit-уровень — ALL_ADAPTERS == 6
+
+Через cloud-shell (если есть доступ к проектной файловой системе):
+
+```bash
+node -e "import('./server/lib/portals/registry.mjs').then(m => console.log(JSON.stringify({ count: m.ALL_ADAPTERS.length, ids: m.ALL_ADAPTERS.map(a => a.id).sort() })))"
+```
+
+Ожидается:
+```json
+{"count":6,"ids":["ashby","greenhouse","lever","smartrecruiters","workable","workday"]}
+```
+
+### 19.2. URL-детекция через resolveAdapter()
+
+```bash
+node -e "import('./server/lib/portals/registry.mjs').then(m => {
+  const cases = [
+    { name: 'Anthropic', careers_url: 'https://job-boards.greenhouse.io/anthropic' },
+    { name: 'Linear', careers_url: 'https://jobs.ashbyhq.com/linear' },
+    { name: 'JetBrains', careers_url: 'https://jobs.lever.co/jetbrains' },
+    { name: 'Foo', careers_url: 'https://apply.workable.com/foo-corp/' },
+    { name: 'Bar', careers_url: 'https://jobs.smartrecruiters.com/BarCorp' },
+    { name: 'BigCo', careers_url: 'https://bigco.wd5.myworkdayjobs.com/en-US/External' },
+  ];
+  for (const c of cases) {
+    const r = m.resolveAdapter(c);
+    console.log(c.name, '→', r ? r.adapter.id + ' ' + r.endpoint : 'NO MATCH');
+  }
+})"
+```
+
+**Assertion:** все 6 кейсов резолвятся в соответствующие adapter id'ы, endpoint URL строится правильно (никаких `null`).
+
+### 19.3. SPA — Active Companies card показывает 6 ATS меток (если на стенде есть company per ATS)
+
+Open `#/scan`. Если в `portals.yml::tracked_companies` есть хотя бы по одной записи на каждый ATS — карточка «Active companies» должна показать chip для каждого из 6 (greenhouse, ashby, lever, workable, smartrecruiters, workday). Это soft-assert: при пустом portals.yml сценарий — SKIP.
+
+### 19.4. docs/portals-examples.md содержит блоки для всех 6 ATSes
+
+```bash
+for ats in greenhouse ashby lever workable smartrecruiters workday; do
+  echo -n "$ats: "
+  grep -c "$ats" docs/portals-examples.md
+done
+```
+
+**Assertion:** каждый id встречается минимум 1 раз.
+
+**PASS = 19.1 + 19.2 зелёные. 19.3 soft. 19.4 структурный.**
+

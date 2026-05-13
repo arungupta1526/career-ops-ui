@@ -51,7 +51,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 `career-ops-ui` накладывает сверху отполированный UI:
 
 - **Просматривай** трекер, отчёты и pipeline как CRM.
-- **Запускай** сканы (Greenhouse / Ashby / Lever **и** hh.ru / Habr Career) с live-логами через SSE.
+- **Запускай** сканы (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **и** hh.ru / Habr Career) с live-логами через SSE.
 - **Оценивай** JD через Gemini API или получи готовый промпт для Claude.
 - **Редактируй** `cv.md` с side-by-side markdown-превью.
 - **Поддерживай** систему: doctor, verify, normalize, dedup, merge — каждый одним кликом.
@@ -63,7 +63,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 | Страница         | Что делает                                                                                                         |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------ |
 | **Дашборд**      | Агрегированные счётчики (apps / pipeline / отчёты), средний score, разбивка по статусам, последние 5 apps + последний отчёт. |
-| **Поиск**        | **🌐 Одна кнопка 🌐 Scan** — за один проход обходит каждый включённый источник (ATS adapters (Greenhouse / Ashby / Lever) + regional portals (hh.ru / Habr Career)). Live SSE log + кликабельная таблица результатов с chip-фильтрами по стеку/уровню и фильтрами location / Remote-Hybrid / reloc / source. |
+| **Поиск**        | **🌐 Одна кнопка 🌐 Scan** — за один проход обходит каждый включённый источник (ATS adapters (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday) + regional portals (hh.ru / Habr Career)). Live SSE log + кликабельная таблица результатов с chip-фильтрами по стеку/уровню и фильтрами location / Remote-Hybrid / reloc / source. |
 | **Pipeline**     | CRUD для `data/pipeline.md`. Прыжок прямо с URL на оценку.                                                          |
 | **Оценить**      | Вставь JD → если задан `GEMINI_API_KEY`, запускает `gemini-eval.mjs`; иначе возвращает готовый промпт для Claude. |
 | **Deep research**| Генерирует полный промпт `modes/deep.md` для указанной компании/роли.                                              |

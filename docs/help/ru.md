@@ -140,7 +140,7 @@ live preview справа.
 
 **Шаг 9 — Кликните `🌐 Scan` в меню.** Убедитесь что `portals.yml`
 содержит нужные источники (раздел 5). Нажмите **🌐 Scan now**.
-SSE-лог стримится пока сканер обходит Greenhouse / Ashby / Lever
+SSE-лог стримится пока сканер обходит Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday
 (EN-источники) и hh.ru / Habr Career (RU-источники если включены).
 
 **Шаг 10 — Когда скан закончился, просмотрите результаты.**
@@ -430,7 +430,7 @@ $EDITOR portals.yml
 `portals.yml` имеет три секции; канонический career-ops.org schema совпадает с тремя SPA-секциями выше 1:1:
 
 - **title_filter** — списки ключевых слов `positive`, `negative`, `seniority_boost` (case-insensitive). Вакансия должна иметь ≥ 1 матч `positive` и ноль `negative`. `seniority_boost` поднимает ранг без фильтрации. Начните с 3–5 положительных слов для ясности.
-- **tracked_companies** — каждая запись ОБЯЗАНА иметь `name` и `careers_url`. Опционально: `api` (endpoint Greenhouse / Ashby / Lever), `enabled: true|false` для включения/исключения без удаления.
+- **tracked_companies** — каждая запись ОБЯЗАНА иметь `name` и `careers_url`. Опционально: `api` (endpoint Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday), `enabled: true|false` для включения/исключения без удаления.
 - **search_queries** — встроенные более широкие веб-поиски (LinkedIn / Indeed). Дефолты работают для большинства.
 
 ---
@@ -476,7 +476,7 @@ $EDITOR portals.yml
 
 **🌐 Scan** запускает все источники в одном sweep:
 
-- Greenhouse / Ashby / Lever для каждой компании в
+- Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday для каждой компании в
   `tracked_companies` с ATS-URL.
 - hh.ru API + Habr Career HTML для каждого query в
   `russian_portals`.
@@ -487,7 +487,7 @@ Live SSE log стримит справа. **Stop** (или просто нави
 ### Фильтры результатов
 
 - **Free text** — substring match по title / company.
-- **Source** — Greenhouse / Ashby / Lever / hh.ru / Habr.
+- **Source** — Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday / hh.ru / Habr.
 - **Remote / Hybrid / Onsite** dropdown.
 - **Stack chips** (PHP / Go / Backend / Senior) — auto-detected из
   title + snippet. Multi-select intersection.
@@ -519,7 +519,7 @@ npm run scan -- --dry-run             # превью без записи
 npm run scan -- --company Anthropic   # одна компания
 ```
 
-Работает только для Greenhouse / Ashby / Lever (распознаваемые ATS URL).
+Работает только для Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday (распознаваемые ATS URL).
 
 **Option B — AI-powered browser scan:**
 

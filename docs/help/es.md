@@ -292,7 +292,7 @@ $EDITOR portals.yml
 `portals.yml` tiene tres secciones; el schema canónico de career-ops.org coincide 1:1 con las tres secciones SPA de arriba:
 
 - **title_filter** — listas de palabras clave `positive`, `negative`, `seniority_boost` (case-insensitive). Una vacante necesita ≥ 1 match `positive` y cero `negative`. `seniority_boost` sube el ranking sin filtrar. Empieza con 3–5 positivas para claridad.
-- **tracked_companies** — cada entrada DEBE tener `name` y `careers_url`. Opcional: `api` (endpoint Greenhouse / Ashby / Lever), `enabled: true|false` para incluir/excluir sin borrar.
+- **tracked_companies** — cada entrada DEBE tener `name` y `careers_url`. Opcional: `api` (endpoint Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday), `enabled: true|false` para incluir/excluir sin borrar.
 - **search_queries** — búsquedas web más amplias preconstruidas (LinkedIn / Indeed). Los defaults sirven para la mayoría.
 
 ---
@@ -368,7 +368,7 @@ npm run scan -- --dry-run             # preview sin persistir
 npm run scan -- --company Anthropic   # una sola compañía
 ```
 
-Funciona solo para Greenhouse / Ashby / Lever (URLs ATS reconocibles).
+Funciona solo para Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday (URLs ATS reconocibles).
 
 **Option B — AI-powered browser scan:**
 

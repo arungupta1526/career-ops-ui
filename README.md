@@ -53,7 +53,7 @@ This clones both repos (career-ops + career-ops-ui), installs deps, and starts t
 `career-ops-ui` puts a polished UI on top:
 
 - **Browse** the tracker, reports, and pipeline like a CRM.
-- **Trigger** scans (Greenhouse / Ashby / Lever **and** hh.ru / Habr Career) and watch live SSE logs.
+- **Trigger** scans (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **and** hh.ru / Habr Career) and watch live SSE logs.
 - **Evaluate** a JD live via Anthropic (preferred) or Gemini, or get a copy-paste prompt for Claude Code if no API key is set.
 - **Deep research** companies live via Anthropic SDK with cv / profile / mode files inlined automatically.
 - **Edit** `cv.md` with side-by-side markdown preview and server-side XSS sanitization.
@@ -145,7 +145,7 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 | Page             | What it does                                                                                                       |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------ |
 | **Dashboard**    | Aggregated counts (apps / pipeline / reports), avg score, status breakdown, latest 5 apps + latest report.         |
-| **Scan**         | **🌐 Single Scan button** — runs every enabled source in one go (Greenhouse / Ashby / Lever for EN, hh.ru + Habr Career for RU). Live SSE log streaming + clickable results table with location / Remote-Hybrid badge / relocation flag / salary / source filters and dynamic stack / level / keyword chips. Active-Companies card lists every tracked board with its API health. |
+| **Scan**         | **🌐 Single Scan button** — runs every enabled source in one go (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday for EN, hh.ru + Habr Career for RU). Live SSE log streaming + clickable results table with location / Remote-Hybrid badge / relocation flag / salary / source filters and dynamic stack / level / keyword chips. Active-Companies card lists every tracked board with its API health. |
 | **Pipeline**     | CRUD on `data/pipeline.md`. Server-side preview proxy (SSRF-safe, per-hop redirect validation, 8 KB body cap). Jump straight from a URL to evaluate.       |
 | **Evaluate**     | Paste JD → **Anthropic-first** (preferred when both keys present), then Gemini, then manual prompt fallback. Anthropic path inlines cv / profile / `_shared.md` / `oferta.md` automatically (REVIEW-A1). Save JD to `jds/` optional. |
 | **Deep research**| Same fallback chain as Evaluate. Live Anthropic returns ~10-30 KB of grounded markdown saved to `interview-prep/<company>-<role>.md`. |
@@ -172,7 +172,7 @@ Global keyboard shortcuts:
 
 Zero-token portal scanning that actually returns vacancies. **One 🌐 Scan button** in the UI runs every configured source in a single sweep:
 
-- **Greenhouse / Ashby / Lever** — public boards-api for every company in `portals.yml::tracked_companies` with a recognizable ATS pattern. Bundled list covers Stripe, GitLab, Vercel, Cloudflare, Datadog, Discord, Elastic, Grafana Labs, CockroachDB, Fastly, Twilio, Coinbase, Reddit, Robinhood, Affirm, Lyft, Linear, Supabase, PostHog, Ramp, Modal Labs, Railway, Browserbase, JetBrains — extend or trim freely.
+- **Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday** — public boards-api for every company in `portals.yml::tracked_companies` with a recognizable ATS pattern. Bundled list covers Stripe, GitLab, Vercel, Cloudflare, Datadog, Discord, Elastic, Grafana Labs, CockroachDB, Fastly, Twilio, Coinbase, Reddit, Robinhood, Affirm, Lyft, Linear, Supabase, PostHog, Ramp, Modal Labs, Railway, Browserbase, JetBrains — extend or trim freely.
 - **hh.ru** — public API (returns 403 from non-RU IPs; set `HH_USER_AGENT` in `.env` to a registered app UA, or run from a Russian IP, or skip — repeated 403s from one source are coalesced and the source is disabled mid-run).
 - **Habr Career** — HTML scrape of `career.habr.com/vacancies`. Works from any IP, no auth.
 
@@ -560,7 +560,7 @@ file, masked-on-read, applied to `process.env` immediately.
 
 Refresh the Health page — every required check should be green. Then:
 
-1. Click **🌐 Scan** → wait ~5 seconds → Greenhouse / Ashby / Lever +
+1. Click **🌐 Scan** → wait ~5 seconds → Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday +
    hh.ru / Habr Career are scanned, vacancies appear in the table below.
 2. Click any title → the original posting opens in a new tab.
 3. Filter by stack chips (PHP / Go / Backend / Senior) until you see
