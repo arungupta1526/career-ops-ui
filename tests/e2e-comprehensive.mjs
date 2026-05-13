@@ -122,7 +122,9 @@ async function run() {
     await page.waitForSelector('h1.page-title');
     const url = `https://e2e-comp-${Date.now()}.example.com/job/1`;
     await page.locator('#global-search').fill(url);
-    await page.locator('#global-search').press('Enter');
+    // v1.16.0+: plain Enter opens AutoPipeline modal; Shift+Enter is the
+    // legacy quick-add path that this test exercises.
+    await page.locator('#global-search').press('Shift+Enter');
     await page.waitForTimeout(800);
     if (!(await page.content()).includes(url)) throw new Error('not visible after add');
     page.on('dialog', (d) => d.accept());
@@ -177,7 +179,10 @@ async function run() {
   });
 
   // ─── 7 new modes ─────────────────────────
-  for (const slug of ['project', 'training', 'followup', 'batch', 'contacto', 'interview-prep', 'patterns']) {
+  // v1.15.0+: /#/batch is the TSV SPA now (not a mode-prompt builder).
+  // The legacy mode-prompt for batch moved to /#/batch-prompt so this
+  // test exercises it there.
+  for (const slug of ['project', 'training', 'followup', 'batch-prompt', 'contacto', 'interview-prep', 'patterns']) {
     await step(`Mode #/${slug}: form renders + Generate prompt produces output`, async () => {
       await page.goto(`${baseUrl}/#/${slug}`, { waitUntil: 'networkidle' });
       await page.waitForSelector('h1.page-title', { timeout: 5000 });

@@ -1,3 +1,18 @@
+/* ───────────────────────── a11y utilities (v1.17.0) ───────────────────────── */
+/* Visually hide an element but keep it discoverable by screen readers
+   and keyboard nav. Used for input labels in the topbar searchbar etc. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ───────────────────────── design tokens — light theme (default) ───────────────────────── */
 :root {
   --rausch: #ff385c;          /* signature coral accent */

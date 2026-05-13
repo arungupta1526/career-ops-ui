@@ -17,7 +17,7 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23FF385C'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Arial' font-size='18' font-weight='bold' fill='white'%3Eco%3C/text%3E%3C/svg%3E" />
   </head>
   <body>
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
       <a class="logo" href="#/dashboard">
         <span class="logo-mark">co</span>
         <span class="logo-text">career-ops</span>
@@ -109,19 +109,21 @@
     </aside>
 
     <main class="main">
-      <div id="conn-banner" class="conn-banner" hidden>
+      <div id="conn-banner" class="conn-banner" hidden role="status" aria-live="polite">
         <span class="conn-msg" data-i18n="conn.down">Server is not responding.</span>
         <button class="btn btn-sm btn-dark" id="conn-refresh-btn" data-i18n="common.refresh">Refresh</button>
       </div>
-      <header class="topbar">
-        <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle menu" type="button">☰</button>
-        <div class="searchbar">
+      <header class="topbar" role="banner">
+        <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle menu" aria-controls="sidebar" aria-expanded="false" type="button">☰</button>
+        <div class="searchbar" role="search">
+          <label for="global-search" class="visually-hidden">Search companies, roles, or URLs</label>
           <input
             type="text"
             id="global-search"
             data-i18n-placeholder="top.search"
             placeholder="Find a company, role or URL…"
             autocomplete="off"
+            aria-label="Global search — Cmd+K to focus, paste a URL and Enter for auto-pipeline"
           />
         </div>
         <div class="topbar-actions">
@@ -130,20 +132,20 @@
           <button class="btn btn-primary" id="btn-quick-scan" data-i18n="top.quickscan">Quick scan</button>
         </div>
       </header>
-      <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+      <div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
 
-      <section class="content" id="content">
+      <section class="content" id="content" role="main" aria-live="polite">
         <div class="loading" data-i18n="common.loading">Loading…</div>
       </section>
     </main>
 
-    <div id="toast" class="toast" hidden></div>
-    <div id="modal" class="modal" hidden>
-      <div class="modal-backdrop" data-close></div>
+    <div id="toast" class="toast" hidden role="status" aria-live="assertive"></div>
+    <div id="modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-backdrop" data-close aria-hidden="true"></div>
       <div class="modal-card">
         <header class="modal-header">
           <h3 id="modal-title"></h3>
-          <button class="modal-close" data-close>×</button>
+          <button class="modal-close" data-close type="button" aria-label="Close dialog">×</button>
         </header>
         <div class="modal-body" id="modal-body"></div>
       </div>

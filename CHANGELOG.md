@@ -6,6 +6,140 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.17.0] — 2026-05-13
+
+**Polish + a11y + CI fix release.** Closes all 9 follow-ups from the
+v1.16.0 list: browser smoke verification, README badge truth,
+coverage refresh, `lastWorkdayFallback` surfaced in SPA, full E2E
+re-baseline, Playwright auto-pipeline scenarios, a11y audit pass,
+historical CHANGELOG condensed in 6 locales, and non-EN READMEs
+expanded with Architecture / API / Security / Tests sections.
+
+### 🐛 Fixes
+
+- **`fix(e2e): smoke + comprehensive suites re-aligned with v1.16 UX`** —
+  the v1.16 Cmd+K Enter → AutoPipeline modal change made the
+  e2e tests' `search.press('Enter')` open a modal that intercepted
+  subsequent clicks. Tests now use `Shift+Enter` for the legacy
+  quick-add path, matching the v1.16 documented split. Also
+  updates the comprehensive E2E batch-mode iteration to use
+  `/#/batch-prompt` (the legacy mode-prompt slug that v1.15 PR-H
+  introduced). **This was the CI failure on v1.16.0 push** —
+  Playwright e2e timed out 30 s waiting on backdrop-intercepted
+  clicks.
+- **`fix(mode-page): batch-prompt route → modes/batch.md via serverSlug`** —
+  v1.15 renamed the legacy mode slug to `batch-prompt`, but the
+  server's `POST /api/mode/:slug` was then looking for
+  `modes/batch-prompt.md` which doesn't exist. New `serverSlug`
+  field decouples the route hash from the parent's mode filename.
+- **`chore: bump deprecation messages from v1.16.0 to v1.17.0`** —
+  the scan-en/scan-ru deprecation copy and the batch-prompt
+  deprecation banner referenced the past version.
+
+### ✨ Features
+
+- **`feat(scan): 🔒 Workday CAPTCHA chip in Active Companies card`** — the
+  server-side `lastWorkdayFallback` export from v1.16 PR-7 is now
+  consumed by the SPA. `/api/scan-results` returns the snapshot;
+  `#/scan` renders a warn-tinted card above Active Companies when
+  a Workday tenant fell back ("🔒 Workday tenant blocked — fallback:
+  use /career-ops scan (Playwright)"). New `getLastWorkdayFallback()`
+  exporter avoids ESM live-binding ambiguity. 2 new i18n keys ×
+  8 locales.
+
+### ♿ Accessibility
+
+- **`a11y: ARIA roles + focus management pass on critical surfaces`** —
+  - `index.html`: `role` attributes on `<aside>` (navigation),
+    `<header>` (banner), `<section id="content">` (main),
+    `<div id="modal">` (dialog with aria-modal/aria-labelledby),
+    `<div id="toast">` + `#conn-banner` (status with aria-live),
+    `<div class="searchbar">` (search).
+  - `#sidebar-toggle` gets `aria-controls="sidebar"` +
+    `aria-expanded` synced by JS on open/close.
+  - `#global-search` gets a visually-hidden `<label>` plus an
+    explicit `aria-label` that surfaces the Cmd+K shortcut hint.
+  - Modal close (×) gets `aria-label="Close dialog"`.
+  - Decorative backdrops get `aria-hidden="true"`.
+  - **Focus trap on modal** — `UI.modal()` remembers the click
+    owner, focuses the first non-close focusable on open, and
+    cycles Tab/Shift+Tab inside the modal. `UI.closeModal()`
+    restores focus to the prior owner.
+  - New `.visually-hidden` utility class in `public/css/app.css`
+    (WAI-ARIA AP standard pattern).
+
+### 📚 Documentation
+
+- **`docs(readme): badge truth across 8 READMEs`** — tests badge
+  `284 / 379 / 360` → **427**; release badge `v1.9.1 / v1.13.0`
+  → **v1.16.0** then → v1.17.0 via the v1.17 bump. Release link
+  targets updated.
+- **`docs(readme): expand 7 non-EN READMEs with reference sections`** —
+  each grew 170 → ~240 lines with new Architecture / API
+  reference / Security notes / Tests / A11y / Limitations /
+  License sections in the native language. Not yet at full 585-line
+  parity with EN but covers all key non-marketing surfaces.
+- **`docs(changelog): condense pre-v1.12 entries in 6 locales`** —
+  the long RU-bodied v1.11.x + v1.10.x entries that bled into the
+  non-EN/non-RU CHANGELOGs are now replaced by a compact
+  "Earlier releases" exec summary in each locale's native
+  language. Detailed history stays in `CHANGELOG.md` (EN).
+
+### 🛠️ Tooling
+
+- **`coverage: refresh numbers`** — last published was 95.46 % line
+  / 84.06 % branch (v1.13.0 REVIEW). v1.17 baseline: **94.14 %
+  line / 82.98 % branch / 93.20 % function**. Slight drop from
+  new error paths in auto-pipeline + reports-write; still well
+  above the 80 % floor in CLAUDE.md.
+
+### 🧪 Tests
+
+- Total: **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive
+  E2E + **32 / 32** Playwright (was 28; +4 new auto-pipeline
+  scenarios: button opens modal, Cmd+K paste triggers modal,
+  invalid URL gates step 1, `POST /api/auto-pipeline` SSE event
+  framing).
+- E2E suite re-aligned with v1.16.0 UX (Shift+Enter quick-add,
+  /#/batch-prompt for legacy mode).
+
+### Verification
+
+```bash
+# Locally:
+npm test                          # 427 / 427
+npm run test:e2e                  # 20 / 20
+npm run test:e2e:full             # 23 / 23
+npm run test:e2e:browser          # 32 / 32
+
+# Browser smoke (page-level):
+curl -s http://127.0.0.1:4317/api/scan-results | jq '.workdayFallback'
+# null when no Workday fallback occurred; {apiUrl, reason, at} after a 4xx.
+
+# A11y spot-check:
+node -e "
+const c = require('cheerio').load(require('fs').readFileSync('public/index.html','utf8'));
+['banner','navigation','main','dialog','status','search'].forEach(r =>
+  console.log(r, c('[role=' + r + ']').length));
+"
+# Each role should appear ≥1.
+
+# CI gate verification: dashboard-screenshots workflow boots a /tmp
+# scaffold, regenerates PNGs, diffs against committed — green when
+# images/dashboard-*.png are up to date with rendered SPA.
+```
+
+### Out of scope (v1.18+)
+
+| Item | Notes |
+|---|---|
+| Translate v1.16.0 entry in non-EN CHANGELOGs | Currently RU-bodied (~30 lines × 6 locales = 180 lines). Was outside the user's explicit v1.11.x/v1.10.x scope. |
+| Full non-EN README parity (585 lines like EN) | v1.17 brought non-EN to ~240; the marketing-heavy "Why?" / "Quick start" walkthroughs remain EN-only. |
+| Parent commit for canonical A-F prompt | `santifer/career-ops::modes/oferta.md` rewrite still needed upstream (CLAUDE.md hard rule #1). |
+| Full WCAG 2.2 AA audit | v1.17 covered structural ARIA + focus trap; per-component contrast/Tab-order audit pending. |
+
+---
+
 ## [1.16.0] — 2026-05-13
 
 **Auto-pipeline finalization + adapter polish + i18n long-tail.** Closes

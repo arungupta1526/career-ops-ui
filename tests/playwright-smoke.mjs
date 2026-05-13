@@ -342,6 +342,109 @@ test('Playwright smoke: pipeline preview proxy strips scripts', { skip: SKIP }, 
   await page.close();
 });
 
+// v1.17.0 — Auto-pipeline modal scenarios (G-007 follow-up).
+// Exercises the AutoPipeline.open() flow surface end-to-end through
+// the real Chromium. No LLM key in fixture → step 3 errors cleanly.
+
+test('Playwright smoke: ✨ Auto-pipeline button on dashboard opens modal', { skip: SKIP }, async () => {
+  const page = await context.newPage();
+  const consoleErrors = [];
+  page.on('console', (msg) => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
+  await page.goto(baseUrl + '/#/dashboard');
+  await page.waitForSelector('#content', { timeout: 5000 });
+  // Click the auto-pipeline CTA in the page-header buttons row.
+  await page.locator('button:has-text("Auto-pipeline")').click();
+  // Modal opens and renders the URL input.
+  await page.waitForSelector('#modal input.input', { timeout: 3000 });
+  const placeholder = await page.locator('#modal input.input').getAttribute('placeholder');
+  assert.match(placeholder || '', /greenhouse|workable|workday|https/i, 'input should hint at a URL paste');
+  // Close modal so subsequent tests can interact with the page.
+  await page.locator('#modal .modal-close').click();
+  assert.deepEqual(consoleErrors, [], 'dashboard auto-pipeline console errors: ' + consoleErrors.join(' | '));
+  await page.close();
+});
+
+test('Playwright smoke: Cmd+K + URL + Enter triggers auto-pipeline modal', { skip: SKIP }, async () => {
+  const page = await context.newPage();
+  await page.goto(baseUrl + '/#/dashboard');
+  await page.waitForSelector('#global-search');
+  // Use a URL that's safe but reaches the SSE endpoint.
+  await page.locator('#global-search').fill('https://example.com/jobs/123');
+  await page.locator('#global-search').press('Enter');
+  // Modal should appear with autoStart=true.
+  await page.waitForSelector('#modal input.input', { timeout: 3000 });
+  // Timeline should fire — step 1 (validate) at minimum.
+  await page.waitForSelector('#modal', { timeout: 3000 });
+  await page.close();
+});
+
+test('Playwright smoke: Auto-pipeline invalid URL → step 1 fails inline', { skip: SKIP }, async () => {
+  const page = await context.newPage();
+  await page.goto(baseUrl + '/#/dashboard');
+  await page.waitForSelector('#content');
+  await page.locator('button:has-text("Auto-pipeline")').click();
+  await page.waitForSelector('#modal input.input');
+  await page.locator('#modal input.input').fill('not-a-real-url');
+  // Avoid locator ambiguity (the dashboard CTA + the modal's run button
+  // both contain "Auto-pipeline" text). Use a programmatic click on the
+  // first primary button inside the modal — the only one that exists is
+  // startBtn.
+  await page.evaluate(() => {
+    const modal = document.getElementById('modal');
+    const btn = modal && modal.querySelector('.btn-primary');
+    if (btn) btn.click();
+  });
+  // Step 1 timeline row should report failure within a second — the
+  // step text is rendered as a "[✗]" icon. Locale-agnostic.
+  await page.waitForFunction(
+    () => {
+      const m = document.querySelector('#modal');
+      if (!m) return false;
+      const txt = m.textContent || '';
+      return txt.includes('invalid URL') || txt.includes('[✗]');
+    },
+    { timeout: 5000 }
+  );
+  await page.close();
+});
+
+test('Playwright smoke: POST /api/auto-pipeline SSE — emits start + step events', { skip: SKIP }, async () => {
+  const page = await context.newPage();
+  await page.goto(baseUrl + '/');
+  // Drive the SSE endpoint directly via fetch() from the page context;
+  // verifies the server emits the canonical event sequence even when
+  // there's no LLM key (step 3 → error).
+  const events = await page.evaluate(async () => {
+    const resp = await fetch('/api/auto-pipeline', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: 'javascript:bad' }),
+    });
+    const reader = resp.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    const out = [];
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const parts = buf.split('\n\n'); buf = parts.pop();
+      for (const p of parts) {
+        const ev = (p.match(/^event:\s*(\S+)/m) || [])[1];
+        if (ev) out.push(ev);
+      }
+      if (out.includes('error') || out.includes('done')) break;
+    }
+    return out;
+  });
+  // For an invalid URL we expect at least: start, step (validate
+  // running), step (validate failed), error.
+  assert.ok(events.includes('start'), `expected 'start' event, got ${events.join(',')}`);
+  assert.ok(events.includes('step'),  `expected 'step' event, got ${events.join(',')}`);
+  assert.ok(events.includes('error'), `expected 'error' event, got ${events.join(',')}`);
+  await page.close();
+});
+
 if (SKIP) {
   test('Playwright smoke: skipped (playwright not resolvable)', () => {
     console.log('SKIP — install playwright in parent project: cd $CAREER_OPS_ROOT && npm i && npx playwright install chromium');

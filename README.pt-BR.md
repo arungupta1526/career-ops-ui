@@ -5,11 +5,11 @@
 
 [English](README.md) | [Español](README.es.md) | **Português (Brasil)** | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-284%20passed-brightgreen)](README.md#tests)
+[![tests](https://img.shields.io/badge/tests-427%20passed-brightgreen)](README.md#tests)
 [![playwright](https://img.shields.io/badge/playwright-12%20smoke-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.9.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.9.1)
+[![release](https://img.shields.io/badge/release-v1.16.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.16.0)
 
 > 📦 **v1.9.1** — Servidor refatorado para um orquestrador de 130 linhas + 12 módulos de rotas em `server/lib/routes/`. Paridade Anthropic em `/api/evaluate` (preferida sobre Gemini quando ambas as chaves estão presentes). Shims multi-CLI (`AGENTS.md`, `GEMINI.md`) para Codex / Aider / Cursor / Gemini CLI. **284 unit + 12 Playwright smoke tests**. Para a avaliação completa de production-readiness: [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md). Pronto para deploy single-tenant loopback; o gate de auth para LAN chega em v2.0 (P-12).
 
@@ -168,3 +168,72 @@ Eventos SSE: `start → step (×5) → done` ou `error`. Falha limpa em qualquer
 - Help in-app: `#/help` (16 seções × 8 locales).
 - CHANGELOG: [`CHANGELOG.pt-BR.md`](CHANGELOG.pt-BR.md).
 - Documentos canônicos: [career-ops.org/docs](https://career-ops.org/docs).
+
+---
+
+## Arquitetura
+
+| Camada | Stack | Arquivos |
+|---|---|---|
+| Server | Node ≥18, Express 4, js-yaml, multer | `server/index.mjs` (~130 LOC), `server/lib/routes/*.mjs` (13 módulos) |
+| SPA | Vanilla JS, hash-router, sem framework | `public/index.html`, `public/js/{app,router,api}.js`, `public/js/views/*.js` |
+| Styling | CSS hand-written, docs-style tokens, dark theme | `public/css/app.css` |
+| Tests | `node --test` (TAP), Express in-process | `tests/*.test.mjs`, Playwright |
+| Build | Nenhum — arquivos servidos as-is | — |
+
+O servidor lê arquivos do pai (`../cv.md`, `../config/profile.yml`, etc.) e só escreve em ações explícitas (`POST /api/tracker`, `PUT /api/cv`, `POST /api/reports`, `POST /api/auto-pipeline`).
+
+## Referência API
+
+Endpoints chave (lista completa em [README EN](README.md#api-reference)):
+
+| Método + Rota | Propósito |
+|---|---|
+| `GET /api/health` | system status + 18 checks |
+| `GET /api/dashboard` | counts + score-thresholds + activity tail |
+| `GET /api/scan-results` | snapshot último scan + `workdayFallback` (v1.17+) |
+| `GET /api/stream/scan?source=ats\|regional\|both` | SSE consolidado |
+| `POST /api/pipeline { url }` | adicionar URL (gate SSRF) |
+| `GET /api/pipeline/preview?url=` | proxy SSRF-safe + DNS-rebind guard |
+| `POST /api/evaluate { jd, save?, mode? }` | Anthropic / Gemini / manual eval |
+| `POST /api/reports { slug, markdown }` | persist em `reports/<slug>.md` (v1.16+) |
+| `POST /api/auto-pipeline { url }` | SSE 5-step orchestrator (v1.16+) |
+| `POST /api/tracker { company, role, … }` | append em `data/applications.md` |
+| `GET /api/modes/_profile` + `PUT` | editor `modes/_profile.md` (v1.15+) |
+| `POST /api/stream/pdf/inline` | SSE PDF via Playwright |
+
+## Notas de segurança
+
+- **CSP** estrito: `script-src 'self'` sem `'unsafe-inline'`. Handlers via `addEventListener`.
+- **SSRF**: cada fetch de URL passa por `isValidJobUrl()` — rejeita loopback, IPs privadas, schemes perigosos, redirects inseguros.
+- **XSS**: cada markdown que entra passa por `stripDangerousMarkdown()`.
+- **DNS-rebind guard** em `/api/pipeline/preview` e auto-pipeline.
+- **Headers**: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: same-origin`.
+- **Body caps**: 5 MB JSON, 1 MB report, 256 KB profile / modes_profile, 10 MB CV upload.
+- Sem auth — single-tenant loopback only. Auth LAN → P-12 (v2.0).
+
+## Testes
+
+- `npm test` — **427** testes unitários + integração. Isolamento via `CAREER_OPS_ROOT=$(mktemp -d)`.
+- `npm run test:coverage` — **94 % linhas / 83 % branches**.
+- `npm run test:e2e` — 20 smoke E2E.
+- `npm run test:e2e:full` — 23 comprehensive E2E.
+- `npm run test:e2e:browser` — **32** Playwright (smoke + full-cycle + auto-pipeline scenarios).
+
+## A11y (v1.17+)
+
+- ARIA roles: `banner`, `navigation`, `main`, `dialog`, `status`, `search`.
+- Focus trap em modais com restauração de foco para click owner.
+- `aria-expanded` sync em sidebar-toggle.
+- Label do global search via classe `visually-hidden`.
+
+## Limitações
+
+- **Single-tenant, loopback only** — sem login, sem multi-user.
+- **PDF requer Playwright** no pai.
+- **Live LLM requer ANTHROPIC_API_KEY ou GEMINI_API_KEY**; sem chave → manual prompt.
+- **Workday CAPTCHA-gated tenants** caem em fallback graceful (no jobs); use `/career-ops scan`.
+
+## License
+
+MIT — veja [LICENSE](LICENSE).

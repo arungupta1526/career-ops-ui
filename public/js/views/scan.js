@@ -565,7 +565,41 @@ Router.register('scan', async () => {
       });
       list.style.display = 'none';
 
+      // v1.17.0 — render a 🔒 chip when the server reports the most
+      // recent Workday fetch fell back (CAPTCHA / 4xx / non-JSON HTML).
+      // The /api/scan-results endpoint exposes workdayFallback as part
+      // of the latest snapshot. Empty when no fallback has occurred.
+      const wdFallback = c('div', {
+        id: 'workday-fallback-chip',
+        style: { display: 'none', marginBottom: '12px', padding: '8px 12px',
+          background: 'rgba(244, 173, 47, .12)', borderLeft: '3px solid var(--warn, #f4ad2f)',
+          borderRadius: '4px', fontSize: '13px' },
+      });
+      // Hook into the same refresh dispatch as Active Companies counter.
+      // Reads workdayFallback from /api/scan-results when it lands.
+      function refreshWorkdayChip() {
+        fetch('/api/scan-results').then((r) => r.json()).then((d) => {
+          const wf = d && d.workdayFallback;
+          if (!wf || !wf.apiUrl) {
+            wdFallback.style.display = 'none';
+            return;
+          }
+          const tenant = (wf.apiUrl.match(/https?:\/\/([^./]+)\./) || [, 'unknown'])[1];
+          wdFallback.innerHTML = '';
+          wdFallback.appendChild(c('strong', null, '🔒 ' + t('scan.workdayBlocked', 'Workday tenant blocked')));
+          wdFallback.appendChild(c('span', { style: { marginLeft: '8px', color: 'var(--foggy)' } },
+            `${tenant} · ${wf.reason} · ` + t('scan.workdayFallbackHint',
+              'fallback: use /career-ops scan (Playwright) for this tenant')));
+          wdFallback.style.display = '';
+        }).catch(() => { /* network blip — chip stays hidden */ });
+      }
+      document.body.addEventListener('scan:refresh', refreshWorkdayChip);
+      // Initial check on page load so users who navigate to /#/scan after
+      // a prior session's blocked Workday see the chip immediately.
+      refreshWorkdayChip();
+
       return c('div', { className: 'card mt-5' }, [
+        wdFallback,
         portalsErr
           ? c('div', { className: 'empty' }, [
               c('strong', null, t('scan.failedPortals')),

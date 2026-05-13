@@ -5,11 +5,11 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | **Русский** | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-379%20passed-brightgreen)](README.md#tests)
+[![tests](https://img.shields.io/badge/tests-427%20passed-brightgreen)](README.md#tests)
 [![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.13.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.13.0)
+[![release](https://img.shields.io/badge/release-v1.16.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.16.0)
 
 ![career-ops-ui — Командный центр](./images/dashboard-ru.png)
 
@@ -178,3 +178,72 @@ SSE-события: `start → step (×5) → done` или `error`. Чистое
 - In-app help: `#/help` (16 секций × 8 локалей).
 - CHANGELOG: [`CHANGELOG.ru.md`](CHANGELOG.ru.md).
 - Канонические docs: [career-ops.org/docs](https://career-ops.org/docs).
+
+---
+
+## Архитектура
+
+| Слой | Stack | Файлы |
+|---|---|---|
+| Server | Node ≥18, Express 4, js-yaml, multer | `server/index.mjs` (~130 LOC), `server/lib/routes/*.mjs` (13 модулей) |
+| SPA | Vanilla JS, hash-router, без фреймворка | `public/index.html`, `public/js/{app,router,api}.js`, `public/js/views/*.js` |
+| Styling | Hand-written CSS, docs-style токены, dark theme | `public/css/app.css` |
+| Tests | `node --test` (TAP), Express in-process | `tests/*.test.mjs`, Playwright |
+| Build | Нет — файлы as-is | — |
+
+Сервер читает parent-файлы (`../cv.md`, `../config/profile.yml`) и пишет ТОЛЬКО на явные user-actions (`POST /api/tracker`, `PUT /api/cv`, `POST /api/reports`, `POST /api/auto-pipeline`).
+
+## API reference
+
+Ключевые endpoints (полный список в [EN README](README.md#api-reference)):
+
+| Method + Path | Назначение |
+|---|---|
+| `GET /api/health` | system status + 18 checks |
+| `GET /api/dashboard` | counts + score-thresholds + activity tail |
+| `GET /api/scan-results` | snapshot + `workdayFallback` (v1.17+) |
+| `GET /api/stream/scan?source=ats\|regional\|both` | консолидированный SSE |
+| `POST /api/pipeline { url }` | add URL (SSRF gate) |
+| `GET /api/pipeline/preview?url=` | SSRF-safe proxy + DNS-rebind guard |
+| `POST /api/evaluate { jd, save?, mode? }` | Anthropic / Gemini / manual eval |
+| `POST /api/reports { slug, markdown }` | persist в `reports/<slug>.md` (v1.16+) |
+| `POST /api/auto-pipeline { url }` | SSE 5-step orchestrator (v1.16+) |
+| `POST /api/tracker { company, role, … }` | append в `data/applications.md` |
+| `GET /api/modes/_profile` + `PUT` | editor `modes/_profile.md` (v1.15+) |
+| `POST /api/stream/pdf/inline` | SSE PDF через Playwright |
+
+## Безопасность
+
+- **CSP** строгий: `script-src 'self'` без `'unsafe-inline'`. Handlers через `addEventListener`.
+- **SSRF**: каждый user-URL fetch проходит `isValidJobUrl()` — отклоняет loopback, private IPs, опасные schemes, небезопасные redirects.
+- **XSS**: входящий markdown через `stripDangerousMarkdown()`.
+- **DNS-rebind guard** на `/api/pipeline/preview` и auto-pipeline.
+- **Headers**: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: same-origin`.
+- **Body caps**: 5 MB JSON, 1 MB report, 256 KB profile/modes_profile, 10 MB CV upload.
+- Auth нет — single-tenant loopback only. LAN auth → P-12 (v2.0).
+
+## Тесты
+
+- `npm test` — **427** unit + integration. Изоляция через `CAREER_OPS_ROOT=$(mktemp -d)`.
+- `npm run test:coverage` — **94 % линий / 83 % веток**.
+- `npm run test:e2e` — 20 smoke E2E.
+- `npm run test:e2e:full` — 23 comprehensive E2E.
+- `npm run test:e2e:browser` — **32** Playwright (smoke + full-cycle + auto-pipeline scenarios).
+
+## A11y (v1.17+)
+
+- ARIA roles: `banner`, `navigation`, `main`, `dialog`, `status`, `search`.
+- Focus trap в модалках + восстановление focus к click owner.
+- `aria-expanded` sync на sidebar-toggle.
+- Метка global search через `visually-hidden` class.
+
+## Ограничения
+
+- **Single-tenant, loopback only** — без login, без multi-user.
+- **PDF требует Playwright** в parent.
+- **Live LLM требует ANTHROPIC_API_KEY или GEMINI_API_KEY**; без ключа → manual prompt.
+- **Workday CAPTCHA-gated tenants** падают в graceful fallback (no jobs); используй `/career-ops scan`.
+
+## License
+
+MIT — см. [LICENSE](LICENSE).

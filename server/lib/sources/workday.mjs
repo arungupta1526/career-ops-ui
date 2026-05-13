@@ -32,7 +32,13 @@ const PAGE_LIMIT = 100;
 
 // Module-level snapshot of the last fallback reason. Scanner uses
 // this for status reporting via /#/scan Active Companies card.
+// v1.17.0 — exposed via getLastWorkdayFallback() too so SSE consumers
+// (server/lib/routes/scan.mjs) don't have to rely on ESM live bindings.
 export let lastWorkdayFallback = null;
+
+export function getLastWorkdayFallback() {
+  return lastWorkdayFallback;
+}
 
 function setFallback(apiUrl, reason) {
   lastWorkdayFallback = { apiUrl, reason, at: new Date().toISOString() };

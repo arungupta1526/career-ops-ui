@@ -49,8 +49,13 @@
       // (server/lib/routes/batch.mjs + public/js/views/batch.js). The
       // legacy mode-prompt builder stays accessible at /#/batch-prompt for
       // any deep-linked bookmarks; a deprecation banner is rendered on top.
-      // Scheduled for removal in v1.16.0.
+      // Scheduled for removal in v1.17.0.
+      //
+      // v1.17.0 — `serverSlug` decouples the route slug ('batch-prompt')
+      // from the server-side mode file name ('batch'). modes/batch.md
+      // exists in the parent; modes/batch-prompt.md does not.
       slug: 'batch-prompt',
+      serverSlug: 'batch',
       titleKey: 'batch.title',
       subtitleKey: 'batch.subtitle',
       deprecation: 'batch-prompt.deprecated',
@@ -243,7 +248,11 @@
       if (!validate()) return;
       out.innerHTML = `<div class="loading">${t('mode.generating', 'Generating…')}</div>`;
       try {
-        const r = await UI.withSpinner(btn, () => API.post('/api/mode/' + cfg.slug, { ...payload(), run }));
+        // v1.17.0 — serverSlug (if set) decouples the route hash from the
+        // parent modes/<slug>.md filename. Used for /#/batch-prompt →
+        // modes/batch.md.
+        const apiSlug = cfg.serverSlug || cfg.slug;
+        const r = await UI.withSpinner(btn, () => API.post('/api/mode/' + apiSlug, { ...payload(), run }));
         const titleStr = `${t(cfg.titleKey)} — ${new Date().toLocaleString()}`;
         if (r.markdown) {
           showResult(titleStr, r.markdown, cfg.slug);
@@ -274,7 +283,7 @@
       ? c('div', { className: 'card', style: { borderLeft: '3px solid var(--warn)', marginBottom: '16px' } }, [
           c('strong', null, '⚠ '),
           c('span', null, t(cfg.deprecation,
-            'This route is deprecated. The canonical Batch evaluate page is now at #/batch (TSV editor + parallel runner). This legacy prompt-builder will be removed in v1.16.0.')),
+            'This route is deprecated. The canonical Batch evaluate page is now at #/batch (TSV editor + parallel runner). This legacy prompt-builder will be removed in v1.17.0.')),
           c('div', { className: 'mt-2' }, [
             c('a', { href: '#/batch', className: 'btn btn-primary btn-sm' },
               '↗ ' + t('batch-prompt.goCanonical', 'Open #/batch')),

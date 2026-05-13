@@ -21,6 +21,7 @@
  */
 import { runRuScan, loadConfig as loadRuConfig } from '../ru-scanner.mjs';
 import { runEnScan, loadLastScan } from '../en-scanner.mjs';
+import { getLastWorkdayFallback } from '../sources/workday.mjs';
 
 // G-004 (v1.15.0): the EN/RU split aliases are scheduled for removal in
 // v1.16.0. Surface that through RFC 8594 Sunset + Deprecation headers so
@@ -109,7 +110,7 @@ export function registerScanRoutes(app) {
   app.get('/api/stream/scan-ru', async (req, res) => {
     markScanAliasDeprecated(res, '/api/stream/scan?source=regional');
     if (!process.env.SUPPRESS_SCAN_ALIAS_WARN) {
-      console.warn('[deprecated] /api/stream/scan-ru — scheduled for removal in v1.16.0; use /api/stream/scan?source=regional');
+      console.warn('[deprecated] /api/stream/scan-ru — scheduled for removal in v1.17.0; use /api/stream/scan?source=regional');
     }
     const send = openSse(res);
     const writeFiles = req.query.dryRun !== '1';
@@ -152,7 +153,7 @@ export function registerScanRoutes(app) {
   app.get('/api/stream/scan-en', async (req, res) => {
     markScanAliasDeprecated(res, '/api/stream/scan?source=ats');
     if (!process.env.SUPPRESS_SCAN_ALIAS_WARN) {
-      console.warn('[deprecated] /api/stream/scan-en — scheduled for removal in v1.16.0; use /api/stream/scan?source=ats');
+      console.warn('[deprecated] /api/stream/scan-en — scheduled for removal in v1.17.0; use /api/stream/scan?source=ats');
     }
     const send = openSse(res);
     const writeFiles = req.query.dryRun !== '1';
@@ -181,6 +182,13 @@ export function registerScanRoutes(app) {
 
   // ─── Latest scan results (for table view in UI) ───
   app.get('/api/scan-results', (_req, res) => {
-    res.json(loadLastScan());
+    // v1.17.0 — surface lastWorkdayFallback so the SPA's Active
+    // Companies card can render 🔒 chips for CAPTCHA-gated tenants.
+    // Only the snapshot, not history — the scanner resets it on each
+    // successful Workday fetch.
+    res.json({
+      ...loadLastScan(),
+      workdayFallback: getLastWorkdayFallback(),
+    });
   });
 }

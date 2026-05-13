@@ -123,7 +123,9 @@ async function run() {
     const testUrl = `https://e2e-${Date.now()}.example.com/job/1`;
     const search = page.locator('#global-search');
     await search.fill(testUrl);
-    await search.press('Enter');
+    // v1.16.0+: plain Enter on a URL opens AutoPipeline modal; Shift+Enter
+    // preserves the legacy "add to pipeline only" behavior for this test.
+    await search.press('Shift+Enter');
     await page.waitForTimeout(800);
     const txt = await page.content();
     if (!txt.includes(testUrl)) throw new Error('URL not visible after add');

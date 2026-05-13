@@ -5,11 +5,11 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | **한국어** | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-284%20passed-brightgreen)](README.md#tests)
+[![tests](https://img.shields.io/badge/tests-427%20passed-brightgreen)](README.md#tests)
 [![playwright](https://img.shields.io/badge/playwright-12%20smoke-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.9.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.9.1)
+[![release](https://img.shields.io/badge/release-v1.16.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.16.0)
 
 > 📦 **v1.9.1** — 서버를 130줄 오케스트레이터 + `server/lib/routes/`의 12개 라우트 모듈로 리팩터링. `/api/evaluate`의 Anthropic 패리티(두 키 모두 있을 때 우선). 멀티 CLI 심(`AGENTS.md`, `GEMINI.md`)으로 Codex / Aider / Cursor / Gemini CLI 지원. **unit 284개 + Playwright smoke 12개**. 전체 production-readiness 평가: [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md). 싱글 테넌트 loopback 배포 준비 완료; LAN 노출용 auth gate는 v2.0 (P-12)에서 제공.
 
@@ -168,3 +168,72 @@ SSE 이벤트: `start → step (×5) → done` 또는 `error`. 어떤 단계든 
 - 인앱 도움말: `#/help` (16 섹션 × 8 로케일).
 - CHANGELOG: [`CHANGELOG.ko-KR.md`](CHANGELOG.ko-KR.md).
 - 표준 문서: [career-ops.org/docs](https://career-ops.org/docs).
+
+---
+
+## 아키텍처
+
+| 레이어 | Stack | 파일 |
+|---|---|---|
+| Server | Node ≥18, Express 4, js-yaml, multer | `server/index.mjs` (~130 LOC), `server/lib/routes/*.mjs` (13 모듈) |
+| SPA | Vanilla JS, hash-router, 프레임워크 없음 | `public/index.html`, `public/js/{app,router,api}.js`, `public/js/views/*.js` |
+| Styling | hand-written CSS, docs-style 토큰, dark theme | `public/css/app.css` |
+| Tests | `node --test` (TAP), Express in-process | `tests/*.test.mjs`, Playwright |
+| Build | 없음 — 파일 as-is 제공 | — |
+
+서버는 부모 파일(`../cv.md`, `../config/profile.yml` 등)을 읽고 명시적 사용자 액션(`POST /api/tracker`, `PUT /api/cv`, `POST /api/reports`, `POST /api/auto-pipeline`)에서만 씁니다.
+
+## API 레퍼런스
+
+핵심 엔드포인트(전체 목록은 [영어 README](README.md#api-reference)):
+
+| Method + Path | 목적 |
+|---|---|
+| `GET /api/health` | system status + 18 checks |
+| `GET /api/dashboard` | counts + score-thresholds + activity tail |
+| `GET /api/scan-results` | 최신 scan + `workdayFallback` (v1.17+) |
+| `GET /api/stream/scan?source=ats\|regional\|both` | 통합 SSE |
+| `POST /api/pipeline { url }` | URL 추가 (SSRF 게이트) |
+| `GET /api/pipeline/preview?url=` | SSRF-safe 프록시 + DNS-rebind guard |
+| `POST /api/evaluate { jd, save?, mode? }` | Anthropic / Gemini / manual eval |
+| `POST /api/reports { slug, markdown }` | `reports/<slug>.md`에 영속화 (v1.16+) |
+| `POST /api/auto-pipeline { url }` | SSE 5-step orchestrator (v1.16+) |
+| `POST /api/tracker { company, role, … }` | `data/applications.md`에 append |
+| `GET /api/modes/_profile` + `PUT` | `modes/_profile.md` 에디터 (v1.15+) |
+| `POST /api/stream/pdf/inline` | Playwright 통한 SSE PDF |
+
+## 보안 노트
+
+- **CSP** 엄격: `script-src 'self'`, `'unsafe-inline'` 없음. 핸들러는 `addEventListener` 경유.
+- **SSRF**: 사용자 URL 페치는 `isValidJobUrl()` 통과 — loopback, private IP, 위험한 scheme, 안전하지 않은 redirect 거부.
+- **XSS**: 입력 markdown은 `stripDangerousMarkdown()` 통과.
+- **DNS-rebind guard**: `/api/pipeline/preview` 및 auto-pipeline.
+- **Headers**: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: same-origin`.
+- **Body caps**: 5 MB JSON, 1 MB report, 256 KB profile/modes_profile, 10 MB CV upload.
+- Auth 없음 — single-tenant loopback only. LAN auth → P-12 (v2.0).
+
+## 테스트
+
+- `npm test` — **427** 단위 + 통합. `CAREER_OPS_ROOT=$(mktemp -d)` 격리.
+- `npm run test:coverage` — **94 % 라인 / 83 % 브랜치**.
+- `npm run test:e2e` — 20 smoke E2E.
+- `npm run test:e2e:full` — 23 comprehensive E2E.
+- `npm run test:e2e:browser` — **32** Playwright (smoke + full-cycle + auto-pipeline 시나리오).
+
+## A11y (v1.17+)
+
+- ARIA roles: `banner`, `navigation`, `main`, `dialog`, `status`, `search`.
+- 모달의 포커스 트랩 + click owner로 포커스 복원.
+- sidebar-toggle의 `aria-expanded` 동기화.
+- global search 라벨은 `visually-hidden` 클래스 경유.
+
+## 제한 사항
+
+- **Single-tenant, loopback only** — 로그인 없음, 다중 사용자 없음.
+- **PDF 부모에 Playwright 필요**.
+- **Live LLM은 ANTHROPIC_API_KEY 또는 GEMINI_API_KEY 필요**; 키 없으면 manual prompt.
+- **Workday CAPTCHA-gated tenants**는 graceful fallback (no jobs); `/career-ops scan` 사용.
+
+## License
+
+MIT — [LICENSE](LICENSE) 참조.

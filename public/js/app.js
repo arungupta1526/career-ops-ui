@@ -162,10 +162,18 @@ I18n.onChange(() => {
   // on the new page with the sidebar tucked away.
   const toggle = document.getElementById('sidebar-toggle');
   const backdrop = document.getElementById('sidebar-backdrop');
-  function closeSidebar() { document.body.classList.remove('sidebar-open'); }
-  function openSidebar()  { document.body.classList.add('sidebar-open'); }
-  if (toggle) toggle.addEventListener('click', () =>
-    document.body.classList.toggle('sidebar-open'));
+  // v1.17.0 — keep aria-expanded in sync so screen readers know the
+  // mobile drawer state.
+  function syncSidebarAria() {
+    if (!toggle) return;
+    toggle.setAttribute('aria-expanded', document.body.classList.contains('sidebar-open') ? 'true' : 'false');
+  }
+  function closeSidebar() { document.body.classList.remove('sidebar-open'); syncSidebarAria(); }
+  function openSidebar()  { document.body.classList.add('sidebar-open'); syncSidebarAria(); }
+  if (toggle) toggle.addEventListener('click', () => {
+    if (document.body.classList.contains('sidebar-open')) closeSidebar();
+    else openSidebar();
+  });
   if (backdrop) backdrop.addEventListener('click', closeSidebar);
   document.querySelectorAll('.sidebar a').forEach((a) =>
     a.addEventListener('click', closeSidebar));
