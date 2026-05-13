@@ -8,94 +8,126 @@
 
 ---
 
+## [1.18.0] — 2026-05-13
+
+**Scan 端點合併 + WCAG 2.2 AA 通過 + i18n long-tail 完成。** 退役遺留 `/api/stream/scan-{en,ru}` 別名(Sunset 視窗 2026-10-01 根據使用者指示提前到 v1.18)。把 non-EN README 提到 ~307 列,並在 6 個 locale 中翻譯剩餘的 v1.16.0 + v1.17.0 CHANGELOG RU-bodied 條目。
+
+### 🚪 Breaking
+
+- **`feat!(scan): retire legacy /api/stream/scan-{en,ru} aliases`** — 已棄用的 EN/RU 拆分 SSE 端點已移除。每個消費者通過合併的 `/api/stream/scan?source=ats|regional|both` 端點(自 v1.12.0 起活動)。外部整合現在在舊路徑上獲得乾淨的 **404**,而不是被靜默路由到 SPA catch-all。
+
+### ♿ 無障礙 (WCAG 2.2 AA 通過)
+
+- **WCAG 2.4.1 Bypass Blocks** — 每頁第一個 focusable 的新 **Skip to main content** 連結。
+- **WCAG 2.4.7 Focus Visible** — 全域 `*:focus-visible` 樣式。
+- **WCAG 2.5.5 Target Size** — `.skip-link` 的最小 44×44 px 觸控目標。`.btn-sm` 保持 32 px min-height。
+- **WCAG 3.1.1 Language of Page** — `<html lang="en">` 從 `lang="ru"` 修正。
+- **WCAG 1.3.1 Info & Relationships** — `#content` 取得 `tabindex="-1"`。
+
+### 📚 i18n long-tail
+
+- **`docs(i18n): 在 6 個 locale 中翻譯 v1.16.0 + v1.17.0 CHANGELOG`** — 每 locale 的 RU 字元數 79 → 42 → 23。
+- **`docs(readme): 用 Why / Requirements / Features / Configuration / Contributing 擴展 non-EN README`** — 每個 non-EN README 從 240 增長到 ~307 列。
+
+### 🧪 測試
+
+- 總計 **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive E2E + 32/32 Playwright。
+
+---
+
 ## [1.17.0] — 2026-05-13
 
-**Polish + a11y + CI fix release.** Closes 9 follow-ups from v1.16.0 REVIEW: browser smoke verify, README badge truth, coverage refresh, `lastWorkdayFallback` 🔒 chip в SPA, full E2E re-baseline после v1.16 UX-change, Playwright auto-pipeline scenarios, a11y ARIA + focus trap pass, condensed historical CHANGELOG в 6 локалях, expanded non-EN READMEs с reference sections.
+**Polish + a11y + CI 修復。** 關閉 v1.16.0 REVIEW 的 9 個 follow-up: 瀏覽器 smoke 驗證、README 徽章 truth、coverage 刷新、SPA 中的 `lastWorkdayFallback` 🔒 chip、v1.16 UX 變更後完整 E2E 重新基線、Playwright auto-pipeline 場景、a11y ARIA + focus trap 通過、6 個 locale 中歷史 CHANGELOG 壓縮、帶參考章節的 non-EN README 擴展。
 
 ### 🐛 Fixes
 
-- **`fix(e2e): smoke + comprehensive re-aligned с v1.16 UX`** — v1.16 Cmd+K Enter → AutoPipeline modal изменение сделало `search.press('Enter')` в e2e тестах открывающим modal. Тесты теперь используют `Shift+Enter` для legacy quick-add path. **Это и был CI failure на push v1.16.0** — Playwright e2e таймаутил 30s на backdrop-intercepted кликах.
-- **`fix(mode-page): /#/batch-prompt → modes/batch.md via serverSlug`** — v1.15 переименовал legacy mode slug в `batch-prompt`, но server `POST /api/mode/:slug` искал `modes/batch-prompt.md`. Новое поле `serverSlug` развязывает route hash от parent mode filename.
-- **`chore: bump deprecation messages с v1.16.0 → v1.17.0`** — scan-en/scan-ru deprecation copy + batch-prompt banner ссылались на прошедшую версию.
+- **`fix(e2e): smoke + comprehensive 與 v1.16 UX 重新對齊`** — v1.16 的 Cmd+K Enter → AutoPipeline modal 變更使 e2e 測試的 `search.press('Enter')` 開啟一個 modal,其 backdrop 攔截後續點擊。測試現在使用 `Shift+Enter` 用於 legacy quick-add 路徑。**這就是 v1.16.0 push 上的 CI 失敗** — Playwright e2e 在被 backdrop 攔截的點擊上 30 秒超時。
+- **`fix(mode-page): /#/batch-prompt → modes/batch.md 經 serverSlug`** — v1.15 將 legacy mode slug 重新命名為 `batch-prompt`,但伺服器 `POST /api/mode/:slug` 在尋找不存在的 `modes/batch-prompt.md`。新 `serverSlug` 欄位將路由 hash 與父專案的 mode 檔名解耦。
+- **`chore: 將 deprecation 訊息從 v1.16.0 → v1.17.0 bump`** — scan-en/scan-ru deprecation 文案和 batch-prompt 橫幅引用了過去的版本。
 
 ### ✨ Features
 
-- **`feat(scan): 🔒 Workday CAPTCHA chip в Active Companies card`** — server-side `lastWorkdayFallback` export из v1.16 PR-7 теперь consumed в SPA. `/api/scan-results` возвращает snapshot; `#/scan` рендерит warn-tinted card сверху при Workday fallback.
+- **`feat(scan): Active Companies 卡片中的 🔒 Workday CAPTCHA chip`** — v1.16 PR-7 的 server-side `lastWorkdayFallback` export 現在被 SPA 消費。`/api/scan-results` 回傳 snapshot;當 Workday tenant 落入 fallback 時,`#/scan` 在 Active Companies 上方渲染 warn-tinted 卡片("🔒 Workday tenant blocked — fallback: 使用 /career-ops scan (Playwright)")。新 `getLastWorkdayFallback()` exporter 避免 ESM live-binding 模糊。2 個新 i18n 鍵 × 8 locales。
 
-### ♿ Accessibility
+### ♿ 無障礙
 
-- **`a11y: ARIA roles + focus management pass`** —
-  - `index.html`: `role` attrs на `<aside>` (navigation), `<header>` (banner), `<section id="content">` (main), `<div id="modal">` (dialog + aria-modal + aria-labelledby), toast/banner (status + aria-live), searchbar (search).
-  - `#sidebar-toggle`: `aria-controls` + `aria-expanded` sync.
-  - `#global-search`: visually-hidden `<label>` + `aria-label` с Cmd+K hint.
-  - Decorative backdrops: `aria-hidden="true"`.
-  - **Focus trap в modal** через `UI.modal()` — запоминает click owner, фокусит первый non-close focusable на open, циклит Tab/Shift+Tab внутри modal. `UI.closeModal()` восстанавливает focus.
-  - Новый `.visually-hidden` utility class (WAI-ARIA AP стандарт).
+- **`a11y: ARIA roles + focus management 通過`** —
+  - `index.html`: `<aside>`(navigation)、`<header>`(banner)、`<section id="content">`(main)、`<div id="modal">`(帶 aria-modal/aria-labelledby 的 dialog)、`<div id="toast">` + `#conn-banner`(帶 aria-live 的 status)、`<div class="searchbar">`(search) 上的 `role` 屬性。
+  - `#sidebar-toggle` 取得 `aria-controls="sidebar"` + 由 JS 在 open/close 時同步的 `aria-expanded`。
+  - `#global-search` 取得 visually-hidden `<label>` 加上明確 `aria-label`,後者 surface Cmd+K shortcut 提示。
+  - Modal 關閉 (×) 取得 `aria-label="Close dialog"`。
+  - 裝飾性 backdrop 取得 `aria-hidden="true"`。
+  - **Modal 焦點陷阱** — `UI.modal()` 記住點擊擁有者,在 open 時聚焦第一個 non-close focusable,並在 modal 內循環 Tab/Shift+Tab。`UI.closeModal()` 將焦點恢復到先前的擁有者。
+  - `public/css/app.css` 中的新 `.visually-hidden` utility 類別(WAI-ARIA AP 標準模式)。
 
-### 📚 Документация
+### 📚 文件
 
-- **`docs(readme): badge truth × 8 READMEs`** — tests `284/379/360` → **427**; release `v1.9.1/v1.13.0` → **v1.16.0** → v1.17.0.
-- **`docs(readme): расширены 7 non-EN READMEs с reference sections`** — каждый вырос 170 → ~240 строк с Architecture / API / Security / Tests / A11y / Limitations / License разделами на native language.
-- **`docs(changelog): condensed pre-v1.12 в 6 локалях`** — длинные RU-bodied v1.11.x + v1.10.x записи заменены на компактный "Earlier releases" exec summary на native language.
+- **`docs(readme): 跨 8 個 README 的徽章 truth`** — tests 徽章 `284 / 379 / 360` → **427**; release 徽章 `v1.9.1 / v1.13.0` → **v1.16.0** 然後 → v1.17.0。
+- **`docs(readme): 用參考章節擴展 7 個 non-EN README`** — 每個增長 170 → ~240 列,以原生語言加入 Architecture / API / Security / Tests / A11y / Limitations / License 章節。
+- **`docs(changelog): 在 6 個 locale 中壓縮 pre-v1.12 條目`** — 長 RU-bodied v1.11.x + v1.10.x 條目現在被替換為每個 locale 原生語言的緊湊 "Earlier releases" 執行摘要。詳細歷史保留在 `CHANGELOG.md` (EN) 中。
 
 ### 🛠️ Tooling
 
-- **`coverage: refresh numbers`** — последний публичный был 95.46 % / 84.06 % (v1.13.0 REVIEW). v1.17 baseline: **94.14 % линий / 82.98 % веток / 93.20 % функций**. Slight drop от новых error paths в auto-pipeline + reports-write; всё ещё выше 80 % floor.
+- **`coverage: 刷新數字`** — 最後發布是 95.46% line / 84.06% branch (v1.13.0 REVIEW)。v1.17 基線: **94.14% line / 82.98% branch / 93.20% function**。auto-pipeline + reports-write 中新錯誤路徑導致輕微下降;仍遠高於 CLAUDE.md 的 80% 下限。
 
-### 🧪 Тесты
+### 🧪 測試
 
-- Итого: **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive E2E + **32 / 32** Playwright (было 28; +4 новых auto-pipeline scenarios).
+- 總計 **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive E2E + **32 / 32** Playwright (此前 28;+4 個新 auto-pipeline 場景)。
+- E2E 套件與 v1.16.0 UX 重新對齊 (Shift+Enter quick-add, /#/batch-prompt 用於 legacy mode)。
 
 ### Out of scope (v1.18+)
 
-| Item | Notes |
+| 項 | 說明 |
 |---|---|
-| Translate v1.16.0 в non-EN CHANGELOGs | Сейчас RU-bodied (~30 строк × 6 = 180). Был вне явного scope (только v1.11.x/v1.10.x). |
-| Full non-EN README parity (585 строк как EN) | v1.17 принёс non-EN до ~240; marketing-heavy секции остаются EN-only. |
-| Parent commit для canonical A-F prompt | Всё ещё ждёт upstream rewrite `santifer/career-ops::modes/oferta.md`. |
-| Full WCAG 2.2 AA audit | v1.17 покрыл structural ARIA + focus trap; per-component contrast/Tab-order — отложено. |
+| 在 non-EN CHANGELOGs 中翻譯 v1.16.0 條目 | 當前 RU-bodied。 |
+| 完整 non-EN README 對等(像 EN 一樣 585 列) | v1.17 把 non-EN 提到 ~240;行銷重的章節仍僅 EN。 |
+| 完整 WCAG 2.2 AA 審計 | v1.17 涵蓋結構 ARIA + focus trap;按元件 contrast/Tab-order 審計待辦。 |
 
 ---
 
 ## [1.16.0] — 2026-05-13
 
-**Auto-pipeline finalization + adapter polish + i18n long-tail.** Закрывает все 11 follow-up из v1.15.0 REVIEW: server-side SSE auto-pipeline, `POST /api/reports` primitive, Cmd+K shortcut, SmartRecruiters пагинация, Workday CAPTCHA-fallback, CI screenshot-drift gate, scan source filter UX, перевод исторического CHANGELOG (v1.13.0/v1.12.0 × 6 локалей), расширение non-EN READMEs, paste-ready trending-companies importer.
+**Auto-pipeline 完結 + 適配器拋光 + i18n long-tail。** 關閉 v1.15.0 REVIEW 的 11 個 follow-up: server-side SSE auto-pipeline、`POST /api/reports` primitive、Cmd+K shortcut、SmartRecruiters 分頁、Workday CAPTCHA-fallback、CI screenshot-drift gate、scan source filter UX、歷史 CHANGELOG 翻譯(v1.13.0/v1.12.0 × 6 語言)、non-EN README 擴展、paste-ready trending-companies importer。
 
-### ✨ Фичи
+### ✨ 功能
 
-- **`feat(auto-pipeline): server-side SSE orchestrator`** (#1, #2, #3, #8) — v1.15 client-side chained-fetch orchestrator удалён. `POST /api/auto-pipeline` теперь curl-able SSE endpoint, гоняющий chain validate → fetch JD → evaluate → save report → tracker server-side с real-time step events. Медленный Anthropic call (30–90 с) теперь эмитит `running` event вместо generic спиннера. Failures эмитят `error` с `step` + `message`. Orchestrator также persist'ит report markdown в parent `reports/<slug>.md` (терялось в v1.15).
-- **`feat(reports): POST /api/reports primitive`** — новый writer в `server/lib/routes/reports.mjs`. Slug sanitization с path-traversal guard. 1 MB cap (413). 409 на existing file без `overwrite:true`. Atomic write через `stripDangerousMarkdown`. Тесты: 9 кейсов.
-- **`feat(app): Cmd+K paste URL → auto-pipeline`** — paste URL в global search + Enter теперь открывает AutoPipeline modal с `autoStart=true`. Shift+Enter сохраняет legacy "add to pipeline only" поведение.
-- **`feat(portals): SmartRecruiters пагинация`** (#4) — обходит ВСЕ страницы, не только первые 100. Safety cap: 30 страниц / 3000 jobs. Strip caller-supplied limit/offset. Тесты: 6 кейсов.
-- **`feat(portals): Workday CAPTCHA-fallback graceful`** (#7) — не throws на 4xx / non-JSON / network errors. Возвращает `[]` и аннотирует `lastWorkdayFallback`. Опт-ин обратно через `strict:true`. Тесты: 7 кейсов.
+- **`feat(auto-pipeline): server-side SSE orchestrator`** (#1, #2, #3, #8) — v1.15 的 client-side chained-fetch orchestrator 已刪除。`POST /api/auto-pipeline` 現在是 curl 可用的 SSE 端點,在伺服器端即時執行 validate → fetch JD → evaluate → save report → tracker,帶即時 step 事件。慢速 Anthropic 呼叫(30–90 秒)現在發出 `running` 事件而非通用 spinner。失敗帶 `step` + `message` 發出 `error`。orchestrator 還將 report markdown 持久化到父 `reports/<slug>.md`(v1.15 中遺失)。
+- **`feat(reports): POST /api/reports primitive`** — `server/lib/routes/reports.mjs` 中的新 writer。帶 path-traversal guard 的 slug 淨化。1 MB cap (413)。無 `overwrite:true` 時對 existing file 回傳 409。經 `stripDangerousMarkdown` 的 atomic write。activity.reports.save 日誌。測試: 9 案例。
+- **`feat(app): Cmd+K paste URL → auto-pipeline`** — 在 global search 貼上 URL + Enter 現在以 `autoStart=true` 開啟 AutoPipeline modal。Shift+Enter 保留 legacy "add to pipeline only" 路徑。
+- **`feat(portals): SmartRecruiters 分頁`** (#4) — `server/lib/sources/smartrecruiters.mjs` 通過 `?limit=100&offset=N` 遍歷頁面,直到達到 `totalFound` 或回傳空頁面或觸發 30 頁 / 3000 jobs 安全上限。大型 boards 不再遺失 postings 的尾部。測試: 6 案例。
+- **`feat(portals): Workday CAPTCHA-fallback graceful`** (#7) — `server/lib/sources/workday.mjs` 不再在 4xx / non-JSON / network 錯誤時拋出。回傳 `[]` 並註記新 export `lastWorkdayFallback`。掃描器時間線繼續到下一個 tenant。可通過 `strict:true` 退回 v1.14 拋出行為。測試: 7 案例。
 
 ### 🛠️ Tooling + CI
 
-- **`ci(workflows): dashboard-screenshots drift gate`** (#5) — `.github/workflows/dashboard-screenshots.yml` регенерит 8 hero PNGs и валит build при visual drift'е.
-- **`feat(scripts): import-trending-companies.mjs`** (#11) — верифицирует 13 trending компаний из `docs/portals-examples.md` и эмитит paste-ready YAML. Запуск: `npm run import:trending`.
-- **`feat(scripts): npm run capture:dashboards`** — exposes Playwright capture как top-level script.
+- **`ci(workflows): dashboard-screenshots drift gate`** (#5) — 新 `.github/workflows/dashboard-screenshots.yml`。在觸及 `public/css/app.css`、`public/js/views/dashboard.js`、`public/js/lib/i18n.js` 或 `public/index.html` 的 PR 上,workflow 在 /tmp scaffold 上 boot server,通過 Playwright + chromium 重新生成 8 個 hero PNG,如果結果與 commit 的內容 drift 則建置失敗。
+- **`feat(scripts): import-trending-companies.mjs`** (#11) — 通過其真實 boards-API 驗證 `docs/portals-examples.md` 中的 13 trending 公司,並輸出可貼到父 `portals.yml::tracked_companies` 的 YAML。slug 404 的候選會被打上 `enabled: false`。通過 `npm run import:trending` 執行。
+- **`feat(scripts): npm run capture:dashboards`** — 將 `scripts/capture-dashboard-screenshots.mjs` 公開為頂級 script。
 
 ### 🎨 UX
 
-- **`fix(scan): consolidated source-filter dropdown`** (#6) — dropdown пересобран из v1.14 adapter registry: 6 ATSes + hh.ru + Habr Career, алфавитный порядок, без geo-префиксов. `runEnScan`/`runRuScan` теперь используют `/api/stream/scan?source={ats,regional}` consolidated endpoint.
+- **`fix(scan): 合併的 source-filter 下拉選單`** (#6) — `#/scan` source 下拉選單從 v1.14 adapter registry 重建: 6 ATSes + hh.ru + Habr Career,字母排序,無 geo 前綴。`runEnScan`/`runRuScan` 現在擊中合併的 `/api/stream/scan?source={ats,regional}` 端點。
 
 ### 📚 i18n long-tail
 
-- **`docs(i18n): translate v1.13.0 + v1.12.0 CHANGELOG в 6 локалях`** (#9) — записи переведены на их фактический язык. Каждая локаль также получает i18n note о том что pre-v1.12 записи остаются RU-bodied per project convention.
-- **`docs: expand non-EN READMEs с v1.16.0 highlights section`** (#10) — 6 non-EN READMEs + RU READMEs получают ~35-line section про auto-pipeline + curl example + остальные v1.16 фичи.
+- **`docs(i18n): 在 6 語言中翻譯 v1.13.0 + v1.12.0 CHANGELOG`** (#9) — 之前 RU-bodied 的條目現在在其真實 locale 中。每個 non-EN/non-RU CHANGELOG 也獲得 i18n 說明,解釋 pre-v1.12 條目按專案約定保留 RU。
+- **`docs: 以 v1.16.0 highlights 部分擴展 non-EN README`** (#10) — 7 個 non-EN README 獲得約 35 列的新部分,涵蓋: 一鍵 auto-pipeline + curl 範例、SmartRecruiters 分頁、Workday fallback、scan source-filter UX、importer 腳本、CI screenshot workflow。
 
-### 🧪 Тесты
+### 🧪 測試
 
-- Новые `tests/reports-write.test.mjs` (9), `tests/auto-pipeline.test.mjs` (5), `tests/smartrecruiters-pagination.test.mjs` (6), `tests/workday-fallback.test.mjs` (7).
-- Итого: **427 / 427** unit (было 400; +27). 0 failures.
+- 新 `tests/reports-write.test.mjs` (9 案例) — happy path、slug 淨化(含 path-traversal guard)、409 衝突、overwrite 旗標、XSS 剝離、缺失欄位 400、>1 MB 413、GET/POST round-trip。
+- 新 `tests/auto-pipeline.test.mjs` (5 案例) — SSE framing、無效 URL gate、SSRF/loopback gate、無 LLM key 錯誤路徑、`text/event-stream` Content-Type 標頭。
+- 新 `tests/smartrecruiters-pagination.test.mjs` (6 案例)。
+- 新 `tests/workday-fallback.test.mjs` (7 案例)。
+- 總計 **427 / 427** 單元(此前 400;+27 淨增)。0 失敗。
 
 ### Out of scope (v1.17+)
 
-| Item | Notes |
+| 項 | 說明 |
 |---|---|
-| Parent commit для canonical A-F prompt | Всё ещё ждёт upstream rewrite `santifer/career-ops::modes/oferta.md` (CLAUDE.md hard rule #1). |
-| Translate pre-v1.12 CHANGELOG (v1.11.x, v1.10.x) | Сохранена convention: RU-bodied. ~1800 строк перевода — отложено. |
-| Full non-EN README паритет (585 строк как EN) | v1.16 добавил ~35 строк per locale; полный паритет — отдельный effort. |
+| 翻譯 pre-v1.12 CHANGELOG 條目(v1.11.x, v1.10.x) | 約定保留: RU-bodied。回填需要 ~1800 列翻譯;推遲。 |
+| 完整 non-EN README 對等(像 EN 一樣 585 列) | v1.16 每語言增加 ~35 列;完整鏡像是單獨的翻譯 pass。 |
+| SPA Active Companies 卡片的 `lastWorkdayFallback` surface | Server export 已接線;UI 消費為 v1.17。 |
+| 9 個已驗證 trending 的 per-company `tracked_companies` 批量加入 | `import:trending` 腳本以 1-command + 1-paste 完成。 |
 
 ---
 

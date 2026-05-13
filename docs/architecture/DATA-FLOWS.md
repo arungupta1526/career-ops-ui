@@ -54,7 +54,7 @@ Every row below corresponds to a documented HTTP action initiated by a UI contro
 | `cv.md` | "Save" in CV view | `PUT /api/cv` | Sanitized via `stripDangerousMarkdown`. 1 MB cap. |
 | `data/applications.md` | "Add to tracker" | `POST /api/tracker` | Dedup by (company, role) case-insensitive. Bootstraps header if file empty. |
 | `data/pipeline.md` | "Add URL" / paste in global search | `POST /api/pipeline`, `DELETE /api/pipeline?url=` | URL gated by `isValidJobUrl`. Dedup. |
-| `data/scan-history.tsv` | Scan run | `GET /api/stream/scan-ru`, `/api/stream/scan-en` | Append-only. Skipped on `dryRun=1`. |
+| `data/scan-history.tsv` | Scan run | `GET /api/stream/scan?source=ats\|regional\|both` (v1.18.0+) | Append-only. Skipped on `dryRun=1`. |
 | `data/last-scan.json` | Scan run | (same) | Replaced atomically. Skipped on `dryRun=1`. |
 | `data/activity.jsonl` | Every state-changing request | `activityMiddleware` | Append. Redacts `SECRET_KEYS`. |
 | `jds/<slug>.txt` | "Save JD" in Evaluate, `save: true` in `/api/evaluate` | `POST /api/jds`, `POST /api/evaluate` | Slug sanitized; falls back to `jd-<date>-<ts>.txt`. |

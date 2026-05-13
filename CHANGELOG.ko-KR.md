@@ -8,94 +8,126 @@
 
 ---
 
+## [1.18.0] — 2026-05-13
+
+**Scan 엔드포인트 통합 + WCAG 2.2 AA 패스 + i18n long-tail 마무리.** 레거시 `/api/stream/scan-{en,ru}` 별칭을 폐기(Sunset window 2026-10-01을 사용자 방향에 따라 v1.18로 앞당김). non-EN README를 ~307줄로 늘리고, 6개 로케일에서 남은 v1.16.0 + v1.17.0 CHANGELOG의 RU-bodied 항목을 번역.
+
+### 🚪 Breaking
+
+- **`feat!(scan): retire legacy /api/stream/scan-{en,ru} aliases`** — 폐기된 EN/RU 분할 SSE 엔드포인트가 사라졌습니다. 모든 컨슈머는 통합 `/api/stream/scan?source=ats|regional|both` 엔드포인트(v1.12.0부터 라이브)를 통과합니다. 외부 통합은 이제 SPA catch-all로 조용히 라우팅되는 대신 **404**를 받습니다.
+
+### ♿ 접근성 (WCAG 2.2 AA 패스)
+
+- **WCAG 2.4.1 Bypass Blocks** — 모든 페이지의 첫 번째 focusable로 새로운 **Skip to main content** 링크.
+- **WCAG 2.4.7 Focus Visible** — 글로벌 `*:focus-visible` 스타일.
+- **WCAG 2.5.5 Target Size** — `.skip-link`의 최소 44×44 px 터치 타겟. `.btn-sm`은 32 px min-height 유지.
+- **WCAG 3.1.1 Language of Page** — `<html lang="en">`을 `lang="ru"`에서 수정.
+- **WCAG 1.3.1 Info & Relationships** — `#content`가 `tabindex="-1"`을 받음.
+
+### 📚 i18n long-tail
+
+- **`docs(i18n): 6 로케일에서 v1.16.0 + v1.17.0 CHANGELOG 번역`** — 로케일당 RU-char 개수 79 → 42 → 23으로 감소.
+- **`docs(readme): non-EN README를 Why / Requirements / Features / Configuration / Contributing으로 확장`** — 각 non-EN README가 240 → ~307줄로 성장.
+
+### 🧪 테스트
+
+- 총 **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive E2E + 32/32 Playwright.
+
+---
+
 ## [1.17.0] — 2026-05-13
 
-**Polish + a11y + CI fix release.** Closes 9 follow-ups from v1.16.0 REVIEW: browser smoke verify, README badge truth, coverage refresh, `lastWorkdayFallback` 🔒 chip в SPA, full E2E re-baseline после v1.16 UX-change, Playwright auto-pipeline scenarios, a11y ARIA + focus trap pass, condensed historical CHANGELOG в 6 локалях, expanded non-EN READMEs с reference sections.
+**Polish + a11y + CI fix.** v1.16.0 REVIEW의 9개 follow-up을 종료: 브라우저 smoke 검증, README badge truth, coverage 갱신, SPA의 `lastWorkdayFallback` 🔒 chip, v1.16 UX 변경 후 전체 E2E 재기준선, Playwright auto-pipeline 시나리오, a11y ARIA + focus trap 패스, 6 로케일에서 과거 CHANGELOG 압축, non-EN README에 reference 섹션 확장.
 
 ### 🐛 Fixes
 
-- **`fix(e2e): smoke + comprehensive re-aligned с v1.16 UX`** — v1.16 Cmd+K Enter → AutoPipeline modal изменение сделало `search.press('Enter')` в e2e тестах открывающим modal. Тесты теперь используют `Shift+Enter` для legacy quick-add path. **Это и был CI failure на push v1.16.0** — Playwright e2e таймаутил 30s на backdrop-intercepted кликах.
-- **`fix(mode-page): /#/batch-prompt → modes/batch.md via serverSlug`** — v1.15 переименовал legacy mode slug в `batch-prompt`, но server `POST /api/mode/:slug` искал `modes/batch-prompt.md`. Новое поле `serverSlug` развязывает route hash от parent mode filename.
-- **`chore: bump deprecation messages с v1.16.0 → v1.17.0`** — scan-en/scan-ru deprecation copy + batch-prompt banner ссылались на прошедшую версию.
+- **`fix(e2e): smoke + comprehensive을 v1.16 UX와 재정렬`** — v1.16의 Cmd+K Enter → AutoPipeline modal 변경으로 e2e 테스트의 `search.press('Enter')`가 backdrop이 후속 클릭을 가로채는 modal을 열게 했습니다. 테스트는 이제 legacy quick-add 경로에 `Shift+Enter`를 사용합니다. **이것이 v1.16.0 push의 CI 실패였습니다** — Playwright e2e가 backdrop에 의해 가로채진 클릭에서 30초 타임아웃.
+- **`fix(mode-page): /#/batch-prompt → modes/batch.md via serverSlug`** — v1.15가 legacy mode slug를 `batch-prompt`로 이름 변경했지만, 서버 `POST /api/mode/:slug`가 존재하지 않는 `modes/batch-prompt.md`를 찾고 있었습니다. 새 `serverSlug` 필드는 라우트 해시를 부모의 mode 파일 이름과 분리합니다.
+- **`chore: deprecation 메시지를 v1.16.0 → v1.17.0로 bump`** — scan-en/scan-ru deprecation 카피 및 batch-prompt 배너가 지난 버전을 참조했습니다.
 
 ### ✨ Features
 
-- **`feat(scan): 🔒 Workday CAPTCHA chip в Active Companies card`** — server-side `lastWorkdayFallback` export из v1.16 PR-7 теперь consumed в SPA. `/api/scan-results` возвращает snapshot; `#/scan` рендерит warn-tinted card сверху при Workday fallback.
+- **`feat(scan): Active Companies 카드의 🔒 Workday CAPTCHA chip`** — v1.16 PR-7의 server-side `lastWorkdayFallback` export가 이제 SPA에서 소비됩니다. `/api/scan-results`가 snapshot을 반환합니다; `#/scan`은 Workday tenant가 fallback으로 떨어지면 Active Companies 위에 warn-tinted 카드를 렌더링합니다("🔒 Workday tenant blocked — fallback: use /career-ops scan (Playwright)"). 새 `getLastWorkdayFallback()` exporter는 ESM live-binding 모호성을 피합니다. 2개의 새 i18n 키 × 8 로케일.
 
-### ♿ Accessibility
+### ♿ 접근성
 
-- **`a11y: ARIA roles + focus management pass`** —
-  - `index.html`: `role` attrs на `<aside>` (navigation), `<header>` (banner), `<section id="content">` (main), `<div id="modal">` (dialog + aria-modal + aria-labelledby), toast/banner (status + aria-live), searchbar (search).
-  - `#sidebar-toggle`: `aria-controls` + `aria-expanded` sync.
-  - `#global-search`: visually-hidden `<label>` + `aria-label` с Cmd+K hint.
-  - Decorative backdrops: `aria-hidden="true"`.
-  - **Focus trap в modal** через `UI.modal()` — запоминает click owner, фокусит первый non-close focusable на open, циклит Tab/Shift+Tab внутри modal. `UI.closeModal()` восстанавливает focus.
-  - Новый `.visually-hidden` utility class (WAI-ARIA AP стандарт).
+- **`a11y: ARIA roles + focus management 패스`** —
+  - `index.html`: `<aside>`(navigation), `<header>`(banner), `<section id="content">`(main), `<div id="modal">`(aria-modal/aria-labelledby가 있는 dialog), `<div id="toast">` + `#conn-banner`(aria-live가 있는 status), `<div class="searchbar">`(search)에 `role` 속성.
+  - `#sidebar-toggle`은 `aria-controls="sidebar"` + open/close 시 JS로 동기화된 `aria-expanded`를 받습니다.
+  - `#global-search`는 visually-hidden `<label>`과 Cmd+K shortcut 힌트를 표시하는 명시적 `aria-label`을 받습니다.
+  - Modal close (×)는 `aria-label="Close dialog"`를 받습니다.
+  - 장식용 backdrop은 `aria-hidden="true"`를 받습니다.
+  - **Modal의 Focus trap** — `UI.modal()`이 클릭 소유자를 기억하고, open 시 첫 번째 non-close focusable에 포커스를 맞추고, modal 내에서 Tab/Shift+Tab을 순환시킵니다. `UI.closeModal()`은 이전 소유자에게 포커스를 복원합니다.
+  - `public/css/app.css`의 새 `.visually-hidden` 유틸리티 클래스 (WAI-ARIA AP 표준 패턴).
 
-### 📚 Документация
+### 📚 문서
 
-- **`docs(readme): badge truth × 8 READMEs`** — tests `284/379/360` → **427**; release `v1.9.1/v1.13.0` → **v1.16.0** → v1.17.0.
-- **`docs(readme): расширены 7 non-EN READMEs с reference sections`** — каждый вырос 170 → ~240 строк с Architecture / API / Security / Tests / A11y / Limitations / License разделами на native language.
-- **`docs(changelog): condensed pre-v1.12 в 6 локалях`** — длинные RU-bodied v1.11.x + v1.10.x записи заменены на компактный "Earlier releases" exec summary на native language.
+- **`docs(readme): 8 READMEs의 badge truth`** — tests 배지 `284 / 379 / 360` → **427**; release 배지 `v1.9.1 / v1.13.0` → **v1.16.0** → v1.17.0.
+- **`docs(readme): 7개 non-EN README에 reference 섹션 확장`** — 각 README가 170 → ~240 줄로 성장, 네이티브 언어로 Architecture / API / Security / Tests / A11y / Limitations / License 섹션 추가.
+- **`docs(changelog): 6 로케일에서 pre-v1.12 항목 압축`** — 긴 RU-bodied v1.11.x + v1.10.x 항목이 이제 각 로케일의 네이티브 언어로 "Earlier releases" 압축 요약으로 교체. 상세 이력은 `CHANGELOG.md` (EN)에 유지.
 
 ### 🛠️ Tooling
 
-- **`coverage: refresh numbers`** — последний публичный был 95.46 % / 84.06 % (v1.13.0 REVIEW). v1.17 baseline: **94.14 % линий / 82.98 % веток / 93.20 % функций**. Slight drop от новых error paths в auto-pipeline + reports-write; всё ещё выше 80 % floor.
+- **`coverage: 숫자 갱신`** — 마지막 공개는 95.46% line / 84.06% branch (v1.13.0 REVIEW). v1.17 baseline: **94.14% line / 82.98% branch / 93.20% function**. auto-pipeline + reports-write의 새 error path로 약간 감소; 여전히 CLAUDE.md의 80% floor 위.
 
-### 🧪 Тесты
+### 🧪 테스트
 
-- Итого: **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive E2E + **32 / 32** Playwright (было 28; +4 новых auto-pipeline scenarios).
+- 총 **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive E2E + **32 / 32** Playwright (이전 28; +4개 신규 auto-pipeline 시나리오).
+- v1.16.0 UX에 맞춰 E2E 스위트 재정렬 (Shift+Enter quick-add, legacy mode용 /#/batch-prompt).
 
 ### Out of scope (v1.18+)
 
-| Item | Notes |
+| 항목 | 비고 |
 |---|---|
-| Translate v1.16.0 в non-EN CHANGELOGs | Сейчас RU-bodied (~30 строк × 6 = 180). Был вне явного scope (только v1.11.x/v1.10.x). |
-| Full non-EN README parity (585 строк как EN) | v1.17 принёс non-EN до ~240; marketing-heavy секции остаются EN-only. |
-| Parent commit для canonical A-F prompt | Всё ещё ждёт upstream rewrite `santifer/career-ops::modes/oferta.md`. |
-| Full WCAG 2.2 AA audit | v1.17 покрыл structural ARIA + focus trap; per-component contrast/Tab-order — отложено. |
+| non-EN CHANGELOG의 v1.16.0 항목 번역 | 현재 RU-bodied. |
+| 전체 non-EN README 패리티 (EN과 같은 585 줄) | v1.17은 non-EN을 ~240으로; 마케팅 무거운 섹션은 EN 전용. |
+| 전체 WCAG 2.2 AA 감사 | v1.17은 구조적 ARIA + focus trap 커버; 컴포넌트별 contrast/Tab-order 감사 대기. |
 
 ---
 
 ## [1.16.0] — 2026-05-13
 
-**Auto-pipeline finalization + adapter polish + i18n long-tail.** Закрывает все 11 follow-up из v1.15.0 REVIEW: server-side SSE auto-pipeline, `POST /api/reports` primitive, Cmd+K shortcut, SmartRecruiters пагинация, Workday CAPTCHA-fallback, CI screenshot-drift gate, scan source filter UX, перевод исторического CHANGELOG (v1.13.0/v1.12.0 × 6 локалей), расширение non-EN READMEs, paste-ready trending-companies importer.
+**Auto-pipeline 마무리 + 어댑터 폴리시 + i18n long-tail.** v1.15.0 REVIEW의 11개 follow-up을 모두 종료: 서버사이드 SSE auto-pipeline, `POST /api/reports` primitive, Cmd+K shortcut, SmartRecruiters 페이지네이션, Workday CAPTCHA-fallback, CI screenshot-drift gate, scan source filter UX, 과거 CHANGELOG 번역(v1.13.0/v1.12.0 × 6 로케일), non-EN README 확장, paste-ready trending-companies importer.
 
-### ✨ Фичи
+### ✨ 기능
 
-- **`feat(auto-pipeline): server-side SSE orchestrator`** (#1, #2, #3, #8) — v1.15 client-side chained-fetch orchestrator удалён. `POST /api/auto-pipeline` теперь curl-able SSE endpoint, гоняющий chain validate → fetch JD → evaluate → save report → tracker server-side с real-time step events. Медленный Anthropic call (30–90 с) теперь эмитит `running` event вместо generic спиннера. Failures эмитят `error` с `step` + `message`. Orchestrator также persist'ит report markdown в parent `reports/<slug>.md` (терялось в v1.15).
-- **`feat(reports): POST /api/reports primitive`** — новый writer в `server/lib/routes/reports.mjs`. Slug sanitization с path-traversal guard. 1 MB cap (413). 409 на existing file без `overwrite:true`. Atomic write через `stripDangerousMarkdown`. Тесты: 9 кейсов.
-- **`feat(app): Cmd+K paste URL → auto-pipeline`** — paste URL в global search + Enter теперь открывает AutoPipeline modal с `autoStart=true`. Shift+Enter сохраняет legacy "add to pipeline only" поведение.
-- **`feat(portals): SmartRecruiters пагинация`** (#4) — обходит ВСЕ страницы, не только первые 100. Safety cap: 30 страниц / 3000 jobs. Strip caller-supplied limit/offset. Тесты: 6 кейсов.
-- **`feat(portals): Workday CAPTCHA-fallback graceful`** (#7) — не throws на 4xx / non-JSON / network errors. Возвращает `[]` и аннотирует `lastWorkdayFallback`. Опт-ин обратно через `strict:true`. Тесты: 7 кейсов.
+- **`feat(auto-pipeline): server-side SSE orchestrator`** (#1, #2, #3, #8) — v1.15의 client-side chained-fetch orchestrator는 제거되었습니다. `POST /api/auto-pipeline`은 이제 curl 가능한 SSE 엔드포인트로, validate → fetch JD → evaluate → save report → tracker를 서버 측에서 실시간 step 이벤트와 함께 실행합니다. 느린 Anthropic 호출(30–90초)은 일반 spinner 대신 `running` 이벤트를 emit합니다. 실패는 `step` + `message`와 함께 `error`를 emit합니다. orchestrator는 또한 report markdown을 부모 `reports/<slug>.md`에 영속화합니다(v1.15에서는 손실).
+- **`feat(reports): POST /api/reports primitive`** — `server/lib/routes/reports.mjs`의 새 writer. path-traversal guard가 있는 slug 정화. 1 MB cap (413). `overwrite:true` 없이 existing file에 대해 409. `stripDangerousMarkdown`을 통한 atomic write. activity.reports.save 로그. 테스트: 9 케이스.
+- **`feat(app): Cmd+K paste URL → auto-pipeline`** — global search에 URL을 붙여넣고 Enter는 이제 `autoStart=true`로 AutoPipeline modal을 엽니다. Shift+Enter는 legacy "add to pipeline only" 경로를 보존합니다.
+- **`feat(portals): SmartRecruiters 페이지네이션`** (#4) — `server/lib/sources/smartrecruiters.mjs`는 `?limit=100&offset=N`을 통해 `totalFound`에 도달하거나 빈 페이지가 반환되거나 30페이지 / 3000개 잡의 safety cap이 발동될 때까지 페이지를 순회합니다. 큰 보드는 더 이상 postings의 나머지를 잃지 않습니다. 테스트: 6 케이스.
+- **`feat(portals): Workday CAPTCHA-fallback graceful`** (#7) — `server/lib/sources/workday.mjs`는 더 이상 4xx / non-JSON / network 오류에 throw하지 않습니다. `[]`를 반환하고 새 export `lastWorkdayFallback`에 주석합니다. 스캐너 타임라인은 다음 tenant로 계속됩니다. v1.14 throw 동작에 `strict:true`로 옵트인할 수 있습니다. 테스트: 7 케이스.
 
 ### 🛠️ Tooling + CI
 
-- **`ci(workflows): dashboard-screenshots drift gate`** (#5) — `.github/workflows/dashboard-screenshots.yml` регенерит 8 hero PNGs и валит build при visual drift'е.
-- **`feat(scripts): import-trending-companies.mjs`** (#11) — верифицирует 13 trending компаний из `docs/portals-examples.md` и эмитит paste-ready YAML. Запуск: `npm run import:trending`.
-- **`feat(scripts): npm run capture:dashboards`** — exposes Playwright capture как top-level script.
+- **`ci(workflows): dashboard-screenshots drift gate`** (#5) — 새 `.github/workflows/dashboard-screenshots.yml`. `public/css/app.css`, `public/js/views/dashboard.js`, `public/js/lib/i18n.js` 또는 `public/index.html`을 건드리는 PR에서 workflow는 /tmp scaffold에 대해 server를 boot하고 Playwright + chromium을 통해 8개 hero PNG를 재생성하며 결과가 커밋된 것에서 drift하면 build를 실패시킵니다.
+- **`feat(scripts): import-trending-companies.mjs`** (#11) — `docs/portals-examples.md`의 13개 trending 회사를 실제 boards-API를 통해 검증하고 부모의 `portals.yml::tracked_companies`에 붙여넣을 수 있는 YAML을 출력합니다. slug가 404인 후보에는 `enabled: false`가 찍힙니다. `npm run import:trending`으로 실행.
+- **`feat(scripts): npm run capture:dashboards`** — `scripts/capture-dashboard-screenshots.mjs`를 top-level script로 노출.
 
 ### 🎨 UX
 
-- **`fix(scan): consolidated source-filter dropdown`** (#6) — dropdown пересобран из v1.14 adapter registry: 6 ATSes + hh.ru + Habr Career, алфавитный порядок, без geo-префиксов. `runEnScan`/`runRuScan` теперь используют `/api/stream/scan?source={ats,regional}` consolidated endpoint.
+- **`fix(scan): 통합 source-filter dropdown`** (#6) — `#/scan` source dropdown이 v1.14 adapter registry에서 재구성되었습니다: 6 ATSes + hh.ru + Habr Career, 알파벳 순, geo prefix 없음. `runEnScan`/`runRuScan`은 이제 통합된 `/api/stream/scan?source={ats,regional}` 엔드포인트를 칩니다.
 
 ### 📚 i18n long-tail
 
-- **`docs(i18n): translate v1.13.0 + v1.12.0 CHANGELOG в 6 локалях`** (#9) — записи переведены на их фактический язык. Каждая локаль также получает i18n note о том что pre-v1.12 записи остаются RU-bodied per project convention.
-- **`docs: expand non-EN READMEs с v1.16.0 highlights section`** (#10) — 6 non-EN READMEs + RU READMEs получают ~35-line section про auto-pipeline + curl example + остальные v1.16 фичи.
+- **`docs(i18n): 6 로케일에서 v1.13.0 + v1.12.0 CHANGELOG 번역`** (#9) — 이전에 RU-bodied였던 항목들이 이제 실제 로케일에 있습니다. 각 non-EN/non-RU CHANGELOG에는 pre-v1.12 항목이 프로젝트 관례에 따라 RU로 유지된다는 i18n 노트가 있습니다.
+- **`docs: v1.16.0 highlights 섹션으로 non-EN README 확장`** (#10) — 7 non-EN README가 ~35 줄의 새 섹션을 받습니다: 원클릭 auto-pipeline + curl 예제, SmartRecruiters 페이지네이션, Workday fallback, scan source-filter UX, importer 스크립트, CI screenshot workflow.
 
-### 🧪 Тесты
+### 🧪 테스트
 
-- Новые `tests/reports-write.test.mjs` (9), `tests/auto-pipeline.test.mjs` (5), `tests/smartrecruiters-pagination.test.mjs` (6), `tests/workday-fallback.test.mjs` (7).
-- Итого: **427 / 427** unit (было 400; +27). 0 failures.
+- 새로운 `tests/reports-write.test.mjs` (9 케이스) — happy path, slug 정화(path-traversal guard 포함), 409 conflict, overwrite flag, XSS strip, 누락 필드 400, >1 MB 413, GET/POST round-trip.
+- 새로운 `tests/auto-pipeline.test.mjs` (5 케이스) — SSE framing, invalid URL 게이트, SSRF/loopback 게이트, no-LLM-key 오류 경로, `text/event-stream` Content-Type 헤더.
+- 새로운 `tests/smartrecruiters-pagination.test.mjs` (6 케이스).
+- 새로운 `tests/workday-fallback.test.mjs` (7 케이스).
+- 총 **427 / 427** 유닛 (이전 400; +27 순증). 0 실패.
 
 ### Out of scope (v1.17+)
 
-| Item | Notes |
+| 항목 | 비고 |
 |---|---|
-| Parent commit для canonical A-F prompt | Всё ещё ждёт upstream rewrite `santifer/career-ops::modes/oferta.md` (CLAUDE.md hard rule #1). |
-| Translate pre-v1.12 CHANGELOG (v1.11.x, v1.10.x) | Сохранена convention: RU-bodied. ~1800 строк перевода — отложено. |
-| Full non-EN README паритет (585 строк как EN) | v1.16 добавил ~35 строк per locale; полный паритет — отдельный effort. |
+| pre-v1.12 CHANGELOG 항목 번역 (v1.11.x, v1.10.x) | 관례 보존: RU-bodied. 백포트는 ~1800줄 번역; 연기. |
+| 전체 non-EN README 패리티(EN처럼 585 줄) | v1.16은 로케일당 ~35 줄 추가; 전체 미러는 별도 번역 패스. |
+| SPA Active Companies 카드의 `lastWorkdayFallback` surface | Server export 배선됨; UI 소비는 v1.17. |
+| 검증된 9개 trending에 대한 per-company `tracked_companies` bulk add | `import:trending` 스크립트가 1-command + 1-paste로 처리. |
 
 ---
 

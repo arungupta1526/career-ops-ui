@@ -237,3 +237,71 @@ SSE 이벤트: `start → step (×5) → done` 또는 `error`. 어떤 단계든 
 ## License
 
 MIT — [LICENSE](LICENSE) 참조.
+
+---
+
+## 왜 career-ops-ui인가
+
+career-ops는 CLI로서 훌륭합니다: URL 붙여넣기 → /career-ops → report + PDF + tracker 행. 하지만 CLI는 다음을 보여주지 않습니다:
+
+- 스캔된 모든 채용 공고의 **필터 가능한 테이블 뷰**(필터 칩, 범위, 급여, remote/hybrid 배지);
+- KPI 카운트 + 최신 스캔 + 최신 리포트가 있는 **대시보드**;
+- `cv.md`용 **마크다운 에디터** + 사이드-바이-사이드 라이브 프리뷰;
+- 리포트 + apply-checklist + interview-prep 저장 파일의 **페이지네이션**;
+- 언제 무엇이 쓰였는지 감사하기 위한 **활동 기록**.
+
+이 UI는 CLI를 엔진(Claude Code / Codex / Cursor)으로 유지하고 동일한 `cv.md` / `data/applications.md` / `reports/` 위에 CRM 스타일 패널을 추가합니다. 데이터 공유. 락인 없음.
+
+## 요구사항
+
+- **Node.js ≥ 18.** 20.x와 22.x로 테스트.
+- **macOS / Linux** (Windows는 WSL 경유).
+- **부모 career-ops**가 이 저장소 옆에 클론(또는 `CAREER_OPS_ROOT=…`).
+- **선택사항**: Playwright + chromium (PDF + auto-pipeline용).
+- **선택사항**: ANTHROPIC_API_KEY 또는 GEMINI_API_KEY (키 없으면 manual-prompt 모드로 동작).
+
+## 페이지별 기능
+
+| 페이지 | 기능 |
+|---|---|
+| `#/dashboard` | KPIs + 최신 스캔 + 최신 리포트 + ✨ Auto-pipeline CTA |
+| `#/scan` | 단일 🌐 Scan 버튼, 6 ATSes + hh.ru + Habr로 fan-out, live SSE log, 필터 가능 결과 테이블 |
+| `#/pipeline` | URL 큐, 인라인 프리뷰 SSRF-safe, dedup |
+| `#/evaluate` | JD → 0–5 점수 (Anthropic / Gemini / manual prompt) |
+| `#/batch` | batch evaluate offers용 TSV 에디터 (v1.13+) |
+| `#/deep` | 회사 + 역할별 딥 리서치 |
+| `#/apply` | Apply 체크리스트 (form 필드 + key notes) |
+| `#/tracker` | 각 평가의 GFM 테이블 + status / score 필터 |
+| `#/reports` | 페이지네이션된 마크다운 리포트 목록 + score thresholds 카드 |
+| `#/interview-prep` | 저장된 리서치 파일 |
+| `#/cv` | 마크다운 에디터 + live preview + Generate PDF |
+| `#/profile` | YAML 프리뷰 + Career framing 카드 (modes/_profile.md) |
+| `#/config` | API 키, Profile YAML, Modes 에디터 |
+| `#/health` | 18가지 시스템 상태 체크 |
+| `#/activity` | 모든 state-changing 요청의 감사 로그 |
+| `#/help` | 16개 섹션 × 8개 로케일 |
+
+## 설정
+
+```bash
+# career-ops/.env
+ANTHROPIC_API_KEY=sk-ant-…          # 선택 사항이지만 권장
+GEMINI_API_KEY=AIza…                # 선택적 fallback
+HH_USER_AGENT="Mozilla/5.0 …"       # non-RU IP에서 hh.ru용 선택사항
+ANTHROPIC_MODEL=claude-sonnet-4-6   # 선택적 override
+GEMINI_MODEL=gemini-2.0-flash       # 선택적 override
+PORT=4317                           # 선택, default
+HOST=127.0.0.1                      # 선택, default
+CAREER_OPS_ROOT=/path/to/career-ops # 선택, default ../
+```
+
+## 기여하기
+
+PR 환영. [`docs/sdd/CONVENTIONS.md`](docs/sdd/CONVENTIONS.md)를 따르세요:
+
+- Conventional Commits (`feat`, `fix`, `docs`, `chore` 등).
+- 테스트는 non-trivial 변경을 커버 (`npm test` 통과해야 함).
+- 스펙에서 정당화 없이 새 runtime deps 없음.
+- parent 파일 편집 없음 — CLAUDE.md hard rule #1.
+
+이슈 / 토론: <https://github.com/Fighter90/career-ops-ui/issues>.

@@ -226,17 +226,19 @@ Sets `Content-Disposition: attachment`. Sanitized name; must end with `.pdf`.
 
 Run in this Node process — do not spawn `scan.mjs`. Same SSE event shape as streaming runners.
 
-### `GET /api/stream/scan-ru`
+### `GET /api/stream/scan?source=ats|regional|both`
 
-Queries: `dryRun=1`. Reads `russian_portals:` from `portals.yml`. Hits hh.ru and Habr Career APIs. Writes `data/scan-history.tsv` and `data/last-scan.json` unless `dryRun`.
+Consolidated SSE entrypoint (v1.18.0 — the legacy `/api/stream/scan-{en,ru}` aliases were retired after their Sunset window expired).
+
+- `source=ats` — Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday (v1.14+).
+- `source=regional` — hh.ru + Habr Career, driven by `russian_portals:` in `portals.yml`.
+- `source=both` (default) — ATS phase first, then regional, in one SSE connection. The server emits multiple `start` / `done` events so the UI knows which phase is firing.
+
+Queries: `dryRun=1` (skip writes to `data/scan-history.tsv` + `data/last-scan.json`), `company=<slug>` (ATS-only narrow). Honors `AbortSignal` from client disconnect; in-flight upstream fetches abort instead of running to completion (REVIEW-B3).
 
 ### `GET /api/scan-ru/config` → `{ sources, area, per_page, only_remote, queries }`
 
-### `GET /api/stream/scan-en`
-
-Queries: `dryRun=1`, `company=<slug>`. Reads `companies:` from `portals.yml` (Greenhouse / Ashby / Lever).
-
-### `GET /api/scan-results` → contents of `data/last-scan.json`
+### `GET /api/scan-results` → contents of `data/last-scan.json` + `workdayFallback` (v1.17+)
 
 ---
 

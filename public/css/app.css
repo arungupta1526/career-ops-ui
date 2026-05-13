@@ -1,4 +1,4 @@
-/* ───────────────────────── a11y utilities (v1.17.0) ───────────────────────── */
+/* ───────────────────────── a11y utilities (v1.17.0+) ───────────────────────── */
 /* Visually hide an element but keep it discoverable by screen readers
    and keyboard nav. Used for input labels in the topbar searchbar etc. */
 .visually-hidden {
@@ -11,6 +11,48 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* WCAG 2.4.1 — skip link. Hidden off-screen until it receives focus
+   (Tab from page load), then snaps into the top-left corner of the
+   viewport. Lets keyboard users bypass the persistent sidebar +
+   topbar to land directly on the content. */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 8px;
+  z-index: 10000;
+  padding: 12px 20px;
+  background: #222;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 8px 8px;
+  transition: top 120ms ease-out;
+  /* WCAG 2.5.5 target-size: 44×44 minimum for touch interactions. */
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.skip-link:focus {
+  top: 0;
+  outline: 3px solid #ff385c;
+  outline-offset: 2px;
+}
+
+/* WCAG 2.4.7 — visible focus indicators. Every interactive element
+   gets a clearly visible focus ring. The :focus-visible pseudo-class
+   keeps mouse-click focus rings off but keyboard-Tab focus rings on. */
+*:focus-visible {
+  outline: 2px solid var(--rausch, #ff385c);
+  outline-offset: 2px;
+}
+/* Modal close × needs higher-contrast focus since it sits on the
+   modal-header background. */
+.modal-close:focus-visible {
+  outline: 3px solid var(--rausch, #ff385c);
+  outline-offset: 2px;
 }
 
 /* ───────────────────────── design tokens — light theme (default) ───────────────────────── */
@@ -365,7 +407,11 @@ body.sidebar-open .sidebar-backdrop { display: block; }
 }
 .btn-dark:hover { background: #000; }
 
-.btn-sm { padding: 6px 12px; font-size: 13px; }
+/* WCAG 2.5.5 / 2.5.8 — touch target size. Default buttons inherit
+   `min-height: 44px` from .btn. Small buttons relax this for dense
+   table-row controls (Edit / Delete / etc.) but keep min-height ≥ 32 px
+   plus 8 px row spacing so the effective spaced target stays ≥ 44 px. */
+.btn-sm { padding: 6px 12px; font-size: 13px; min-height: 32px; }
 .btn-block { width: 100%; }
 
 /* ───────────────────────── content shell ───────────────────────── */

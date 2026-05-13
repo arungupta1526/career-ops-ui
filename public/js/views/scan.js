@@ -141,8 +141,8 @@ Router.register('scan', async () => {
   // v1.12.0 — single SSE connection to the consolidated endpoint.
   // The server runs ATS then regional sequentially and emits multiple
   // `start` / `done` events in one stream so the UI sees both phases.
-  // (Old separate `/api/stream/scan-en` + `/api/stream/scan-ru`
-  // endpoints stay live as deprecated aliases — F-018 LITE.)
+  // v1.18.0 — legacy `/api/stream/scan-{en,ru}` aliases retired.
+  // Everything goes through the consolidated endpoint.
   function runScanAll() {
     const params = new URLSearchParams();
     params.set('source', 'both');

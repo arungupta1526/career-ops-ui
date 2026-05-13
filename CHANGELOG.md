@@ -6,6 +6,69 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.18.0] — 2026-05-13
+
+**Scan-endpoint consolidation + WCAG 2.2 AA pass + i18n long-tail finalization.** Retires the legacy `/api/stream/scan-{en,ru}` aliases (Sunset window 2026-10-01 advanced to v1.18 per user direction). Brings non-EN READMEs to ~307 lines and translates the remaining RU-bodied v1.16.0 + v1.17.0 CHANGELOG entries in 6 locales.
+
+### 🚪 Breaking
+
+- **`feat!(scan): retire legacy /api/stream/scan-{en,ru} aliases`** — the deprecated EN/RU split SSE endpoints are gone. Every consumer goes through the consolidated `/api/stream/scan?source=ats|regional|both` endpoint (live since v1.12.0). The legacy paths had Deprecation + Sunset (RFC 8594) headers since v1.15.0; the migration window is now closed. External integrations on the old paths get a clean **404** rather than being silently routed to the SPA catch-all.
+
+### ♿ Accessibility (WCAG 2.2 AA pass)
+
+- **WCAG 2.4.1 Bypass Blocks** — new **Skip to main content** link as the first focusable on every page. Visually hidden via `.skip-link` until it receives focus, snaps to the top-left corner on Tab from page load.
+- **WCAG 2.4.7 Focus Visible** — global `*:focus-visible` style. Mouse-click focus rings off, keyboard-Tab focus rings on (the WAI-ARIA AP standard pattern). Modal close (×) gets a higher-contrast focus ring.
+- **WCAG 2.5.5 Target Size** — minimum 44×44 px touch target on `.skip-link`. `.btn-sm` keeps a 32 px min-height (which combined with row spacing meets the 24×24 + spacing AAA exception for compact table-row controls).
+- **WCAG 3.1.1 Language of Page** — `<html lang="en">` corrected from `lang="ru"` (the JS i18n bootstrap already overrode this on load, but the SSR default now matches the SPA's default locale).
+- **WCAG 1.3.1 Info & Relationships** — `#content` gets `tabindex="-1"` so the skip-link target focuses cleanly. (ARIA roles + focus-trap were already added in v1.17.)
+
+### 📚 i18n long-tail
+
+- **`docs(i18n): v1.16.0 + v1.17.0 CHANGELOG translated in 6 locales`** — entries previously RU-bodied in `CHANGELOG.{es,pt-BR,ko-KR,ja,zh-CN,zh-TW}.md` are now in their native language. RU-char count per locale dropped 79 → 42 → 23 (remaining 23 are technical inline references like file paths + the multi-locale header link, which is intentional).
+- **`docs(readme): expand non-EN READMEs with Why / Requirements / Features / Configuration / Contributing`** — each non-EN README grew from 240 → ~307 lines. Now covers the same non-marketing sections as the 585-line EN. Full 1:1 parity (marketing-heavy walkthrough sections) remains deferred.
+
+### 🛠️ Misc
+
+- **`docs(api): consolidated scan endpoint in API.md + DATA-FLOWS.md + README.md`** — the API reference table now lists only `/api/stream/scan?source=…`. README's Scan section explains the v1.18.0 retirement of the EN/RU split.
+- **`fix(scan.js): drop stale comment about deprecated aliases being live`** — the SPA's runScanAll dispatcher comment now reflects the consolidated reality.
+
+### 🧪 Tests
+
+- `tests/scan-consolidated.test.mjs::F-018 backwards compat` rewritten — the two former "legacy endpoint still works" assertions now verify that requests to `/api/stream/scan-{en,ru}` return **404** (rather than being routed to the SPA catch-all).
+- Total: **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive E2E + 32/32 Playwright (unchanged count; +2 newly-correct legacy-removal assertions replacing the +2 legacy-still-works assertions).
+
+### Verification
+
+```bash
+npm test                              # 427 / 427
+npm run test:e2e:full                 # 23 / 23
+
+# Legacy endpoint retirement:
+curl -sI http://127.0.0.1:4317/api/stream/scan-en | head -1   # → HTTP/1.1 404
+curl -sI http://127.0.0.1:4317/api/stream/scan-ru | head -1   # → HTTP/1.1 404
+
+# Consolidated endpoint:
+curl -sN 'http://127.0.0.1:4317/api/stream/scan?source=ats&dryRun=1' | head -5
+# → event: start
+# → data: {"script":"en-scanner","writeFiles":false,…}
+
+# Skip link (a11y):
+curl -s http://127.0.0.1:4317/ | grep -c 'class="skip-link"'  # → 1
+
+# html lang fallback:
+curl -s http://127.0.0.1:4317/ | grep -c 'html lang="en"'     # → 1
+```
+
+### Out of scope (v1.19+)
+
+| Item | Notes |
+|---|---|
+| Full non-EN README parity (585 lines like EN) | v1.18 brought non-EN to ~307 (53 % of EN). Marketing-heavy "Why?" / "Quick start" walkthroughs remain EN-only. |
+| Color-contrast audit (WCAG 1.4.3 AA — text 4.5:1, large text 3:1) | v1.18 covered structural a11y; per-token contrast verification across light + dark palettes remains. |
+| Touch-target audit across every interactive element | v1.18 set the floor (`.btn`: 44 px, `.btn-sm`: 32 px); per-component verification (filter chips, sidebar nav, sortable headers) remains. |
+
+---
+
 ## [1.17.0] — 2026-05-13
 
 **Polish + a11y + CI fix release.** Closes all 9 follow-ups from the

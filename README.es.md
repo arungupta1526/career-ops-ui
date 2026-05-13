@@ -237,3 +237,71 @@ Endpoints clave (lista completa en [README EN](README.md#api-reference)):
 ## License
 
 MIT — ver [LICENSE](LICENSE).
+
+---
+
+## Por qué career-ops-ui
+
+career-ops es excelente como CLI: paste URL → /career-ops → report + PDF + tracker row. Pero el CLI no muestra:
+
+- una **vista de tabla** filtrable de cada vacante escaneada (filter chips, scope, salary, remote/hybrid badges);
+- el **dashboard** con KPI counts + el último scan + el último report;
+- el **markdown editor** + live preview lado-a-lado para `cv.md`;
+- **paginación** de reports + apply-checklist + interview-prep saved files;
+- **historial de actividad** para auditar qué se escribió cuándo.
+
+Esta UI conserva el CLI como motor (Claude Code / Codex / Cursor) y agrega un panel CRM-style encima de los mismos `cv.md` / `data/applications.md` / `reports/`. Datos compartidos. Cero lock-in.
+
+## Requisitos
+
+- **Node.js ≥ 18.** Probado con 20.x y 22.x.
+- **macOS / Linux** (Windows vía WSL).
+- **Padre career-ops** clonado al lado de este repo (o `CAREER_OPS_ROOT=…`).
+- **Opcional**: Playwright + chromium (para PDF + auto-pipeline).
+- **Opcional**: ANTHROPIC_API_KEY o GEMINI_API_KEY (sin clave funciona en manual-prompt mode).
+
+## Lo que obtienes — por página
+
+| Página | Función |
+|---|---|
+| `#/dashboard` | KPIs + último scan + último report + ✨ Auto-pipeline CTA |
+| `#/scan` | Single 🌐 Scan button, fan-out a 6 ATSes + hh.ru + Habr, live SSE log, filterable results table |
+| `#/pipeline` | URL queue, inline preview SSRF-safe, dedup |
+| `#/evaluate` | JD → score 0–5 (Anthropic / Gemini / manual prompt) |
+| `#/batch` | TSV editor para batch evaluate offers (v1.13+) |
+| `#/deep` | Deep research por compañía + role |
+| `#/apply` | Apply checklist (form fields + key notes) |
+| `#/tracker` | Tabla GFM de cada evaluación + filtros por status / score |
+| `#/reports` | Lista paginada de reports markdown + score thresholds card |
+| `#/interview-prep` | Saved research files |
+| `#/cv` | Editor markdown + live preview + Generate PDF |
+| `#/profile` | YAML preview + Career framing card (modes/_profile.md) |
+| `#/config` | API keys, Profile YAML, Modes editor |
+| `#/health` | 18 checks system status |
+| `#/activity` | Audit log de cada state-changing request |
+| `#/help` | 16 secciones × 8 locales |
+
+## Configuración
+
+```bash
+# career-ops/.env
+ANTHROPIC_API_KEY=sk-ant-…          # opcional pero recomendado
+GEMINI_API_KEY=AIza…                # opcional fallback
+HH_USER_AGENT="Mozilla/5.0 …"       # opcional para hh.ru desde non-RU IPs
+ANTHROPIC_MODEL=claude-sonnet-4-6   # opcional override
+GEMINI_MODEL=gemini-2.0-flash       # opcional override
+PORT=4317                           # opcional, default
+HOST=127.0.0.1                      # opcional, default
+CAREER_OPS_ROOT=/path/to/career-ops # opcional, default ../
+```
+
+## Contribuir
+
+PRs bienvenidos. Sigue [`docs/sdd/CONVENTIONS.md`](docs/sdd/CONVENTIONS.md):
+
+- Conventional Commits (`feat`, `fix`, `docs`, `chore`, etc.).
+- Tests cubren cambios no triviales (`npm test` debe pasar).
+- Sin nuevas deps en runtime sin justificación en spec.
+- Sin edición de archivos parent — CLAUDE.md hard rule #1.
+
+Issues / discusiones: <https://github.com/Fighter90/career-ops-ui/issues>.

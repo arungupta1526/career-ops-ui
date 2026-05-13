@@ -6,6 +6,33 @@
 
 ---
 
+## [1.18.0] — 2026-05-13
+
+**Scan endpoint consolidation + WCAG 2.2 AA pass + i18n long-tail finalization.** Удаляет legacy `/api/stream/scan-{en,ru}` aliases (Sunset window 2026-10-01 продвинут на v1.18 по запросу пользователя). Доводит non-EN READMEs до ~307 строк и переводит оставшиеся RU-bodied v1.16.0 + v1.17.0 CHANGELOG записи в 6 локалях.
+
+### 🚪 Breaking
+
+- **`feat!(scan): retire legacy /api/stream/scan-{en,ru} aliases`** — устаревшие EN/RU split SSE endpoints удалены. Все consumer'ы проходят через консолидированный `/api/stream/scan?source=ats|regional|both` endpoint (live с v1.12.0). Legacy paths имели Deprecation + Sunset (RFC 8594) headers с v1.15.0; migration window закрыто. Внешние интеграции на старых paths получают чистый **404** вместо silent routing на SPA catch-all.
+
+### ♿ Accessibility (WCAG 2.2 AA pass)
+
+- **WCAG 2.4.1 Bypass Blocks** — новая **Skip to main content** ссылка как первый focusable на каждой странице.
+- **WCAG 2.4.7 Focus Visible** — глобальный `*:focus-visible` стиль.
+- **WCAG 2.5.5 Target Size** — минимум 44×44 px touch target на `.skip-link`. `.btn-sm` сохраняет 32 px min-height.
+- **WCAG 3.1.1 Language of Page** — `<html lang="en">` исправлен с `lang="ru"`.
+- **WCAG 1.3.1 Info & Relationships** — `#content` получает `tabindex="-1"`.
+
+### 📚 i18n long-tail
+
+- **`docs(i18n): v1.16.0 + v1.17.0 CHANGELOG переведён в 6 локалях`** — RU-char count per locale упал 79 → 42 → 23.
+- **`docs(readme): расширены non-EN READMEs с Why / Requirements / Features / Configuration / Contributing`** — каждый non-EN README вырос с 240 до ~307 строк.
+
+### 🧪 Тесты
+
+- Итого: **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive E2E + 32/32 Playwright.
+
+---
+
 ## [1.17.0] — 2026-05-13
 
 **Polish + a11y + CI fix release.** Closes 9 follow-ups from v1.16.0 REVIEW: browser smoke verify, README badge truth, coverage refresh, `lastWorkdayFallback` 🔒 chip в SPA, full E2E re-baseline после v1.16 UX-change, Playwright auto-pipeline scenarios, a11y ARIA + focus trap pass, condensed historical CHANGELOG в 6 локалях, expanded non-EN READMEs с reference sections.

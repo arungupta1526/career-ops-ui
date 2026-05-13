@@ -196,7 +196,7 @@ russian_portals:
   queries: ["Senior PHP", "Senior Go", "Tech Lead"]
 ```
 
-Under the hood the SSE endpoints are still split (`/api/stream/scan-en` and `/api/stream/scan-ru`) so you can drive each independently from the API; the **🌐 Scan** UI button calls both back-to-back. Each fan-out honors `AbortSignal` from client disconnect — no orphan fetches.
+Under the hood the SSE endpoint is consolidated: `/api/stream/scan?source=ats|regional|both` (v1.18.0 — the legacy `scan-en` / `scan-ru` aliases were retired after the v1.15 Sunset window expired). You can drive each phase independently via the `source` query, and the **🌐 Scan** UI button calls `source=both` so ATS runs first, then regional, in a single SSE connection. Honors `AbortSignal` on client disconnect — no orphan fetches.
 
 ---
 
@@ -359,8 +359,7 @@ All buffered runs cap at 60 s; SIGTERM → SIGKILL escalation after a 5 s grace 
 | Method | Path                          | Streams                            |
 | ------ | ----------------------------- | ---------------------------------- |
 | GET    | `/api/stream/scan`            | legacy `node scan.mjs` (subprocess)|
-| GET    | `/api/stream/scan-en`         | in-process ATS scanner — query: `dryRun=1`, `company=…` |
-| GET    | `/api/stream/scan-ru`         | in-process regional scanner — query: `dryRun=1`              |
+| GET    | `/api/stream/scan?source=ats\|regional\|both` | consolidated in-process scanner SSE — query: `dryRun=1`, `company=…` (ATS only). v1.18.0 retired the legacy `scan-en`/`scan-ru` aliases. |
 | GET    | `/api/stream/liveness`        | `node check-liveness.mjs`          |
 | GET    | `/api/stream/pdf`             | `node generate-pdf.mjs`            |
 

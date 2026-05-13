@@ -8,94 +8,126 @@
 
 ---
 
+## [1.18.0] — 2026-05-13
+
+**Scan エンドポイント統合 + WCAG 2.2 AA パス + i18n long-tail 完了。** レガシー `/api/stream/scan-{en,ru}` エイリアスを廃止(Sunset window 2026-10-01 をユーザー指示で v1.18 に前倒し)。non-EN README を ~307 行に拡張し、6 ロケールで残った v1.16.0 + v1.17.0 CHANGELOG の RU-bodied エントリを翻訳。
+
+### 🚪 Breaking
+
+- **`feat!(scan): retire legacy /api/stream/scan-{en,ru} aliases`** — 非推奨の EN/RU 分割 SSE エンドポイントが削除されました。すべての消費者は統合された `/api/stream/scan?source=ats|regional|both` エンドポイント(v1.12.0 から稼働)を通過します。外部統合は SPA catch-all に静かにルーティングされる代わりに **404** を受け取るようになりました。
+
+### ♿ アクセシビリティ (WCAG 2.2 AA パス)
+
+- **WCAG 2.4.1 Bypass Blocks** — 各ページの最初の focusable として新しい **Skip to main content** リンク。
+- **WCAG 2.4.7 Focus Visible** — グローバル `*:focus-visible` スタイル。
+- **WCAG 2.5.5 Target Size** — `.skip-link` の最小 44×44 px タッチターゲット。`.btn-sm` は 32 px min-height を維持。
+- **WCAG 3.1.1 Language of Page** — `<html lang="en">` を `lang="ru"` から修正。
+- **WCAG 1.3.1 Info & Relationships** — `#content` が `tabindex="-1"` を取得。
+
+### 📚 i18n long-tail
+
+- **`docs(i18n): 6 ロケールで v1.16.0 + v1.17.0 CHANGELOG を翻訳`** — ロケールあたり RU-char カウントが 79 → 42 → 23 に減少。
+- **`docs(readme): Why / Requirements / Features / Configuration / Contributing で non-EN README を拡張`** — 各 non-EN README が 240 → ~307 行に成長。
+
+### 🧪 テスト
+
+- 合計 **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive E2E + 32/32 Playwright。
+
+---
+
 ## [1.17.0] — 2026-05-13
 
-**Polish + a11y + CI fix release.** Closes 9 follow-ups from v1.16.0 REVIEW: browser smoke verify, README badge truth, coverage refresh, `lastWorkdayFallback` 🔒 chip в SPA, full E2E re-baseline после v1.16 UX-change, Playwright auto-pipeline scenarios, a11y ARIA + focus trap pass, condensed historical CHANGELOG в 6 локалях, expanded non-EN READMEs с reference sections.
+**Polish + a11y + CI fix.** v1.16.0 REVIEW の 9 follow-up を完了: ブラウザ smoke 検証、README バッジ truth、coverage リフレッシュ、SPA の `lastWorkdayFallback` 🔒 chip、v1.16 UX 変更後の完全 E2E 再ベースライン、Playwright auto-pipeline シナリオ、a11y ARIA + focus trap パス、6 ロケールでの過去 CHANGELOG 凝縮、reference セクション付き non-EN README 拡張。
 
 ### 🐛 Fixes
 
-- **`fix(e2e): smoke + comprehensive re-aligned с v1.16 UX`** — v1.16 Cmd+K Enter → AutoPipeline modal изменение сделало `search.press('Enter')` в e2e тестах открывающим modal. Тесты теперь используют `Shift+Enter` для legacy quick-add path. **Это и был CI failure на push v1.16.0** — Playwright e2e таймаутил 30s на backdrop-intercepted кликах.
-- **`fix(mode-page): /#/batch-prompt → modes/batch.md via serverSlug`** — v1.15 переименовал legacy mode slug в `batch-prompt`, но server `POST /api/mode/:slug` искал `modes/batch-prompt.md`. Новое поле `serverSlug` развязывает route hash от parent mode filename.
-- **`chore: bump deprecation messages с v1.16.0 → v1.17.0`** — scan-en/scan-ru deprecation copy + batch-prompt banner ссылались на прошедшую версию.
+- **`fix(e2e): smoke + comprehensive を v1.16 UX に再アライン`** — v1.16 の Cmd+K Enter → AutoPipeline modal 変更により、e2e テストの `search.press('Enter')` が後続クリックを backdrop が intercept する modal を開いていました。テストは legacy quick-add 経路に `Shift+Enter` を使用するようになりました。**これが v1.16.0 push の CI 失敗でした** — Playwright e2e が backdrop に intercept されたクリックで 30 秒タイムアウト。
+- **`fix(mode-page): /#/batch-prompt → modes/batch.md via serverSlug`** — v1.15 が legacy mode slug を `batch-prompt` にリネームしましたが、サーバー `POST /api/mode/:slug` は存在しない `modes/batch-prompt.md` を探していました。新しい `serverSlug` フィールドはルートハッシュを親の mode ファイル名から切り離します。
+- **`chore: deprecation メッセージを v1.16.0 → v1.17.0 に bump`** — scan-en/scan-ru deprecation コピーと batch-prompt バナーが過去のバージョンを参照していました。
 
 ### ✨ Features
 
-- **`feat(scan): 🔒 Workday CAPTCHA chip в Active Companies card`** — server-side `lastWorkdayFallback` export из v1.16 PR-7 теперь consumed в SPA. `/api/scan-results` возвращает snapshot; `#/scan` рендерит warn-tinted card сверху при Workday fallback.
+- **`feat(scan): Active Companies カードの 🔒 Workday CAPTCHA chip`** — v1.16 PR-7 の server-side `lastWorkdayFallback` export が SPA で消費されるようになりました。`/api/scan-results` が snapshot を返します;`#/scan` は Workday tenant が fallback に陥ったときに Active Companies の上に warn-tinted カードをレンダリングします("🔒 Workday tenant blocked — fallback: use /career-ops scan (Playwright)")。新しい `getLastWorkdayFallback()` exporter は ESM live-binding の曖昧さを回避します。2 つの新しい i18n キー × 8 ロケール。
 
-### ♿ Accessibility
+### ♿ アクセシビリティ
 
-- **`a11y: ARIA roles + focus management pass`** —
-  - `index.html`: `role` attrs на `<aside>` (navigation), `<header>` (banner), `<section id="content">` (main), `<div id="modal">` (dialog + aria-modal + aria-labelledby), toast/banner (status + aria-live), searchbar (search).
-  - `#sidebar-toggle`: `aria-controls` + `aria-expanded` sync.
-  - `#global-search`: visually-hidden `<label>` + `aria-label` с Cmd+K hint.
-  - Decorative backdrops: `aria-hidden="true"`.
-  - **Focus trap в modal** через `UI.modal()` — запоминает click owner, фокусит первый non-close focusable на open, циклит Tab/Shift+Tab внутри modal. `UI.closeModal()` восстанавливает focus.
-  - Новый `.visually-hidden` utility class (WAI-ARIA AP стандарт).
+- **`a11y: ARIA roles + focus management パス`** —
+  - `index.html`: `<aside>`(navigation)、`<header>`(banner)、`<section id="content">`(main)、`<div id="modal">`(aria-modal/aria-labelledby 付き dialog)、`<div id="toast">` + `#conn-banner`(aria-live 付き status)、`<div class="searchbar">`(search) に `role` 属性。
+  - `#sidebar-toggle` が `aria-controls="sidebar"` + open/close 時に JS で同期される `aria-expanded` を取得。
+  - `#global-search` が visually-hidden `<label>` プラス Cmd+K ショートカットヒントを surface する明示的な `aria-label` を取得。
+  - Modal close (×) が `aria-label="Close dialog"` を取得。
+  - 装飾的な backdrop が `aria-hidden="true"` を取得。
+  - **Modal のフォーカストラップ** — `UI.modal()` がクリックオーナーを記憶し、open 時に最初の non-close focusable にフォーカスし、modal 内で Tab/Shift+Tab をサイクルします。`UI.closeModal()` が前のオーナーにフォーカスを復元します。
+  - `public/css/app.css` の新しい `.visually-hidden` ユーティリティクラス(WAI-ARIA AP 標準パターン)。
 
-### 📚 Документация
+### 📚 ドキュメント
 
-- **`docs(readme): badge truth × 8 READMEs`** — tests `284/379/360` → **427**; release `v1.9.1/v1.13.0` → **v1.16.0** → v1.17.0.
-- **`docs(readme): расширены 7 non-EN READMEs с reference sections`** — каждый вырос 170 → ~240 строк с Architecture / API / Security / Tests / A11y / Limitations / License разделами на native language.
-- **`docs(changelog): condensed pre-v1.12 в 6 локалях`** — длинные RU-bodied v1.11.x + v1.10.x записи заменены на компактный "Earlier releases" exec summary на native language.
+- **`docs(readme): 8 READMEs にわたるバッジ truth`** — tests バッジ `284 / 379 / 360` → **427**; release バッジ `v1.9.1 / v1.13.0` → **v1.16.0** その後 → v1.17.0。
+- **`docs(readme): 7 つの non-EN README を reference セクションで拡張`** — 各 README が 170 → ~240 行に成長、ネイティブ言語で Architecture / API / Security / Tests / A11y / Limitations / License セクションを追加。
+- **`docs(changelog): 6 ロケールで pre-v1.12 エントリを凝縮`** — 長い RU-bodied v1.11.x + v1.10.x エントリが各ロケールのネイティブ言語での "Earlier releases" 簡潔エグゼクティブサマリーに置換。詳細履歴は `CHANGELOG.md` (EN) に残ります。
 
 ### 🛠️ Tooling
 
-- **`coverage: refresh numbers`** — последний публичный был 95.46 % / 84.06 % (v1.13.0 REVIEW). v1.17 baseline: **94.14 % линий / 82.98 % веток / 93.20 % функций**. Slight drop от новых error paths в auto-pipeline + reports-write; всё ещё выше 80 % floor.
+- **`coverage: 数字リフレッシュ`** — 最後公表は 95.46% line / 84.06% branch (v1.13.0 REVIEW)。v1.17 ベースライン: **94.14% line / 82.98% branch / 93.20% function**。auto-pipeline + reports-write の新しいエラーパスでわずかな低下;CLAUDE.md の 80% フロアより十分高い。
 
-### 🧪 Тесты
+### 🧪 テスト
 
-- Итого: **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive E2E + **32 / 32** Playwright (было 28; +4 новых auto-pipeline scenarios).
+- 合計 **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive E2E + **32 / 32** Playwright(以前 28;+4 新規 auto-pipeline シナリオ)。
+- E2E スイートを v1.16.0 UX に再アライン(Shift+Enter quick-add、legacy mode 用の /#/batch-prompt)。
 
 ### Out of scope (v1.18+)
 
 | Item | Notes |
 |---|---|
-| Translate v1.16.0 в non-EN CHANGELOGs | Сейчас RU-bodied (~30 строк × 6 = 180). Был вне явного scope (только v1.11.x/v1.10.x). |
-| Full non-EN README parity (585 строк как EN) | v1.17 принёс non-EN до ~240; marketing-heavy секции остаются EN-only. |
-| Parent commit для canonical A-F prompt | Всё ещё ждёт upstream rewrite `santifer/career-ops::modes/oferta.md`. |
-| Full WCAG 2.2 AA audit | v1.17 покрыл structural ARIA + focus trap; per-component contrast/Tab-order — отложено. |
+| non-EN CHANGELOGs での v1.16.0 エントリ翻訳 | 現在 RU-bodied。 |
+| 完全な non-EN README パリティ (EN と同じ 585 行) | v1.17 が non-EN を ~240 に;マーケティング重いセクションは EN のみ。 |
+| 完全な WCAG 2.2 AA 監査 | v1.17 は構造的 ARIA + focus trap をカバー;コンポーネントごとの contrast/Tab-order 監査は保留中。 |
 
 ---
 
 ## [1.16.0] — 2026-05-13
 
-**Auto-pipeline finalization + adapter polish + i18n long-tail.** Закрывает все 11 follow-up из v1.15.0 REVIEW: server-side SSE auto-pipeline, `POST /api/reports` primitive, Cmd+K shortcut, SmartRecruiters пагинация, Workday CAPTCHA-fallback, CI screenshot-drift gate, scan source filter UX, перевод исторического CHANGELOG (v1.13.0/v1.12.0 × 6 локалей), расширение non-EN READMEs, paste-ready trending-companies importer.
+**Auto-pipeline ファイナライズ + アダプタポリッシュ + i18n long-tail.** v1.15.0 REVIEW の 11 follow-up を全て完了: サーバーサイド SSE auto-pipeline、`POST /api/reports` primitive、Cmd+K shortcut、SmartRecruiters ページネーション、Workday CAPTCHA-fallback、CI screenshot-drift gate、scan source filter UX、過去 CHANGELOG 翻訳(v1.13.0/v1.12.0 × 6 ロケール)、non-EN README 拡張、paste-ready trending-companies importer。
 
-### ✨ Фичи
+### ✨ 機能
 
-- **`feat(auto-pipeline): server-side SSE orchestrator`** (#1, #2, #3, #8) — v1.15 client-side chained-fetch orchestrator удалён. `POST /api/auto-pipeline` теперь curl-able SSE endpoint, гоняющий chain validate → fetch JD → evaluate → save report → tracker server-side с real-time step events. Медленный Anthropic call (30–90 с) теперь эмитит `running` event вместо generic спиннера. Failures эмитят `error` с `step` + `message`. Orchestrator также persist'ит report markdown в parent `reports/<slug>.md` (терялось в v1.15).
-- **`feat(reports): POST /api/reports primitive`** — новый writer в `server/lib/routes/reports.mjs`. Slug sanitization с path-traversal guard. 1 MB cap (413). 409 на existing file без `overwrite:true`. Atomic write через `stripDangerousMarkdown`. Тесты: 9 кейсов.
-- **`feat(app): Cmd+K paste URL → auto-pipeline`** — paste URL в global search + Enter теперь открывает AutoPipeline modal с `autoStart=true`. Shift+Enter сохраняет legacy "add to pipeline only" поведение.
-- **`feat(portals): SmartRecruiters пагинация`** (#4) — обходит ВСЕ страницы, не только первые 100. Safety cap: 30 страниц / 3000 jobs. Strip caller-supplied limit/offset. Тесты: 6 кейсов.
-- **`feat(portals): Workday CAPTCHA-fallback graceful`** (#7) — не throws на 4xx / non-JSON / network errors. Возвращает `[]` и аннотирует `lastWorkdayFallback`. Опт-ин обратно через `strict:true`. Тесты: 7 кейсов.
+- **`feat(auto-pipeline): server-side SSE orchestrator`** (#1, #2, #3, #8) — v1.15 の client-side chained-fetch orchestrator は削除されました。`POST /api/auto-pipeline` は curl 可能な SSE エンドポイントで、validate → fetch JD → evaluate → save report → tracker をサーバー側で実時間 step イベント付きで実行します。遅い Anthropic 呼び出し(30–90 秒)は汎用スピナーではなく `running` イベントを emit します。失敗は `step` + `message` 付きで `error` を emit します。orchestrator は report markdown を親 `reports/<slug>.md` にも永続化します(v1.15 では失われていました)。
+- **`feat(reports): POST /api/reports primitive`** — `server/lib/routes/reports.mjs` の新 writer。path-traversal ガード付き slug サニタイズ。1 MB cap (413)。`overwrite:true` なしの existing file に 409。`stripDangerousMarkdown` 経由の atomic write。activity.reports.save のログ。テスト: 9 ケース。
+- **`feat(app): Cmd+K paste URL → auto-pipeline`** — global search に URL を貼り付けて Enter で `autoStart=true` の AutoPipeline modal を開きます。Shift+Enter は legacy "add to pipeline only" 経路を保持。
+- **`feat(portals): SmartRecruiters ページネーション`** (#4) — `server/lib/sources/smartrecruiters.mjs` は `?limit=100&offset=N` 経由で `totalFound` に到達するか空のページが返るか 30 ページ / 3000 ジョブの safety cap が発動するまでページを巡回します。大きなボードは postings の残りを失わなくなりました。テスト: 6 ケース。
+- **`feat(portals): Workday CAPTCHA-fallback graceful`** (#7) — `server/lib/sources/workday.mjs` は 4xx / non-JSON / network エラーで throw しなくなりました。`[]` を返し、新しい export `lastWorkdayFallback` に注釈します。スキャナータイムラインは次の tenant で続行します。v1.14 の throw 動作に `strict:true` でオプトイン可能。テスト: 7 ケース。
 
 ### 🛠️ Tooling + CI
 
-- **`ci(workflows): dashboard-screenshots drift gate`** (#5) — `.github/workflows/dashboard-screenshots.yml` регенерит 8 hero PNGs и валит build при visual drift'е.
-- **`feat(scripts): import-trending-companies.mjs`** (#11) — верифицирует 13 trending компаний из `docs/portals-examples.md` и эмитит paste-ready YAML. Запуск: `npm run import:trending`.
-- **`feat(scripts): npm run capture:dashboards`** — exposes Playwright capture как top-level script.
+- **`ci(workflows): dashboard-screenshots drift gate`** (#5) — 新 `.github/workflows/dashboard-screenshots.yml`。`public/css/app.css`、`public/js/views/dashboard.js`、`public/js/lib/i18n.js`、`public/index.html` を触る PR で、workflow は /tmp scaffold に対して server を boot し、Playwright + chromium 経由で 8 hero PNG を再生成し、結果がコミットされたものから drift していれば build を失敗させます。
+- **`feat(scripts): import-trending-companies.mjs`** (#11) — `docs/portals-examples.md` の 13 trending 企業を実際の boards-API 経由で検証し、親の `portals.yml::tracked_companies` に貼り付け可能な YAML を出力します。slug が 404 する候補には `enabled: false` がスタンプされます。`npm run import:trending` で実行。
+- **`feat(scripts): npm run capture:dashboards`** — `scripts/capture-dashboard-screenshots.mjs` を top-level script として公開。
 
 ### 🎨 UX
 
-- **`fix(scan): consolidated source-filter dropdown`** (#6) — dropdown пересобран из v1.14 adapter registry: 6 ATSes + hh.ru + Habr Career, алфавитный порядок, без geo-префиксов. `runEnScan`/`runRuScan` теперь используют `/api/stream/scan?source={ats,regional}` consolidated endpoint.
+- **`fix(scan): 統合 source-filter dropdown`** (#6) — `#/scan` source dropdown が v1.14 adapter registry から再構築されました: 6 ATSes + hh.ru + Habr Career、アルファベット順、geo prefix なし。`runEnScan`/`runRuScan` は今では統合された `/api/stream/scan?source={ats,regional}` エンドポイントを叩きます。
 
 ### 📚 i18n long-tail
 
-- **`docs(i18n): translate v1.13.0 + v1.12.0 CHANGELOG в 6 локалях`** (#9) — записи переведены на их фактический язык. Каждая локаль также получает i18n note о том что pre-v1.12 записи остаются RU-bodied per project convention.
-- **`docs: expand non-EN READMEs с v1.16.0 highlights section`** (#10) — 6 non-EN READMEs + RU READMEs получают ~35-line section про auto-pipeline + curl example + остальные v1.16 фичи.
+- **`docs(i18n): 6 ロケールで v1.13.0 + v1.12.0 CHANGELOG を翻訳`** (#9) — 以前 RU-bodied だったエントリが実際のロケールになっています。各 non-EN/non-RU CHANGELOG には pre-v1.12 エントリがプロジェクト慣例により RU のままという i18n ノートがあります。
+- **`docs: v1.16.0 highlights セクションで non-EN README を拡張`** (#10) — 7 non-EN README が ~35 行の新セクションを受け取ります: ワンクリック auto-pipeline + curl 例、SmartRecruiters ページネーション、Workday fallback、scan source-filter UX、importer スクリプト、CI screenshot workflow。
 
-### 🧪 Тесты
+### 🧪 テスト
 
-- Новые `tests/reports-write.test.mjs` (9), `tests/auto-pipeline.test.mjs` (5), `tests/smartrecruiters-pagination.test.mjs` (6), `tests/workday-fallback.test.mjs` (7).
-- Итого: **427 / 427** unit (было 400; +27). 0 failures.
+- 新規 `tests/reports-write.test.mjs` (9 ケース) — happy path、slug サニタイズ(path-traversal ガード含む)、409 conflict、overwrite フラグ、XSS strip、欠落フィールド 400、>1 MB 413、GET/POST round-trip。
+- 新規 `tests/auto-pipeline.test.mjs` (5 ケース) — SSE framing、invalid URL ゲート、SSRF/loopback ゲート、no-LLM-key エラー経路、`text/event-stream` Content-Type ヘッダ。
+- 新規 `tests/smartrecruiters-pagination.test.mjs` (6 ケース)。
+- 新規 `tests/workday-fallback.test.mjs` (7 ケース)。
+- 合計 **427 / 427** ユニット(以前 400; +27 純増)。0 失敗。
 
 ### Out of scope (v1.17+)
 
 | Item | Notes |
 |---|---|
-| Parent commit для canonical A-F prompt | Всё ещё ждёт upstream rewrite `santifer/career-ops::modes/oferta.md` (CLAUDE.md hard rule #1). |
-| Translate pre-v1.12 CHANGELOG (v1.11.x, v1.10.x) | Сохранена convention: RU-bodied. ~1800 строк перевода — отложено. |
-| Full non-EN README паритет (585 строк как EN) | v1.16 добавил ~35 строк per locale; полный паритет — отдельный effort. |
+| pre-v1.12 CHANGELOG エントリ翻訳 (v1.11.x, v1.10.x) | 慣例保持: RU-bodied。バックポートは ~1800 行の翻訳;延期。 |
+| 完全な non-EN README パリティ(EN と同じ 585 行) | v1.16 はロケールあたり ~35 行追加;完全ミラーは別の翻訳パス。 |
+| SPA Active Companies カードの `lastWorkdayFallback` surface | Server export は配線済み;UI 消費は v1.17。 |
+| 検証済み 9 trending の per-company `tracked_companies` 一括追加 | `import:trending` スクリプトが 1-command + 1-paste で処理。 |
 
 ---
 

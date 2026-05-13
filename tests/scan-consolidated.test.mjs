@@ -95,12 +95,18 @@ test('F-018 LITE: /api/stream/scan?source=unknown emits an error frame', async (
   assert.match(s._error.message, /unknown source/);
 });
 
-test('F-018 backwards compat: legacy /api/stream/scan-en still works', async () => {
-  const s = await readFirstStart('/api/stream/scan-en');
-  assert.equal(s.script, 'en-scanner');
+// v1.18.0 — the legacy /api/stream/scan-{en,ru} aliases were retired.
+// Sunset header had been live since v1.15.0; the migration window is
+// now closed. These two former back-compat assertions now verify that
+// requests to the old paths cleanly 404 instead of being routed to the
+// SPA catch-all (which would have returned the index.html with 200).
+
+test('F-018 v1.18.0: legacy /api/stream/scan-en returns 404', async () => {
+  const res = await fetch(baseUrl + '/api/stream/scan-en');
+  assert.equal(res.status, 404);
 });
 
-test('F-018 backwards compat: legacy /api/stream/scan-ru still works', async () => {
-  const s = await readFirstStart('/api/stream/scan-ru');
-  assert.equal(s.script, 'ru-scanner');
+test('F-018 v1.18.0: legacy /api/stream/scan-ru returns 404', async () => {
+  const res = await fetch(baseUrl + '/api/stream/scan-ru');
+  assert.equal(res.status, 404);
 });
