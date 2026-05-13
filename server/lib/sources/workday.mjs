@@ -11,36 +11,81 @@
  *   - Some customers gate the feed behind a CAPTCHA on /wday/cxs/...
  *   - Pagination requires a POST loop; we only fetch the first page.
  *
- * If a Workday board returns 4xx, the help bundle suggests falling back
- * to the AI scan (`/career-ops scan`) which can drive a real browser
- * via Playwright.
+ * v1.16.0 — graceful CAPTCHA / 4xx fallback. Instead of throwing
+ * (which used to break the whole scan), the wrapper returns an
+ * empty job array and annotates the result with a fallback hint
+ * so /#/scan can render 🔒 chips for blocked tenants. Callers can
+ * opt back into the throw behaviour via `opts.strict=true`.
+ *
+ * Fallback detection rules:
+ *   - 4xx (403, 404, 429) — CAPTCHA or tenant-not-public
+ *   - non-JSON response (HTML CAPTCHA page) — same outcome
+ * Both → returns []. Caller can inspect `lastWorkdayFallback` for
+ * audit / activity-log purposes.
+ *
+ * Help bundle suggestion (career-ops.org/docs/.../set-up-playwright):
+ * for a CAPTCHA-gated Workday board, fall back to the AI scan
+ * (`/career-ops scan`) which drives a real browser via Playwright.
  */
 const UA = 'career-ops-web-ui/1.0';
 const PAGE_LIMIT = 100;
 
+// Module-level snapshot of the last fallback reason. Scanner uses
+// this for status reporting via /#/scan Active Companies card.
+export let lastWorkdayFallback = null;
+
+function setFallback(apiUrl, reason) {
+  lastWorkdayFallback = { apiUrl, reason, at: new Date().toISOString() };
+}
+
 export async function fetchWorkday(apiUrl, opts = {}) {
-  const { fetchImpl = fetch, signal } = opts;
-  const res = await fetchImpl(apiUrl, {
-    method: 'POST',
-    signal,
-    headers: {
-      'User-Agent': UA,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify({
-      appliedFacets: {},
-      limit: PAGE_LIMIT,
-      offset: 0,
-      searchText: '',
-    }),
-  });
-  if (!res.ok) {
-    const err = new Error(`Workday: HTTP ${res.status} (${apiUrl})`);
-    err.status = res.status;
-    throw err;
+  const { fetchImpl = fetch, signal, strict = false } = opts;
+  let res;
+  try {
+    res = await fetchImpl(apiUrl, {
+      method: 'POST',
+      signal,
+      headers: {
+        'User-Agent': UA,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        appliedFacets: {},
+        limit: PAGE_LIMIT,
+        offset: 0,
+        searchText: '',
+      }),
+    });
+  } catch (e) {
+    // Network-level error (DNS, connect, timeout). Treat as fallback
+    // unless caller opted into strict mode.
+    if (strict) throw e;
+    setFallback(apiUrl, `network: ${e.message}`);
+    return [];
   }
-  const data = await res.json();
+  if (!res.ok) {
+    // 4xx / 5xx — CAPTCHA / tenant gone / WAF / etc. Graceful fallback.
+    const reason = `HTTP ${res.status}`;
+    if (strict) {
+      const err = new Error(`Workday: ${reason} (${apiUrl})`);
+      err.status = res.status;
+      err.fallback = true;
+      throw err;
+    }
+    setFallback(apiUrl, reason);
+    return [];
+  }
+  // Some CAPTCHA gates serve HTML with 200; detect by trying to parse
+  // as JSON and bailing softly on parse error.
+  let data;
+  try {
+    data = await res.json();
+  } catch (e) {
+    if (strict) throw e;
+    setFallback(apiUrl, 'non-JSON response (likely CAPTCHA HTML)');
+    return [];
+  }
   // The Workday CXS response wraps job rows under `jobPostings`.
   const base = apiUrl.replace(/\/wday\/cxs\/.+$/, '');
   return (data.jobPostings || []).map((j) => normalize(j, base));

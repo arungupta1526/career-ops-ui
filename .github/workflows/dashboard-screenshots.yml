@@ -1,0 +1,99 @@
+name: Dashboard screenshots — drift check
+
+# v1.16.0 — when any PR touches files that change the dashboard
+# visually, regenerate the 8 localized hero PNGs and fail the build
+# if they would drift from what's committed. Forces contributors to
+# refresh `images/dashboard-<locale>.png` in the same PR as the
+# CSS / i18n / dashboard-component change.
+#
+# Tooling: scripts/capture-dashboard-screenshots.mjs (Playwright +
+# chromium). Idempotent: re-runs overwrite the existing PNGs.
+#
+# Scope:
+#   - public/css/app.css         → theme tokens, layout
+#   - public/js/views/dashboard.js → KPI tiles, quick-actions
+#   - public/js/lib/i18n.js      → any locale label that shows on /#/dashboard
+#   - public/index.html          → sidebar / top-bar markup
+#
+# Out of scope (drift NOT enforced):
+#   - public/css/* other than app.css (component-scoped tweaks)
+#   - public/js/views/*.js other than dashboard.js (page-scoped changes)
+#
+# Tested locally with `npm start &` + `node scripts/capture-dashboard-screenshots.mjs`.
+
+on:
+  pull_request:
+    paths:
+      - 'public/css/app.css'
+      - 'public/js/views/dashboard.js'
+      - 'public/js/lib/i18n.js'
+      - 'public/index.html'
+      - 'scripts/capture-dashboard-screenshots.mjs'
+
+jobs:
+  diff-screenshots:
+    name: regenerate + diff vs committed PNGs
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install web-ui deps
+        run: npm ci
+
+      # The capture script imports playwright from the PARENT project
+      # (this repo is `web-ui/` inside `career-ops/`). On CI we don't
+      # have the parent, so install playwright locally instead.
+      - name: Install Playwright + chromium (CI-only override)
+        run: |
+          npm install --no-save playwright@1.49.0
+          npx playwright install --with-deps chromium
+
+      - name: Boot the web-ui server
+        run: |
+          # CAREER_OPS_ROOT — minimal scaffold so /api/health is green
+          # without needing the real parent repo.
+          mkdir -p /tmp/career-ops-fixture/{data,modes,config,reports}
+          echo "# CV" > /tmp/career-ops-fixture/cv.md
+          echo "candidate:" > /tmp/career-ops-fixture/config/profile.yml
+          echo "  full_name: T" >> /tmp/career-ops-fixture/config/profile.yml
+          echo "tracked_companies: []" > /tmp/career-ops-fixture/portals.yml
+          echo "# Applications" > /tmp/career-ops-fixture/data/applications.md
+          echo "oferta" > /tmp/career-ops-fixture/modes/oferta.md
+          CAREER_OPS_ROOT=/tmp/career-ops-fixture node server/index.mjs &
+          # Wait for :4317 to come up
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if curl -sf http://127.0.0.1:4317/api/health >/dev/null 2>&1; then
+              echo "✓ server ready after ${i}s"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Capture dashboard PNGs
+        env:
+          CAREER_OPS_UI_URL: http://127.0.0.1:4317
+        run: node scripts/capture-dashboard-screenshots.mjs
+
+      - name: Diff vs committed PNGs
+        run: |
+          if ! git diff --quiet images/; then
+            echo "::error::Dashboard screenshots changed but were not refreshed in this PR."
+            echo "::error::Run \`node scripts/capture-dashboard-screenshots.mjs\` locally and commit the updated images/dashboard-*.png."
+            git diff --stat images/
+            exit 1
+          fi
+          echo "✓ no dashboard drift"
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-screenshots-${{ github.event.pull_request.number }}
+          path: images/dashboard-*.png
+          retention-days: 14

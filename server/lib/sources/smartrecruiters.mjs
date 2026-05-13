@@ -1,28 +1,56 @@
 /**
  * SmartRecruiters public postings API wrapper.
- *   GET https://api.smartrecruiters.com/v1/companies/<slug>/postings?limit=100
+ *   GET https://api.smartrecruiters.com/v1/companies/<slug>/postings?limit=100&offset=N
  *
- * Returns { content: [...], totalFound, offset, limit }. We grab the
- * first page only; boards with > 100 open roles surface a note in the
- * help bundle suggesting users narrow with a title filter.
+ * Returns { content: [...], totalFound, offset, limit }. v1.16.0 follows
+ * the totalFound / offset pagination cursor across pages so large
+ * boards (Procter & Gamble, Amazon-style with 1000+ open roles)
+ * surface all postings, not just the first 100. Safety cap is 30
+ * pages (3000 jobs) — the in-process scanner timeline would lose
+ * value past that and the title_filter culls hard anyway.
  */
 const UA = 'career-ops-web-ui/1.0';
+const PAGE_SIZE = 100;
+const MAX_PAGES = 30;        // 3000 jobs hard ceiling
+const MAX_TOTAL_JOBS = MAX_PAGES * PAGE_SIZE;
 
 export async function fetchSmartRecruiters(apiUrl, opts = {}) {
   const { fetchImpl = fetch, signal } = opts;
-  const sep = apiUrl.includes('?') ? '&' : '?';
-  const url = `${apiUrl}${sep}limit=100`;
-  const res = await fetchImpl(url, {
-    signal,
-    headers: { 'User-Agent': UA, Accept: 'application/json' },
-  });
-  if (!res.ok) {
-    const err = new Error(`SmartRecruiters: HTTP ${res.status} (${url})`);
-    err.status = res.status;
-    throw err;
+  // Strip any caller-supplied ?limit= / ?offset= so we own the cursor.
+  const base = apiUrl.replace(/[?&](limit|offset)=[^&]*/g, '').replace(/\?$/, '');
+  const sep = base.includes('?') ? '&' : '?';
+
+  const all = [];
+  let offset = 0;
+  let page = 0;
+  let totalFound = null;
+
+  while (page < MAX_PAGES) {
+    const url = `${base}${sep}limit=${PAGE_SIZE}&offset=${offset}`;
+    const res = await fetchImpl(url, {
+      signal,
+      headers: { 'User-Agent': UA, Accept: 'application/json' },
+    });
+    if (!res.ok) {
+      const err = new Error(`SmartRecruiters: HTTP ${res.status} (${url})`);
+      err.status = res.status;
+      throw err;
+    }
+    const data = await res.json();
+    const batch = (data.content || []).map((j) => normalize(j));
+    all.push(...batch);
+    if (totalFound == null && typeof data.totalFound === 'number') totalFound = data.totalFound;
+    // Stop conditions:
+    //   - empty page (no more results)
+    //   - reached totalFound (full set fetched)
+    //   - hit hard safety cap
+    if (batch.length === 0) break;
+    if (totalFound != null && all.length >= totalFound) break;
+    if (all.length >= MAX_TOTAL_JOBS) break;
+    offset += PAGE_SIZE;
+    page += 1;
   }
-  const data = await res.json();
-  return (data.content || []).map((j) => normalize(j));
+  return all;
 }
 
 function normalize(j) {

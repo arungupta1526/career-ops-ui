@@ -50,13 +50,20 @@ Router.register('scan', async () => {
     c('option', { value: 'hybrid' }, t('scan.hybrid')),
     c('option', { value: 'reloc' }, t('scan.reloc')),
   ]);
+  // v1.16.0 — source dropdown rebuilt from the v1.14.0 adapter registry
+  // (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday)
+  // plus the two regional portals (hh.ru, Habr). Alphabetical sort,
+  // no geo-tag prefix per F-014.
   const filterSource = c('select', { className: 'select', style: { maxWidth: '160px' } }, [
     c('option', { value: '' }, t('scan.allSources')),
-    c('option', { value: 'greenhouse' }, 'Greenhouse'),
     c('option', { value: 'ashby' }, 'Ashby'),
-    c('option', { value: 'lever' }, 'Lever'),
+    c('option', { value: 'greenhouse' }, 'Greenhouse'),
+    c('option', { value: 'habr-career' }, 'Habr Career'),
     c('option', { value: 'hh.ru' }, 'hh.ru'),
-    c('option', { value: 'habr-career' }, 'Habr'),
+    c('option', { value: 'lever' }, 'Lever'),
+    c('option', { value: 'smartrecruiters' }, 'SmartRecruiters'),
+    c('option', { value: 'workable' }, 'Workable'),
+    c('option', { value: 'workday' }, 'Workday'),
   ]);
   const filterScope = c('select', { className: 'select', style: { maxWidth: '160px' } }, [
     c('option', { value: 'all' }, t('scan.scopeAll')),
@@ -113,17 +120,23 @@ Router.register('scan', async () => {
     });
   }
 
+  // v1.16.0 — both runEnScan / runRuScan now hit the consolidated
+  // endpoint `/api/stream/scan?source=ats|regional`. The legacy
+  // `/api/stream/scan-{en,ru}` aliases stay live with Sunset headers
+  // through v1.16 but are no longer the SPA's transport.
   function runEnScan() {
     const params = new URLSearchParams();
+    params.set('source', 'ats');
     if (dryRun.checked) params.set('dryRun', '1');
     const company = companySelect.value;
     if (company) params.set('company', company);
-    streamTo(consoleEl, '/api/stream/scan-en?' + params.toString(), 'EN', refreshResults);
+    streamTo(consoleEl, '/api/stream/scan?' + params.toString(), 'ATS', refreshResults);
   }
   function runRuScan() {
     const params = new URLSearchParams();
+    params.set('source', 'regional');
     if (dryRun.checked) params.set('dryRun', '1');
-    streamTo(consoleEl, '/api/stream/scan-ru?' + params.toString(), 'RU', refreshResults);
+    streamTo(consoleEl, '/api/stream/scan?' + params.toString(), 'Regional', refreshResults);
   }
   // v1.12.0 — single SSE connection to the consolidated endpoint.
   // The server runs ATS then regional sequentially and emits multiple
