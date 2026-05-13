@@ -45,7 +45,7 @@ Router.register('tracker', async () => {
     tbody.innerHTML = '';
     pgWrap.innerHTML = '';
     if (all.length === 0) {
-      tbody.appendChild(c('tr', null, c('td', { colspan: 8, style: { textAlign: 'center', padding: '40px', color: 'var(--foggy)' } }, t('track.noMatch'))));
+      tbody.appendChild(c('tr', null, c('td', { colspan: 9, style: { textAlign: 'center', padding: '40px', color: 'var(--foggy)' } }, t('track.noMatch'))));
       return;
     }
     for (const r of page) tbody.appendChild(row(r));
@@ -64,6 +64,12 @@ Router.register('tracker', async () => {
       c('td', null, r.role || ''),
       c('td', null, c('span', { className: 'score-pill ' + scoreCls }, r.score || '—')),
       c('td', null, c('span', { className: 'badge ' + statusClass(r.status) }, r.status || '')),
+      // G-006 (v1.15.0) — Legitimacy column. Mirrors the badge tint used
+      // on /#/reports cards. Empty string when the source row had no
+      // Legitimacy column (graceful degrade for pre-v1.15 trackers).
+      c('td', null, r.legitimacy
+        ? c('span', { className: 'badge ' + legitimacyClass(r.legitimacy) }, r.legitimacy)
+        : c('span', { style: { color: 'var(--foggy)' } }, '—')),
       c('td', null, r.pdfReady ? '✓' : '—'),
       c('td', null, r.reportPath ? c('button', { className: 'btn btn-ghost btn-sm', onClick: () => Router.go('/reports/' + r.reportPath.replace(/^reports\//, '').replace(/\.md$/, '')) }, t('track.report')) : ''),
     ]);
@@ -93,7 +99,7 @@ Router.register('tracker', async () => {
     c('div', { className: 'table-wrap' },
       c('table', { className: 'tbl' }, [
         c('thead', null, c('tr', null,
-          ['#', t('track.col.date'), t('scan.col.company'), t('scan.col.role'), 'Score', t('track.col.status'), 'PDF', ''].map((h) => c('th', null, h))
+          ['#', t('track.col.date'), t('scan.col.company'), t('scan.col.role'), 'Score', t('track.col.status'), t('track.col.legitimacy', 'Legitimacy'), 'PDF', ''].map((h) => c('th', null, h))
         )),
         tbody,
       ])
@@ -120,4 +126,15 @@ function statusClass(s) {
   if (s.includes('interview') || s.includes('respond')) return 'badge-info';
   if (s.includes('skip')) return 'badge-warn';
   return '';
+}
+
+// G-006 (v1.15.0) — tint Legitimacy badges the same way /#/reports does.
+// High / verified / strong → ok. Medium / caution / partial → warn.
+// Low / suspicious / posting may be fake → bad.
+function legitimacyClass(s) {
+  s = (s || '').toLowerCase();
+  if (s.includes('high') || s.includes('verified') || s.includes('strong')) return 'badge-ok';
+  if (s.includes('low') || s.includes('suspicious') || s.includes('fake') || s.includes('proceed')) return 'badge-bad';
+  if (s.includes('medium') || s.includes('caution') || s.includes('partial')) return 'badge-warn';
+  return 'badge-info';
 }

@@ -403,6 +403,11 @@ window.I18n = (function () {
     'track.noMatch':  { en: 'No matches', es: 'Sin coincidencias', 'pt-BR': 'Sem correspondências', ko: '일치 항목 없음', ja: '一致なし', ru: 'Нет совпадений', 'zh-CN': '无匹配', 'zh-TW': '無匹配' },
     'track.col.date': { en: 'Date', es: 'Fecha', 'pt-BR': 'Data', ko: '날짜', ja: '日付', ru: 'Дата', 'zh-CN': '日期', 'zh-TW': '日期' },
     'track.col.status':{ en: 'Status', es: 'Estado', 'pt-BR': 'Status', ko: '상태', ja: 'ステータス', ru: 'Статус', 'zh-CN': '状态', 'zh-TW': '狀態' },
+    // G-006 (v1.15.0): Legitimacy column on /#/tracker. The data already
+    // surfaces on /#/reports cards via the same `r.legitimacy` field
+    // parsed from data/applications.md — this just exposes it on the
+    // table view too.
+    'track.col.legitimacy': { en: 'Legitimacy', es: 'Legitimidad', 'pt-BR': 'Legitimidade', ko: '신뢰도', ja: '信頼性', ru: 'Достоверность', 'zh-CN': '可信度', 'zh-TW': '可信度' },
 
     'rep.allReports': { en: '← All reports', es: '← Todos los reportes', 'pt-BR': '← Todos relatórios', ko: '← 모든 보고서', ja: '← すべてのレポート', ru: '← Все отчёты', 'zh-CN': '← 所有报告', 'zh-TW': '← 所有報告' },
     'rep.openJd':     { en: 'Open JD ↗', es: 'Abrir JD ↗', 'pt-BR': 'Abrir JD ↗', ko: 'JD 열기 ↗', ja: 'JD を開く ↗', ru: 'Открыть JD ↗', 'zh-CN': '打开 JD ↗', 'zh-TW': '開啟 JD ↗' },
