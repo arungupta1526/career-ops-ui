@@ -6,6 +6,73 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.15.0] — 2026-05-13
+
+**Doc-conformance release.** Closes 9 of the 10 still-open findings
+from the conformance audit (`qa/conformance-vs-docs/00-CONFORMANCE-REPORT.md`)
+plus the localized hero images. Brings the UI in line with the
+canonical career-ops.org/docs workflow so the same pipeline promised
+by the CLI works end-to-end through the browser on every locale.
+
+### ✨ Features
+
+- **`feat(auto-pipeline): PR-C — 1-click "paste URL → report + PDF + tracker row"`** (G-007)
+  Match the canonical career-ops.org promise. Until v1.15 users did 5 manual clicks across /#/pipeline → /#/evaluate → /#/cv → /#/tracker. Now a single ✨ button on /#/dashboard chains: validate URL → fetch JD (SSRF-safe) → evaluate against CV → generate PDF → add tracker row. Renders a step-by-step modal timeline with [✓]/[…]/[✗] per step. Heuristic company/role extraction from JD first lines. Score + legitimacy extracted via regex from the evaluation markdown. New file: `public/js/lib/auto-pipeline.js`. 19 new i18n keys × 8 locales.
+- **`feat(modes): PR-D — modes/_profile.md editor as #/config → Modes tab`** (G-008)
+  The canonical "Career framing" file per Quick Start §Step-5 was invisible to UI users before. Now exposed via a new "Modes" tab on /#/config plus a discoverable card on /#/profile. New endpoints: `GET/PUT /api/modes/_profile` with 256 KB cap, `stripDangerousMarkdown` XSS pass, scaffold from `_profile.template.md` on first read. 9 new i18n keys × 8 locales.
+- **`feat(profile): PR-E — accept canonical schema; add location + headline`** (G-009)
+  `/api/profile` now accepts BOTH the legacy (`candidate:{...}`) AND canonical (top-level `full_name`, `narrative.headline`, `target_roles.primary`, `compensation.target_range`) schemas. Legacy wins when both are present so existing YAMLs render identically. New `summarizeProfile()` helper returns unified shape. `/#/profile` surfaces `narrative.headline` as a new card. 2 new i18n keys × 8 locales.
+- **`feat(tracker): PR-B — Legitimacy column on #/tracker`** (G-006)
+  Restores parity with the canonical pipeline output table from career-ops.org/docs. Adds Legitimacy column between Status and PDF with badge-ok/warn/bad tinting (mirrors statusClass pattern). Graceful degrade — pre-v1.15 rows without a Legitimacy column show `—`. 1 new i18n key × 8 locales.
+- **`fix(routing): PR-H — dedupe sidebar; route #/batch to v1.13.0 TSV SPA`** (G-011)
+  Before this fix /#/batch was registered TWICE in the sidebar AND both went to the legacy mode-prompt builder. The v1.13.0 TSV SPA (8 KB, 4 endpoints) was unreachable. Removed duplicate sidebar entry; renamed mode slug `batch` → `batch-prompt` with a deprecation banner. Canonical /#/batch is now the TSV SPA.
+
+### 📚 Documentation
+
+- **`docs(evaluate): PR-A — realign Block A-F with canonical career-ops.org rubric`** (G-005)
+  career-ops.org docs document A–F (Strategy/Personalization/STAR stories at C/E/F). We emitted A–G with shifted semantics (Risks/Verdict/Legitimacy). v1.15 updates all 8 help bundles §9 to show the canonical A–F with a "Pre-v1.15 used A–G; we render those as-is for back-compat" callout. `eval.subtitle` i18n key × 8 locales also realigned. Score + legitimacy now documented as report-header fields. ⚠ Parent commit still required: `santifer/career-ops::modes/oferta.md` needs to be rewritten upstream to emit canonical A–F.
+- **`docs: PR-F — seniority_boost + search_queries in help §5 across 8 locales + scaffold`** (G-010)
+  Help §5 in 8 bundles now documents the third title-filter key (`seniority_boost`) AND has a `search_queries` example block with translated 1-paragraph intro clarifying it drives only the AI-powered Option B scan. `bin/setup.sh` portals.yml scaffold seeds `seniority_boost: ["Senior", "Staff", "Lead"]` by default. H2 parity preserved: 16 × 8 locales.
+- **`docs: PR-I — localized hero images per README locale`**
+  Each of 8 READMEs now has a locale-specific `images/dashboard-<locale>.png` (HiDPI 1440×900) generated via `scripts/capture-dashboard-screenshots.mjs` (Playwright + chromium). Old shared `public/images/screen_vacancy_found.png` deleted. Non-EN readers see their UI labelled in their language on first landing.
+
+### 🧹 Carryover cleanups
+
+- **`PR-G — G-001`** `scan.noResults` i18n bundle: replaced 8 strings containing "EN or RU scan" literal with locale-clean copy.
+- **`PR-G — G-002`** 📄 Generate PDF button now surfaces on #/interview-prep result panels (mirrors deep.js pattern).
+- **`PR-G — G-003`** `README.cn.md` → `README.zh-CN.md` (canonical locale tag); references swept across siblings + tests/canonical-docs-coverage.test.mjs.
+- **`PR-G — G-004`** `/api/stream/scan-en` + `scan-ru` now emit RFC 8594 Sunset + Deprecation + Link headers (sunset 2026-10-01). Scheduled for removal in v1.16.0.
+
+### 🧪 Tests
+
+- New `tests/profile-canonical-schema.test.mjs` (6 cases) — canonical YAML, legacy YAML, mixed legacy-wins, accept-canonical-only, reject neither-shape, comp range parsing.
+- New `tests/modes-profile-crud.test.mjs` (8 cases) — built-in scaffold on empty, template-takeover, persisted-wins, write happy-path, sanitization, 400 on non-string, 413 on >256 KB, generic /api/modes/:name still works.
+- Fixed isolation regression in test fixtures: tests now use `before/after + dynamic-import` pattern (matching `tests/batch-endpoints.test.mjs`) so they no longer mutate the user's real parent `config/profile.yml`. **NOTE for users:** if your `config/profile.yml` looks like a test placeholder after upgrading from a v1.15.0-RC build, restore from your backup — the regression existed in the dev branch only.
+- Total: **400 / 400** unit tests (was 386; +14 net). 0 failures. 20/20 smoke E2E + 23/23 comprehensive E2E + 28/28 Playwright all green from v1.14.0 baseline.
+
+### Out of scope (v1.16+ follow-up)
+
+| Item | Notes |
+|---|---|
+| Parent commit for canonical A–F prompt | `santifer/career-ops::modes/oferta.md` needs rewriting upstream. CLAUDE.md hard rule #1 forbids us editing parent files. Web-ui side is already done (graceful degrade — pre-v1.15 A–G reports render unchanged). |
+| Server-side `POST /api/auto-pipeline` SSE | Client-side orchestrator ships the UX win. Server-side endpoint would enable retry-from-step-N + curl-able CI. |
+| `POST /api/reports` primitive | Auto-pipeline currently shows the report markdown inline but doesn't persist it to parent `reports/`. The PDF + tracker row are the durable artifacts. |
+| Cmd+K paste-URL → run auto-pipeline | Defer to v1.16+. |
+
+### Verification
+
+```
+npm test                              # 400 / 400
+npm run test:e2e:full                 # 23 / 23
+curl -sf http://127.0.0.1:4317/api/health | jq '.checks | length'   # → 18
+curl -sI http://127.0.0.1:4317/api/stream/scan-en | grep -i sunset  # G-004 visible
+curl -sf http://127.0.0.1:4317/api/modes/_profile | jq '.scaffolded' # G-008 wired
+ls images/dashboard-*.png | wc -l     # 8 (PR-I)
+grep -c 'href="#/batch"' public/index.html  # 1 (PR-H dedupe)
+```
+
+---
+
 ## [1.14.0] — 2026-05-13
 
 3 new ATS adapters land on top of v1.13.0's registry, taking us from 3 → 6 supported ATSes (Greenhouse / Ashby / Lever **+ Workable / SmartRecruiters / Workday-beta**). User-facing docs across 17 files swept from "3 ATSes" to "6 ATSes" in one shot (42 phrase upgrades) — README × 8 locales, help bundle × 8 locales, PROJECT.md. Adds `docs/portals-examples.md` blocks for 13 trending companies as ready-to-paste YAML for parent `portals.yml`.
