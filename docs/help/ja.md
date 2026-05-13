@@ -235,10 +235,28 @@ customized** チェックを出します。
 title_filter:
   positive: [backend, engineer, senior, tech lead, golang, php]
   negative: [junior, intern, frontend, ios, android, java]
+  seniority_boost: [Senior, Staff, Lead, Principal]
 ```
 
 vacancy はそのタイトルが **少なくとも 1 つの positive** を含み、
 **negative は 1 つも含まない** 場合にパス。
+
+
+`seniority_boost` は title-filter の 3 番目のキーです。ここに列挙された キーワードは何もフィルタしません — マッチするジョブを結果の上位に押し上げ、"Senior Backend Engineer" が "Engineer" の上に表示されるようにします。デフォルト: `["Senior", "Staff", "Lead"]`. ターゲットロールの命名規則に合わせて調整してください。
+
+### `search_queries`
+
+```yaml
+search_queries:
+  - name: "Greenhouse — Rails Engineer"
+    query: 'site:job-boards.greenhouse.io "Rails Engineer" OR "Ruby on Rails" remote'
+    enabled: true
+  - name: "Ashby — Senior Backend"
+    query: 'site:jobs.ashbyhq.com "Senior Backend" remote'
+    enabled: false
+```
+
+`search_queries` は AI 駆動 Option B スキャン(Claude Code / Codex 内の `/career-ops scan`)を駆動します。in-process `npm run scan`(公開ボード API のみ叩く)では実行**されません**。`tracked_companies` にまだ無い会社のロールを 発見したいときに使ってください。エントリを残して実行しないには `enabled: false` を設定。
 
 ### `tracked_companies`
 

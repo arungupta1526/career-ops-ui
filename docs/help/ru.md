@@ -372,10 +372,28 @@ Max body size: 1 MB. Больше — 413.
 title_filter:
   positive: [backend, engineer, senior, tech lead, golang, php]
   negative: [junior, intern, frontend, ios, android, java]
+  seniority_boost: [Senior, Staff, Lead, Principal]
 ```
 
 Вакансия проходит если её title содержит **хотя бы одно
 positive**-слово И **ни одного negative**.
+
+
+`seniority_boost` — третий ключ title-filter. Слова из этого списка ничего не фильтруют — они поднимают совпавшие вакансии выше в результатах, чтобы "Senior Backend Engineer" оказывался над "Engineer". По умолчанию: `["Senior", "Staff", "Lead"]`. Подстрой под то, как именуются твои целевые роли.
+
+### `search_queries`
+
+```yaml
+search_queries:
+  - name: "Greenhouse — Rails Engineer"
+    query: 'site:job-boards.greenhouse.io "Rails Engineer" OR "Ruby on Rails" remote'
+    enabled: true
+  - name: "Ashby — Senior Backend"
+    query: 'site:jobs.ashbyhq.com "Senior Backend" remote'
+    enabled: false
+```
+
+`search_queries` запускает AI-powered Option B-скан (`/career-ops scan` внутри Claude Code / Codex). НЕ запускается in-process `npm run scan` (который только бьёт по публичным boards-API). Используй для поиска ролей в компаниях, которых ещё нет в `tracked_companies`. `enabled: false` сохраняет запись без запуска.
 
 ### `tracked_companies`
 

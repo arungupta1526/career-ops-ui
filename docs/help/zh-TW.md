@@ -230,10 +230,28 @@ URI `javascript:`/`vbscript:`/`data:text/html`。被刪除時回應包含
 title_filter:
   positive: [backend, engineer, senior, tech lead, golang, php]
   negative: [junior, intern, frontend, ios, android, java]
+  seniority_boost: [Senior, Staff, Lead, Principal]
 ```
 
 vacancy 在其 title 包含**至少一個 positive** 且 **沒有任何
 negative** 時通過。
+
+
+`seniority_boost` 是 title-filter 的第三個鍵。這裡列出的關鍵字不過濾任何東西 — 它們把匹配的職位推到結果上方,這樣 "Senior Backend Engineer" 排在 "Engineer" 上面。預設:`["Senior", "Staff", "Lead"]`。根據你的目標角色如何命名進行調整。
+
+### `search_queries`
+
+```yaml
+search_queries:
+  - name: "Greenhouse — Rails Engineer"
+    query: 'site:job-boards.greenhouse.io "Rails Engineer" OR "Ruby on Rails" remote'
+    enabled: true
+  - name: "Ashby — Senior Backend"
+    query: 'site:jobs.ashbyhq.com "Senior Backend" remote'
+    enabled: false
+```
+
+`search_queries` 驅動 AI 驅動的 Option B 掃描(Claude Code / Codex 內的 `/career-ops scan`)。in-process `npm run scan` (只命中公共 boards API) **不**會執行它們。當你想發現 `tracked_companies` 中還沒有的公司的角色時使用。設定 `enabled: false` 保留條目而不執行。
 
 ### `tracked_companies`
 

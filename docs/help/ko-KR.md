@@ -233,10 +233,28 @@ Health는 `full_name`이 알려진 placeholder일 때 **Profile customized**
 title_filter:
   positive: [backend, engineer, senior, tech lead, golang, php]
   negative: [junior, intern, frontend, ios, android, java]
+  seniority_boost: [Senior, Staff, Lead, Principal]
 ```
 
 스캔된 vacancy는 title이 **하나 이상의 positive**를 포함하고 **어떤
 negative도 없을 때** 통과.
+
+
+`seniority_boost`는 title-filter의 세 번째 키입니다. 여기에 나열된 키워드는 어떤 것도 필터링하지 않습니다 — 일치하는 작업을 결과의 상위로 끌어올려 "Senior Backend Engineer"가 "Engineer"보다 위에 표시됩니다. 기본값: `["Senior", "Staff", "Lead"]`. 타겟 역할이 어떻게 명명되는지에 맞게 조정하세요.
+
+### `search_queries`
+
+```yaml
+search_queries:
+  - name: "Greenhouse — Rails Engineer"
+    query: 'site:job-boards.greenhouse.io "Rails Engineer" OR "Ruby on Rails" remote'
+    enabled: true
+  - name: "Ashby — Senior Backend"
+    query: 'site:jobs.ashbyhq.com "Senior Backend" remote'
+    enabled: false
+```
+
+`search_queries`는 AI 기반 Option B 스캔(`/career-ops scan`을 Claude Code / Codex 내에서)을 구동합니다. 인-프로세스 `npm run scan`(공개 보드 API만 호출)에서는 실행되지 **않습니다**. `tracked_companies`에 아직 없는 회사의 역할을 발견하고 싶을 때 사용하세요. 항목을 유지하되 실행하지 않으려면 `enabled: false`로 설정하세요.
 
 ### `tracked_companies`
 

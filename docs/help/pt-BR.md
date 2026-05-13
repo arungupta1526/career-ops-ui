@@ -234,10 +234,28 @@ Config do scanner. Três seções importam:
 title_filter:
   positive: [backend, engineer, senior, tech lead, golang, php]
   negative: [junior, intern, frontend, ios, android, java]
+  seniority_boost: [Senior, Staff, Lead, Principal]
 ```
 
 Vaga passa se title contém **pelo menos uma positiva** E **nenhuma
 negativa**.
+
+
+`seniority_boost` é a terceira chave de title-filter. Palavras listadas aqui não filtram nada — elas empurram trabalhos correspondentes para o topo dos resultados, então um "Senior Backend Engineer" fica acima de um "Engineer". Default: `["Senior", "Staff", "Lead"]`. Ajuste para combinar com como seus papéis-alvo são titulados.
+
+### `search_queries`
+
+```yaml
+search_queries:
+  - name: "Greenhouse — Rails Engineer"
+    query: 'site:job-boards.greenhouse.io "Rails Engineer" OR "Ruby on Rails" remote'
+    enabled: true
+  - name: "Ashby — Senior Backend"
+    query: 'site:jobs.ashbyhq.com "Senior Backend" remote'
+    enabled: false
+```
+
+`search_queries` move o scan AI Option B (`/career-ops scan` dentro de Claude Code / Codex). NÃO é executado pelo `npm run scan` in-process (que só acessa APIs públicas de boards). Use-os quando quiser descobrir papéis em empresas ainda não em `tracked_companies`. Defina `enabled: false` para manter uma entrada sem executá-la.
 
 ### `tracked_companies`
 

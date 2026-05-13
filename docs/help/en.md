@@ -400,10 +400,36 @@ sections matter:
 title_filter:
   positive: [backend, engineer, senior, tech lead, golang, php]
   negative: [junior, intern, frontend, ios, android, java]
+  seniority_boost: [Senior, Staff, Lead, Principal]
 ```
 
 A scanned vacancy passes when its title contains **at least one
 positive** keyword AND **none of the negative** keywords. Tune both.
+
+`seniority_boost` is the third title-filter key. Keywords listed
+here don't filter anything out — they push matching jobs higher in
+the results so a "Senior Backend Engineer" lands above an "Engineer".
+Default: `["Senior", "Staff", "Lead"]`. Tune to match how your
+target roles are titled.
+
+### `search_queries`
+
+```yaml
+search_queries:
+  - name: "Greenhouse — Rails Engineer"
+    query: 'site:job-boards.greenhouse.io "Rails Engineer" OR "Ruby on Rails" remote'
+    enabled: true
+  - name: "Ashby — Senior Backend"
+    query: 'site:jobs.ashbyhq.com "Senior Backend" remote'
+    enabled: false
+```
+
+`search_queries` drive the AI-powered Option B scan (`/career-ops scan`
+inside Claude Code / Codex). They are NOT executed by the in-process
+`npm run scan` (which only hits public boards APIs). Use them when
+you want to discover roles at companies not yet in
+`tracked_companies`. Set `enabled: false` to keep an entry without
+running it.
 
 ### `tracked_companies`
 

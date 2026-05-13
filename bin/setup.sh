@@ -248,6 +248,12 @@ title_filter:
   negative:
     - "Junior"
     - "Intern"
+  # seniority_boost reranks (does not filter) — matching jobs surface higher.
+  # Default per career-ops.org/docs.
+  seniority_boost:
+    - "Senior"
+    - "Staff"
+    - "Lead"
 
 tracked_companies:
   - name: GitLab
