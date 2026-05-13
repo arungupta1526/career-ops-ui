@@ -128,11 +128,57 @@ export function registerContentRoutes(app) {
   );
 
   // ─── Profile ───
+  // G-009 (v1.15.0): summarizer accepts BOTH the legacy schema
+  // (candidate:{full_name,email,linkedin}, target:{roles,
+  // comp_total_min_usd, archetypes}) AND the canonical career-ops.org
+  // schema (top-level full_name/email/location/narrative.headline,
+  // target_roles.primary, compensation.target_range). Legacy fields
+  // win when both are present so existing YAMLs continue to render
+  // identically.
+  function parseCompRange(s) {
+    if (!s || typeof s !== 'string') return null;
+    // Match shapes like "$120K-160K", "120000-160000 USD", "€100k–120k", "120K+"
+    const norm = s.replace(/[€$£¥]/g, '').replace(/[,\s]/g, '');
+    const m = norm.match(/(\d+)\s*[Kk]?\s*[-–~]\s*(\d+)\s*[Kk]?/);
+    if (m) {
+      const lo = Number(m[1]) * (norm.toLowerCase().includes('k') ? 1000 : 1);
+      const hi = Number(m[2]) * (norm.toLowerCase().includes('k') ? 1000 : 1);
+      return { min: Math.min(lo, hi), max: Math.max(lo, hi) };
+    }
+    const single = norm.match(/(\d+)\s*[Kk]?\+?$/);
+    if (single) return { min: Number(single[1]) * (norm.toLowerCase().includes('k') ? 1000 : 1), max: null };
+    return null;
+  }
+
+  function summarizeProfile(p) {
+    if (!p || typeof p !== 'object') return null;
+    const candidate = (p.candidate && typeof p.candidate === 'object') ? p.candidate : {};
+    const target = (p.target && typeof p.target === 'object') ? p.target : {};
+    const targetRoles = (p.target_roles && typeof p.target_roles === 'object') ? p.target_roles : {};
+    const compensation = (p.compensation && typeof p.compensation === 'object') ? p.compensation : {};
+    const narrative = (p.narrative && typeof p.narrative === 'object') ? p.narrative : {};
+    return {
+      full_name: candidate.full_name || p.full_name || null,
+      email:     candidate.email     || p.email     || null,
+      linkedin:  candidate.linkedin  || p.linkedin  || null,
+      github:    candidate.github    || p.github    || null,
+      location:  candidate.location  || p.location  || null,
+      headline:  candidate.headline  || narrative.headline || null,
+      target_roles: Array.isArray(target.roles) ? target.roles
+                  : (Array.isArray(targetRoles.primary) ? targetRoles.primary : []),
+      comp_min_usd: target.comp_total_min_usd
+                    ?? parseCompRange(compensation.target_range)?.min
+                    ?? null,
+      archetypes: Array.isArray(target.archetypes) ? target.archetypes : [],
+    };
+  }
+
   app.get('/api/profile', (_req, res) => {
-    if (!existsSync(PATHS.profile)) return res.json({ profile: null });
+    if (!existsSync(PATHS.profile)) return res.json({ profile: null, summary: null });
     try {
       const text = readFileSync(PATHS.profile, 'utf8');
-      res.json({ profile: yaml.load(text), raw: text });
+      const parsed = yaml.load(text);
+      res.json({ profile: parsed, raw: text, summary: summarizeProfile(parsed) });
     } catch (e) {
       res.status(500).json({ error: e.message });
     }
@@ -155,8 +201,13 @@ export function registerContentRoutes(app) {
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
       return res.status(400).json({ error: 'profile must be a YAML mapping' });
     }
-    if (!parsed.candidate || typeof parsed.candidate !== 'object') {
-      return res.status(400).json({ error: 'profile.candidate is required' });
+    // G-009: accept EITHER legacy `candidate:` block OR canonical top-level `full_name:`.
+    const hasCandidate = parsed.candidate && typeof parsed.candidate === 'object';
+    const hasCanonical = typeof parsed.full_name === 'string' && parsed.full_name.trim();
+    if (!hasCandidate && !hasCanonical) {
+      return res.status(400).json({
+        error: 'profile.candidate.full_name OR top-level full_name is required',
+      });
     }
     // Stamp a header so the file remains identifiable when shared.
     const header = '# Career-Ops Profile Configuration\n';
@@ -164,7 +215,8 @@ export function registerContentRoutes(app) {
     const dir = dirname(PATHS.profile);
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
     writeFileSync(PATHS.profile, body);
-    res.json({ ok: true, bytes: body.length, candidate: parsed.candidate.full_name || null });
+    const summary = summarizeProfile(parsed);
+    res.json({ ok: true, bytes: body.length, candidate: summary?.full_name || null, summary });
   });
 
   // ─── Portals ───

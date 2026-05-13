@@ -416,6 +416,9 @@ window.I18n = (function () {
     'set.name':       { en: 'Name', es: 'Nombre', 'pt-BR': 'Nome', ko: '이름', ja: '名前', ru: 'Имя', 'zh-CN': '姓名', 'zh-TW': '姓名' },
     'set.email':      { en: 'Email', es: 'Email', 'pt-BR': 'Email', ko: '이메일', ja: 'メール', ru: 'Email', 'zh-CN': '邮箱', 'zh-TW': '電郵' },
     'set.location':   { en: 'Location', es: 'Ubicación', 'pt-BR': 'Localização', ko: '위치', ja: '場所', ru: 'Локация', 'zh-CN': '位置', 'zh-TW': '位置' },
+    // G-009 (v1.15.0): canonical career-ops.org schema surfaces.
+    'profile.headline': { en: 'Headline', es: 'Resumen', 'pt-BR': 'Resumo', ko: '한 줄 요약', ja: 'ヘッドライン', ru: 'Хедлайн', 'zh-CN': '一句话定位', 'zh-TW': '一句話定位' },
+    'profile.missing':  { en: '— not set', es: '— sin definir', 'pt-BR': '— não definido', ko: '— 설정 안 됨', ja: '— 未設定', ru: '— не указано', 'zh-CN': '— 未设置', 'zh-TW': '— 未設定' },
 
     // Evaluate
     'eval.title':     { en: 'Evaluate vacancy', es: 'Evaluar vacante', 'pt-BR': 'Avaliar vaga', ko: '채용 공고 평가', ja: '求人を評価', ru: 'Оценить вакансию', 'zh-CN': '评估职位', 'zh-TW': '評估職位' },
