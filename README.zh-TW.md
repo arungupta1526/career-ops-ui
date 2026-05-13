@@ -3,7 +3,7 @@
 > 用於 [career-ops](https://github.com/santifer/career-ops) AI 求職流水線的 簡潔 docs-style Web 介面。
 > 在單個瀏覽器標籤中搜尋、評估、深入研究、申請和追蹤每個職位 — 而不是在 Claude Code、終端機和 markdown 檔案之間來回切換。
 
-[English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.cn.md) | **繁體中文**
+[English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.zh-CN.md) | **繁體中文**
 
 [![tests](https://img.shields.io/badge/tests-284%20passed-brightgreen)](README.md#tests)
 [![playwright](https://img.shields.io/badge/playwright-12%20smoke-brightgreen)](#tests)
@@ -13,7 +13,7 @@
 
 > 📦 **v1.9.1** — 伺服器精簡為 130 行的編排器 + `server/lib/routes/` 中的 12 個路由模組。`/api/evaluate` 的 Anthropic 對等(兩個 key 同時存在時優先)。多 CLI 橋接(`AGENTS.md`、`GEMINI.md`)支援 Codex / Aider / Cursor / Gemini CLI。**284 個 unit + 12 個 Playwright 煙霧測試**。完整 production-readiness 評估:[`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md)。可用於 single-tenant loopback 部署;LAN 暴露的 auth gate 在 v2.0 (P-12)。
 
-![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
+![career-ops-ui — 指揮中心](./images/dashboard-zh-TW.png)
 
 ## 關於 career-ops
 

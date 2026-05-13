@@ -3,7 +3,7 @@
 > Interfaz web limpia, estilo docs para la pipeline de búsqueda de empleo con IA [career-ops](https://github.com/santifer/career-ops).
 > Buscar, evaluar, investigar a fondo, aplicar y rastrear cada oferta desde una sola pestaña del navegador — en lugar de saltar entre Claude Code, terminales y archivos markdown.
 
-[English](README.md) | **Español** | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
+[English](README.md) | **Español** | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
 [![tests](https://img.shields.io/badge/tests-284%20passed-brightgreen)](README.md#tests)
 [![playwright](https://img.shields.io/badge/playwright-12%20smoke-brightgreen)](#tests)
@@ -13,7 +13,7 @@
 
 > 📦 **v1.9.1** — Servidor refactorizado a un orquestador de 130 líneas + 12 módulos de rutas en `server/lib/routes/`. Paridad Anthropic en `/api/evaluate` (preferida sobre Gemini cuando ambas claves están presentes). Shims multi-CLI (`AGENTS.md`, `GEMINI.md`) para Codex / Aider / Cursor / Gemini CLI. **284 unit + 12 Playwright smoke tests**. Para la evaluación de production-readiness completa: [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md). Listo para deploy single-tenant loopback; el gate de auth para LAN llega en v2.0 (P-12).
 
-![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
+![career-ops-ui — Centro de Comando](./images/dashboard-es.png)
 
 ## Sobre career-ops
 

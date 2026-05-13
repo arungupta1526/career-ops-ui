@@ -3,7 +3,7 @@
 > [career-ops](https://github.com/santifer/career-ops) AI 求人検索パイプラインのための クリーンな docs-style Web インターフェース。
 > Claude Code、ターミナル、Markdown ファイルの間を行き来する代わりに — 単一のブラウザタブから、すべてのオファーを検索、評価、ディープダイブ、応募、追跡できます。
 
-[English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | **日本語** | [Русский](README.ru.md) | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
+[English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | **日本語** | [Русский](README.ru.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
 [![tests](https://img.shields.io/badge/tests-284%20passed-brightgreen)](README.md#tests)
 [![playwright](https://img.shields.io/badge/playwright-12%20smoke-brightgreen)](#tests)
@@ -13,7 +13,7 @@
 
 > 📦 **v1.9.1** — サーバを 130 行のオーケストレータ + `server/lib/routes/` の 12 ルートモジュールに分割。`/api/evaluate` の Anthropic パリティ (両キー存在時は優先)。マルチ CLI シム (`AGENTS.md`、`GEMINI.md`) で Codex / Aider / Cursor / Gemini CLI に対応。**unit 284 + Playwright smoke 12**。Production-readiness 評価: [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md)。シングルテナント loopback デプロイ可能。LAN 公開用の auth gate は v2.0 (P-12)。
 
-![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
+![career-ops-ui — コマンドセンター](./images/dashboard-ja.png)
 
 ## career-ops について
 

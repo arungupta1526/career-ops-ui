@@ -13,7 +13,7 @@
 
 > 📦 **v1.9.1** — 服务器精简为 130 行的编排器 + `server/lib/routes/` 中的 12 个路由模块。`/api/evaluate` 的 Anthropic 对等(两个 key 同时存在时优先)。多 CLI 桥接(`AGENTS.md`、`GEMINI.md`)支持 Codex / Aider / Cursor / Gemini CLI。**284 个 unit + 12 个 Playwright 烟雾测试**。完整 production-readiness 评估:[`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md)。可用于 single-tenant loopback 部署;LAN 暴露的 auth gate 在 v2.0 (P-12)。
 
-![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
+![career-ops-ui — 指挥中心](./images/dashboard-zh-CN.png)
 
 ## 关于 career-ops
 

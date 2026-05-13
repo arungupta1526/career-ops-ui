@@ -32,7 +32,7 @@ const CANONICAL_URLS = [
 const HELP_BUNDLES = ['en', 'es', 'pt-BR', 'ko-KR', 'ja', 'ru', 'zh-CN', 'zh-TW'];
 const README_FILES = [
   'README.md', 'README.es.md', 'README.pt-BR.md', 'README.ko-KR.md',
-  'README.ja.md', 'README.ru.md', 'README.cn.md', 'README.zh-TW.md',
+  'README.ja.md', 'README.ru.md', 'README.zh-CN.md', 'README.zh-TW.md',
 ];
 
 test('every help bundle references all 5 canonical career-ops.org guides', () => {

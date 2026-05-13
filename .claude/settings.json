@@ -89,7 +89,8 @@
       "Bash(node -e \"const fs=require\\('fs'\\); const p=JSON.parse\\(fs.readFileSync\\('package.json','utf8'\\)\\); p.version='1.14.0'; fs.writeFileSync\\('package.json', JSON.stringify\\(p, null, 2\\)+'\\\\n'\\);\")",
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('scripts',{}\\), indent=2\\)\\)\")",
       "Bash(grep -v ':0$')",
-      "Bash(perl -ne 'print unless /Workable/')"
+      "Bash(perl -ne 'print unless /Workable/')",
+      "Bash(lsof -nP -iTCP:4317 -sTCP:LISTEN)"
     ]
   }
 }

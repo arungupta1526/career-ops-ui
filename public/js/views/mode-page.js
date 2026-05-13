@@ -162,28 +162,41 @@
     function showResult(title, markdown, slug) {
       out.innerHTML = '';
       const card = c('div', { className: 'card' });
+      const actions = [
+        c('button', {
+          className: 'btn btn-ghost btn-sm',
+          onClick: () => {
+            navigator.clipboard.writeText(markdown);
+            UI.toast(t('eval.copied', 'Copied'), 'success');
+          },
+        }, '📋 ' + t('eval.copy', 'Copy')),
+        c('button', {
+          className: 'btn btn-ghost btn-sm',
+          onClick: () => {
+            const blob = new Blob([markdown], { type: 'text/markdown' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${slug}-${Date.now()}.md`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+          },
+        }, '⬇ ' + t('mode.download', 'Download .md')),
+      ];
+      // G-002: surface Generate PDF on interview-prep results so the user
+      // can ship the same brief through Playwright as #/deep does.
+      if (slug === 'interview-prep' && window.PdfGenerate) {
+        actions.push(c('button', {
+          className: 'btn btn-primary btn-sm',
+          onClick: (e) => {
+            window.PdfGenerate.run({
+              kind: 'inline', markdown, title, slug: 'interview-prep', button: e.currentTarget,
+            });
+          },
+        }, '📄 ' + t('common.generatePdf', 'Generate PDF')));
+      }
       const header = c('div', { className: 'flex-between mb-3' }, [
         c('strong', null, title),
-        c('div', { className: 'flex gap-3' }, [
-          c('button', {
-            className: 'btn btn-ghost btn-sm',
-            onClick: () => {
-              navigator.clipboard.writeText(markdown);
-              UI.toast(t('eval.copied', 'Copied'), 'success');
-            },
-          }, '📋 ' + t('eval.copy', 'Copy')),
-          c('button', {
-            className: 'btn btn-ghost btn-sm',
-            onClick: () => {
-              const blob = new Blob([markdown], { type: 'text/markdown' });
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(blob);
-              a.download = `${slug}-${Date.now()}.md`;
-              a.click();
-              URL.revokeObjectURL(a.href);
-            },
-          }, '⬇ ' + t('mode.download', 'Download .md')),
-        ]),
+        c('div', { className: 'flex gap-3' }, actions),
       ]);
       const body = c('div', { className: 'card md', html: UI.md(markdown || '') });
       card.append(header, body);

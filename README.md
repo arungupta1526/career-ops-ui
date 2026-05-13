@@ -3,7 +3,7 @@
 > A clean, docs-style web interface for the [career-ops](https://github.com/santifer/career-ops) AI job-search pipeline.
 > Search, evaluate, deep-dive, apply, and track every offer from a single browser tab — instead of bouncing between Claude Code, terminals, and markdown files.
 
-**English** | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
+**English** | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
 [![tests](https://img.shields.io/badge/tests-379%20passed-brightgreen)](#tests)
 [![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
@@ -11,7 +11,7 @@
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![release](https://img.shields.io/badge/release-v1.13.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.13.0)
 
-![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
+![career-ops-ui — Command Center](./images/dashboard-en.png)
 
 ## About career-ops
 
@@ -573,7 +573,7 @@ Refresh the Health page — every required check should be green. Then:
 > Translations of this guide live in each language-specific README:
 > [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) ·
 > [한국어](README.ko-KR.md) · [日本語](README.ja.md) ·
-> [Русский](README.ru.md) · [简体中文](README.cn.md) ·
+> [Русский](README.ru.md) · [简体中文](README.zh-CN.md) ·
 > [繁體中文](README.zh-TW.md)
 
 ---

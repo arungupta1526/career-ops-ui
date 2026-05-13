@@ -22,6 +22,17 @@
 import { runRuScan, loadConfig as loadRuConfig } from '../ru-scanner.mjs';
 import { runEnScan, loadLastScan } from '../en-scanner.mjs';
 
+// G-004 (v1.15.0): the EN/RU split aliases are scheduled for removal in
+// v1.16.0. Surface that through RFC 8594 Sunset + Deprecation headers so
+// any external integration sees the migration window before the route
+// disappears.
+const SCAN_ALIASES_SUNSET = 'Wed, 01 Oct 2026 00:00:00 GMT';
+function markScanAliasDeprecated(res, successor) {
+  res.setHeader('Deprecation', 'true');
+  res.setHeader('Sunset', SCAN_ALIASES_SUNSET);
+  res.setHeader('Link', `<${successor}>; rel="successor-version"`);
+}
+
 /**
  * Open an SSE response with the standard headers used across this repo.
  * Returns a `send(event, data)` writer.
@@ -96,6 +107,10 @@ export function registerScanRoutes(app) {
   // ─── RU portal scanner (in-process, hh.ru + Habr Career) ───
   // Deprecated alias — prefer /api/stream/scan?source=regional.
   app.get('/api/stream/scan-ru', async (req, res) => {
+    markScanAliasDeprecated(res, '/api/stream/scan?source=regional');
+    if (!process.env.SUPPRESS_SCAN_ALIAS_WARN) {
+      console.warn('[deprecated] /api/stream/scan-ru — scheduled for removal in v1.16.0; use /api/stream/scan?source=regional');
+    }
     const send = openSse(res);
     const writeFiles = req.query.dryRun !== '1';
     send('start', { script: 'ru-scanner', writeFiles });
@@ -133,7 +148,12 @@ export function registerScanRoutes(app) {
   });
 
   // ─── EN portal scanner (in-process, Greenhouse + Ashby + Lever) ───
+  // Deprecated alias — prefer /api/stream/scan?source=ats.
   app.get('/api/stream/scan-en', async (req, res) => {
+    markScanAliasDeprecated(res, '/api/stream/scan?source=ats');
+    if (!process.env.SUPPRESS_SCAN_ALIAS_WARN) {
+      console.warn('[deprecated] /api/stream/scan-en — scheduled for removal in v1.16.0; use /api/stream/scan?source=ats');
+    }
     const send = openSse(res);
     const writeFiles = req.query.dryRun !== '1';
     const companyName = req.query.company ? String(req.query.company) : undefined;

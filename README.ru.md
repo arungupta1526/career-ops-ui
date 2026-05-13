@@ -3,7 +3,7 @@
 > Чистый docs-style веб-интерфейс для AI-пайплайна поиска работы [career-ops](https://github.com/santifer/career-ops).
 > Искать, оценивать, делать deep-dive, подавать заявки и трекать каждый оффер из одной вкладки браузера — вместо беготни между Claude Code, терминалами и markdown-файлами.
 
-[English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | **Русский** | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md)
+[English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | **Русский** | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
 [![tests](https://img.shields.io/badge/tests-379%20passed-brightgreen)](README.md#tests)
 [![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
@@ -11,7 +11,7 @@
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![release](https://img.shields.io/badge/release-v1.13.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.13.0)
 
-![career-ops-ui — vacancy search](./public/images/screen_vacancy_found.png)
+![career-ops-ui — Командный центр](./images/dashboard-ru.png)
 
 ## О career-ops
 
