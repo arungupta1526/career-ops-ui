@@ -133,3 +133,38 @@ echo "GEMINI_API_KEY=sua-chave" >> career-ops/.env
 Health → tudo verde. **🌐 Buscar em todas as fontes** → tabela com chips → copy URL → **Pipeline** → **Evaluate**.
 
 Documentação completa (arquitetura, API, segurança): [README em inglês](README.md).
+
+---
+
+## ✨ Novidades v1.16.0 (auto-pipeline server-side)
+
+> **A grande mudança de UX.** Até v1.15.0 havia 5 cliques manuais entre `#/pipeline → #/evaluate → #/cv → #/tracker`. Agora, um único botão `✨ Auto-pipeline a URL` (em `#/dashboard` e via `Cmd+K → colar URL → Enter`) executa toda a pipeline em uma timeline SSE observável.
+
+### Como funciona
+1. **Valida a URL** (gate SSRF + DNS-rebind).
+2. **Busca a JD** via proxy SSRF-safe.
+3. **Avalia contra seu CV** (Anthropic ou Gemini), score 0–5 extraído do markdown.
+4. **Salva o relatório** em `reports/<slug>.md` (novo endpoint `POST /api/reports`).
+5. **Adiciona linha ao tracker** referenciando o relatório + URL.
+
+```bash
+# Curl direto (CI / smoke):
+curl -N -X POST http://127.0.0.1:4317/api/auto-pipeline \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://job-boards.greenhouse.io/anthropic/jobs/4567"}'
+```
+
+Eventos SSE: `start → step (×5) → done` ou `error`. Falha limpa em qualquer passo; o chain para e retorna o que foi completado.
+
+### Outros highlights v1.16.0
+- **Paginação SmartRecruiters** — percorre todas as páginas, não só as primeiras 100. Cap de segurança: 30 páginas / 3000 jobs.
+- **Workday CAPTCHA-fallback** — um tenant com CAPTCHA não aborta mais o scan inteiro. Renderiza chip 🔒 no card Active Companies; demais tenants continuam.
+- **`#/scan` source filter** — dropdown reconstruído do adapter registry: 6 ATSes + hh.ru + Habr, alfabético, sem prefixos geo.
+- **`scripts/import-trending-companies.mjs`** — verifica as 13 empresas trending de `docs/portals-examples.md` e emite YAML colável para seu `portals.yml`. Execute `npm run import:trending`.
+- **CI workflow** — `.github/workflows/dashboard-screenshots.yml` regenera os 8 PNGs hero e falha o build se houver drift visual não comitado.
+
+### Referências
+- Documentação completa: [README em inglês](README.md) — 585 linhas com seções de arquitetura, API e segurança.
+- Help in-app: `#/help` (16 seções × 8 locales).
+- CHANGELOG: [`CHANGELOG.pt-BR.md`](CHANGELOG.pt-BR.md).
+- Documentos canônicos: [career-ops.org/docs](https://career-ops.org/docs).

@@ -133,3 +133,38 @@ echo "GEMINI_API_KEY=your-key" >> career-ops/.env
 Health → 모두 녹색. **🌐 모든 소스 검색** → chip 필터 테이블 → URL 복사 → **Pipeline** → **Evaluate**.
 
 전체 문서 (아키텍처, API, 보안): [영어 README](README.md).
+
+---
+
+## ✨ v1.16.0의 새로운 기능 (서버 사이드 auto-pipeline)
+
+> **큰 UX 변화.** v1.15.0까지는 `#/pipeline → #/evaluate → #/cv → #/tracker`를 거치며 5번의 수동 클릭이 필요했습니다. 이제 단일 `✨ Auto-pipeline a URL` 버튼(`#/dashboard` 및 `Cmd+K → URL 붙여넣기 → Enter`)으로 전체 파이프라인을 관찰 가능한 SSE 타임라인으로 실행합니다.
+
+### 동작 방식
+1. **URL 검증** (SSRF + DNS-rebind 게이트).
+2. **JD 가져오기** SSRF-safe 프록시 경유.
+3. **CV와 평가** (Anthropic 또는 Gemini), markdown에서 0–5 점수 추출.
+4. **리포트 저장** `reports/<slug>.md`에 (새 엔드포인트 `POST /api/reports`).
+5. **트래커에 행 추가** 리포트 + URL 참조.
+
+```bash
+# 직접 curl (CI / smoke):
+curl -N -X POST http://127.0.0.1:4317/api/auto-pipeline \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://job-boards.greenhouse.io/anthropic/jobs/4567"}'
+```
+
+SSE 이벤트: `start → step (×5) → done` 또는 `error`. 어떤 단계든 깨끗하게 실패하고 체인은 완료된 부분만 반환합니다.
+
+### v1.16.0 기타 하이라이트
+- **SmartRecruiters 페이지네이션** — 첫 100개가 아닌 모든 페이지를 순회. 안전 캡: 30페이지 / 3000개 잡.
+- **Workday CAPTCHA-fallback** — CAPTCHA로 막힌 테넌트가 전체 스캔을 중단하지 않습니다. Active Companies 카드에 🔒 chip 렌더링; 나머지 테넌트는 계속 진행.
+- **`#/scan` source filter** — adapter registry 기반 드롭다운 재구성: 6 ATSes + hh.ru + Habr, 알파벳순, geo prefix 없음.
+- **`scripts/import-trending-companies.mjs`** — `docs/portals-examples.md`의 13개 trending 회사를 검증하고 `portals.yml`에 붙여넣을 YAML을 출력. `npm run import:trending` 실행.
+- **CI workflow** — `.github/workflows/dashboard-screenshots.yml`가 8개 hero PNG를 재생성하고 커밋되지 않은 시각적 drift가 있으면 빌드 실패.
+
+### 참고
+- 전체 문서: [영어 README](README.md) — 아키텍처/API/보안 섹션이 있는 585줄.
+- 인앱 도움말: `#/help` (16 섹션 × 8 로케일).
+- CHANGELOG: [`CHANGELOG.ko-KR.md`](CHANGELOG.ko-KR.md).
+- 표준 문서: [career-ops.org/docs](https://career-ops.org/docs).

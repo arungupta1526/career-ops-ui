@@ -133,3 +133,38 @@ echo "GEMINI_API_KEY=your-key" >> career-ops/.env
 Health → すべて緑。**🌐 すべてのソースを検索** → チップフィルター付きテーブル → URL コピー → **Pipeline** → **Evaluate**。
 
 完全なドキュメント (アーキテクチャ、API、セキュリティ): [英語の README](README.md)。
+
+---
+
+## ✨ v1.16.0 の新機能(サーバーサイド auto-pipeline)
+
+> **大きな UX 変更。** v1.15.0 まで `#/pipeline → #/evaluate → #/cv → #/tracker` を介して 5 回の手動クリックが必要でした。今は単一の `✨ Auto-pipeline a URL` ボタン(`#/dashboard` および `Cmd+K → URL 貼り付け → Enter`)で全パイプラインを観測可能な SSE タイムラインで実行します。
+
+### 動作
+1. **URL 検証**(SSRF + DNS-rebind ゲート)。
+2. **JD 取得** SSRF-safe プロキシ経由。
+3. **CV と評価**(Anthropic または Gemini)、markdown から 0–5 スコア抽出。
+4. **レポート保存** `reports/<slug>.md` へ(新エンドポイント `POST /api/reports`)。
+5. **トラッカーに行追加** レポート + URL を参照。
+
+```bash
+# 直接 curl(CI / smoke):
+curl -N -X POST http://127.0.0.1:4317/api/auto-pipeline \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://job-boards.greenhouse.io/anthropic/jobs/4567"}'
+```
+
+SSE イベント: `start → step (×5) → done` または `error`。どのステップでもクリーンに失敗、チェーンは停止して完了した分のみ返します。
+
+### v1.16.0 その他のハイライト
+- **SmartRecruiters ページネーション** — 最初の 100 件だけではなく全ページを巡回。安全キャップ: 30 ページ / 3000 ジョブ。
+- **Workday CAPTCHA-fallback** — CAPTCHA でブロックされた tenant はもうスキャン全体を中止しません。Active Companies カードに 🔒 chip をレンダリング;他の tenant は続行。
+- **`#/scan` source filter** — adapter registry から再構築されたドロップダウン: 6 ATSes + hh.ru + Habr、アルファベット順、geo prefix なし。
+- **`scripts/import-trending-companies.mjs`** — `docs/portals-examples.md` の 13 trending 企業を検証し `portals.yml` に貼れる YAML を出力。`npm run import:trending` で実行。
+- **CI workflow** — `.github/workflows/dashboard-screenshots.yml` が 8 つの hero PNG を再生成し、コミットされていない視覚的 drift があるとビルド失敗。
+
+### 参考
+- 完全なドキュメント: [英語 README](README.md) — アーキテクチャ/API/セキュリティセクションがある 585 行。
+- アプリ内ヘルプ: `#/help`(16 セクション × 8 ロケール)。
+- CHANGELOG: [`CHANGELOG.ja.md`](CHANGELOG.ja.md)。
+- 標準ドキュメント: [career-ops.org/docs](https://career-ops.org/docs)。

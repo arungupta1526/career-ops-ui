@@ -143,3 +143,38 @@ echo "GEMINI_API_KEY=your-key" >> career-ops/.env
 Обновите Health → все обязательные чеки зелёные. Затем: **🌐 Сканировать все источники** → таблица вакансий с динамическими chip-фильтрами → копируйте URL → **Pipeline** → **Evaluate**.
 
 Полная документация (архитектура, API, security): см. [English README](README.md).
+
+---
+
+## ✨ Новое в v1.16.0 (server-side auto-pipeline)
+
+> **Главный UX-сдвиг.** До v1.15.0 было 5 ручных кликов через `#/pipeline → #/evaluate → #/cv → #/tracker`. Теперь одна кнопка `✨ Auto-pipeline a URL` (на `#/dashboard` и через `Cmd+K → вставить URL → Enter`) гоняет всю pipeline через наблюдаемый SSE-таймлайн.
+
+### Как работает
+1. **Валидация URL** (SSRF + DNS-rebind gate).
+2. **Fetch JD** через SSRF-safe proxy.
+3. **Оценка против CV** (Anthropic или Gemini), score 0–5 экстрактится из markdown.
+4. **Сохранение report** в `reports/<slug>.md` (новый endpoint `POST /api/reports`).
+5. **Добавление строки в tracker** со ссылкой на report + URL.
+
+```bash
+# Прямой curl (CI / smoke):
+curl -N -X POST http://127.0.0.1:4317/api/auto-pipeline \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://job-boards.greenhouse.io/anthropic/jobs/4567"}'
+```
+
+SSE-события: `start → step (×5) → done` или `error`. Чистое падение на любом шаге; chain останавливается и возвращает что успели.
+
+### Остальные v1.16.0 highlights
+- **SmartRecruiters пагинация** — обходит ВСЕ страницы, не только первые 100. Safety cap: 30 страниц / 3000 jobs.
+- **Workday CAPTCHA-fallback** — tenant с CAPTCHA больше не валит весь scan. Рендерит chip 🔒 на карточке Active Companies; остальные tenant'ы продолжают.
+- **`#/scan` source filter** — dropdown пересобран из adapter registry: 6 ATSes + hh.ru + Habr, алфавитный порядок, без geo-префиксов.
+- **`scripts/import-trending-companies.mjs`** — верифицирует 13 trending компаний из `docs/portals-examples.md` и эмитит paste-ready YAML для твоего `portals.yml`. Запуск: `npm run import:trending`.
+- **CI workflow** — `.github/workflows/dashboard-screenshots.yml` регенерит 8 hero PNG и валит build при visual drift'е без свежих коммитов.
+
+### Ссылки
+- Полная документация: [README на английском](README.md) — 585 строк с секциями архитектуры, API, безопасности.
+- In-app help: `#/help` (16 секций × 8 локалей).
+- CHANGELOG: [`CHANGELOG.ru.md`](CHANGELOG.ru.md).
+- Канонические docs: [career-ops.org/docs](https://career-ops.org/docs).

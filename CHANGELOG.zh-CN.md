@@ -4,6 +4,50 @@
 
 翻译: [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) · [한국어](CHANGELOG.ko-KR.md) · [日本語](CHANGELOG.ja.md) · [Русский](CHANGELOG.ru.md) · [繁體中文](CHANGELOG.zh-TW.md)
 
+> **i18n 注释** — 从 v1.12.0 起,各条目按语言本地化。之前的条目(v1.11.x、v1.10.x)按项目惯例保留俄文;规范英文正文在 [CHANGELOG.md](CHANGELOG.md)。
+
+---
+
+## [1.16.0] — 2026-05-13
+
+**Auto-pipeline finalization + adapter polish + i18n long-tail.** Закрывает все 11 follow-up из v1.15.0 REVIEW: server-side SSE auto-pipeline, `POST /api/reports` primitive, Cmd+K shortcut, SmartRecruiters пагинация, Workday CAPTCHA-fallback, CI screenshot-drift gate, scan source filter UX, перевод исторического CHANGELOG (v1.13.0/v1.12.0 × 6 локалей), расширение non-EN READMEs, paste-ready trending-companies importer.
+
+### ✨ Фичи
+
+- **`feat(auto-pipeline): server-side SSE orchestrator`** (#1, #2, #3, #8) — v1.15 client-side chained-fetch orchestrator удалён. `POST /api/auto-pipeline` теперь curl-able SSE endpoint, гоняющий chain validate → fetch JD → evaluate → save report → tracker server-side с real-time step events. Медленный Anthropic call (30–90 с) теперь эмитит `running` event вместо generic спиннера. Failures эмитят `error` с `step` + `message`. Orchestrator также persist'ит report markdown в parent `reports/<slug>.md` (терялось в v1.15).
+- **`feat(reports): POST /api/reports primitive`** — новый writer в `server/lib/routes/reports.mjs`. Slug sanitization с path-traversal guard. 1 MB cap (413). 409 на existing file без `overwrite:true`. Atomic write через `stripDangerousMarkdown`. Тесты: 9 кейсов.
+- **`feat(app): Cmd+K paste URL → auto-pipeline`** — paste URL в global search + Enter теперь открывает AutoPipeline modal с `autoStart=true`. Shift+Enter сохраняет legacy "add to pipeline only" поведение.
+- **`feat(portals): SmartRecruiters пагинация`** (#4) — обходит ВСЕ страницы, не только первые 100. Safety cap: 30 страниц / 3000 jobs. Strip caller-supplied limit/offset. Тесты: 6 кейсов.
+- **`feat(portals): Workday CAPTCHA-fallback graceful`** (#7) — не throws на 4xx / non-JSON / network errors. Возвращает `[]` и аннотирует `lastWorkdayFallback`. Опт-ин обратно через `strict:true`. Тесты: 7 кейсов.
+
+### 🛠️ Tooling + CI
+
+- **`ci(workflows): dashboard-screenshots drift gate`** (#5) — `.github/workflows/dashboard-screenshots.yml` регенерит 8 hero PNGs и валит build при visual drift'е.
+- **`feat(scripts): import-trending-companies.mjs`** (#11) — верифицирует 13 trending компаний из `docs/portals-examples.md` и эмитит paste-ready YAML. Запуск: `npm run import:trending`.
+- **`feat(scripts): npm run capture:dashboards`** — exposes Playwright capture как top-level script.
+
+### 🎨 UX
+
+- **`fix(scan): consolidated source-filter dropdown`** (#6) — dropdown пересобран из v1.14 adapter registry: 6 ATSes + hh.ru + Habr Career, алфавитный порядок, без geo-префиксов. `runEnScan`/`runRuScan` теперь используют `/api/stream/scan?source={ats,regional}` consolidated endpoint.
+
+### 📚 i18n long-tail
+
+- **`docs(i18n): translate v1.13.0 + v1.12.0 CHANGELOG в 6 локалях`** (#9) — записи переведены на их фактический язык. Каждая локаль также получает i18n note о том что pre-v1.12 записи остаются RU-bodied per project convention.
+- **`docs: expand non-EN READMEs с v1.16.0 highlights section`** (#10) — 6 non-EN READMEs + RU READMEs получают ~35-line section про auto-pipeline + curl example + остальные v1.16 фичи.
+
+### 🧪 Тесты
+
+- Новые `tests/reports-write.test.mjs` (9), `tests/auto-pipeline.test.mjs` (5), `tests/smartrecruiters-pagination.test.mjs` (6), `tests/workday-fallback.test.mjs` (7).
+- Итого: **427 / 427** unit (было 400; +27). 0 failures.
+
+### Out of scope (v1.17+)
+
+| Item | Notes |
+|---|---|
+| Parent commit для canonical A-F prompt | Всё ещё ждёт upstream rewrite `santifer/career-ops::modes/oferta.md` (CLAUDE.md hard rule #1). |
+| Translate pre-v1.12 CHANGELOG (v1.11.x, v1.10.x) | Сохранена convention: RU-bodied. ~1800 строк перевода — отложено. |
+| Full non-EN README паритет (585 строк как EN) | v1.16 добавил ~35 строк per locale; полный паритет — отдельный effort. |
+
 ---
 
 ## [1.15.0] — 2026-05-13
@@ -82,72 +126,72 @@
 
 ## [1.13.0] — 2026-05-13
 
-Большой релиз. Закрывает все 4 отложенных пункта одним коммитом: PR-4 (полный multer pipeline), Adapter registry (архитектурное продолжение F-018), Batch evaluate SPA-страница, и locale-aware mode-template scaffolding. Плюс mid-session фикс таблиц в dark theme.
+大型发布。在一次提交中关闭 4 个延期项: PR-4(完整 multer 管道)、Adapter registry(F-018 架构后续)、Batch evaluate SPA 页面、locale-aware mode-template scaffolding。还有 mid-session 的深色主题表格修复。
 
-### ✨ Фичи
+### ✨ 功能
 
-- **`feat(cv): multer multipart upload (PR-4 полный)`** — `/api/cv/import` теперь принимает И octet-stream (оригинальный контракт), И `multipart/form-data` через multer. v1.10.2 415-reject был заглушкой; v1.13.0 — настоящий fix. curl `-F`, Postman default, любой HTTP-клиент работают seamlessly. Новая зависимость: `multer ^2.1.1`.
-- **`feat(portals): adapter registry`** — Greenhouse / Ashby / Lever fetcher'ы вынесены в `server/lib/portals/adapters/*.mjs` с единым контрактом. `server/lib/portals/registry.mjs::resolveAdapter()` — единая точка диспатча. Добавление нового ATS теперь = один файл в `adapters/` + строчка в `ALL_ADAPTERS`.
-- **`feat(batch): #/batch evaluate page`** — новая SPA-view + 4 эндпоинта (`GET /api/batch`, `PUT /api/batch`, `GET /api/stream/batch`, `POST /api/batch/merge`). TSV-редактор для `batch/batch-input.tsv`, контролы parallel/min-score/dry-run/retry, live SSE log `bash batch/batch-runner.sh`, кнопка `Merge to tracker` (запускает `node merge-tracker.mjs`). Sidebar link. 21 новый i18n-ключ × 8 локалей.
-- **`feat(prompts): locale-aware mode scaffolding`** — `buildModePrompt` + `buildEvaluationPrompt` теперь оборачивают английское тело parent'овского mode-template'а локализованным scaffolding-текстом (role-line, "Read these files first", "User-supplied context") на 8 локалях.
+- **`feat(cv): multer multipart upload (PR-4 完整)`** — `/api/cv/import` 现在同时接受 octet-stream(原始契约)和 `multipart/form-data`(经 multer)。v1.10.2 的 415-reject 是临时方案;v1.13.0 是真正修复。curl `-F`、Postman 默认、任何 HTTP 客户端都顺畅工作。新依赖:`multer ^2.1.1`。
+- **`feat(portals): adapter registry`** — Greenhouse / Ashby / Lever fetcher 抽取到 `server/lib/portals/adapters/*.mjs`,采用统一契约。`server/lib/portals/registry.mjs::resolveAdapter()` 是唯一的 dispatch 点。新增 ATS = `adapters/` 一个文件 + `ALL_ADAPTERS` 一行。
+- **`feat(batch): #/batch evaluate page`** — 新 SPA 视图 + 4 个端点(`GET /api/batch`、`PUT /api/batch`、`GET /api/stream/batch`、`POST /api/batch/merge`)。`batch/batch-input.tsv` 的 TSV 编辑器,parallel/min-score/dry-run/retry 控件,`bash batch/batch-runner.sh` 的实时 SSE 日志,`Merge to tracker` 按钮(执行 `node merge-tracker.mjs`)。Sidebar 链接。21 个新 i18n 键 × 8 语言。
+- **`feat(prompts): locale-aware mode scaffolding`** — `buildModePrompt` + `buildEvaluationPrompt` 现在用本地化的 scaffolding 文本(role-line、"Read these files first"、"User-supplied context")在 8 个语言中包裹 parent 的 mode-template 英文主体。
 
-### 🎨 UX фиксы
+### 🎨 UX 修复
 
-- **`fix(theme): dark-mode таблицы + tab-btn`** — захардкоженные `#fafafa` / `#fff` / `#f7f7f7` заменены на токены. Hover на тёмной теме теперь читается. Добавлен `.row-boosted` accent strip.
+- **`fix(theme): 深色模式表格 + tab-btn`** — 硬编码的 `#fafafa` / `#fff` / `#f7f7f7` 替换为 token。深色下的 hover 现在可读。新增 `.row-boosted` accent strip。
 
-### 🧪 Тесты
+### 🧪 测试
 
-- Новые `tests/adapter-registry.test.mjs` (7), `tests/batch-endpoints.test.mjs` (5), `tests/locale-scaffold.test.mjs` (6).
-- `tests/cv-upload-multipart-reject.test.mjs` переписан под v1.13.0 контракт (multipart parsed properly).
-- Итого: **379 / 379** юнит-тестов (было 360; +19). 0 failures. Покрытие **95.46% линий / 84.06% веток**.
-- 20/20 smoke E2E · 23/23 comprehensive E2E · 28/28 Playwright.
+- 新增 `tests/adapter-registry.test.mjs` (7)、`tests/batch-endpoints.test.mjs` (5)、`tests/locale-scaffold.test.mjs` (6)。
+- `tests/cv-upload-multipart-reject.test.mjs` 按 v1.13.0 契约(multipart parsed properly)重写。
+- 总计 **379 / 379** 单元(此前 360;+19)。0 失败。覆盖率 **95.46 % 行 / 84.06 % 分支**。
+- 20/20 smoke E2E · 23/23 comprehensive E2E · 28/28 Playwright。
 
-### За пределами слайса
+### 范围外
 
-- **14 новых portal adapter'ов** — registry готов, добавление = один файл каждый; portal-by-portal research остаётся.
-- **Перевод parent's `modes/<slug>.md` тел** — требует PR в upstream `santifer/career-ops` (CLAUDE.md hard rule #1).
+- **14 个新 portal adapter** — registry 已就绪;添加 = 每个一个文件;portal-by-portal 调研仍待办。
+- **翻译 parent 的 `modes/<slug>.md` 主体** — 需要向 `santifer/career-ops` 提交 upstream PR(CLAUDE.md hard rule #1)。
 
-### Документация
+### 文档
 
-- `docs/reviews/REVIEW-2026-05-13-v1.13.0.md`.
-- Полный текст: [CHANGELOG.md](CHANGELOG.md#1130--2026-05-13).
+- `docs/reviews/REVIEW-2026-05-13-v1.13.0.md`。
+- 完整文本: [CHANGELOG.md](CHANGELOG.md#1130--2026-05-13)。
 
 ---
 
 ## [1.12.0] — 2026-05-13
 
-Bug-fix + UX + brand pass. Закрывает 8 пунктов backlog'а после v1.11.1 (тестовые дыры #9–12, console error #8, portals-dead drift #4, seniority_boost surface #6, F-018 endpoint consolidation). Добавлен day/night toggle темы, убрано упоминание "Airbnb-styled" из всех документов, package metadata и описания GitHub-репо.
+错误修复 + UX + 品牌 pass。在 v1.11.1 后关闭 8 个 backlog 项(测试空缺 #9–12、console error #8、portals-dead drift #4、seniority_boost surface #6、F-018 端点合并)。新增主题 day/night 切换,所有文档/包元数据/GitHub 仓库描述中删除 "Airbnb-styled" 提及。
 
-### ✨ Фичи
+### ✨ 功能
 
-- **`feat(theme): day/night toggle`** — новая кнопка темы в top-bar. Cycles light ↔ dark, сохраняется в `localStorage`, восстанавливается до рендера через pre-paint bootstrap (`public/js/lib/theme-bootstrap.js`). Уважает `prefers-color-scheme` для первой загрузки. Полная dark-палитра в `public/css/app.css` под `[data-theme="dark"]`.
-- **`feat(scan): /api/stream/scan?source=ats|regional|both` (F-018 LITE)`** — один консолидированный SSE endpoint. SPA открывает ОДИН event-stream, который последовательно прогоняет обе фазы (ATS, потом regional). Legacy `/api/stream/scan-en` + `/api/stream/scan-ru` остаются как deprecated aliases.
-- **`feat(scan): seniority_boost surface`** — оба сканера читают `portals.yml::title_filter.seniority_boost` и проставляют `_boosted: true` на джобах с матчем. SPA сортирует boosted-строки наверх и рендерит `⬆ boosted` badge.
+- **`feat(theme): day/night 切换`** — top-bar 新增主题按钮。light ↔ dark 循环,持久化到 `localStorage`,首次绘制前通过 `public/js/lib/theme-bootstrap.js` 还原。首次加载尊重 `prefers-color-scheme`。`public/css/app.css` 中 `[data-theme="dark"]` 下完整深色调色板。
+- **`feat(scan): /api/stream/scan?source=ats|regional|both` (F-018 LITE)`** — 单一合并的 SSE 端点。SPA 打开一个 event-stream,顺序执行两阶段(ATS,然后 regional)。旧版 `/api/stream/scan-en` + `/api/stream/scan-ru` 作为 deprecated alias 保留。
+- **`feat(scan): seniority_boost surface`** — 两个扫描器都读取 `portals.yml::title_filter.seniority_boost`,在匹配 job 上标记 `_boosted: true`。SPA 将 boosted 行排到顶部并渲染 `⬆ boosted` badge。
 
-### 🐛 Фиксы
+### 🐛 修复
 
-- **`fix(ui): null-safe .message в 4 местах (#8)`** — `app.js`, `views/tracker.js`, `views/apply.js`, `views/evaluate.js`. Раньше Promise rejection без Error payload бросал "Cannot read properties of undefined" в e2e teardown.
-- **`fix(test): portals-dead drift warning instead of failure (#4)`** — конвертирован assertion в stderr warning. CI идёт зелёным на parent drift; release-решения остаются ручными.
+- **`fix(ui): 4 处 .message null-safe (#8)`** — `app.js`、`views/tracker.js`、`views/apply.js`、`views/evaluate.js`。此前没有 Error payload 的 Promise rejection 在 e2e teardown 中抛出 "Cannot read properties of undefined"。
+- **`fix(test): portals-dead drift 改为 warning 而非 failure (#4)`** — assertion 转为 stderr warning。CI 在 parent drift 上保持绿色;release 决策仍由人工把关。
 
 ### 📝 Brand / docs
 
-- **`docs(brand): убраны 'Airbnb' references из всех doc + package + GitHub repo description`** — 8 README, CLAUDE.md, FRONTEND.md, package.json и описание репо переведены с "Airbnb-styled" на "Clean, docs-style".
+- **`docs(brand): 所有 doc + package + GitHub 仓库描述中删除 'Airbnb' 引用`** — 8 个 README、CLAUDE.md、FRONTEND.md、package.json 及仓库描述从 "Airbnb-styled" 迁移到 "Clean, docs-style"。
 
-### 🧪 Тесты
+### 🧪 测试
 
-- Новый `tests/canonical-docs-coverage.test.mjs` (5 кейсов) закрывает test gaps #9–12.
-- Новый `tests/scan-consolidated.test.mjs` (6 кейсов) покрывает F-018 LITE.
-- Итого: **360 / 360** юнит-тестов (было 349; +11 новых). 0 failures. Покрытие: **95.62 % линий / 84.37 % веток**.
-- 20/20 smoke E2E · 23/23 comprehensive E2E · 28/28 Playwright.
+- 新增 `tests/canonical-docs-coverage.test.mjs` (5 案例) 关闭 test gap #9–12。
+- 新增 `tests/scan-consolidated.test.mjs` (6 案例) 覆盖 F-018 LITE。
+- 总计 **360 / 360** 单元(此前 349;+11 新增)。0 失败。覆盖率:**95.62 % 行 / 84.37 % 分支**。
+- 20/20 smoke E2E · 23/23 comprehensive E2E · 28/28 Playwright。
 
-### Документация
+### 文档
 
-- `docs/reviews/REVIEW-2026-05-13-v1.12.0.md`.
-- Полный текст: [CHANGELOG.md](CHANGELOG.md#1120--2026-05-13).
+- `docs/reviews/REVIEW-2026-05-13-v1.12.0.md`。
+- 完整文本: [CHANGELOG.md](CHANGELOG.md#1120--2026-05-13)。
 
-### За пределами слайса (без изменений с v1.11.1)
+### 范围外 (自 v1.11.1 起无变化)
 
-Batch evaluate SPA-страница; полный adapter registry (F-018 архитектурный рефактор); полный multer pipeline (PR-4); перевод mode templates.
+Batch evaluate SPA 页面;完整 adapter registry(F-018 架构 refactor);完整 multer 管道(PR-4);mode template 翻译。
 
 ---
 

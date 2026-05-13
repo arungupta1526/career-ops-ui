@@ -6,6 +6,144 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.16.0] — 2026-05-13
+
+**Auto-pipeline finalization + adapter polish + i18n long-tail.** Closes
+all 11 follow-ups from the v1.15.0 REVIEW: server-side SSE auto-pipeline,
+`POST /api/reports` primitive, Cmd+K shortcut, SmartRecruiters pagination,
+Workday CAPTCHA-fallback, CI screenshot-drift gate, scan source filter UX,
+historical CHANGELOG translation (v1.13.0/v1.12.0 × 6 locales), non-EN
+README expansion, and a paste-ready trending-companies importer.
+
+### ✨ Features
+
+- **`feat(auto-pipeline): server-side SSE orchestrator`** (#1, #2, #3, #8) —
+  the v1.15 client-side chained-fetch orchestrator is gone. `POST
+  /api/auto-pipeline` is now a curl-able SSE endpoint that chains
+  validate → fetch JD → evaluate → save report → tracker server-side
+  with real-time step events. The slow Anthropic call (30–90 s) now
+  emits a `running` event instead of a generic spinner. Failures emit
+  `error` with `step` + `message`. The orchestrator also persists the
+  report markdown to parent `reports/<slug>.md` (was lost in v1.15).
+- **`feat(reports): POST /api/reports primitive`** — new writer endpoint
+  in `server/lib/routes/reports.mjs`. Slug sanitization with path-
+  traversal guard (strip leading dots, collapse internal `...`).
+  1 MB cap (413). 409 on existing file unless `overwrite:true`.
+  Atomic write through `stripDangerousMarkdown` XSS pass. Logs
+  activity.reports.save. Tests: 9 cases.
+- **`feat(app): Cmd+K paste URL → auto-pipeline`** — pasting a URL into
+  the global search + Enter now opens the AutoPipeline modal with
+  `autoStart=true`. Shift+Enter preserves the legacy "add to
+  pipeline only" path. The canonical career-ops.org Quick Start §7
+  "paste URL → done" UX.
+- **`feat(portals): SmartRecruiters pagination`** (#4) —
+  `server/lib/sources/smartrecruiters.mjs` walks pages via
+  `?limit=100&offset=N` until `totalFound` is reached OR an empty
+  page is returned OR the 30-page / 3000-job safety cap fires.
+  Strips caller-supplied limit/offset so the cursor is server-owned.
+  Big boards (Procter & Gamble, Amazon-style) no longer lose their
+  tail of 100+ postings. Tests: 6 cases.
+- **`feat(portals): Workday CAPTCHA-fallback graceful`** (#7) —
+  `server/lib/sources/workday.mjs` no longer throws on 4xx /
+  non-JSON / network errors. Returns `[]` and annotates the new
+  exported `lastWorkdayFallback` snapshot. Scanner timeline
+  continues with the next tenant. Caller can opt back into the
+  v1.14 throw behaviour with `strict:true`. Tests: 7 cases.
+
+### 🛠️ Tooling + CI
+
+- **`ci(workflows): dashboard-screenshots drift gate`** (#5) — new
+  `.github/workflows/dashboard-screenshots.yml`. On PRs touching
+  `public/css/app.css` / `public/js/views/dashboard.js` /
+  `public/js/lib/i18n.js` / `public/index.html`, the workflow
+  boots the web-ui server against a /tmp scaffold, regenerates the
+  8 hero PNGs via Playwright + chromium, and fails the build if
+  the result drifts from what's committed. Uploads the regenerated
+  PNGs as a CI artifact on failure.
+- **`feat(scripts): import-trending-companies.mjs`** (#11) — verifies
+  the 13 trending companies in `docs/portals-examples.md` via their
+  real boards-API and emits paste-ready YAML for the user's parent
+  `portals.yml::tracked_companies`. `enabled: false` is stamped on
+  any candidate whose slug 404s. Live probe of all 6 ATSes
+  (Greenhouse / Ashby / Lever / Workable / SmartRecruiters /
+  Workday). Run via `npm run import:trending`.
+- **`feat(scripts): npm run capture:dashboards`** — exposes
+  `scripts/capture-dashboard-screenshots.mjs` as a top-level script
+  (was only documented in `images/README.md` before).
+
+### 🎨 UX
+
+- **`fix(scan): consolidated source-filter dropdown`** (#6) —
+  `#/scan` source dropdown rebuilt from the v1.14 adapter registry:
+  6 ATSes + hh.ru + Habr Career, alphabetical, no geo-tag prefix.
+  `runEnScan` / `runRuScan` now hit the consolidated
+  `/api/stream/scan?source={ats,regional}` endpoint instead of the
+  deprecated `/api/stream/scan-{en,ru}` aliases (Sunset headers
+  stay live through v1.16).
+
+### 📚 i18n long-tail
+
+- **`docs(i18n): translate v1.13.0 + v1.12.0 CHANGELOG in 6 locales`**
+  (#9) — entries previously RU-bodied in
+  `CHANGELOG.{es,pt-BR,ko-KR,ja,zh-CN,zh-TW}.md` are now in their
+  actual locale. Each non-EN/non-RU CHANGELOG also gets an i18n
+  note explaining that pre-v1.12 entries remain RU per project
+  convention (canonical text lives in `CHANGELOG.md`).
+- **`docs: expand non-EN READMEs with v1.16.0 highlights section`**
+  (#10) — 6 non-EN READMEs (es / pt-BR / ko-KR / ja / ru / zh-CN /
+  zh-TW) get a new ~35-line section covering: auto-pipeline
+  one-click flow + curl example, SmartRecruiters pagination,
+  Workday fallback, scan source-filter UX, importer script, and
+  CI screenshot workflow. RU README also extended.
+
+### 🧪 Tests
+
+- New `tests/reports-write.test.mjs` (9 cases) — happy path, slug
+  sanitization (incl. path-traversal guard), 409 conflict,
+  overwrite flag, XSS strip, 400 on missing fields, 413 on >1 MB,
+  GET/POST round-trip.
+- New `tests/auto-pipeline.test.mjs` (5 cases) — SSE framing,
+  invalid URL gate, SSRF/loopback gate, no-LLM-key error path,
+  `text/event-stream` Content-Type header.
+- New `tests/smartrecruiters-pagination.test.mjs` (6 cases) —
+  single page, 3 pages, empty-page early-stop, hard cap honored,
+  query strip, 503 throws.
+- New `tests/workday-fallback.test.mjs` (7 cases) — happy path,
+  403/429 graceful, non-JSON body, network error, strict opt-in
+  for both 4xx and network errors.
+- Total: **427 / 427** unit (was 400; +27 net). 0 failures. 28/28
+  Playwright + 23/23 comprehensive E2E + 20/20 smoke E2E green
+  from v1.15.0 baseline.
+
+### Out of scope (v1.17+)
+
+| Item | Notes |
+|---|---|
+| Parent commit for canonical A-F prompt | Still pending upstream `santifer/career-ops::modes/oferta.md` rewrite (CLAUDE.md hard rule #1). |
+| Translate pre-v1.12 CHANGELOG entries (v1.11.x, v1.10.x) | Convention preserved: RU-bodied. Backporting is ~1800 lines of translation work; deferred. |
+| Full non-EN README parity (585 lines like EN) | v1.16 added ~35 lines per locale; full parity is a separate effort. |
+| Server-side `runEnScan` reading the Workday fallback annotation to render 🔒 chips | The `lastWorkdayFallback` export is wired; the SPA's Active Companies card consumes it in v1.17+. |
+
+### Verification
+
+```bash
+npm test                          # 427 / 427
+npm run test:e2e:full             # 23 / 23
+npm run import:trending --check-only   # probe 13 trending boards
+
+# Auto-pipeline curl smoke:
+curl -N -X POST http://127.0.0.1:4317/api/auto-pipeline \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://job-boards.greenhouse.io/anthropic/jobs/4567"}'
+
+# POST /api/reports round-trip:
+curl -X POST http://127.0.0.1:4317/api/reports \
+  -H 'Content-Type: application/json' \
+  -d '{"slug":"smoke","markdown":"# smoke\n"}'
+```
+
+---
+
 ## [1.15.0] — 2026-05-13
 
 **Doc-conformance release.** Closes 9 of the 10 still-open findings

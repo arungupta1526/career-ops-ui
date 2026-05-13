@@ -133,3 +133,38 @@ echo "GEMINI_API_KEY=tu-clave" >> career-ops/.env
 Health → todo verde. **🌐 Buscar en todas las fuentes** → tabla con chips → copia URL → **Pipeline** → **Evaluate**.
 
 Documentación completa (arquitectura, API, seguridad): [README en inglés](README.md).
+
+---
+
+## ✨ Novedades v1.16.0 (auto-pipeline server-side)
+
+> **El gran cambio de UX.** Hasta v1.15.0 había 5 clicks manuales entre `#/pipeline → #/evaluate → #/cv → #/tracker`. Ahora, un solo botón `✨ Auto-pipeline a URL` (en `#/dashboard` y con `Cmd+K → pegar URL → Enter`) ejecuta toda la canalización en una línea de tiempo SSE observable.
+
+### Cómo funciona
+1. **Valida la URL** (gate SSRF + DNS-rebind).
+2. **Recupera la JD** via proxy SSRF-safe.
+3. **Evalúa contra tu CV** (Anthropic o Gemini), score 0–5 extraído del markdown.
+4. **Guarda el reporte** en `reports/<slug>.md` (nuevo endpoint `POST /api/reports`).
+5. **Añade fila en tracker** referenciando el reporte + URL.
+
+```bash
+# Curl directo (CI / smoke):
+curl -N -X POST http://127.0.0.1:4317/api/auto-pipeline \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://job-boards.greenhouse.io/anthropic/jobs/4567"}'
+```
+
+Eventos SSE: `start → step (×5) → done` o `error`. Falla limpia en cualquier paso; el chain se detiene y devuelve lo completado.
+
+### Otros highlights v1.16.0
+- **Paginación SmartRecruiters** — recorre todas las páginas, no solo las primeras 100. Cap de seguridad: 30 páginas / 3000 jobs.
+- **Workday CAPTCHA-fallback** — un tenant con CAPTCHA ya no aborta el scan completo. Renderiza un chip 🔒 en la tarjeta de Active Companies; el resto de tenants continúa.
+- **`#/scan` source filter** — dropdown rebuilt desde el adapter registry: 6 ATSes + hh.ru + Habr, alfabético, sin prefijos geo.
+- **`scripts/import-trending-companies.mjs`** — verifica los 13 empresas trending de `docs/portals-examples.md` y emite YAML pegueable para tu `portals.yml`. Ejecuta `npm run import:trending`.
+- **CI workflow** — `.github/workflows/dashboard-screenshots.yml` regenera los 8 PNGs de hero y falla el build si hay drift visual no commiteado.
+
+### Referencias
+- Documentación completa: [README en inglés](README.md) — 585 líneas con secciones de arquitectura, API y seguridad.
+- Help in-app: `#/help` (16 secciones × 8 locales).
+- CHANGELOG: [`CHANGELOG.es.md`](CHANGELOG.es.md).
+- Documentos canónicos: [career-ops.org/docs](https://career-ops.org/docs).

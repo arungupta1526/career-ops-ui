@@ -133,3 +133,38 @@ echo "GEMINI_API_KEY=your-key" >> career-ops/.env
 Health → 全部为绿。**🌐 搜索所有来源** → 带 chip 过滤器的表格 → 复制 URL → **Pipeline** → **Evaluate**。
 
 完整文档 (架构、API、安全):[英文 README](README.md)。
+
+---
+
+## ✨ v1.16.0 新功能(服务端 auto-pipeline)
+
+> **重大 UX 转变。** v1.15.0 之前需要在 `#/pipeline → #/evaluate → #/cv → #/tracker` 间手动点击 5 次。现在一个 `✨ Auto-pipeline a URL` 按钮(在 `#/dashboard` 上以及 `Cmd+K → 粘贴 URL → Enter`)在可观察的 SSE 时间线中执行整个管道。
+
+### 工作方式
+1. **验证 URL**(SSRF + DNS-rebind gate)。
+2. **抓取 JD** 经过 SSRF-safe 代理。
+3. **对照 CV 评估**(Anthropic 或 Gemini),从 markdown 提取 0–5 分。
+4. **保存报告** 到 `reports/<slug>.md`(新端点 `POST /api/reports`)。
+5. **添加 tracker 行** 引用报告 + URL。
+
+```bash
+# 直接 curl (CI / smoke):
+curl -N -X POST http://127.0.0.1:4317/api/auto-pipeline \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://job-boards.greenhouse.io/anthropic/jobs/4567"}'
+```
+
+SSE 事件: `start → step (×5) → done` 或 `error`。任何步骤的干净失败;chain 停止并返回已完成内容。
+
+### 其他 v1.16.0 亮点
+- **SmartRecruiters 分页** — 遍历所有页面,而非仅前 100。安全上限:30 页 / 3000 jobs。
+- **Workday CAPTCHA-fallback** — CAPTCHA 阻塞的 tenant 不再中止整个扫描。在 Active Companies 卡片渲染 🔒 chip;其他 tenant 继续。
+- **`#/scan` source filter** — 从 adapter registry 重建的下拉菜单:6 ATSes + hh.ru + Habr,字母排序,无 geo 前缀。
+- **`scripts/import-trending-companies.mjs`** — 验证 `docs/portals-examples.md` 的 13 个 trending 公司,并输出可粘贴到你的 `portals.yml` 的 YAML。运行 `npm run import:trending`。
+- **CI workflow** — `.github/workflows/dashboard-screenshots.yml` 重新生成 8 个 hero PNG,如果有未提交的视觉 drift 则构建失败。
+
+### 参考
+- 完整文档: [英文 README](README.md) — 585 行包含架构、API 和安全章节。
+- 应用内帮助: `#/help`(16 章节 × 8 语言)。
+- CHANGELOG: [`CHANGELOG.zh-CN.md`](CHANGELOG.zh-CN.md)。
+- 规范文档: [career-ops.org/docs](https://career-ops.org/docs)。
