@@ -238,7 +238,7 @@ Queries: `dryRun=1` (skip writes to `data/scan-history.tsv` + `data/last-scan.js
 
 ### `GET /api/scan/regional/config` → `{ sources, area, per_page, only_remote, queries }`
 
-Effective `russian_portals:` config from `portals.yml`. (Legacy alias `/api/scan-ru/config` still served through v1.19 for back-compat.)
+Effective `russian_portals:` config from `portals.yml`. (Legacy alias `/api/scan-ru/config` retired in v1.20.0.)
 
 ### `GET /api/scan-results` → contents of `data/last-scan.json` + `workdayFallback` (v1.17+)
 

@@ -5,7 +5,12 @@ Router.register('evaluate', async () => {
   const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
   const prefillUrl = params.get('url') || '';
 
+  // v1.20.0 — WCAG 1.3.1 / 3.3.2: each form control owns an id so the
+  // label can target it via htmlFor and hint text gets associated via
+  // aria-describedby.
   const jdInput = c('textarea', {
+    id: 'eval-jd',
+    'aria-describedby': 'eval-jd-hint',
     className: 'textarea',
     rows: 16,
     placeholder: t('eval.placeholder'),
@@ -102,10 +107,12 @@ Router.register('evaluate', async () => {
 
     c('div', { className: 'card' }, [
       c('div', { className: 'field' }, [
-        c('label', null, t('eval.jdLbl')),
+        c('label', { htmlFor: 'eval-jd' }, t('eval.jdLbl')),
+        c('p', { id: 'eval-jd-hint', style: { color: 'var(--foggy)', fontSize: '13px', margin: '4px 0 8px' } },
+          t('eval.jdHint', 'Paste the full job description. Minimum 50 characters after sanitization.')),
         jdInput,
       ]),
-      c('label', { className: 'flex', style: { gap: '8px', userSelect: 'none' } }, [
+      c('label', { htmlFor: 'save-jd', className: 'flex', style: { gap: '8px', userSelect: 'none' } }, [
         saveJd, c('span', null, t('eval.saveJd')),
       ]),
       c('div', { className: 'flex gap-3 mt-3' }, [

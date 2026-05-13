@@ -1,36 +1,34 @@
 # career-ops-ui
 
-> 用于 [career-ops](https://github.com/santifer/career-ops) AI 求职流水线的 简洁 docs-style Web 界面。
-> 在单个浏览器标签中搜索、评估、深入研究、申请和跟踪每个职位 — 而不是在 Claude Code、终端和 markdown 文件之间来回切换。
+> 一个简洁的、docs 风格的 Web 界面,用于 [career-ops](https://github.com/santifer/career-ops) AI 求职流水线。
+> 在单个浏览器标签中搜索、评估、深入研究、申请并跟踪每个职位 — 而不是在 Claude Code、终端和 markdown 文件之间来回切换。
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | **简体中文** | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-427%20passed-brightgreen)](README.md#tests)
-[![playwright](https://img.shields.io/badge/playwright-12%20smoke-brightgreen)](#tests)
-[![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](README.md#requirements)
+[![tests](https://img.shields.io/badge/tests-427%20passed-brightgreen)](#tests)
+[![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
+[![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![release](https://img.shields.io/badge/release-v1.19.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.19.0)
 
-> 📦 **v1.9.1** — 服务器精简为 130 行的编排器 + `server/lib/routes/` 中的 12 个路由模块。`/api/evaluate` 的 Anthropic 对等(两个 key 同时存在时优先)。多 CLI 桥接(`AGENTS.md`、`GEMINI.md`)支持 Codex / Aider / Cursor / Gemini CLI。**284 个 unit + 12 个 Playwright 烟雾测试**。完整 production-readiness 评估:[`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md)。可用于 single-tenant loopback 部署;LAN 暴露的 auth gate 在 v2.0 (P-12)。
-
-![career-ops-ui — 指挥中心](./images/dashboard-zh-CN.png)
+![career-ops-ui — 指挥中心](./images/dashboard-en.png)
 
 ## 关于 career-ops
 
-[career-ops](https://career-ops.org) 是一个开源求职系统,作为 slash 命令运行在任何 AI 编码 CLI(Claude Code、Codex、Cursor、Gemini CLI、GitHub Copilot CLI)内。模型无关。用 6 维 0.0–5.0 评分体系将每个职位与你的 CV 匹配,生成定制 PDF 简历,并在本地追踪每次申请 — 无云账号,无遥测,无自动提交。
+[career-ops](https://career-ops.org) 是一个开源求职系统,作为 slash 命令运行在任何 AI 编码 CLI(Claude Code、Codex、Cursor、Gemini CLI、GitHub Copilot CLI)内部。模型无关。它使用六维 0.0–5.0 评分体系将每个职位与你的 CV 进行匹配,生成定制的 PDF 简历,并在本地跟踪每次申请 — 无云账户,无遥测,无自动提交。
 
-**本仓库 (career-ops-ui)** 是 CLI 之上的精致 Web 界面。CLI 继续拥有 form-fill(经 Playwright MCP)和 slash 命令模式;SPA 在同一 `cv.md` / `data/applications.md` / `reports/` 之上提供 CRM 风格的表面。数据共享。
+**本仓库 (career-ops-ui)** 是其上的精致 Web 界面。CLI 继续负责表单填写(通过 Playwright MCP)和 slash 命令模式;SPA 在同一 `cv.md` / `data/applications.md` / `reports/` 文件之上提供一个 CRM 风格的浏览器界面。两者共享同一份数据。
 
-**按 Score 的行动阈值** (来自 [career-ops.org/docs](https://career-ops.org/docs)):
+**按 Score 的行动阈值**(来自 [career-ops.org/docs](https://career-ops.org/docs)):
 
 | Score | 下一步 |
 |---|---|
-| **≥ 4.5** | `/career-ops apply` — 高匹配,立即申请 |
-| **4.0 – 4.4** | 申请,或 `/career-ops contacto` (warm intro) |
+| **≥ 4.5** | `/career-ops apply` — 高度匹配,立即申请 |
+| **4.0 – 4.4** | 申请,或 `/career-ops contacto` 进行 warm intro |
 | **3.5 – 3.9** | `/career-ops deep` — 先调研 |
-| **< 3.5** | 除非有特定理由,跳过 |
+| **< 3.5** | 除非有特定理由,否则跳过 |
 
-**规范指南** ([career-ops.org/docs](https://career-ops.org/docs)):
+**规范指南** 位于 [career-ops.org/docs](https://career-ops.org/docs):
 
 - [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
 - [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
@@ -44,263 +42,515 @@
 curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/setup.sh | bash
 ```
 
-此命令克隆两个仓库 (career-ops + career-ops-ui),安装依赖,并在 http://127.0.0.1:4317 启动服务器。
+此命令会克隆两个仓库(career-ops + career-ops-ui)、安装依赖,并在 http://127.0.0.1:4317 启动服务器。
+
+---
 
 ## 为什么?
 
-[career-ops](https://github.com/santifer/career-ops) 是一个强大的基于 Claude Code 的求职系统:粘贴 JD → 获得 0-5 适配评分、ATS 优化的 PDF 和跟踪器条目。在 Claude Code 内部运行良好,但数据分散在 `cv.md`、`data/applications.md`、`reports/*.md`、`data/pipeline.md`、`portals.yml`、`config/profile.yml` — 容易丢失,难以浏览。
+[career-ops](https://github.com/santifer/career-ops) 是一个强大的基于 Claude Code 的求职系统:粘贴 JD → 获得 0-5 适配评分、ATS 优化的 PDF 和跟踪器条目。它在 Claude Code 内部运行良好,但数据分散在 `cv.md`、`data/applications.md`、`reports/*.md`、`data/pipeline.md`、`portals.yml`、`config/profile.yml` 之间 — 容易遗失,难以快速浏览。
 
 `career-ops-ui` 在其上添加一个精致的 UI:
 
-- **浏览** — 像 CRM 一样浏览跟踪器、报告和流水线。
-- **触发** — 触发扫描 (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **以及** hh.ru / Habr Career) 并查看实时 SSE 日志。
-- **评估** — 通过 Gemini API 评估 JD 或获取 Claude 的复制粘贴 prompt。
-- **编辑** — 使用并排 markdown 预览编辑 `cv.md`。
-- **维护** — doctor、verify、normalize、dedup、merge — 每个一键完成。
+- **浏览** 跟踪器、报告和流水线,像 CRM 一样。
+- **触发** 扫描(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **以及** hh.ru / Habr Career),并查看实时 SSE 日志。
+- **评估** 通过 Anthropic(首选)或 Gemini 实时评估 JD,如果未设置 API key,则获取一个用于 Claude Code 的复制粘贴 prompt。
+- **深度研究** 通过 Anthropic SDK 实时研究公司,cv / profile / mode 文件会自动内联。
+- **编辑** `cv.md`,带并排 markdown 预览和服务端 XSS 清理。
+- **维护** 系统:doctor、verify、normalize、dedup、merge — 每个一键完成。
+- **多 CLI:** 从 Claude Code、Codex、Cursor、Aider 或 Gemini CLI 同等驱动 — `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` 垫片指向同一份事实来源。
 
-纯加法:`career-ops/` 内部不会更改任何内容。你的自定义保持不变。
+它纯粹是加法:`career-ops/` 内部不会更改任何内容。你的所有定制都仍然是你的。
 
-## 各页面功能
+---
 
-| 页面             | 功能                                                                                                              |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------- |
-| **Dashboard**    | 聚合计数 (apps / pipeline / reports)、平均分、按状态分类、最新 5 个 apps + 最新报告。                                       |
-| **Scan**         | **🌐 单个 🌐 Scan 按钮** — 一次性扫描所有已启用的来源(EN:Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday,RU:hh.ru + Habr Career)。实时 SSE 日志 + 带 stack/level chip 过滤器和 location / Remote-Hybrid / reloc / source 过滤器的可点击结果表。 |
-| **Pipeline**     | 对 `data/pipeline.md` 进行 CRUD。从 URL 直接跳转到评估。                                                              |
-| **Evaluate**     | 粘贴 JD → 如果设置了 `GEMINI_API_KEY`,运行 `gemini-eval.mjs`;否则返回 Claude 的复制粘贴 prompt。                       |
-| **Deep research**| 为指定的公司/角色生成完整的 `modes/deep.md` prompt。                                                                  |
-| **Apply helper** | 生成申请清单;实际的 Playwright 表单填写仍在 Claude Code 中的 `/career-ops apply` 中。                                    |
-| **Tracker**      | `data/applications.md` 上的可过滤表 (状态、分数、自由文本)。normalize/dedup/merge 一键按钮。                            |
-| **Reports**      | 浏览和阅读 `reports/` 中的每个报告,带解析的 header (Score / Legitimacy / URL)。                                       |
-| **CV**           | `cv.md` 的实时 markdown 编辑器,带并排预览 + sync-check。                                                              |
-| **Profile**      | `config/profile.yml` + 原型的只读视图。                                                                              |
-| **Health**       | 所有 setup 检查在 OK / OPTIONAL / FAIL 徽章中 + 运行 `doctor.mjs` 和 `verify-pipeline.mjs` 的按钮。                       |
+## 快速开始
+
+### 1. 先安装 career-ops
+
+```bash
+git clone https://github.com/santifer/career-ops.git
+cd career-ops
+```
+
+按照 [career-ops 入门指南](https://github.com/santifer/career-ops#first-run--onboarding) 操作,使 `cv.md`、`config/profile.yml` 和 `portals.yml` 存在。
+
+### 2. 在其中放入 career-ops-ui
+
+```bash
+git clone https://github.com/Fighter90/career-ops-ui.git web-ui
+```
+
+现在你的目录树看起来像这样:
+
+```
+career-ops/
+├─ cv.md
+├─ portals.yml
+├─ config/
+├─ data/
+├─ modes/
+├─ reports/
+├─ scan.mjs … doctor.mjs … (etc)
+└─ web-ui/                 ← 本仓库
+   ├─ bin/start.sh
+   ├─ package.json
+   ├─ server/
+   ├─ public/
+   └─ tests/
+```
+
+### 3. 启动
+
+```bash
+bash web-ui/bin/start.sh
+```
+
+该脚本:
+
+1. 检查 Node ≥ 18。
+2. `npm install`(仅首次运行,两个依赖 — Express + js-yaml)。
+3. 在 `127.0.0.1:4317` 启动 Express 服务器。
+4. 在默认浏览器中打开 http://127.0.0.1:4317/。
+
+自定义端口 / 主机:
+
+```bash
+PORT=8080 bash web-ui/bin/start.sh
+HOST=0.0.0.0 PORT=4317 bash web-ui/bin/start.sh   # 暴露到 LAN
+```
+
+如果你将仓库克隆到其他位置(而非 `career-ops/web-ui`),通过环境变量指向 career-ops:
+
+```bash
+CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
+```
+
+---
 
 ## 要求
 
 | | |
 | --- | --- |
-| **Node.js** | ≥ 18 |
-| **career-ops** | 已克隆并 onboard |
-| **可选** | `.env` 中的 `GEMINI_API_KEY` 用于一键 JD 评估 |
-| **可选** | 如果在俄罗斯境外运行并希望 hh.ru API 停止返回 403,请使用 `.env` 中的 `(server uses default UA)` |
-
-## stack 和 level 的 chip 过滤器
-
-职位表包含以下内容的 multi-select chip:
-
-- **Stack:** PHP, Symfony, Laravel, Go, Rust, Node.js, TypeScript, Python, Ruby, Java, C#/.NET, C++, Backend, Frontend, Fullstack, Microservices, High-load, Distributed, DevOps/SRE, Data, ML/AI, Mobile, Security, Database, Cloud, API
-- **Level:** Lead/Tech Lead, Architect, Manager, Principal/Staff, Senior, Middle, Junior
-
-每个类别内多选 (OR),类别之间交集 (AND)。显示计数;只显示有结果的 chip。
-
-## 完整文档
-
-完整架构、API 参考、高级配置和安全注释 — 请参阅 [英文 README](README.md)。
-
-## 许可证
-
-MIT。基于 [santifer](https://santifer.io) 的 [career-ops](https://github.com/santifer/career-ops) 构建。
+| **Node.js** | ≥ 18(使用原生 `fetch`、`node:test`) |
+| **career-ops** | 已克隆并入门 — 见上文 |
+| **可选** | 父项目 `.env` 中的 `GEMINI_API_KEY`(免费层模型 `gemini-2.0-flash`)用于一键 JD 评估。否则 UI 返回一个用于 Claude 的复制粘贴 prompt。 |
+| **可选** | 如果 hh.ru 返回 403,从俄罗斯 IP / VPN 运行。Habr Career 从任何 IP 均可工作。 |
+| **可选** | Playwright(已是 career-ops 的传递依赖)用于 e2e 测试套件。 |
 
 ---
 
-## 🌍 Getting Started — 安装后的第一步
+## 各页面功能
 
-一键安装后,你有两个克隆的仓库和脚手架文件 (`cv.md`、`config/profile.yml`、`portals.yml`、`data/applications.md`、`data/pipeline.md` — 带 **EDIT ME** 标记)。首次启动时 Health 页面应全部为绿色。用真实数据替换占位符:
+| 页面             | 功能说明                                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Dashboard**    | 聚合计数(apps / pipeline / reports)、平均分、按状态细分、最新 5 个 apps + 最新报告。                                |
+| **Scan**         | **🌐 单个 Scan 按钮** — 一次性运行所有已启用的来源(EN:Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday,RU:hh.ru + Habr Career)。实时 SSE 日志流式 + 带 location / Remote-Hybrid 徽章 / relocation 标记 / 薪资 / 来源过滤器以及动态 stack / level / keyword chip 的可点击结果表格。Active-Companies 卡片列出每个跟踪的 board 及其 API 健康状况。 |
+| **Pipeline**     | 对 `data/pipeline.md` 进行 CRUD。服务端预览代理(SSRF-safe、逐跳 redirect 校验、8 KB body 上限)。从 URL 直接跳转到评估。 |
+| **Evaluate**     | 粘贴 JD → **Anthropic 优先**(两个 key 同时存在时首选),然后 Gemini,然后手动 prompt 回退。Anthropic 路径自动内联 cv / profile / `_shared.md` / `oferta.md`(REVIEW-A1)。可选将 JD 保存到 `jds/`。 |
+| **Deep research**| 与 Evaluate 相同的回退链。实时 Anthropic 返回约 10–30 KB 有依据的 markdown,并保存到 `interview-prep/<company>-<role>.md`。 |
+| **Modes**        | 7 个通用 mode 页(`/#/project`、`/#/training`、`/#/followup`、`/#/batch`、`/#/contacto`、`/#/interview-prep`、`/#/patterns`),采用相同的 Anthropic / Gemini / 手动回退链。 |
+| **Apply helper** | 生成提交清单;实际的 Playwright 表单填写仍在 Claude Code 中的 `/career-ops apply` 中。                              |
+| **Tracker**      | 在 `data/applications.md` 之上的可过滤表格(状态、分数、自由文本)。一键 `normalize-statuses.mjs` / `dedup-tracker.mjs` / `merge-tracker.mjs`。管道符 + 换行符转义符合 GFM — 像 `"Acme \| Co"` 这样的名字可无损往返。 |
+| **Reports**      | 浏览和阅读 `reports/` 下的每个报告,带解析的 header(Score / Legitimacy / URL)。                                   |
+| **CV**           | `cv.md` 的实时 markdown 编辑器,带并排预览 + 一键 `cv-sync-check.mjs` + 📁 上传 CV。保存时服务端 XSS 清除(`<script>`、`javascript:`、`on*=` handlers)。 |
+| **Profile**      | `config/profile.yml` + 原型的只读视图 — UI 友好的摘要。                                                            |
+| **App settings** | UI 内编辑父项目的 `.env` keys:`ANTHROPIC_API_KEY`、`GEMINI_API_KEY`、模型覆盖、端口 / 主机。读取时密钥被遮蔽。      |
+| **Health**       | 所有 setup 检查显示为 OK / OPTIONAL / FAIL 徽章 + 用于运行 `doctor.mjs` 和 `verify-pipeline.mjs` 的按钮。            |
+| **Help**         | 应用内 Markdown 用户指南(`/#/help`),针对所有 8 种支持的语言进行本地化(en / es / pt-BR / ko-KR / ja / ru / zh-CN / zh-TW)。 |
+| **Activity log** | 每个状态变更请求(写入、运行、扫描)的审计日志。密钥已脱敏。                                                       |
 
-### 1. 创建 CV (`cv.md`)
+全局键盘快捷键:
 
-- **A — 粘贴现有简历** 到 `career-ops/cv.md` 中,使用干净的 markdown。
-- **B — 从 UI 上传:** 点击 **CV** → **📁 上传简历** → 选择 `.md`/`.txt` → 检查预览 → 点击 **💾 保存**。
-- **C — 将 LinkedIn 给 Claude Code:** 在 Claude Code 中运行 `/career-ops`,请求「提取我的 CV 并写入 cv.md」。
-
-### 2. 个人资料 (`config/profile.yml`)
-
-替换占位符:姓名、邮箱、位置、LinkedIn、目标角色、**archetypes** (最重要)、薪资范围。
-
-### 3. 扫描器 (`portals.yml`)
-
-调整 `title_filter.positive`/`negative`。已预设 3 个 board (GitLab、Vercel、Linear)。更多内容:[`docs/portals-examples.md`](docs/portals-examples.md)。
-
-### 4. (可选) Gemini API key
-
-```bash
-echo "GEMINI_API_KEY=your-key" >> career-ops/.env
-```
-
-### 5. 验证并开始
-
-Health → 全部为绿。**🌐 搜索所有来源** → 带 chip 过滤器的表格 → 复制 URL → **Pipeline** → **Evaluate**。
-
-完整文档 (架构、API、安全):[英文 README](README.md)。
+- `Ctrl+K` / `Cmd+K` — 聚焦全局搜索。
+- 在全局搜索中粘贴 URL 会自动添加到 pipeline。
+- `Esc` — 关闭任何打开的模态框。
 
 ---
 
-## ✨ v1.16.0 新功能(服务端 auto-pipeline)
+## Scan
 
-> **重大 UX 转变。** v1.15.0 之前需要在 `#/pipeline → #/evaluate → #/cv → #/tracker` 间手动点击 5 次。现在一个 `✨ Auto-pipeline a URL` 按钮(在 `#/dashboard` 上以及 `Cmd+K → 粘贴 URL → Enter`)在可观察的 SSE 时间线中执行整个管道。
+零 token 的 portal 扫描,真正返回职位。UI 中的 **一个 🌐 Scan 按钮** 在单次扫描中运行所有已配置的来源:
 
-### 工作方式
-1. **验证 URL**(SSRF + DNS-rebind gate)。
-2. **抓取 JD** 经过 SSRF-safe 代理。
-3. **对照 CV 评估**(Anthropic 或 Gemini),从 markdown 提取 0–5 分。
-4. **保存报告** 到 `reports/<slug>.md`(新端点 `POST /api/reports`)。
-5. **添加 tracker 行** 引用报告 + URL。
+- **Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday** — 公开的 boards-api,适用于 `portals.yml::tracked_companies` 中具有可识别 ATS 模式的每家公司。预设列表涵盖 Stripe、GitLab、Vercel、Cloudflare、Datadog、Discord、Elastic、Grafana Labs、CockroachDB、Fastly、Twilio、Coinbase、Reddit、Robinhood、Affirm、Lyft、Linear、Supabase、PostHog、Ramp、Modal Labs、Railway、Browserbase、JetBrains — 可自由扩展或精简。
+- **hh.ru** — 公开 API(从非俄罗斯 IP 返回 403;请从俄罗斯 IP / VPN 运行,或跳过 — 同一来源的连续 403 会被合并,扫描过程中该来源会被禁用)。服务器附带合理的默认 User-Agent;高级用户仍可通过俄罗斯 IP / VPN 覆盖。
+- **Habr Career** — 对 `career.habr.com/vacancies` 的 HTML 抓取。从任何 IP 均可工作,无需身份验证。
 
-```bash
-# 直接 curl (CI / smoke):
-curl -N -X POST http://127.0.0.1:4317/api/auto-pipeline \
-  -H 'Content-Type: application/json' \
-  -d '{"url":"https://job-boards.greenhouse.io/anthropic/jobs/4567"}'
+所有来源都通过同一条流水线:normalize → filter(`title_filter.positive` / `title_filter.negative`) → 对照 `data/scan-history.tsv` + `data/pipeline.md` + `data/applications.md` 进行去重 → 追加到 `data/pipeline.md` → 将完整结果集保存到 `data/last-scan.json`,供 UI 的可过滤表格使用。
+
+通过 `portals.yml` 进行配置:
+
+```yaml
+title_filter:
+  positive: [backend, engineer, senior, tech lead, golang, php]
+  negative: [junior, intern, frontend, ios, android]
+tracked_companies:
+  - { name: Stripe, enabled: true, careers_url: https://job-boards.greenhouse.io/stripe }
+  - { name: Linear, enabled: true, careers_url: https://jobs.ashbyhq.com/linear }
+  # ...
+russian_portals:
+  sources: ["hh", "habr"]   # 一个或两个
+  area: 113                  # 1=莫斯科,2=圣彼得堡,113=俄罗斯,1001=远程
+  per_page: 50
+  only_remote: false
+  queries: ["Senior PHP", "Senior Go", "Tech Lead"]
 ```
 
-SSE 事件: `start → step (×5) → done` 或 `error`。任何步骤的干净失败;chain 停止并返回已完成内容。
-
-### 其他 v1.16.0 亮点
-- **SmartRecruiters 分页** — 遍历所有页面,而非仅前 100。安全上限:30 页 / 3000 jobs。
-- **Workday CAPTCHA-fallback** — CAPTCHA 阻塞的 tenant 不再中止整个扫描。在 Active Companies 卡片渲染 🔒 chip;其他 tenant 继续。
-- **`#/scan` source filter** — 从 adapter registry 重建的下拉菜单:6 ATSes + hh.ru + Habr,字母排序,无 geo 前缀。
-- **`scripts/import-trending-companies.mjs`** — 验证 `docs/portals-examples.md` 的 13 个 trending 公司,并输出可粘贴到你的 `portals.yml` 的 YAML。运行 `npm run import:trending`。
-- **CI workflow** — `.github/workflows/dashboard-screenshots.yml` 重新生成 8 个 hero PNG,如果有未提交的视觉 drift 则构建失败。
-
-### 参考
-- 完整文档: [英文 README](README.md) — 585 行包含架构、API 和安全章节。
-- 应用内帮助: `#/help`(16 章节 × 8 语言)。
-- CHANGELOG: [`CHANGELOG.zh-CN.md`](CHANGELOG.zh-CN.md)。
-- 规范文档: [career-ops.org/docs](https://career-ops.org/docs)。
+所有来源流经一个统一的 SSE 端点:`/api/stream/scan?source=ats|regional|both`。**🌐 Scan** UI 按钮调用 `source=both`,这样每个 adapter(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday + hh.ru + Habr Career)都在一个连接中运行。在客户端断开连接时遵循 `AbortSignal` — 不会有孤立的 fetch。
 
 ---
 
 ## 架构
 
-| 层 | Stack | 文件 |
-|---|---|---|
-| Server | Node ≥18, Express 4, js-yaml, multer | `server/index.mjs` (~130 LOC), `server/lib/routes/*.mjs` (13 模块) |
-| SPA | Vanilla JS, hash-router, 无框架 | `public/index.html`, `public/js/{app,router,api}.js`, `public/js/views/*.js` |
-| Styling | 手写 CSS、docs-style tokens、dark theme | `public/css/app.css` |
-| Tests | `node --test` (TAP)、Express in-process | `tests/*.test.mjs`、Playwright |
-| Build | 无 — 文件 as-is 提供 | — |
+```
+career-ops-ui/
+├─ CLAUDE.md                 # 项目级 agent 说明(规范)
+├─ AGENTS.md                 # Codex / Aider / 通用 CLI 垫片 → CLAUDE.md
+├─ GEMINI.md                 # Gemini CLI 垫片 → CLAUDE.md
+├─ .aiignore                 # AI 工具的排除列表
+├─ .claude/                  # Claude Code agent 配置
+│  ├─ agents/                # 3 个项目专用子 agent(路由、视图、测试隔离)
+│  └─ commands/               # slash 命令存根
+├─ bin/start.sh              # 一键启动脚本(Node 检查 → npm install → server → 打开浏览器)
+├─ package.json              # 2 个运行时依赖:express、js-yaml
+├─ server/
+│  ├─ index.mjs              # ~130 LOC 编排器:中间件 + 12 个 register<Topic>Routes(app) 调用 + SPA catch-all
+│  └─ lib/
+│     ├─ paths.mjs           # career-ops 文件的绝对路径(CAREER_OPS_ROOT 感知)
+│     ├─ parsers.mjs         # markdown / pipeline / report 解析器(符合 GFM 的管道符转义)
+│     ├─ runner.mjs          # runNodeScript() + streamNodeScript(),带 SIGTERM→SIGKILL 升级 + 30 分钟上限
+│     ├─ security.mjs        # isValidJobUrl、stripDangerousMarkdown、sanitizeJobDescription、isPubliclyExposed
+│     ├─ prompts.mjs         # bundleProjectContext、buildEvaluationPrompt、buildDeepPrompt、buildModePrompt
+│     ├─ store.mjs           # safeReadApps/Pipeline/Reports、checkProfileCustomized、ensureRussianPortalsDefaults
+│     ├─ anthropic.mjs       # 最小 Anthropic SDK 适配器(runAnthropic、hasAnthropicKey、hasGeminiKey)
+│     ├─ env-config.mjs      # .env 往返,带密钥遮蔽 + 校验
+│     ├─ activity-log.mjs    # JSONL 审计日志中间件(密钥已脱敏)
+│     ├─ dotenv.mjs          # 小型 dotenv 加载器
+│     ├─ en-scanner.mjs      # 进程内 Greenhouse/Ashby/Lever 编排器(AbortSignal 感知)
+│     ├─ ru-scanner.mjs      # 进程内 hh.ru + Habr 编排器(AbortSignal 感知)
+│     ├─ sources/
+│     │  ├─ greenhouse.mjs   # boards-api.greenhouse.io 客户端
+│     │  ├─ ashby.mjs        # api.ashbyhq.com 客户端
+│     │  ├─ lever.mjs        # api.lever.co 客户端
+│     │  ├─ hh.mjs           # api.hh.ru 客户端(UA 感知)
+│     │  └─ habr.mjs         # career.habr.com HTML 解析器(无 cheerio,仅 regex)
+│     └─ routes/             # 12 个路由模块 — 每个主题一个(P-2)
+│        ├─ activity.mjs     # /api/activity
+│        ├─ config.mjs       # /api/config(父项目 .env 往返)
+│        ├─ content.mjs      # /api/cv、/api/profile、/api/portals、/api/modes
+│        ├─ health.mjs       # /api/health、/api/dashboard
+│        ├─ help.mjs         # /api/help/:lang
+│        ├─ jds.mjs          # /api/jds CRUD
+│        ├─ llm.mjs          # /api/evaluate、/api/deep、/api/mode/:slug、/api/apply-helper、/api/interview-prep*
+│        ├─ pipeline.mjs     # /api/pipeline + SSRF-safe 预览代理
+│        ├─ reports.mjs      # /api/reports
+│        ├─ runners.mjs      # /api/run/* + /api/stream/{scan,liveness,pdf} + /api/output/pdfs
+│        ├─ scan.mjs         # /api/stream/scan-{ru,en} + /api/scan-results
+│        └─ tracker.mjs      # /api/tracker
+├─ public/                   # 静态 SPA — 无构建步骤
+│  ├─ index.html
+│  ├─ css/app.css            # 设计 tokens(docs 风格调色板)
+│  └─ js/
+│     ├─ api.js              # fetch 封装 + 连接横幅状态 + UI 辅助函数 + 安全 markdown 渲染器
+│     ├─ router.js           # 基于 hash 的路由,带 404 回退 + 别名支持
+│     ├─ app.js              # 启动 + 全局键盘处理器 + 移动端 sidebar drawer
+│     ├─ lib/{i18n,skills}.js
+│     └─ views/              # 每页一个文件(dashboard、scan、pipeline、evaluate、deep、apply、tracker、reports、cv、settings、health、config、help、activity、mode-page)
+├─ docs/                     # 公共参考:架构、API、数据流、SDD、约定、reviews
+│  ├─ PROJECT.md             # 是什么 / 为什么 / 给谁
+│  ├─ ROADMAP.md             # 当前 milestone + 已完成历史
+│  ├─ PRODUCTION-READINESS.md # 诚实的部署门评估
+│  ├─ sdd/{SDD-GUIDE,CONVENTIONS}.md
+│  ├─ architecture/{OVERVIEW,SERVER,FRONTEND,API,DATA-FLOWS}.md
+│  └─ reviews/REVIEW-*.md
+└─ tests/                    # 284 个 unit + 12 个 Playwright + 23 个 e2e:full + 20 个 e2e:smoke
+   ├─ parsers.test.mjs       # markdown / pipeline / report 解析器(纯函数)
+   ├─ api.test.mjs           # 每个端点,临时服务器,无网络
+   ├─ {ru,en}-scanner.test.mjs   # mock fetch
+   ├─ pipeline-preview.test.mjs   # 逐跳 redirect 校验(REVIEW-B1)
+   ├─ anthropic.test.mjs     # SDK 适配器 + log-guard 测试(REVIEW-B4)
+   ├─ url-validation.test.mjs    # SSRF 拒绝扫描(FIX-M3 + M6 + M7)
+   ├─ cv-xss.test.mjs        # stripDangerousMarkdown 往返
+   ├─ jd-sanitize.test.mjs   # sanitizeJobDescription
+   ├─ help.test.mjs / help-ui.test.mjs    # 跨所有 8 种语言环境的 i18n 对等
+   ├─ playwright-smoke.mjs   # 12 个浏览器流程(CV 保存、tracker、pipeline、evaluate、config 等)
+   └─ e2e{,-comprehensive}.mjs   # 完整 Playwright walkthrough
+```
 
-服务器读取父项目文件(`../cv.md`、`../config/profile.yml` 等),仅在明确用户动作(`POST /api/tracker`、`PUT /api/cv`、`POST /api/reports`、`POST /api/auto-pipeline`)时写入。
+### 为什么没有构建步骤?
 
-## API 参考
+原生 HTML/CSS/JS 让表面积保持很小:`npm install` 两个依赖,你就可以运行。无 Webpack,无 Vite,无 doom 般的 `node_modules`。整个 UI 压缩后 < 30 KB。如果你想在开发期间热重载,`npm run dev` 使用 Node 内建的 `--watch`。
 
-关键端点(完整列表见 [英文 README](README.md#api-reference)):
+### 规范驱动开发(Spec-Driven Development)
 
-| Method + Path | 目的 |
-|---|---|
-| `GET /api/health` | system status + 18 checks |
-| `GET /api/dashboard` | counts + score-thresholds + activity tail |
-| `GET /api/scan-results` | 最新 scan + `workdayFallback` (v1.17+) |
-| `GET /api/stream/scan?source=ats\|regional\|both` | 合并 SSE |
-| `POST /api/pipeline { url }` | 添加 URL (SSRF gate) |
-| `GET /api/pipeline/preview?url=` | SSRF-safe 代理 + DNS-rebind guard |
-| `POST /api/evaluate { jd, save?, mode? }` | Anthropic / Gemini / manual eval |
-| `POST /api/reports { slug, markdown }` | 持久化到 `reports/<slug>.md` (v1.16+) |
-| `POST /api/auto-pipeline { url }` | SSE 5-step orchestrator (v1.16+) |
-| `POST /api/tracker { company, role, … }` | append 到 `data/applications.md` |
-| `GET /api/modes/_profile` + `PUT` | `modes/_profile.md` 编辑器 (v1.15+) |
-| `POST /api/stream/pdf/inline` | 经 Playwright 的 SSE PDF |
+非平凡的变更走 GSD 流水线(来自 `superpowers@claude-plugins-official` 的 `gsd-*` 技能):
 
-## 安全说明
+```
+discuss → spec → plan → execute → verify → review
+```
 
-- **CSP** 严格:`script-src 'self'` 无 `'unsafe-inline'`。处理器经 `addEventListener`。
-- **SSRF**:每次用户 URL fetch 通过 `isValidJobUrl()` — 拒绝 loopback、私有 IP、危险 scheme、不安全 redirect。
-- **XSS**:输入 markdown 经过 `stripDangerousMarkdown()`。
-- **DNS-rebind guard** 在 `/api/pipeline/preview` 和 auto-pipeline。
-- **Headers**:`X-Content-Type-Options: nosniff`、`X-Frame-Options: DENY`、`Referrer-Policy: same-origin`。
-- **Body caps**:5 MB JSON、1 MB report、256 KB profile/modes_profile、10 MB CV upload。
-- 无 auth — single-tenant loopback only。LAN auth → P-12 (v2.0)。
-
-## 测试
-
-- `npm test` — **427** 单元 + 集成。`CAREER_OPS_ROOT=$(mktemp -d)` 隔离。
-- `npm run test:coverage` — **94 % 行 / 83 % 分支**。
-- `npm run test:e2e` — 20 smoke E2E。
-- `npm run test:e2e:full` — 23 comprehensive E2E。
-- `npm run test:e2e:browser` — **32** Playwright(smoke + full-cycle + auto-pipeline 场景)。
-
-## A11y (v1.17+)
-
-- ARIA roles:`banner`、`navigation`、`main`、`dialog`、`status`、`search`。
-- 模态焦点陷阱 + 恢复焦点到 click owner。
-- sidebar-toggle 的 `aria-expanded` 同步。
-- global search 标签经 `visually-hidden` 类。
-
-## 限制
-
-- **Single-tenant、loopback only** — 无登录、无多用户。
-- **PDF 需要父项目的 Playwright**。
-- **Live LLM 需要 ANTHROPIC_API_KEY 或 GEMINI_API_KEY**;无 key → manual prompt。
-- **Workday CAPTCHA-gated tenants** 落入 graceful fallback(no jobs);使用 `/career-ops scan`。
-
-## License
-
-MIT — 见 [LICENSE](LICENSE)。
+公共参考:[`docs/sdd/SDD-GUIDE.md`](docs/sdd/SDD-GUIDE.md)。所有规划产物位于 `.planning/`(已 gitignore)。`docs/` 树是长期存在的公共契约。
 
 ---
 
-## 为什么 career-ops-ui
+## API 参考
 
-career-ops 作为 CLI 出色:粘贴 URL → /career-ops → report + PDF + tracker 行。但 CLI 不显示:
+所有端点位于 `/api/*` 下。除非另有说明,均为 JSON 进 / JSON 出。
 
-- 每个扫描的职位的**可过滤表格视图**(filter chips、scope、salary、remote/hybrid 徽章);
-- 带 KPI 计数 + 最新扫描 + 最新报告的**仪表板**;
-- 用于 `cv.md` 的**markdown 编辑器** + 并排实时预览;
-- 报告 + apply-checklist + interview-prep 保存文件的**分页**;
-- **活动历史**,用于审计何时写入了什么。
+### Health & dashboard
 
-此 UI 保留 CLI 作为引擎(Claude Code / Codex / Cursor),并在相同的 `cv.md` / `data/applications.md` / `reports/` 之上添加 CRM 风格面板。数据共享。零锁定。
+| Method | 路径                     | 响应                                                                        |
+| ------ | ------------------------ | --------------------------------------------------------------------------- |
+| GET    | `/api/health`            | `{ ok, warnings, version, parentVersion, checks: [{name, ok, required, value?}] }` |
+| GET    | `/api/dashboard`         | `{ counts, avgScore, byStatus, recent, pipeline, lastReport }`              |
+| GET    | `/api/activity?limit&type` | `data/activity.jsonl` 审计日志尾部                                          |
+| GET    | `/api/help/:lang`        | 本地化的应用内用户指南(回退:`en.md`)                                     |
 
-## 要求
+### 应用设置(父项目 .env 往返)
 
-- **Node.js ≥ 18.** 在 20.x 和 22.x 上测试。
-- **macOS / Linux**(Windows 通过 WSL)。
-- **父 career-ops** 克隆在此仓库旁边(或 `CAREER_OPS_ROOT=…`)。
-- **可选**:Playwright + chromium(用于 PDF + auto-pipeline)。
-- **可选**:ANTHROPIC_API_KEY 或 GEMINI_API_KEY(无 key 时在 manual-prompt 模式下工作)。
+| Method | 路径             | 用途                                                                   |
+| ------ | ---------------- | ---------------------------------------------------------------------- |
+| GET    | `/api/config`    | 已知 env keys,密钥已遮蔽                                              |
+| POST   | `/api/config`    | 校验 + 写入父项目 `.env`;就地应用到 `process.env`                     |
 
-## 你获得什么 — 按页面
+### 数据文件
 
-| 页面 | 功能 |
-|---|---|
-| `#/dashboard` | KPIs + 最新扫描 + 最新报告 + ✨ Auto-pipeline CTA |
-| `#/scan` | 单个 🌐 Scan 按钮,扇出到 6 ATSes + hh.ru + Habr,实时 SSE log,可过滤结果表格 |
-| `#/pipeline` | URL 队列,inline 预览 SSRF-safe,dedup |
-| `#/evaluate` | JD → 0–5 分(Anthropic / Gemini / manual prompt) |
-| `#/batch` | batch evaluate offers 的 TSV 编辑器(v1.13+) |
-| `#/deep` | 按公司 + 角色的深度研究 |
-| `#/apply` | Apply 清单(form 字段 + key notes) |
-| `#/tracker` | 每次评估的 GFM 表格 + status / score 过滤器 |
-| `#/reports` | 分页的 markdown 报告列表 + score thresholds 卡片 |
-| `#/interview-prep` | 保存的研究文件 |
-| `#/cv` | Markdown 编辑器 + live preview + Generate PDF |
-| `#/profile` | YAML 预览 + Career framing 卡片(modes/_profile.md) |
-| `#/config` | API 密钥、Profile YAML、Modes 编辑器 |
-| `#/health` | 18 项系统状态检查 |
-| `#/activity` | 每个 state-changing 请求的审计日志 |
-| `#/help` | 16 个章节 × 8 个语言 |
+| Method | 路径                                | 用途                                                                   |
+| ------ | ----------------------------------- | ---------------------------------------------------------------------- |
+| GET    | `/api/tracker`                      | `{ rows: [parsed applications.md] }`                                   |
+| POST   | `/api/tracker`                      | body `{ company, role, score?, status?, url?, notes?, date? }` — 感知去重(对 company + role 不区分大小写) |
+| GET    | `/api/pipeline`                     | `{ urls: [...] }`                                                      |
+| POST   | `/api/pipeline`                     | body `{ url }` → 添加到 `data/pipeline.md`,带去重 + `isValidJobUrl` |
+| GET    | `/api/pipeline/preview?url=…`       | 服务端 fetch 代理(逐跳 SSRF 检查,≤3 redirects,8 KB 上限)            |
+| DELETE | `/api/pipeline?url=…`               | 移除一个 URL                                                           |
+| GET    | `/api/reports`                      | `reports/*.md` 的解析列表                                              |
+| GET    | `/api/reports/:slug`                | 完整 markdown + 解析后的 header                                        |
+| GET    | `/api/jds`                          | 已保存 JD 文件列表                                                     |
+| GET    | `/api/jds/:name`                    | text/plain — 原始 JD                                                   |
+| POST   | `/api/jds`                          | body `{ text, slug? }` → 保存到 `jds/`                                 |
+| DELETE | `/api/jds/:name`                    | unlink(需要 `.txt` 后缀)                                              |
+| GET    | `/api/cv`                           | `{ markdown }`                                                         |
+| PUT    | `/api/cv`                           | body `{ markdown }` → 写入 `cv.md`(XSS 已清除,≤1 MB)                |
+| GET    | `/api/profile`                      | `{ profile: yaml-parsed, raw: text }`                                  |
+| GET    | `/api/portals`                      | `{ portals: yaml-parsed, raw: text }`                                  |
+| GET    | `/api/modes`                        | mode 文件列表                                                          |
+| GET    | `/api/modes/:name`                  | text/plain — 原始 mode prompt                                          |
+| GET    | `/api/output/pdfs`                  | 已生成 PDF 列表                                                        |
+| GET    | `/api/output/pdfs/:name`            | 下载(`Content-Disposition: attachment`)                              |
+| GET    | `/api/interview-prep`               | 已保存的深度研究文件列表                                               |
+| GET    | `/api/interview-prep/:name`         | `{ name, markdown }`                                                   |
+| DELETE | `/api/interview-prep/:name`         | unlink(需要 `.md` 后缀)                                               |
+
+### 脚本运行器(buffered、一次性)
+
+| Method | 路径                    | 包装                        |
+| ------ | ----------------------- | --------------------------- |
+| POST   | `/api/run/doctor`       | `node doctor.mjs`           |
+| POST   | `/api/run/verify`       | `node verify-pipeline.mjs`  |
+| POST   | `/api/run/normalize`    | `node normalize-statuses.mjs` |
+| POST   | `/api/run/dedup`        | `node dedup-tracker.mjs`    |
+| POST   | `/api/run/merge`        | `node merge-tracker.mjs`    |
+| POST   | `/api/run/sync-check`   | `node cv-sync-check.mjs`    |
+
+所有 buffered 运行上限为 60 秒;5 秒宽限后 SIGTERM → SIGKILL 升级。
+
+### 流(SSE)
+
+| Method | 路径                          | 流式输出                            |
+| ------ | ----------------------------- | ----------------------------------- |
+| GET    | `/api/stream/scan`            | 旧版 `node scan.mjs`(子进程)      |
+| GET    | `/api/stream/scan?source=ats\|regional\|both` | 合并的进程内扫描 SSE — 查询:`dryRun=1`、`company=…`(仅 ATS)。 |
+| GET    | `/api/stream/liveness`        | `node check-liveness.mjs`           |
+| GET    | `/api/stream/pdf`             | `node generate-pdf.mjs`             |
+
+SSE 事件类型:
+
+```
+event: start    data: { script, args?, writeFiles? }
+event: log      data: { stream: "stdout"|"stderr", line: string }
+event: done     data: { code, counts?, errors? }
+event: error    data: { message }
+```
+
+### LLM 端点(Anthropic 优先 → Gemini → 手动回退)
+
+| Method | 路径                                | 用途                                                                             |
+| ------ | ----------------------------------- | -------------------------------------------------------------------------------- |
+| POST   | `/api/evaluate`                     | body `{ jd, save? }` → JD 评估(按 `oferta.md` 的 A–G 章节)                     |
+| POST   | `/api/evaluate/test-gemini`         | `GEMINI_API_KEY` 烟雾检查                                                        |
+| POST   | `/api/evaluate/test-anthropic`      | `ANTHROPIC_API_KEY` 烟雾检查                                                     |
+| POST   | `/api/deep`                         | body `{ company, role?, run? }` → 深度研究 prompt 或实时基于事实的 markdown        |
+| POST   | `/api/mode/:slug`                   | 通用 mode 运行器;allowlist:`batch`、`contacto`、`followup`、`interview-prep`、`patterns`、`project`、`training` |
+| POST   | `/api/apply-helper`                 | body `{ url, jd? }` → 申请清单                                                   |
+| GET    | `/api/scan-results`                 | `{ en: {when, fresh[], filtered[], errors[]}, ru: { ... } }` — 上次扫描          |
+| GET    | `/api/scan/regional/config`         | 有效的区域扫描器配置(queries、negatives、sources)。 |
+
+当 `/api/deep` 或 `/api/mode/:slug` 上设置 `run: true` 时,服务器优先使用 Anthropic(两个 key 同时存在时),将 `cv.md` + `config/profile.yml` + `modes/_shared.md` + 相关 mode 模板内联到 `<project_context>` 块中,并直接返回模型基于事实的 markdown。软上限:已组装 prompt 200 KB — 溢出返回 413。
+
+---
+
+## 测试
+
+```bash
+npm test                       # 284 个单元/集成测试
+npm run test:e2e               # 20 个烟雾 e2e(启动自己的服务器)
+npm run test:e2e:full          # 23 个综合 e2e
+npm run test:e2e:browser       # 12 个 Playwright 浏览器烟雾
+npm run test:coverage          # 同 `npm test` 加 V8 覆盖率
+```
+
+| 套件                       | 测试 | 内容                                                                                                       |
+| --------------------------- | ----- | ---------------------------------------------------------------------------------------------------------- |
+| `node --test tests/*.test.mjs`(unit + integration) | **284** | 每个端点,临时服务器,无网络。包含 parser、scanner(已 mock)、runner、anthropic、安全 header、XSS、JD sanitize、URL 校验、i18n 对等。 |
+| `tests/e2e.mjs`(smoke)      | 20    | Playwright headless:每个路由渲染,基本流程。                                                              |
+| `tests/e2e-comprehensive.mjs` | 23    | 完整 Playwright walkthrough:11 个路由 + 12 个功能流程。                                                   |
+| `tests/playwright-smoke.mjs`(`npm run test:e2e:browser`) | **12** | 浏览器驱动的烟雾:dashboard 渲染、导航、语言切换、404、health、tracker 往返(BF-1)、pipeline 添加 + 无效 URL 扫描、reports 空、evaluate 手动回退、config keys 已遮蔽、CV PUT XSS 清除、pipeline preview 400。 |
+| **总计**                   | **339** | **0 失败,0 flake**                                                                                        |
+
+覆盖率:通过 `--experimental-test-coverage` 得 ~93% 行 / ~83% 分支。
+
+解析器是纯函数(无 I/O)— 针对 `applications.md`、`pipeline.md` 和 `reports/*.md` 的真实数据片段进行测试。API 测试在临时端口启动 Express 应用,并对每个端点进行端到端演练。Scanner 测试 mock 了 `fetch`,因此即使 hh.ru 屏蔽你的 IP 也能通过。Playwright 浏览器烟雾针对进程内服务器运行,并通过父项目的 `node_modules` 解析 Playwright — `web-ui/` 中无新依赖。
+
+CI 在每次推送到 `main` 时,针对 Node 18 / 20 / 22 运行 unit + e2e + Playwright 矩阵。
+
+---
 
 ## 配置
 
-```bash
-# career-ops/.env
-ANTHROPIC_API_KEY=sk-ant-…          # 可选但推荐
-GEMINI_API_KEY=AIza…                # 可选 fallback
-ANTHROPIC_MODEL=claude-sonnet-4-6   # 可选 override
-GEMINI_MODEL=gemini-2.0-flash       # 可选 override
-PORT=4317                           # 可选,默认
-HOST=127.0.0.1                      # 可选,默认
-CAREER_OPS_ROOT=/path/to/career-ops # 可选,默认 ../
+环境变量(服务器启动时读取,除非另有说明均为可选):
+
+| 变量                 | 默认值             | 用途                                                                              |
+| -------------------- | ------------------ | --------------------------------------------------------------------------------- |
+| `PORT`               | `4317`             | Express 绑定端口                                                                  |
+| `HOST`               | `127.0.0.1`        | Express 绑定主机。非 loopback 时附加 CSP;v2.0.0 计划加入 auth gate。              |
+| `CAREER_OPS_ROOT`    | 从脚本起的 `..`    | 在哪里查找 `cv.md`、`data/`、`portals.yml`、`modes/` 等。                          |
+| `ANTHROPIC_API_KEY`  | 未设置             | 启用 `/api/evaluate`、`/api/deep`、`/api/mode/:slug` 实时模式(两个 key 同时设置时首选)。 |
+| `ANTHROPIC_MODEL`    | `claude-sonnet-4-6` | 覆盖 Anthropic 模型。                                                            |
+| `GEMINI_API_KEY`     | 未设置             | 转发给 `gemini-eval.mjs`,并用作 `/api/evaluate` 的回退。                         |
+| `GEMINI_MODEL`       | `gemini-2.0-flash` | 覆盖 Gemini 模型。                                                                |
+| `(server uses default UA)`      | 未设置  | 覆盖 hh.ru User-Agent(有助于减少来自非俄罗斯 IP 的 403)                          |
+
+本 UI 识别的 `portals.yml` 扩展(添加到父项目中你现有的文件):
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr"]
+  area: 113          # hh.ru area id
+  per_page: 50
+  only_remote: false
+  queries: ["Senior PHP", "Тимлид Go", ...]
 ```
+
+你也可以为任何公司条目扩展一个显式的 `api:` URL。参见 [`docs/portals-examples.md`](docs/portals-examples.md)(本仓库)了解 24 家已验证公司的现成可粘贴块。
+
+---
+
+## 安全说明
+
+- 默认情况下服务器绑定到 `127.0.0.1` — 除非显式 `HOST=0.0.0.0`,否则永远不会暴露到互联网。
+- 来自客户端的所有文件路径输入都被清理(`replace(/[^\w\-.]/g, '')`)。
+- 子进程调用使用 `spawn` 和参数数组 — **绝不进行 shell 插值**。
+- 流式端点在客户端断开时杀死子进程(无孤儿 scanner)。
+- 写入端点仅触碰已知的 career-ops 路径:`data/`、`jds/`、`cv.md`、`config/`、`portals.yml`、`output/`。其他位置一概不动。
+- 连接横幅在断开期间每 3 秒 ping 一次 `/api/health`,恢复时自动清除 — 无 toast 刷屏。
+
+---
+
+## 限制
+
+完全 LLM 驱动的 modes(`oferta`、`deep`、`contacto`、`apply`、`batch`、`patterns`、`followup`)需要 LLM 才能真正运行。Web UI 为你提供三个选项:
+
+1. **Anthropic(首选)** — 在父项目的 `.env` 中设置 `ANTHROPIC_API_KEY`。通过 `runAnthropic` 路由,自动内联 `cv.md` / `config/profile.yml` / `modes/_shared.md` / mode 模板(REVIEW-A1)。在 v1.8.0+ 中已使用 `claude-sonnet-4-6` 实测,对一次深度研究调用返回 26 KB 的基于事实的 markdown。
+2. **`gemini-eval.mjs`** 作为回退 — 仅设置 `GEMINI_API_KEY` 时开箱即用。
+3. **复制粘贴 prompt** — 未设置任何 key 时,UI 生成一个为 Claude Code / ChatGPT / Gemini Web 格式化的可直接使用的 prompt。
+
+Claude Code 中现有的 `/career-ops apply` Playwright 表单填写流程仍是真正自动填写申请表单的唯一方法 — UI 的 *Apply helper* 改为生成一个清单。
+
+关于 production-readiness 评估(部署门、风险登记、推迟工作),请参见 [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md)。TL;DR:可用于 single-tenant loopback;LAN 暴露等待 v2.0 P-12 auth gate。
+
+---
 
 ## 贡献
 
-欢迎 PR。遵循 [`docs/sdd/CONVENTIONS.md`](docs/sdd/CONVENTIONS.md):
+欢迎 issues 和 PRs。规则:
 
-- Conventional Commits(`feat`、`fix`、`docs`、`chore` 等)。
-- 测试覆盖 non-trivial 变更(`npm test` 必须通过)。
-- 没有规范中说明的话不增加 runtime deps。
-- 不编辑 parent 文件 — CLAUDE.md hard rule #1。
+- 推送前运行 `npm test` — **284 个检查全绿** 是底线(如果你触碰 UI,还要加上 12 个 Playwright)。
+- 非平凡的变更走 GSD 流水线。见 [`docs/sdd/SDD-GUIDE.md`](docs/sdd/SDD-GUIDE.md)。
+- 不要从本仓库内部修改父 `career-ops/` 项目中的任何内容。整个重点是这是一个非侵入式叠加层。硬规则见 [`CLAUDE.md`](CLAUDE.md)。
+- 约定式提交:`feat`、`fix`、`refactor`、`docs`、`test`、`chore`、`perf`、`ci`。可选 scope:`feat(scan):`。重大变更:`feat!:`。
+- 测试必须 CI 隔离 — 通过 `mkdtempSync` 或 `CAREER_OPS_ROOT=$(mktemp -d)` 引导 fixtures。
 
-Issues / discussions: <https://github.com/Fighter90/career-ops-ui/issues>。
+从非 Claude CLI(Codex、Aider、Cursor、Gemini)驱动仓库?阅读 [`AGENTS.md`](AGENTS.md) 或 [`GEMINI.md`](GEMINI.md) — 两者都垫片到规范的 `CLAUDE.md`。
+
+---
+
+---
+
+## 🌍 Getting Started — 安装后的第一步
+
+一键安装后,你有两个空的 git 克隆,带脚手架的起始 `cv.md`、`config/profile.yml`、`portals.yml`、`data/applications.md` 和 `data/pipeline.md` 文件,其中包含 **EDIT ME** 标记。Health 页面首次启动时应已全部为绿。用你的真实数据替换占位符:
+
+### 1. 创建你的 CV(`cv.md`)
+
+你有三个选项:
+
+- **选项 A — 粘贴现有简历:** 打开 `career-ops/cv.md`,用你的真实简历(干净的 markdown)替换 EDIT-ME 占位符(章节:Summary、Experience、Projects、Education、Skills)。越简单越好 — `career-ops` 将其作为纯文本读取。
+- **选项 B — 从 UI 上传:** 点击侧边栏中的 **CV** → **📁 上传 CV** → 选择 `.md` / `.txt` 文件 → 检查预览 → 点击 **💾 保存**。
+- **选项 C — 把你的 LinkedIn URL 给 Claude Code:** 在 `career-ops/` 中打开 Claude Code,运行 `/career-ops`,粘贴你的 LinkedIn URL,并请求 *"extract my CV from this and write it to cv.md"*。
+
+让每个指标都具体(例如 *"reduced p99 latency by 38%"* 而非 *"improved performance"*)。评估流水线直接从该文件读取指标。
+
+### 2. 编辑你的 profile(`config/profile.yml`)
+
+```bash
+$EDITOR career-ops/config/profile.yml
+```
+
+替换全名、邮箱、所在地、LinkedIn、目标角色、archetypes、薪资目标的占位符。**archetypes** 是最重要的字段 — 它们决定每个 JD 如何与你匹配。
+
+### 3. 调整扫描器(`portals.yml`)
+
+```bash
+$EDITOR career-ops/portals.yml
+```
+
+将 `title_filter.positive`(例如 `"PHP"`、`"Go"`、`"Backend"`、`"Senior"`)和 `title_filter.negative`(例如 `"Junior"`、`"Java"`、`"iOS"`)设置为你的技术栈和资历。预设的 `tracked_companies` 列表已经包含 3 个已验证的 Greenhouse / Ashby boards(GitLab、Vercel、Linear)。更多 24+ 个可直接粘贴的块,见 [`docs/portals-examples.md`](docs/portals-examples.md)。
+
+如果你想扫描 hh.ru / Habr Career,编辑安装脚本创建的 `russian_portals:` 块 — 添加你的搜索查询(例如 `"Senior PHP"`、`"Тимлид Go"`)。
+
+### 4.(可选)LLM API keys
+
+当两者同时存在时,UI 优先使用 Anthropic 而不是 Gemini。任一或都没有都可以 — 没有 key 时,**Evaluate** 改为返回一个用于 Claude Code 的复制粘贴 prompt。
+
+```bash
+# Anthropic(首选)
+echo "ANTHROPIC_API_KEY=sk-ant-..." >> career-ops/.env
+# Gemini(回退)
+echo "GEMINI_API_KEY=AIza..." >> career-ops/.env
+```
+
+或者通过 UI 中的 **App settings** 页(`/#/config`)设置它们 — 同一个文件,读取时遮蔽,立即应用到 `process.env`。
+
+### 5. 验证并开始工作
+
+刷新 Health 页面 — 每个必需的检查都应为绿。然后:
+
+1. 点击 **🌐 Scan** → 等待约 5 秒 → 扫描 Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday + hh.ru / Habr Career,职位出现在下方表格中。
+2. 点击任一标题 → 原始招聘信息在新标签页中打开。
+3. 通过 stack chip(PHP / Go / Backend / Senior)过滤,直到看到有希望的职位。
+4. 复制 URL → 粘贴到 **Pipeline** → 点击 **Evaluate** 实时打 0-5 分(Anthropic / Gemini),或获取一个手动 prompt。
+5. 报告落在 `reports/`,tracker 在 `data/applications.md`,实时深度研究在 `interview-prep/`。所有内容在 UI 中可见。
+
+> 本指南的翻译版本位于每个特定语言的 README 中:
+> [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) ·
+> [한국어](README.ko-KR.md) · [日本語](README.ja.md) ·
+> [Русский](README.ru.md) · [简体中文](README.zh-CN.md) ·
+> [繁體中文](README.zh-TW.md)
+
+---
+
+## 许可证
+
+MIT。见 [LICENSE](LICENSE)。
+
+基于 [santifer](https://santifer.io) 的 [career-ops](https://github.com/santifer/career-ops) 构建。感谢这条精彩的流水线。

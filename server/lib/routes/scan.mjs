@@ -3,7 +3,7 @@
  *
  * Routes registered:
  *   GET /api/stream/scan?source=ats|regional|both  — consolidated SSE entrypoint
- *   GET /api/scan/regional/config — current russian_portals: config (legacy alias: /api/scan-ru/config)
+ *   GET /api/scan/regional/config — current russian_portals: config
  *   GET /api/scan-results       — latest run snapshot from data/last-scan.json
  *
  * F-018: v1.18.0 retires the legacy `/api/stream/scan-{en,ru}` aliases
@@ -97,17 +97,15 @@ export function registerScanRoutes(app) {
   // Sunset header had been live since v1.15.0 (RFC 8594) — the migration
   // window is now closed.
 
-  // v1.19.0 — canonical regional-scanner config endpoint.
-  // /api/scan-ru/config kept as a thin alias for one release (v1.19→v1.20).
-  function regionalConfigHandler(_req, res) {
+  // v1.20.0 — sunset of /api/scan-ru/config alias completed.
+  // Canonical regional-scanner config endpoint.
+  app.get('/api/scan/regional/config', (_req, res) => {
     try {
       res.json(loadRuConfig());
     } catch (e) {
       res.status(500).json({ error: e.message });
     }
-  }
-  app.get('/api/scan/regional/config', regionalConfigHandler);
-  app.get('/api/scan-ru/config', regionalConfigHandler);
+  });
 
   // ─── Latest scan results (for table view in UI) ───
   app.get('/api/scan-results', (_req, res) => {

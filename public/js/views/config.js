@@ -91,12 +91,20 @@ Router.register('config', async () => {
 
   function fieldRow(spec) {
     const value = cfg.values[spec.key] || '';
+    // v1.20.0 — WCAG 1.3.1 / 3.3.2 association: each input is now
+    // wired to its hint via `aria-describedby` and to its label via
+    // `id` + `htmlFor`, so screen readers announce the hint text as
+    // the input gets focus.
+    const inputId = 'cfg-' + spec.key.toLowerCase().replace(/_/g, '-');
+    const hintId = inputId + '-hint';
     let input;
     if (spec.kind === 'select') {
       // Dropdown for known-enum fields (model selection).
       // Pre-select the saved value; if unset use the spec's default.
       const current = value || spec.defaultValue || '';
       input = c('select', {
+        id: inputId,
+        'aria-describedby': hintId,
         className: 'select',
         style: { minWidth: '300px', fontSize: '13px' },
         onChange: () => dirty.add(spec.key),
@@ -104,6 +112,8 @@ Router.register('config', async () => {
       input.value = current;
     } else {
       input = c('input', {
+        id: inputId,
+        'aria-describedby': hintId,
         className: 'input',
         type: spec.secret ? 'password' : 'text',
         placeholder: spec.secret && value
@@ -117,13 +127,13 @@ Router.register('config', async () => {
     }
     fields[spec.key] = input;
     return c('div', { className: 'field', style: { marginBottom: '20px' } }, [
-      c('label', { style: { fontWeight: 600, fontSize: '14px' } }, [
+      c('label', { htmlFor: inputId, style: { fontWeight: 600, fontSize: '14px' } }, [
         spec.label,
         spec.secret && value
           ? c('span', { style: { marginLeft: '10px', fontSize: '12px', color: 'var(--ok, #008a05)', fontWeight: 'normal' } }, '✓ set')
           : null,
       ]),
-      c('p', { style: { color: 'var(--foggy)', fontSize: '13px', margin: '4px 0 8px' } },
+      c('p', { id: hintId, style: { color: 'var(--foggy)', fontSize: '13px', margin: '4px 0 8px' } },
         t(spec.hintKey, spec.hintFallback)),
       input,
     ]);

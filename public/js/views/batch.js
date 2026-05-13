@@ -27,7 +27,11 @@ Router.register('batch', async () => {
   }
 
   // ── editor ──
+  // v1.20.0 — WCAG 1.3.1 / 3.3.2: TSV textarea + run-control inputs
+  // associated with hint paragraphs via aria-describedby.
   const textarea = c('textarea', {
+    id: 'batch-tsv',
+    'aria-describedby': 'batch-tsv-hint',
     className: 'textarea',
     rows: 14,
     style: { minHeight: '320px', fontFamily: 'ui-monospace, monospace', fontSize: '13px' },
@@ -47,15 +51,25 @@ Router.register('batch', async () => {
   }
 
   // ── run controls ──
-  const parallelSel = c('select', { className: 'select' }, [
+  const parallelSel = c('select', {
+    id: 'batch-parallel',
+    'aria-label': t('batch.parallelAria', 'Concurrent worker count'),
+    className: 'select',
+  }, [
     c('option', { value: '1' }, '1 ' + t('batch.atATime', 'at a time')),
     c('option', { value: '2' }, '2 ' + t('batch.parallel', 'parallel')),
     c('option', { value: '3' }, '3 ' + t('batch.parallel', 'parallel')),
   ]);
   parallelSel.value = '1';
-  const minScoreIn = c('input', { className: 'input', placeholder: 'min score (e.g. 4.0)', style: { maxWidth: '160px' } });
-  const dryRun = c('input', { type: 'checkbox' });
-  const retry = c('input', { type: 'checkbox' });
+  const minScoreIn = c('input', {
+    id: 'batch-min-score',
+    'aria-label': t('batch.minScoreAria', 'Minimum score threshold (e.g. 4.0)'),
+    className: 'input',
+    placeholder: 'min score (e.g. 4.0)',
+    style: { maxWidth: '160px' },
+  });
+  const dryRun = c('input', { type: 'checkbox', id: 'batch-dry-run' });
+  const retry = c('input', { type: 'checkbox', id: 'batch-retry' });
 
   const consoleEl = c('pre', { className: 'console', style: { maxHeight: '480px', overflow: 'auto' } });
 

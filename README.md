@@ -9,7 +9,7 @@
 [![playwright](https://img.shields.io/badge/playwright-28%20e2e-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.19.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.19.0)
+[![release](https://img.shields.io/badge/release-v1.20.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.20.0)
 
 ![career-ops-ui — Command Center](./images/dashboard-en.png)
 
@@ -383,7 +383,7 @@ event: error    data: { message }
 | POST   | `/api/mode/:slug`                   | generic mode runner; allowlist: `batch`, `contacto`, `followup`, `interview-prep`, `patterns`, `project`, `training` |
 | POST   | `/api/apply-helper`                 | body `{ url, jd? }` → application checklist                                      |
 | GET    | `/api/scan-results`                 | `{ en: {when, fresh[], filtered[], errors[]}, ru: { ... } }` — last scan         |
-| GET    | `/api/scan/regional/config`         | effective regional-scanner config (queries, negatives, sources). Legacy alias: `/api/scan-ru/config`. |
+| GET    | `/api/scan/regional/config`         | effective regional-scanner config (queries, negatives, sources). |
 
 When `run: true` is set on `/api/deep` or `/api/mode/:slug`, the server prefers Anthropic (when both keys present), inlines `cv.md` + `config/profile.yml` + `modes/_shared.md` + the relevant mode template into a `<project_context>` block, and returns the model's grounded markdown directly. Soft cap: 200 KB on the assembled prompt — overflow returns 413.
 

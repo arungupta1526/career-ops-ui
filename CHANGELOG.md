@@ -6,6 +6,75 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.20.0] — 2026-05-13
+
+**Per-component a11y polish + non-EN README parity + `/api/scan-ru/config` alias retired.** Closes the four items the v1.19.0 "Out of scope" table flagged for v1.20.
+
+### ♿ WCAG 2.5.5 / 2.5.8 — per-component touch-target audit
+
+- **`a11y(touch-target): chip min-height 28 px + 8 px gap (2.5.8 spaced-target exception)`** — `.chip` was 24 × ~50 px (vertical was 24, height failed 2.5.5's 24 px floor for clustered controls); the spaced-target exception of 2.5.8 requires either ≥ 24 × 24 px OR 24 px of clearance. Bumped `.chip` to `min-height: 28px; padding: 6px 12px;` and the wrapping `.chip-row` to `gap: 8px;` so both conditions hold.
+- **`a11y(touch-target): sidebar nav-item min-height 44 px`** — `.nav-item` padded only `10px 14px`, computed height ~36 px on most viewports. Now `padding: 12px 14px; min-height: 44px; box-sizing: border-box;`. Matches the `.btn` floor.
+- **`a11y(touch-target): tab-btn min-height 44 px`** — same treatment for Sortable Headers / category tabs across Reports, Tracker, Scan results.
+
+### ♿ WCAG 1.3.1 / 3.3.2 — `aria-describedby` on inline form hints
+
+Every form control across the SPA now owns a stable `id`, its `<label>` targets it via `htmlFor`, and any inline hint paragraph is associated via `aria-describedby`. Five view files were rewired:
+
+- **`a11y(forms): config.js`** — per-key `id` + hint association (`cfg-<key>` / `cfg-<key>-hint`).
+- **`a11y(forms): evaluate.js`** — `eval-jd` textarea + `eval-jd-hint` paragraph documenting the 50-char minimum after sanitization.
+- **`a11y(forms): batch.js`** — `batch-tsv` / `batch-tsv-hint`, plus `aria-label`s on `batch-parallel`, `batch-min-score`, `batch-dry-run`, `batch-retry`.
+- **`a11y(forms): pipeline.js`** — `pipe-filter` + `pipe-new-url` / `pipe-new-url-hint`.
+- **`a11y(forms): mode-page.js`** — every field across the 7 generic modes (`project`, `training`, `followup`, `batch-prompt`, `contacto`, `interview-prep`, `patterns`) gets `mode-<slug>-<name>` ids and `htmlFor` labels.
+
+`UI.el()` learned a React-style `htmlFor` alias so view code stays declarative — it sets the underlying `for` attribute (which is JS-reserved as a property name).
+
+### 🌍 Non-EN README parity
+
+- **`docs(readme): translate 7 locales to 585-line parity with EN master`** — `README.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md` were 306–316 lines (covered headlines but skipped the marketing-heavy walkthroughs and most of the API reference). All seven now mirror the EN structure end-to-end: About → One-command install → Why? → Quick start (3 numbered steps) → Requirements → What you get table → Scan → Architecture (full directory tree) → API reference (every route table) → Tests → Configuration → Security notes → Limitations → Contributing → 🌍 Getting Started 5-step walkthrough → License.
+
+### 🧹 `/api/scan-ru/config` alias retired
+
+- **`feat!(scan): remove /api/scan-ru/config legacy alias (sunset v1.20)`** — kept as a one-release alias in v1.19 for back-compat. Canonical `/api/scan/regional/config` is the only path now. Removed: route registration in `server/lib/routes/scan.mjs`, doc references in `README.md`, `docs/architecture/{OVERVIEW,SERVER,API}.md`. Tests already covered the canonical path — no test changes needed.
+
+### 🧪 Tests
+
+- Same suite as v1.19. **427 / 427** unit + 20/20 smoke + 23/23 comprehensive + 32/32 Playwright. All a11y wiring is additive (more `id` / `for` / `aria-describedby` attributes) — no behavioral changes, no test deltas.
+
+### Verification
+
+```bash
+npm test                              # 427 / 427
+npm run test:e2e:browser              # 32 / 32
+
+# Touch targets — every chip / nav-item / tab-btn ≥ 28 / 44 / 44 px:
+#   Chrome DevTools → Computed → height/min-height on .chip, .nav-item, .tab-btn
+
+# Form labels — every input has a label[for=…] association:
+#   document.querySelectorAll('input,textarea,select').forEach(el =>
+#     console.assert(el.labels?.length || el.getAttribute('aria-label'), el))
+
+# Alias gone:
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:4317/api/scan-ru/config
+# → 404
+
+# Canonical still works:
+curl -s http://127.0.0.1:4317/api/scan/regional/config | jq '.'
+```
+
+### Breaking changes
+
+- `DELETE /api/scan-ru/config` — gone. Use `/api/scan/regional/config`. Was announced as sunset in v1.19.0's CHANGELOG and verification script.
+
+### Out of scope (v1.21+)
+
+| Item | Notes |
+|---|---|
+| Inline-hint paragraphs for every mode-page field | Today only the `<label for=…>` association is in place; visible per-field hint copy is still EN-only in the SPA. The README walkthroughs document the field intent in every locale, so this is a polish item, not a blocker. |
+| Color-only state surfacing in `.connection-banner` and dashboard score pills (WCAG 1.4.1) | The banner relies on red/amber/green; needs an icon or text suffix for users who can't perceive hue. |
+| Locale-specific CHANGELOG body translations | English-bodied stop-gaps remain in `CHANGELOG.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md`. Translation happens once the v1.x release cadence slows. |
+
+---
+
 ## [1.19.0] — 2026-05-13
 
 **WCAG 1.4.3 contrast + scan unification (final) + HH_USER_AGENT removed from UI.** Closes the v1.18 out-of-scope contrast audit, finishes the EN/RU split elimination begun in v1.18, and removes the `HH_USER_AGENT` configuration knob from the UI per user direction (a sensible default bundled in the server already handles non-RU IPs for most users).

@@ -188,6 +188,10 @@ window.UI = (function () {
       else if (k === 'style') Object.assign(e.style, v);
       else if (k.startsWith('on') && typeof v === 'function') e.addEventListener(k.slice(2).toLowerCase(), v);
       else if (k === 'html') e.innerHTML = v;
+      // v1.20.0 — `htmlFor` is the React-style alias for `for` on
+      // <label> elements. Translate to the real attribute so a11y
+      // associations land correctly.
+      else if (k === 'htmlFor') e.setAttribute('for', v);
       else if (v !== false && v != null) e.setAttribute(k, v);
     }
     if (children) {

@@ -11,14 +11,25 @@ Router.register('pipeline', async () => {
   let previewLoading = false;
 
   // ── elements ──
+  // v1.20.0 — WCAG 1.3.1: every interactive input owns an id +
+  // accessible name. `aria-label` covers placeholder-only inputs
+  // (no visible label sibling).
   const filterInput = c('input', {
+    id: 'pipe-filter',
+    'aria-label': t('pipe.filter', 'Filter URLs…'),
     className: 'input',
     placeholder: t('pipe.filter', 'Filter URLs…'),
     style: { maxWidth: '320px' },
   });
   const list = c('div', { id: 'pipeline-list', className: 'card', style: { display: 'flex', flexDirection: 'column', gap: '6px' } });
   const previewPane = c('div', { className: 'card', style: { minHeight: '120px' } });
-  const newUrl = c('input', { className: 'input', placeholder: t('pipe.placeholder') });
+  const newUrl = c('input', {
+    id: 'pipe-new-url',
+    'aria-label': t('pipe.placeholder'),
+    'aria-describedby': 'pipe-new-url-hint',
+    className: 'input',
+    placeholder: t('pipe.placeholder'),
+  });
   const counter = c('strong');
 
   function shortHost(url) {
@@ -225,7 +236,7 @@ Router.register('pipeline', async () => {
           },
         }, '+ ' + t('common.add')),
       ]),
-      c('p', { className: 'field-hint mt-3', style: { margin: '12px 0 0' } }, t('pipe.hint')),
+      c('p', { id: 'pipe-new-url-hint', className: 'field-hint mt-3', style: { margin: '12px 0 0' } }, t('pipe.hint')),
     ]),
 
     c('div', { className: 'flex gap-3 mb-3', style: { alignItems: 'center', flexWrap: 'wrap' } },

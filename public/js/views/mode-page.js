@@ -138,7 +138,13 @@
     }).catch(() => {});
 
     function field(spec) {
+      // v1.20.0 — WCAG 1.3.1 / 3.3.2: each control gets a stable id so the
+      // label can target it via htmlFor. Per-mode prefix keeps ids unique
+      // when more than one mode view is in the DOM (Router only mounts one
+      // at a time, but defence-in-depth here is cheap).
+      const inputId = `mode-${cfg.slug}-${spec.name}`;
       const opts = {
+        id: inputId,
         className: spec.type === 'textarea' ? 'textarea' : 'input',
         placeholder: t(spec.i18n.placeholder, spec.i18n.placeholder),
       };
@@ -146,7 +152,7 @@
       const el = c(spec.type, opts);
       fields[spec.name] = el;
       return c('div', { className: 'field' }, [
-        c('label', null, t(spec.i18n.label, spec.i18n.label)),
+        c('label', { htmlFor: inputId }, t(spec.i18n.label, spec.i18n.label)),
         el,
       ]);
     }
