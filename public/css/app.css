@@ -551,7 +551,10 @@ table.tbl th {
   letter-spacing: 0.5px;
 }
 table.tbl tr:last-child td { border-bottom: none; }
-table.tbl tr:hover td { background: #fafafa; }
+table.tbl tr:hover td { background: var(--beach); }
+/* v1.13.0 — boosted rows (seniority_boost match) get a subtle accent
+   strip so they're scannable even in dark mode. */
+table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch); }
 
 /* ───────────────────────── forms ───────────────────────── */
 .field { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); }
@@ -811,9 +814,9 @@ table.tbl tr:hover td { background: #fafafa; }
    the view file; isolate the visual treatment here. */
 .tab-btn {
   appearance: none;
-  border: 1px solid var(--cement, #d8d8d8);
-  background: var(--white, #fff);
-  color: var(--hof, #222);
+  border: 1px solid var(--slate);
+  background: var(--paper);
+  color: var(--hof);
   border-radius: 8px;
   padding: 8px 16px;
   font-size: 13.5px;
@@ -821,9 +824,9 @@ table.tbl tr:hover td { background: #fafafa; }
   cursor: pointer;
   transition: background var(--transition), border-color var(--transition);
 }
-.tab-btn:hover { background: var(--bone, #f7f7f7); }
+.tab-btn:hover { background: var(--beach); }
 .tab-btn.is-active {
-  background: var(--rausch, #ff385c);
-  border-color: var(--rausch, #ff385c);
+  background: var(--rausch);
+  border-color: var(--rausch);
   color: #fff;
 }

@@ -17,41 +17,29 @@ import { addPipelineUrl } from './parsers.mjs';
 import { fetchGreenhouse } from './sources/greenhouse.mjs';
 import { fetchAshby } from './sources/ashby.mjs';
 import { fetchLever } from './sources/lever.mjs';
+// v1.13.0 — adapter registry. detectApi() + FETCHERS below preserve the
+// pre-registry API for backwards compatibility (any external caller of
+// detectApi keeps working), but the registry is now the canonical truth.
+// The next ATS we add goes only into ALL_ADAPTERS — no scanner change.
+import { resolveAdapter, ALL_ADAPTERS } from './portals/registry.mjs';
 
 const CONCURRENCY = 8;
 
+/**
+ * Detect which ATS adapter handles a company entry. v1.13.0 delegates
+ * to the new registry (`server/lib/portals/registry.mjs`). The return
+ * shape `{ type, url }` is preserved so any external code that imports
+ * `detectApi` keeps working.
+ */
 export function detectApi(company) {
-  const url = company.careers_url || '';
-  if (company.api && company.api.includes('greenhouse')) {
-    return { type: 'greenhouse', url: company.api };
-  }
-  if (company.api && company.api.includes('ashbyhq')) {
-    return { type: 'ashby', url: company.api };
-  }
-  if (company.api && company.api.includes('lever.co')) {
-    return { type: 'lever', url: company.api };
-  }
-  // Auto-detection from careers_url
-  const ashbyMatch = url.match(/jobs\.ashbyhq\.com\/([^/?#]+)/);
-  if (ashbyMatch) return {
-    type: 'ashby',
-    url: `https://api.ashbyhq.com/posting-api/job-board/${ashbyMatch[1]}?includeCompensation=true`,
-  };
-  const leverMatch = url.match(/jobs\.lever\.co\/([^/?#]+)/);
-  if (leverMatch) return { type: 'lever', url: `https://api.lever.co/v0/postings/${leverMatch[1]}` };
-  const ghMatch = url.match(/job-boards(?:\.eu)?\.greenhouse\.io\/([^/?#]+)/);
-  if (ghMatch) return {
-    type: 'greenhouse',
-    url: `https://boards-api.greenhouse.io/v1/boards/${ghMatch[1]}/jobs`,
-  };
-  return null;
+  const m = resolveAdapter(company);
+  if (!m) return null;
+  return { type: m.adapter.id, url: m.endpoint };
 }
 
-const FETCHERS = {
-  greenhouse: fetchGreenhouse,
-  ashby: fetchAshby,
-  lever: fetchLever,
-};
+// v1.13.0 — FETCHERS table sourced from the registry. Any new adapter
+// added to ALL_ADAPTERS automatically becomes callable here.
+const FETCHERS = Object.fromEntries(ALL_ADAPTERS.map((a) => [a.id, a.fetch]));
 
 function loadPortals() {
   if (!existsSync(PATHS.portals)) return {};

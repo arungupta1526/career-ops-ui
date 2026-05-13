@@ -6,6 +6,46 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.13.0] — 2026-05-13
+
+Big slice. Closes all 4 deferred items from the post-v1.12.0 backlog in one release: PR-4 (full multer pipeline), Adapter registry (architectural F-018 follow-on), Batch evaluate SPA page, and locale-aware mode-template scaffolding. Plus a mid-session dark-theme table fix.
+
+### ✨ Features
+
+- **`feat(cv): multer-based multipart upload (PR-4 full)`** — `/api/cv/import` now accepts BOTH the original octet-stream contract (`Content-Type: application/octet-stream` + `X-Filename`) AND `multipart/form-data` properly parsed via multer. The v1.10.2 415-reject was a stopgap; v1.13.0 is the real fix. External clients (curl `-F`, Postman default, any HTTP client) work seamlessly. Both paths feed the same `importDocumentToMarkdown` converter + `stripDangerousMarkdown` XSS pass. New dep: `multer ^2.1.1`.
+- **`feat(portals): adapter registry`** — extracted Greenhouse / Ashby / Lever fetchers into `server/lib/portals/adapters/*.mjs` with a uniform contract (`id`, `label`, `matches`, `buildEndpoint`, `fetch`). New `server/lib/portals/registry.mjs::resolveAdapter()` is the single dispatch surface. `en-scanner.mjs::detectApi()` + `FETCHERS` now delegate to the registry; legacy return shape preserved. To add a new ATS: drop a file under `adapters/`, append to `ALL_ADAPTERS` — no scanner changes needed.
+- **`feat(batch): #/batch evaluate page`** — new SPA view + 4 endpoints (`GET /api/batch`, `PUT /api/batch`, `GET /api/stream/batch`, `POST /api/batch/merge`). TSV editor for `batch/batch-input.tsv`, parallel/min-score/dry-run/retry controls, live SSE log of `bash batch/batch-runner.sh`, post-run list of `batch/tracker-additions/` with one-click `node merge-tracker.mjs`. Sidebar link under Decision group. 21 new i18n keys × 8 locales.
+- **`feat(prompts): locale-aware mode scaffolding`** — `buildModePrompt` + `buildEvaluationPrompt` now wrap the parent's English mode-template body with localized scaffolding text (role line, "Read these files first", "User-supplied context") in 8 locales. The parent's `modes/<slug>.md` body stays English (read-only per CLAUDE.md hard rule #1); the career-ops-ui scaffolding around it is translated.
+
+### 🎨 UX fixes
+
+- **`fix(theme): dark-mode table hover + tab-btn`** — hardcoded `#fafafa` / `#fff` / `#f7f7f7` replaced with `var(--beach)` / `var(--paper)` / `var(--slate)` tokens so the dark palette swap actually reaches table rows and tab buttons. Adds `.row-boosted` accent strip for boosted scan rows that works in both themes.
+
+### 🧪 Tests
+
+- New `tests/adapter-registry.test.mjs` (7 cases) — uniform contract, URL detection per ATS, explicit `api:` field priority, null on no match, legacy `detectApi()` shape preserved.
+- New `tests/batch-endpoints.test.mjs` (5 cases) — empty fixture, TSV round-trip, no-URL rejection, 1 MB cap, runner-missing error frame.
+- New `tests/locale-scaffold.test.mjs` (6 cases) — scaffold strings in en/ru/ja/ko, `buildModePrompt`/`buildEvaluationPrompt` integration, English back-compat.
+- `tests/cv-upload-multipart-reject.test.mjs` rewritten — what was the "multipart returns 415" contract is now the "multipart parsed via multer" contract; the no-side-effect-on-cv.md invariant is preserved.
+- Total: **379 / 379** unit tests (was 360; +19 net). 0 failures.
+- Coverage: **95.46 % line / 84.06 % branch**.
+- 20/20 smoke E2E · 23/23 comprehensive E2E · 28/28 Playwright.
+
+### Out of scope (deferred follow-up work)
+
+| Item | Notes |
+|---|---|
+| 14 new portal adapters (Workable / SmartRecruiters / Workday / GitLab / HashiCorp / Cloudflare / Datadog / Stripe / Notion / Linear / Posthog / Hugging Face / Replicate / Modal Labs / Fly.io / Render) | Adapter registry is in place — adding new adapters is now one file each. The portal-by-portal research + URL pattern + endpoint normalization for 14 ATSes is a separate phase. |
+| Translating parent's `modes/<slug>.md` bodies | Parent files are read-only per CLAUDE.md hard rule #1. v1.13.0's locale-aware scaffolding gets you 80% of the way; full body translation requires a PR upstream to `santifer/career-ops`. |
+
+### Docs
+
+- `docs/reviews/REVIEW-2026-05-13-v1.13.0.md` — session context + adapter registry contract + batch flow.
+- All 8 READMEs: badge bumps (tests 360 → 379, release v1.12.0 → v1.13.0).
+- All 8 CHANGELOGs receive this entry.
+
+---
+
 ## [1.12.0] — 2026-05-13
 
 Bug-fix + UX + branding pass. Closes 8 items from the post-v1.11.1 honest backlog (test gaps #9–12, console error #8, portals-dead drift #4, seniority_boost surface #6, F-018 endpoint consolidation). Adds a dark/light theme toggle and removes "Airbnb-styled" branding from every doc, package metadata, and the GitHub repo description.

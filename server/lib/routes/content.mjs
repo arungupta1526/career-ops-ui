@@ -14,12 +14,23 @@
  * malformed input fails fast with 400.
  */
 import express from 'express';
+import multer from 'multer';
 import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import yaml from 'js-yaml';
 import { PATHS, path as projPath } from '../paths.mjs';
 import { stripDangerousMarkdown } from '../security.mjs';
 import { importDocumentToMarkdown, MAX_UPLOAD_BYTES } from '../cv-import.mjs';
+
+// v1.13.0 (PR-4 full) — multer for proper multipart parsing. The
+// v1.10.2 415-reject path was a stopgap; this is the real fix. Memory
+// storage so we hand the same Buffer to importDocumentToMarkdown
+// without writing to disk first. Size cap mirrors the octet-stream
+// limit (10 MB).
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 },
+});
 
 export function registerContentRoutes(app) {
   // ─── CV ───
@@ -42,54 +53,72 @@ export function registerContentRoutes(app) {
   });
 
   // ─── CV import ───
-  // Binary-safe upload: express.raw stops the global JSON parser from
-  // mangling the buffer; we cap payload size before it reaches us.
+  // v1.13.0 (PR-4 full) — accepts BOTH:
+  //   • Content-Type: application/octet-stream + X-Filename: <name>
+  //     (the original SPA contract — preserved verbatim, no behavior
+  //     change for existing clients).
+  //   • Content-Type: multipart/form-data with a `file` field
+  //     (curl -F file=@cv.docx, Postman default, any standard HTTP
+  //     client). The previous v1.10.2 415-reject was a stopgap; multer
+  //     now parses the multipart envelope properly and extracts the
+  //     first file part regardless of field name.
   //
-  // Contract (F-016 hardening): the request body MUST be the file bytes
-  // verbatim with Content-Type: application/octet-stream and an
-  // X-Filename header. multipart/form-data is REJECTED with 415 — the
-  // route does not parse multipart envelopes, and silently storing the
-  // wire envelope as cv.md content was the corruption vector flagged in
-  // qa/fixes/F-016. If you have a multipart-only client, use the SPA
-  // upload flow which already sends raw octet-stream.
+  // Both paths feed the same `importDocumentToMarkdown` converter and
+  // the same `stripDangerousMarkdown` XSS pass — no behaviour drift.
+  // Conversion errors come back as 422 with `{ ok:false, error, hint }`;
+  // payload-too-large is caught by the global error handler from F-019
+  // and returned as 413 JSON.
   app.post(
     '/api/cv/import',
-    express.raw({ type: '*/*', limit: MAX_UPLOAD_BYTES }),
+    // Dispatch on Content-Type. multer's `.any()` accepts any field name;
+    // express.raw handles the original octet-stream wire format. Both
+    // run with the same `MAX_UPLOAD_BYTES` cap.
+    (req, res, next) => {
+      const ct = (req.headers['content-type'] || '').toLowerCase();
+      if (ct.startsWith('multipart/')) return upload.any()(req, res, next);
+      return express.raw({ type: '*/*', limit: MAX_UPLOAD_BYTES })(req, res, next);
+    },
     async (req, res) => {
+      let buf = null;
+      let filename = 'upload.txt';
+
       const ct = (req.headers['content-type'] || '').toLowerCase();
       if (ct.startsWith('multipart/')) {
-        return res.status(415).json({
-          ok: false,
-          error: 'multipart/form-data is not supported',
-          hint: 'POST the file bytes directly with Content-Type: application/octet-stream and X-Filename: <name>',
-        });
+        // multer populated req.files with parsed parts.
+        const file = (req.files && req.files[0]) || null;
+        if (!file) {
+          return res.status(400).json({
+            ok: false,
+            error: 'multipart body has no file part',
+            hint: 'send a `file` field with the file bytes',
+          });
+        }
+        buf = file.buffer;
+        filename = file.originalname || 'upload.bin';
+      } else {
+        // Original octet-stream path. X-Filename gives the extension hint.
+        filename = (req.headers['x-filename'] || 'upload.txt').toString();
+        buf = Buffer.isBuffer(req.body) ? req.body : null;
+        if (!buf || buf.length === 0) {
+          return res.status(400).json({
+            error: 'empty body — upload the file as the request body with X-Filename header',
+          });
+        }
+        // Defense in depth: octet-stream with multipart bytes inside is
+        // a misconfigured client. Still reject — this is unambiguously wrong.
+        const preview = buf.slice(0, 256).toString('latin1');
+        if (/Content-Disposition:\s*form-data/i.test(preview)) {
+          return res.status(415).json({
+            ok: false,
+            error: 'request body looks like multipart/form-data under octet-stream Content-Type',
+            hint: 'either switch to Content-Type: multipart/form-data, or POST raw bytes',
+          });
+        }
       }
-      const filename = (req.headers['x-filename'] || 'upload.txt').toString();
-      const buf = Buffer.isBuffer(req.body) ? req.body : null;
-      if (!buf || buf.length === 0) {
-        return res.status(400).json({ error: 'empty body — upload the file as the request body with X-Filename header' });
-      }
-      // Defense in depth: even with octet-stream, refuse a body that
-      // contains a multipart preamble. Catches misconfigured clients
-      // that set Content-Type wrong but still send the wire envelope.
-      // RFC 2046 boundaries can be 1–70 chars; we don't validate the
-      // boundary itself, we sniff for `Content-Disposition: form-data`
-      // near the top of the buffer (always present in real multipart).
-      const preview = buf.slice(0, 256).toString('latin1');
-      if (/Content-Disposition:\s*form-data/i.test(preview)) {
-        return res.status(415).json({
-          ok: false,
-          error: 'request body looks like multipart/form-data',
-          hint: 'POST the file bytes directly, not a multipart wire envelope',
-        });
-      }
+
       try {
         const result = await importDocumentToMarkdown(buf, filename);
-        if (!result.ok) {
-          return res.status(422).json(result);
-        }
-        // Sanitize the converted markdown the same way PUT /api/cv does
-        // so an HTML upload with an inline <script> can't slip through.
+        if (!result.ok) return res.status(422).json(result);
         result.markdown = stripDangerousMarkdown(result.markdown);
         res.json(result);
       } catch (e) {

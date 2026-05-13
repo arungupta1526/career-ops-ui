@@ -50,6 +50,11 @@ export const PATHS = {
   outputDir: path('output'),
   modesDir: path('modes'),
   interviewPrepDir: path('interview-prep'),
+  // v1.13.0 — batch evaluate flow (canonical career-ops.org guide §4).
+  batchDir: path('batch'),
+  batchInput: path('batch', 'batch-input.tsv'),
+  batchRunner: path('batch', 'batch-runner.sh'),
+  batchAdditionsDir: path('batch', 'tracker-additions'),
   cv: path('cv.md'),
   profile: path('config', 'profile.yml'),
   portals: path('portals.yml'),

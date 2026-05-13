@@ -70,7 +70,13 @@
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('v=', d.get\\('version'\\), ' ok=', d.get\\('ok'\\)\\)\")",
       "Bash(node --test tests/canonical-docs-coverage.test.mjs)",
       "Bash(node --test tests/scan-consolidated.test.mjs)",
-      "Bash(awk '/name: Ada$/,/^$/' ../templates/portals.example.yml)"
+      "Bash(awk '/name: Ada$/,/^$/' ../templates/portals.example.yml)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}' 'http://127.0.0.1:4317/api/stream/scan?source=__TRACKED_VAR__&dryRun=1' --max-time 5)",
+      "Bash(curl -sf -o /dev/null -w \"HTTP %{http_code} · size %{size_download}b\\\\n\" http://127.0.0.1:4317/js/lib/theme-bootstrap.js)",
+      "Bash(node --test tests/cv-upload-multipart-reject.test.mjs)",
+      "Bash(node --test tests/adapter-registry.test.mjs)",
+      "Bash(node --test tests/batch-endpoints.test.mjs)",
+      "Bash(node --test tests/locale-scaffold.test.mjs)"
     ]
   }
 }

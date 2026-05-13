@@ -64,25 +64,45 @@ test('CV import: SPA path (octet-stream + X-Filename .md) returns 200 with clean
   assert.ok(!/form-data/.test(data.markdown), 'must not contain form-data marker');
 });
 
-test('CV import: multipart Content-Type returns 415 with hint', async () => {
+test('CV import (v1.13.0): multipart/form-data now works (PR-4 full multer pipeline)', async () => {
   // Hand-craft a multipart body so we don't depend on FormData polyfills.
+  // v1.10.2 returned 415 here as a stopgap; v1.13.0 parses multer properly
+  // and the upload round-trips just like the octet-stream path.
   const boundary = '----TestBoundary-' + Date.now();
   const body =
     `--${boundary}\r\n` +
     `Content-Disposition: form-data; name="file"; filename="cv.md"\r\n` +
     `Content-Type: text/markdown\r\n\r\n` +
-    `# Multipart CV\n` +
+    `# Multipart CV via multer\n` +
     `\r\n--${boundary}--\r\n`;
   const res = await fetch(baseUrl + '/api/cv/import', {
     method: 'POST',
     headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
     body,
   });
-  assert.equal(res.status, 415);
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.ok, true);
+  assert.match(data.markdown, /Multipart CV via multer/);
+  // Critical: the markdown is clean — no Content-Disposition envelope leak.
+  assert.ok(!/Content-Disposition/.test(data.markdown));
+  assert.ok(!/boundary/.test(data.markdown));
+});
+
+test('CV import (v1.13.0): multipart with NO file part returns 400 JSON', async () => {
+  // multer parses an empty multipart body without error; the route
+  // detects req.files.length === 0 and returns a friendly 400.
+  const boundary = '----EmptyBoundary-' + Date.now();
+  const body = `--${boundary}--\r\n`;
+  const res = await fetch(baseUrl + '/api/cv/import', {
+    method: 'POST',
+    headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
+    body,
+  });
+  assert.equal(res.status, 400);
   const data = await res.json();
   assert.equal(data.ok, false);
-  assert.match(data.error, /multipart/);
-  assert.match(data.hint, /application\/octet-stream/);
+  assert.match(data.error, /no file part/);
 });
 
 test('CV import: octet-stream BUT body bytes look like multipart envelope also returns 415 (defense in depth)', async () => {
@@ -115,23 +135,31 @@ test('CV import: empty body returns 400', async () => {
   assert.equal(res.status, 400);
 });
 
-test('CV import does NOT touch cv.md when the request is rejected (multipart path)', async () => {
+test('CV import (v1.13.0): /api/cv/import never writes to cv.md (returns converted markdown only)', async () => {
+  // The contract is: /api/cv/import CONVERTS but never PERSISTS. To save,
+  // the user (or SPA) must explicitly call PUT /api/cv with the markdown.
+  // This invariant matters because the v1.10.2 corruption bug was about
+  // /api/cv/import silently writing to cv.md. v1.13.0's multer pipeline
+  // returns 200 on a multipart upload — verify that cv.md ON DISK is
+  // still unchanged after a successful conversion.
   const before = await fetch(baseUrl + '/api/cv').then((r) => r.json());
 
-  const boundary = '----RejectTest-' + Date.now();
+  const boundary = '----NoSideEffectTest-' + Date.now();
   const body =
     `--${boundary}\r\n` +
-    `Content-Disposition: form-data; name="file"; filename="cv.md"\r\n\r\n` +
-    `# Should never reach disk\n` +
+    `Content-Disposition: form-data; name="file"; filename="upload.md"\r\n\r\n` +
+    `# Body that lands in the response, never on disk\n` +
     `\r\n--${boundary}--\r\n`;
-  const rej = await fetch(baseUrl + '/api/cv/import', {
+  const r = await fetch(baseUrl + '/api/cv/import', {
     method: 'POST',
     headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
     body,
   });
-  assert.equal(rej.status, 415);
+  assert.equal(r.status, 200);  // conversion succeeded
+  const data = await r.json();
+  assert.match(data.markdown, /Body that lands in the response/);
 
-  // cv.md is untouched.
+  // cv.md on disk is unchanged — /api/cv/import is convert-only.
   const after = await fetch(baseUrl + '/api/cv').then((r) => r.json());
   assert.equal(after.markdown, before.markdown);
 });

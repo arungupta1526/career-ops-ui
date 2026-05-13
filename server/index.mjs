@@ -25,6 +25,7 @@ import { registerContentRoutes } from './lib/routes/content.mjs';
 import { registerHealthRoutes } from './lib/routes/health.mjs';
 import { registerHelpRoutes } from './lib/routes/help.mjs';
 import { registerJdsRoutes } from './lib/routes/jds.mjs';
+import { registerBatchRoutes } from './lib/routes/batch.mjs';
 import { registerLlmRoutes } from './lib/routes/llm.mjs';
 import { registerPipelineRoutes } from './lib/routes/pipeline.mjs';
 import { registerReportsRoutes } from './lib/routes/reports.mjs';
@@ -104,6 +105,7 @@ export function createApp() {
   registerContentRoutes(app);         // CV / Profile / Portals / Modes
   registerRunnerRoutes(app);          // buffered /api/run/* + streaming /api/stream/{scan,liveness,pdf} + /api/output/pdfs
   registerScanRoutes(app);            // in-process /api/stream/scan-{ru,en} + /api/scan-results
+  registerBatchRoutes(app);           // v1.13.0 — /api/batch + /api/stream/batch + /api/batch/merge
   registerLlmRoutes(app);             // /api/evaluate, /api/deep, /api/mode/:slug, /api/apply-helper, /api/interview-prep
   // ───────────────────────────── Catch-all → SPA ─────────────────────────────
 
