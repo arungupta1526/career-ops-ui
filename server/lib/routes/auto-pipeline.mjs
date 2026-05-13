@@ -1,0 +1,358 @@
+/**
+ * v1.16.0 — POST /api/auto-pipeline (G-007 follow-up).
+ *
+ * Server-side SSE orchestrator that chains the 5-step canonical
+ * career-ops.org pipeline:
+ *
+ *   1. validate URL              → isValidJobUrl (SSRF gate)
+ *   2. fetch JD                  → SSRF-safe proxy with DNS-rebind guard
+ *   3. evaluate against CV       → runAnthropic / runNodeScript('gemini-eval')
+ *   4. save report               → writes parent reports/<slug>.md
+ *   5. append tracker row        → writes parent data/applications.md
+ *
+ * SSE events:
+ *   start  → { steps: 5, url }
+ *   step   → { i, key, label, status: 'running'|'done'|'failed', detail? }
+ *   done   → { slug, score, legitimacy, reportPath, trackerNum, company, role }
+ *   error  → { step, message }
+ *
+ * Compared to the client-side orchestrator (v1.15 PR-C), this:
+ *  - emits real-time progress during long Anthropic calls (the client-side
+ *    version showed a generic spinner for 30-60 s);
+ *  - persists the report markdown to reports/<slug>.md (PR-I follow-up);
+ *  - is curl-able for CI / smoke tests;
+ *  - keeps a clean failure boundary — any step error → SSE error event,
+ *    stops the chain, returns what was completed.
+ *
+ * PDF generation stays a separate explicit step on the client (the
+ * existing /api/stream/pdf/inline endpoint handles it). Folding PDF
+ * into this SSE would double the time budget; users can trigger PDF
+ * from #/reports/<slug> after auto-pipeline completes.
+ */
+import { writeFileSync, readFileSync, mkdirSync, existsSync } from 'node:fs';
+import { lookup as dnsLookupCb } from 'node:dns';
+import { promisify } from 'node:util';
+
+import { PATHS, path as projPath } from '../paths.mjs';
+import { isValidJobUrl, isPrivateOrLoopbackHost, sanitizeJobDescription } from '../security.mjs';
+import { runAnthropic, hasAnthropicKey, hasGeminiKey } from '../anthropic.mjs';
+import { runNodeScript } from '../runner.mjs';
+import { bundleProjectContext, buildEvaluationPrompt } from '../prompts.mjs';
+import { stripDangerousMarkdown } from '../security.mjs';
+import { parseApplications, today } from '../parsers.mjs';
+import { logActivity } from '../activity-log.mjs';
+
+const dnsLookup = promisify(dnsLookupCb);
+
+const FETCH_TIMEOUT_MS = 30_000;
+const FETCH_MAX_REDIRECTS = 3;
+const FETCH_MAX_BODY_BYTES = 64 * 1024;
+const EVAL_TIMEOUT_MS = 180_000;       // 3 min — Anthropic can take 60-90s
+const PROMPT_SIZE_SOFT_CAP = 200 * 1024;
+const STEPS = [
+  { key: 'validate', label: 'Validating URL' },
+  { key: 'fetch',    label: 'Fetching job description' },
+  { key: 'evaluate', label: 'Evaluating against your CV' },
+  { key: 'report',   label: 'Saving report' },
+  { key: 'tracker',  label: 'Adding to tracker' },
+];
+
+function openSse(res) {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    Connection: 'keep-alive',
+    'X-Accel-Buffering': 'no',
+  });
+  return (event, data) => {
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+}
+
+async function fetchJobDescription(url, signal) {
+  let current = url;
+  let hops = 0;
+  while (true) {
+    try {
+      const host = new URL(current).hostname;
+      const { address } = await dnsLookup(host, { verbatim: true });
+      if (isPrivateOrLoopbackHost(address)) {
+        return { ok: false, error: `host resolves to private address: ${address}` };
+      }
+    } catch { /* fall through; fetch surfaces its own error */ }
+    const upstream = await fetch(current, {
+      signal,
+      redirect: 'manual',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (career-ops-ui auto-pipeline) AppleWebKit/537.36',
+        Accept: 'text/html,application/xhtml+xml',
+      },
+    });
+    const isRedirect = upstream.status >= 300 && upstream.status < 400 && upstream.headers.get('location');
+    if (!isRedirect) {
+      if (!upstream.ok) return { ok: false, error: `HTTP ${upstream.status}` };
+      const html = await upstream.text();
+      const text = html
+        .replace(/<script[\s\S]*?<\/script>/gi, '')
+        .replace(/<style[\s\S]*?<\/style>/gi, '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&[a-z]+;/gi, ' ')
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n\s*\n+/g, '\n\n')
+        .trim()
+        .slice(0, FETCH_MAX_BODY_BYTES);
+      return { ok: true, text };
+    }
+    if (++hops > FETCH_MAX_REDIRECTS) return { ok: false, error: `>${FETCH_MAX_REDIRECTS} redirects` };
+    const next = new URL(upstream.headers.get('location'), current).toString();
+    if (!isValidJobUrl(next)) return { ok: false, error: 'unsafe redirect target' };
+    current = next;
+  }
+}
+
+function guessCompanyRole(jdText, url) {
+  const lines = (jdText || '').split('\n').map((l) => l.trim()).filter(Boolean).slice(0, 30);
+  let company = '';
+  let role = '';
+  for (const line of lines) {
+    if (line.length > 200) continue;
+    let m = line.match(/^([A-Z][\w\s/&,.()-]{4,80}?)\s+(?:at|@|·|\|)\s+([A-Z][\w\s.&-]{1,40})$/);
+    if (m) { role = m[1].trim(); company = m[2].trim(); break; }
+    m = line.match(/^([A-Z][\w\s.&-]{1,40})\s+[—-]\s+(.{4,80})$/);
+    if (m && !role) { company = m[1].trim(); role = m[2].trim(); }
+  }
+  if (!company) {
+    try {
+      const u = new URL(url);
+      const parts = u.hostname.split('.');
+      const slug = parts.length >= 2 ? parts[parts.length - 2] : u.hostname;
+      if (!['greenhouse', 'ashbyhq', 'lever', 'workable', 'smartrecruiters', 'myworkdayjobs'].includes(slug)) {
+        company = slug.charAt(0).toUpperCase() + slug.slice(1);
+      }
+    } catch {}
+  }
+  if (!role) {
+    role = lines.find((l) => /engineer|developer|manager|lead|architect|designer|analyst|director|specialist/i.test(l)) || '';
+    role = role.slice(0, 100);
+  }
+  return { company: company || '', role: role || '' };
+}
+
+function extractScore(md) {
+  if (!md) return null;
+  const patterns = [
+    /score\s*[:\-]\s*(\d+\.?\d*)\s*\/\s*5/i,
+    /\*\*\s*score\s*[:\-]\s*(\d+\.?\d*)/i,
+    /^score:\s*(\d+\.?\d*)/im,
+  ];
+  for (const p of patterns) {
+    const m = md.match(p);
+    if (m) {
+      const n = parseFloat(m[1]);
+      if (!isNaN(n) && n >= 0 && n <= 5) return n;
+    }
+  }
+  return null;
+}
+
+function extractLegitimacy(md) {
+  if (!md) return '';
+  const m = md.match(/legitimacy\s*[:\-]\s*(high|medium|low|verified|suspicious|caution)\b/i);
+  return m ? m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase() : '';
+}
+
+function buildSlug(company, role) {
+  const base = `${today()}-${company}-${role}`.toLowerCase();
+  return base.replace(/[^\w-]+/g, '-').replace(/^-+|-+$/g, '').replace(/-{2,}/g, '-').slice(0, 120) || `auto-${Date.now()}`;
+}
+
+export function registerAutoPipelineRoutes(app) {
+  app.post('/api/auto-pipeline', async (req, res) => {
+    const url = (req.body && req.body.url || '').toString();
+    const lang = (req.body && req.body.lang) || 'en';
+    const lockEvalMode = req.body && req.body.evalMode; // optional override: 'anthropic' / 'gemini' / 'manual'
+
+    const send = openSse(res);
+    const ctrl = new AbortController();
+    let aborted = false;
+    res.on('close', () => { aborted = true; ctrl.abort(); });
+
+    function step(i, status, detail) {
+      if (aborted) return;
+      send('step', { i, key: STEPS[i].key, label: STEPS[i].label, status, detail });
+    }
+    function fail(stepIndex, message) {
+      send('error', { step: STEPS[stepIndex].key, message });
+      res.end();
+    }
+
+    send('start', { steps: STEPS.length, url });
+
+    // Step 1 — validate
+    step(0, 'running');
+    if (!isValidJobUrl(url)) {
+      step(0, 'failed', 'invalid URL');
+      return fail(0, 'isValidJobUrl rejected');
+    }
+    step(0, 'done');
+
+    // Step 2 — fetch JD
+    step(1, 'running');
+    const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
+    let jdText = '';
+    try {
+      const result = await fetchJobDescription(url, ctrl.signal);
+      clearTimeout(timer);
+      if (!result.ok || !result.text) {
+        step(1, 'failed', result.error || 'empty body');
+        return fail(1, result.error || 'fetch failed');
+      }
+      jdText = sanitizeJobDescription(result.text);
+      if (!jdText || jdText.length < 50) {
+        step(1, 'failed', 'JD too short after sanitization');
+        return fail(1, 'JD too short');
+      }
+      step(1, 'done', `${(jdText.length / 1024).toFixed(1)} KB`);
+    } catch (e) {
+      clearTimeout(timer);
+      step(1, 'failed', e.message);
+      return fail(1, e.message);
+    }
+
+    // Step 3 — evaluate
+    step(2, 'running', 'LLM call (30–90 s)…');
+    let markdown = '';
+    let evalMode = lockEvalMode;
+    try {
+      const promptText = buildEvaluationPrompt(jdText, lang);
+
+      if (!evalMode) {
+        if (hasAnthropicKey()) evalMode = 'anthropic';
+        else if (hasGeminiKey()) evalMode = 'gemini';
+        else evalMode = 'manual';
+      }
+
+      if (evalMode === 'anthropic') {
+        const ctx = bundleProjectContext({ modeSlugs: ['_shared', 'oferta'] });
+        const full = ctx + promptText;
+        if (full.length > PROMPT_SIZE_SOFT_CAP) {
+          step(2, 'failed', `prompt ${full.length} > ${PROMPT_SIZE_SOFT_CAP} cap`);
+          return fail(2, 'prompt too large');
+        }
+        const r = await runAnthropic(full, { maxTokens: 8192, timeoutMs: EVAL_TIMEOUT_MS });
+        if (r.error) {
+          step(2, 'failed', r.error);
+          return fail(2, r.error);
+        }
+        markdown = r.markdown || '';
+      } else if (evalMode === 'gemini') {
+        const tmp = projPath('output', `auto-pipeline-${Date.now()}.txt`);
+        mkdirSync(PATHS.outputDir, { recursive: true });
+        writeFileSync(tmp, jdText);
+        const r = await runNodeScript('gemini-eval.mjs', ['--file', tmp], { timeoutMs: EVAL_TIMEOUT_MS });
+        if (r.code !== 0) {
+          step(2, 'failed', `gemini-eval exit ${r.code}`);
+          return fail(2, `gemini-eval exit ${r.code}`);
+        }
+        markdown = r.stdout || '';
+      } else {
+        step(2, 'failed', 'no LLM key set; manual mode incompatible with auto-pipeline');
+        return fail(2, 'no LLM key');
+      }
+      const score = extractScore(markdown);
+      step(2, 'done', score != null ? `${evalMode} · score ${score}/5` : evalMode);
+    } catch (e) {
+      step(2, 'failed', e.message);
+      return fail(2, e.message);
+    }
+
+    const guess = guessCompanyRole(jdText, url);
+    const score = extractScore(markdown);
+    const legitimacy = extractLegitimacy(markdown);
+
+    // Step 4 — save report
+    step(3, 'running');
+    const slug = buildSlug(guess.company || 'unknown', guess.role || 'role');
+    const reportPath = `reports/${slug}.md`;
+    try {
+      const sanitized = stripDangerousMarkdown(markdown);
+      mkdirSync(PATHS.reportsDir, { recursive: true });
+      const file = projPath('reports', `${slug}.md`);
+      if (existsSync(file)) {
+        // Don't clobber existing — append epoch suffix.
+        const altSlug = `${slug}-${Date.now()}`;
+        writeFileSync(projPath('reports', `${altSlug}.md`), sanitized);
+        logActivity({ type: 'auto-pipeline.report.saved', target: `reports/${altSlug}.md`, dedupedFrom: slug });
+        step(3, 'done', altSlug);
+      } else {
+        writeFileSync(file, sanitized);
+        logActivity({ type: 'auto-pipeline.report.saved', target: reportPath });
+        step(3, 'done', slug);
+      }
+    } catch (e) {
+      step(3, 'failed', e.message);
+      return fail(3, e.message);
+    }
+
+    // Step 5 — tracker row
+    step(4, 'running');
+    let trackerNum = '';
+    try {
+      if (!guess.company) {
+        step(4, 'failed', 'company unknown — fill manually');
+      } else {
+        const cell = (s) => String(s || '').replace(/\|/g, '\\|').replace(/[\r\n]+/g, ' ').trim();
+        const safeCompany = cell(guess.company);
+        const safeRole    = cell(guess.role || 'Role TBD');
+        const safeStatus  = 'Evaluated';
+        const safeScore   = score != null ? `${score}/5` : '—';
+        const safeDate    = today();
+        const safeReport  = `[${slug}](reports/${slug}.md)`;
+        const safeNotes   = `auto-pipeline · ${cell(url).slice(0, 160)}`;
+
+        let content = '';
+        try { content = readFileSync(PATHS.applications, 'utf8'); } catch { content = ''; }
+        const existing = parseApplications(content);
+        const dup = existing.find((r) => (r.company || '').toLowerCase() === safeCompany.toLowerCase()
+          && (r.role || '').toLowerCase() === safeRole.toLowerCase());
+        if (dup) {
+          step(4, 'done', `deduped #${dup.num}`);
+          trackerNum = dup.num;
+        } else {
+          const nextNum = String((Math.max(0, ...existing.map((r) => parseInt(r.num, 10) || 0))) + 1).padStart(3, '0');
+          trackerNum = nextNum;
+          const row = `| ${nextNum} | ${safeDate} | ${safeCompany} | ${safeRole} | ${safeScore} | ${safeStatus} | ❌ | ${safeReport} | ${safeNotes} |`;
+          let updated;
+          if (!content || !/^\|\s*#/m.test(content)) {
+            updated = [
+              '# Applications Tracker', '',
+              '| # | Date | Company | Role | Score | Status | PDF | Report | Notes |',
+              '|---|------|---------|------|-------|--------|-----|--------|-------|',
+              row, '',
+            ].join('\n');
+          } else {
+            updated = content.replace(/\n*$/, '\n') + row + '\n';
+          }
+          mkdirSync(projPath('data'), { recursive: true });
+          writeFileSync(PATHS.applications, updated);
+          logActivity({ type: 'auto-pipeline.tracker.added', num: nextNum, company: safeCompany });
+          step(4, 'done', `#${nextNum}`);
+        }
+      }
+    } catch (e) {
+      step(4, 'failed', e.message);
+    }
+
+    if (!aborted) {
+      send('done', {
+        slug, score, legitimacy,
+        reportPath,
+        trackerNum,
+        company: guess.company, role: guess.role,
+        evalMode,
+      });
+      res.end();
+    }
+  });
+}

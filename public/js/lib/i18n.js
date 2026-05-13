@@ -214,6 +214,11 @@ window.I18n = (function () {
     'auto.legit':        { en: 'Legit', es: 'Legit', 'pt-BR': 'Legit', ko: '신뢰도', ja: '信頼性', ru: 'Legit', 'zh-CN': '可信度', 'zh-TW': '可信度' },
     'auto.openPdf':      { en: 'Open PDF', es: 'Abrir PDF', 'pt-BR': 'Abrir PDF', ko: 'PDF 열기', ja: 'PDF を開く', ru: 'Открыть PDF', 'zh-CN': '打开 PDF', 'zh-TW': '開啟 PDF' },
     'auto.viewMd':       { en: 'View evaluation markdown', es: 'Ver markdown de evaluación', 'pt-BR': 'Ver markdown de avaliação', ko: '평가 마크다운 보기', ja: '評価 markdown を表示', ru: 'Показать evaluation markdown', 'zh-CN': '查看评估 markdown', 'zh-TW': '檢視評估 markdown' },
+    // v1.16.0 — server-side SSE orchestrator persists the report; we
+    // link to /#/reports/<slug> + /#/tracker instead of dumping markdown.
+    'auto.failed':       { en: 'Auto-pipeline failed', es: 'Auto-pipeline falló', 'pt-BR': 'Auto-pipeline falhou', ko: '자동 파이프라인 실패', ja: '自動パイプライン失敗', ru: 'Auto-pipeline упал', 'zh-CN': '自动管道失败', 'zh-TW': '自動管道失敗' },
+    'auto.openReport':   { en: 'Open report', es: 'Abrir reporte', 'pt-BR': 'Abrir relatório', ko: '리포트 열기', ja: 'レポートを開く', ru: 'Открыть отчёт', 'zh-CN': '打开报告', 'zh-TW': '開啟報告' },
+    'auto.openTracker':  { en: 'Open tracker', es: 'Abrir tracker', 'pt-BR': 'Abrir tracker', ko: '트래커 열기', ja: 'トラッカーを開く', ru: 'Открыть tracker', 'zh-CN': '打开 tracker', 'zh-TW': '開啟 tracker' },
     'dash.quick.title': { en: 'Quick actions', es: 'Acciones rápidas', 'pt-BR': 'Ações rápidas', ko: '빠른 작업', ja: 'クイックアクション', ru: 'Быстрые действия', 'zh-CN': '快速操作', 'zh-TW': '快速操作' },
     'dash.quick.searchApply': { en: 'Search & Apply', es: 'Buscar y aplicar', 'pt-BR': 'Buscar e aplicar', ko: '검색 & 지원', ja: '検索＆応募', ru: 'Поиск и отклик', 'zh-CN': '搜索与申请', 'zh-TW': '搜尋與申請' },
     'dash.quick.researchPrep': { en: 'Research & Prep', es: 'Investigación y prep.', 'pt-BR': 'Pesquisa e prep.', ko: '리서치 & 준비', ja: 'リサーチ＆準備', ru: 'Исследование и подготовка', 'zh-CN': '研究与准备', 'zh-TW': '研究與準備' },

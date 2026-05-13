@@ -102,13 +102,28 @@ I18n.onChange(() => {
     if (e.key === 'Enter') {
       const q = search.value.trim();
       if (!q) return;
-      // simple URL paste detection → add to pipeline
+      // v1.16.0 — URL paste UX:
+      //   • Enter         → ✨ auto-pipeline (full flow per career-ops.org/docs)
+      //   • Shift+Enter   → quick add-to-pipeline only (legacy behavior)
+      // Pasting non-URLs jumps to the tracker (search) — unchanged.
       if (q.startsWith('http')) {
-        API.post('/api/pipeline', { url: q }).then(() => {
-          UI.toast(I18n.t('pipe.added', 'Added to pipeline'), 'success');
+        if (e.shiftKey) {
+          API.post('/api/pipeline', { url: q }).then(() => {
+            UI.toast(I18n.t('pipe.added', 'Added to pipeline'), 'success');
+            search.value = '';
+            if (Router.current().name === 'pipeline') Router.render();
+          }).catch((err) => UI.toast((err && err.message) || 'add failed', 'error'));
+        } else if (window.AutoPipeline) {
           search.value = '';
-          if (Router.current().name === 'pipeline') Router.render();
-        }).catch((err) => UI.toast((err && err.message) || 'add failed', 'error'));
+          window.AutoPipeline.open({ prefillUrl: q, autoStart: true });
+        } else {
+          // Fallback when auto-pipeline.js failed to load.
+          API.post('/api/pipeline', { url: q }).then(() => {
+            UI.toast(I18n.t('pipe.added', 'Added to pipeline'), 'success');
+            search.value = '';
+            if (Router.current().name === 'pipeline') Router.render();
+          }).catch((err) => UI.toast((err && err.message) || 'add failed', 'error'));
+        }
       } else {
         Router.go('/tracker');
       }

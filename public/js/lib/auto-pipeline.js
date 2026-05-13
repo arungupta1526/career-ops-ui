@@ -35,64 +35,9 @@
     { key: 'tracker',  i18nKey: 'auto.step.tracker',  label: 'Adding to tracker' },
   ];
 
-  // Heuristic company / role extraction from raw JD text. Looks for the
-  // first H1-like sentence ("Senior Backend Engineer at Anthropic"), then
-  // "<company> is hiring", then plain "Backend Engineer" with no company.
-  function guessCompanyRole(jdText, url) {
-    const firstLines = (jdText || '').split('\n').map((l) => l.trim()).filter(Boolean).slice(0, 30);
-    let company = '';
-    let role = '';
-    for (const line of firstLines) {
-      if (line.length > 200) continue;
-      // "Senior Backend Engineer at Anthropic"
-      let m = line.match(/^([A-Z][\w\s/&,.()-]{4,80}?)\s+(?:at|@|·|\|)\s+([A-Z][\w\s.&-]{1,40})$/);
-      if (m) { role = m[1].trim(); company = m[2].trim(); break; }
-      // "Anthropic — Senior Backend Engineer"
-      m = line.match(/^([A-Z][\w\s.&-]{1,40})\s+[—-]\s+(.{4,80})$/);
-      if (m && !role) { company = m[1].trim(); role = m[2].trim(); }
-    }
-    if (!company) {
-      try {
-        const u = new URL(url);
-        const parts = u.hostname.split('.');
-        const slug = parts.length >= 2 ? parts[parts.length - 2] : u.hostname;
-        if (!['greenhouse', 'ashbyhq', 'lever', 'workable', 'smartrecruiters', 'myworkdayjobs'].includes(slug)) {
-          company = slug.charAt(0).toUpperCase() + slug.slice(1);
-        }
-      } catch {}
-    }
-    if (!role) {
-      role = firstLines.find((l) => /engineer|developer|manager|lead|architect|designer|analyst|director|specialist/i.test(l)) || '';
-      role = role.slice(0, 100);
-    }
-    return { company: company || '', role: role || '' };
-  }
-
-  // Heuristic score extraction from the evaluation markdown. Looks for
-  // `score: 4.2/5` / `**Score: 4.2/5**` / `## Score: 4.2`. Returns
-  // numeric 0–5 or null if not found.
-  function extractScore(md) {
-    if (!md) return null;
-    const patterns = [
-      /score\s*[:\-]\s*(\d+\.?\d*)\s*\/\s*5/i,
-      /\*\*\s*score\s*[:\-]\s*(\d+\.?\d*)/i,
-      /^score:\s*(\d+\.?\d*)/im,
-    ];
-    for (const p of patterns) {
-      const m = md.match(p);
-      if (m) {
-        const n = parseFloat(m[1]);
-        if (!isNaN(n) && n >= 0 && n <= 5) return n;
-      }
-    }
-    return null;
-  }
-
-  function extractLegitimacy(md) {
-    if (!md) return '';
-    const m = md.match(/legitimacy\s*[:\-]\s*(high|medium|low|verified|suspicious|caution)\b/i);
-    return m ? m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase() : '';
-  }
+  // v1.16.0 — heuristic company/role/score/legitimacy extraction moved
+  // server-side (server/lib/routes/auto-pipeline.mjs). Client only
+  // renders what the SSE `done` event reports.
 
   function urlIsValid(url) {
     if (typeof url !== 'string') return false;
@@ -107,18 +52,27 @@
     } catch { return false; }
   }
 
-  function open() {
+  // v1.16.0 — open() accepts { prefillUrl, autoStart } so Cmd+K can
+  // hand the user straight into the running pipeline. Server-side SSE
+  // endpoint (POST /api/auto-pipeline) is the new transport — replaces
+  // the v1.15 client-side chained-fetch orchestrator. The server emits
+  // real-time progress during the slow Anthropic call (was a generic
+  // 60s spinner in v1.15) and persists the report markdown to parent
+  // reports/<slug>.md so the PDF source isn't lost on browser refresh.
+  function open(opts) {
+    opts = opts || {};
     const c = UI.el;
     const t = (k, f) => I18n.t(k, f);
 
     let modalRef = null;
-    let state = { url: '', jdText: '', markdown: '', score: null, legitimacy: '', company: '', role: '', pdfPath: '' };
+    let state = { url: '', score: null, legitimacy: '', company: '', role: '', slug: '', reportPath: '', trackerNum: '' };
     const stepState = STEPS.map(() => ({ status: 'pending', detail: '', startedAt: null, finishedAt: null }));
 
     const urlInput = c('input', {
       className: 'input',
       placeholder: 'https://job-boards.greenhouse.io/anthropic/jobs/4567',
       style: { width: '100%' },
+      value: opts.prefillUrl || '',
     });
 
     const startBtn = c('button', {
@@ -161,132 +115,90 @@
       renderTimeline();
     }
 
+    // v1.16.0 — orchestration now runs server-side via POST /api/auto-pipeline
+    // SSE. Client only drains the event stream and updates UI state.
     async function start(url) {
-      // Step 1 — validate
       timelineRoot.style.display = '';
       resultRoot.style.display = 'none';
       startBtn.disabled = true;
       urlInput.disabled = true;
       state.url = url;
-      setStep(0, 'running');
+      // Reset step UI
+      stepState.forEach((s) => { s.status = 'pending'; s.detail = ''; });
+      renderTimeline();
+
       if (!urlIsValid(url)) {
+        setStep(0, 'running');
         setStep(0, 'failed', t('auto.invalidUrl', 'invalid URL'));
-        startBtn.disabled = false;
-        urlInput.disabled = false;
-        return;
-      }
-      setStep(0, 'done', 'ok');
-
-      // Step 2 — fetch JD via /api/pipeline/preview
-      setStep(1, 'running');
-      try {
-        const r = await API.get('/api/pipeline/preview?url=' + encodeURIComponent(url));
-        if (!r.text || r.status === 0) {
-          setStep(1, 'failed', t('auto.fetchFailed', 'fetch failed: ') + (r.text || 'no body'));
-          startBtn.disabled = false; urlInput.disabled = false;
-          return;
-        }
-        state.jdText = r.text;
-        const guess = guessCompanyRole(state.jdText, url);
-        state.company = guess.company;
-        state.role = guess.role;
-        setStep(1, 'done', `${(r.text.length / 1024).toFixed(1)} KB`);
-      } catch (e) {
-        setStep(1, 'failed', e.message || 'fetch error');
         startBtn.disabled = false; urlInput.disabled = false;
         return;
       }
 
-      // Step 3 — evaluate (long step, no streaming; just show spinner)
-      setStep(2, 'running', t('auto.evaluating', 'Anthropic / Gemini call (30–60 s)…'));
       try {
-        const r = await API.post('/api/evaluate', { jd: state.jdText, save: true });
-        if (r.error) {
-          setStep(2, 'failed', r.error);
-          startBtn.disabled = false; urlInput.disabled = false;
-          return;
-        }
-        state.markdown = r.markdown || r.prompt || '';
-        state.score = extractScore(state.markdown);
-        state.legitimacy = extractLegitimacy(state.markdown);
-        setStep(2, 'done', state.score != null ? `score ${state.score}/5` : (r.mode || 'manual'));
-      } catch (e) {
-        setStep(2, 'failed', e.message || 'evaluate error');
-        startBtn.disabled = false; urlInput.disabled = false;
-        return;
-      }
-
-      // Step 4 — PDF via SSE POST /api/stream/pdf/inline
-      setStep(3, 'running', t('auto.pdfRunning', 'Playwright render…'));
-      try {
-        const slug = (state.company + '-' + state.role).toLowerCase().replace(/[^\w-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'auto-' + Date.now();
-        const resp = await fetch('/api/stream/pdf/inline', {
+        const lang = (I18n && I18n.getLang && I18n.getLang()) || 'en';
+        const resp = await fetch('/api/auto-pipeline', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ markdown: state.markdown, title: `${state.role} — ${state.company}`, slug }),
+          body: JSON.stringify({ url, lang }),
         });
-        if (!resp.ok) {
-          // The PDF endpoint requires Playwright on the parent. Treat as
-          // skip not fatal — the user still has the report markdown and
-          // can manually generate the PDF later.
-          setStep(3, 'failed', 'PDF skipped (HTTP ' + resp.status + '). Playwright may be missing.');
-        } else {
-          // Drain the SSE stream to know when it's done.
-          const reader = resp.body.getReader();
-          const dec = new TextDecoder();
-          let buf = '';
-          let pdfDone = false;
-          while (!pdfDone) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            buf += dec.decode(value, { stream: true });
-            const evts = buf.split('\n\n'); buf = evts.pop();
-            for (const e of evts) {
-              if (e.includes('event: done')) {
-                pdfDone = true;
-                const m = e.match(/"path"\s*:\s*"([^"]+)"/);
-                if (m) state.pdfPath = m[1];
-              } else if (e.includes('event: error')) {
-                setStep(3, 'failed', 'PDF error');
-                pdfDone = true;
-              }
+        if (!resp.ok || !resp.body) {
+          setStep(0, 'failed', 'HTTP ' + resp.status);
+          startBtn.disabled = false; urlInput.disabled = false;
+          return;
+        }
+        const reader = resp.body.getReader();
+        const dec = new TextDecoder();
+        let buf = '';
+        let terminal = false;
+        while (!terminal) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buf += dec.decode(value, { stream: true });
+          const parts = buf.split('\n\n'); buf = parts.pop();
+          for (const p of parts) {
+            const evMatch = p.match(/^event:\s*([\w-]+)/m);
+            const daMatch = p.match(/^data:\s*(.+)$/m);
+            if (!evMatch || !daMatch) continue;
+            let data; try { data = JSON.parse(daMatch[1]); } catch { data = {}; }
+            switch (evMatch[1]) {
+              case 'start':
+                // already rendered the empty timeline; nothing to do.
+                break;
+              case 'step':
+                setStep(data.i, data.status, data.detail || '');
+                break;
+              case 'done':
+                state.score = data.score;
+                state.legitimacy = data.legitimacy || '';
+                state.company = data.company || '';
+                state.role = data.role || '';
+                state.slug = data.slug || '';
+                state.reportPath = data.reportPath || '';
+                state.trackerNum = data.trackerNum || '';
+                terminal = true;
+                renderResult();
+                break;
+              case 'error':
+                terminal = true;
+                renderError(data.step, data.message);
+                break;
             }
           }
-          if (state.pdfPath) {
-            setStep(3, 'done', state.pdfPath.split('/').pop());
-          } else if (stepState[3].status !== 'failed') {
-            setStep(3, 'done', 'ok');
-          }
         }
       } catch (e) {
-        setStep(3, 'failed', e.message || 'PDF error');
+        renderError('network', e.message || 'network error');
+      } finally {
+        startBtn.disabled = false; urlInput.disabled = false;
       }
+    }
 
-      // Step 5 — tracker (only if we have at least a company)
-      setStep(4, 'running');
-      try {
-        if (!state.company) {
-          setStep(4, 'failed', t('auto.noCompany', 'company unknown — fill in manually below'));
-        } else {
-          const r = await API.post('/api/tracker', {
-            company: state.company,
-            role: state.role || 'Role TBD',
-            score: state.score != null ? String(state.score) + '/5' : undefined,
-            status: 'Evaluated',
-            url: state.url,
-            notes: 'auto-pipeline',
-          });
-          if (r && r.deduped) setStep(4, 'done', t('auto.deduped', 'already tracked'));
-          else if (r && r.num) setStep(4, 'done', `#${r.num}`);
-          else setStep(4, 'done', 'ok');
-        }
-      } catch (e) {
-        setStep(4, 'failed', e.message || 'tracker error');
-      }
-
-      // Show result panel
-      renderResult();
-      startBtn.disabled = false; urlInput.disabled = false;
+    function renderError(step, message) {
+      resultRoot.innerHTML = '';
+      resultRoot.style.display = '';
+      resultRoot.appendChild(c('div', { className: 'card mt-3', style: { borderLeft: '3px solid var(--error, #c93030)' } }, [
+        c('strong', null, '⚠ ' + t('auto.failed', 'Auto-pipeline failed') + ` (${step})`),
+        c('p', { style: { margin: '8px 0 0', fontSize: '14px' } }, message),
+      ]));
     }
 
     function renderResult() {
@@ -299,25 +211,35 @@
           state.role ? c('span', { className: 'tag' }, state.role) : null,
           state.score != null ? c('span', { className: 'tag' }, t('auto.score', 'Score') + ' ' + state.score) : null,
           state.legitimacy ? c('span', { className: 'tag' }, t('auto.legit', 'Legit') + ' ' + state.legitimacy) : null,
+          state.trackerNum ? c('span', { className: 'tag' }, 'tracker #' + state.trackerNum) : null,
         ].filter(Boolean)),
-        state.pdfPath ? c('p', { style: { marginTop: '8px' } }, [
-          c('a', { href: '/api/output/pdfs/' + encodeURIComponent(state.pdfPath.split('/').pop()), target: '_blank' },
-            '📄 ' + t('auto.openPdf', 'Open PDF')),
-        ]) : null,
-        c('details', { style: { marginTop: '12px' } }, [
-          c('summary', { style: { cursor: 'pointer' } }, t('auto.viewMd', 'View evaluation markdown')),
-          c('pre', { className: 'console', style: { maxHeight: '40vh', overflow: 'auto', whiteSpace: 'pre-wrap' } }, state.markdown || ''),
-        ]),
+        // v1.16.0 — server persists the report to parent reports/, so we
+        // link straight to the canonical viewer instead of dumping the
+        // markdown inline. PDF generation stays a one-click on the report
+        // page (📄 button on /#/reports/<slug>).
+        c('div', { className: 'flex gap-3 mt-3' }, [
+          state.slug ? c('a', { href: '#/reports/' + state.slug, className: 'btn btn-primary btn-sm' },
+            '📄 ' + t('auto.openReport', 'Open report')) : null,
+          state.trackerNum ? c('a', { href: '#/tracker', className: 'btn btn-ghost btn-sm' },
+            '≡ ' + t('auto.openTracker', 'Open tracker')) : null,
+        ].filter(Boolean)),
       ]));
     }
 
     modalRef = UI.modal(t('auto.title', '✨ Auto-pipeline a URL'), c('div', null, [
       c('p', { style: { color: 'var(--foggy)' } },
-        t('auto.intro', 'Paste a job URL — we\'ll fetch the JD, evaluate it against your CV, generate a tailored PDF, and add a row to your tracker.')),
+        t('auto.intro', "Paste a job URL — we'll fetch the JD, evaluate it against your CV, save a report, and add a row to your tracker.")),
       c('div', { className: 'flex gap-3 mt-3' }, [urlInput, startBtn]),
       timelineRoot,
       resultRoot,
     ]));
+
+    // v1.16.0 — Cmd+K → URL → Enter sets autoStart so the modal opens
+    // already running, no extra click. Defer to next tick so the modal
+    // is in the DOM before we kick off the SSE.
+    if (opts.autoStart && opts.prefillUrl) {
+      setTimeout(() => start(opts.prefillUrl), 0);
+    }
   }
 
   window.AutoPipeline = { open };
