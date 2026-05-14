@@ -537,6 +537,95 @@ lista negativa** — si `"Senior PHP"` está en `queries` pero `"php"`
 acaba en `title_filter.negative`, el scan devolverá cero resultados y
 la consola te avisará del conflicto.
 
+
+### Configurar los portales rusos — guía detallada
+
+v1.29.0 incluye 5 adaptadores rusos. Dos no requieren nada más allá del UA por defecto (`habr-career`, scraping HTML; `trudvsem`, API open-data gubernamental — sin key, sin barrera geográfica). Dos son scrapers HTML de portales técnicos (`getmatch`, `geekjob` — tampoco requieren key). Uno es la API canónica de hh.ru, que puede devolver 403 desde IPs fuera de Rusia salvo que configures la variable de entorno `HH_USER_AGENT` vía **App settings → API keys & runtime** (o ejecutes el servidor desde una IP rusa / VPN).
+
+#### Inventario de fuentes
+
+| Clave | Etiqueta | Tipo | Auth | Restricción geográfica |
+|---|---|---|---|---|
+| `hh` | hh.ru | JSON API | `HH_USER_AGENT` opcional | IPs no-RU pueden recibir 403 |
+| `habr` | Habr Career | HTML | ninguno | ninguna |
+| `trudvsem` | Trudvsem | JSON API (open-data) | ninguno | ninguna |
+| `getmatch` | GetMatch | HTML | ninguno | ninguna |
+| `geekjob` | GeekJob | HTML | ninguno | ninguna |
+
+#### Paso 1 — Abre `portals.yml`
+
+El archivo vive en la raíz del proyecto padre `career-ops/` (NO dentro de `web-ui/`). Si aún no existe, copia el ejemplo que viene con el proyecto padre:
+
+```bash
+# from the parent career-ops/ root (NOT web-ui/)
+cp templates/portals.example.yml portals.yml
+$EDITOR portals.yml
+```
+
+#### Paso 2 — Habilita las 5 fuentes
+
+Añade o actualiza el bloque `russian_portals` listando todas las fuentes que quieres escanear. El orden no importa; el scanner las recorre en el orden del registry.
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob"]
+  area: 113                  # 1=Moscow, 2=SPb, 113=Russia, 1001=remote
+  per_page: 50               # how many vacancies per query per source
+  only_remote: false         # set true to keep only remote postings
+  queries:
+    - "Senior PHP"
+    - "Senior Go"
+    - "Backend Senior"
+    - "Тимлид PHP"
+```
+
+#### Paso 3 — Ajusta queries y filtros
+
+`queries` son las cadenas que el scanner usa para buscar en cada fuente. Cada query se ejecuta una vez por fuente — 4 queries × 5 fuentes = 20 llamadas por escaneo. Mantén la lista enfocada (3–7 queries) para que el escaneo no supere el minuto. `area` es el código de región de hh.ru (las demás fuentes lo ignoran). `per_page` limita cuántas vacantes devuelve cada fuente por query. `only_remote: true` filtra a remoto a nivel de adaptador (la tabla de resultados aún tiene su propio chip Remoto).
+
+#### Errores comunes
+
+**Colisión con la lista negativa.** Si una palabra de una query (`"php"`, `"senior"`) también está en `title_filter.negative`, todos los resultados se filtran antes de verlos. El scanner emite una advertencia stderr en tiempo de escaneo — busca la línea `⚠ config: query "Senior PHP" contains "php" which is in the negative list`. Soluciona quitando la palabra de la lista `negative`:
+
+```yaml
+title_filter:
+  positive: [backend, senior, lead, php, go, golang, python]
+  negative: [junior, intern, frontend, ios, android]
+russian_portals:
+  queries:
+    - "Senior PHP"     # OK — "php" no longer in negative list
+    - "Senior Go"
+```
+
+#### Desactivar temporalmente una fuente
+
+Para deshabilitar una fuente sin borrar sus datos, simplemente quita su clave de `sources`:
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem"]   # only 3 of 5 sources will run
+```
+
+#### Verificar la configuración
+
+Después de guardar `portals.yml`:
+
+```bash
+# 1. Save portals.yml.
+# 2. In the SPA, switch to #/scan.
+# 3. Click 🌐 Scan now.
+# 4. Watch the SSE log for the per-source line per query:
+#       "Senior PHP"
+#         hh.ru    18
+#         habr     21
+#         trudvsem  3
+#         getmatch  0
+#         geekjob   2
+#    A value of 0 is normal for some queries — it just means that
+#    source had no matches. A "geo-blocked" or "timeout" line means
+#    the adapter reached the site but couldn't read results.
+```
+
 ### Flujo bootstrap CLI ([scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
 
 El setup canónico de career-ops (ejecutar desde la raíz del padre una

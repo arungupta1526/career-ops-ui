@@ -517,6 +517,95 @@ russian_portals:
 `title_filter.negative`에 들어가면 스캔이 0건을 반환하고
 콘솔이 충돌을 경고합니다.
 
+
+### 러시아 포털 구성 — 상세 설정 가이드
+
+v1.29.0은 5개의 러시아어 어댑터를 제공합니다. 두 개는 기본 UA 이상의 설정이 필요 없습니다(`habr-career` HTML 스크레이프, `trudvsem` 정부 open-data API — 키 없음, IP 제한 없음). 두 개는 기술 포털의 HTML 스크레이프(`getmatch`, `geekjob` — 키 없음)이며, 하나는 hh.ru 표준 API로 러시아 외부 IP에서는 `HH_USER_AGENT` 환경 변수를 **App settings → API keys & runtime**에서 설정하지 않으면 403이 발생할 수 있습니다(또는 러시아 IP/VPN 사용).
+
+#### 소스 목록
+
+| 키 | 표시명 | 유형 | 인증 | 지역 제한 |
+|---|---|---|---|---|
+| `hh` | hh.ru | JSON API | `HH_USER_AGENT`(선택) | RU 외부 IP는 403 가능 |
+| `habr` | Habr Career | HTML | 없음 | 없음 |
+| `trudvsem` | Trudvsem | JSON API(open-data) | 없음 | 없음 |
+| `getmatch` | GetMatch | HTML | 없음 | 없음 |
+| `geekjob` | GeekJob | HTML | 없음 | 없음 |
+
+#### 1단계 — `portals.yml` 열기
+
+파일은 부모 프로젝트 `career-ops/` 루트에 있습니다(`web-ui/` 안이 아님). 아직 없다면 부모 프로젝트의 템플릿을 복사하세요:
+
+```bash
+# from the parent career-ops/ root (NOT web-ui/)
+cp templates/portals.example.yml portals.yml
+$EDITOR portals.yml
+```
+
+#### 2단계 — 5개 소스 활성화
+
+`russian_portals` 블록을 추가/수정하여 스캔할 모든 소스를 나열합니다. 배열 순서는 무관 — 스캐너는 레지스트리 순서로 호출합니다.
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob"]
+  area: 113                  # 1=Moscow, 2=SPb, 113=Russia, 1001=remote
+  per_page: 50               # how many vacancies per query per source
+  only_remote: false         # set true to keep only remote postings
+  queries:
+    - "Senior PHP"
+    - "Senior Go"
+    - "Backend Senior"
+    - "Тимлид PHP"
+```
+
+#### 3단계 — 쿼리와 필터 튜닝
+
+`queries`는 스캐너가 각 소스에 대해 검색하는 문자열입니다. 각 쿼리는 소스마다 한 번씩 실행됩니다 — 4 쿼리 × 5 소스 = 1회 스캔당 20회 호출. 스캔 시간을 1분 이내로 유지하려면 리스트를 3–7개로 좁히세요. `area`는 hh.ru의 지역 코드(다른 소스는 무시). `per_page`는 쿼리당 반환되는 채용 수 상한. `only_remote: true`는 어댑터 레벨에서 리모트만 필터(결과 테이블에도 별도 Remote 칩 있음).
+
+#### 흔한 함정
+
+**Negative 리스트 충돌.** 쿼리의 단어(`"php"`, `"senior"`)가 `title_filter.negative`에도 있으면 모든 결과가 사용자 앞에서 필터링됩니다. 스캔 시 스캐너가 stderr 경고를 출력합니다 — `⚠ config: query "Senior PHP" contains "php" which is in the negative list` 라인을 찾으세요. 충돌하는 단어를 `negative`에서 제거해 해결합니다:
+
+```yaml
+title_filter:
+  positive: [backend, senior, lead, php, go, golang, python]
+  negative: [junior, intern, frontend, ios, android]
+russian_portals:
+  queries:
+    - "Senior PHP"     # OK — "php" no longer in negative list
+    - "Senior Go"
+```
+
+#### 일시적으로 소스 비활성화
+
+데이터를 삭제하지 않고 소스를 비활성화하려면 `sources`에서 그 키만 제거하세요:
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem"]   # only 3 of 5 sources will run
+```
+
+#### 설정 확인
+
+`portals.yml` 저장 후:
+
+```bash
+# 1. Save portals.yml.
+# 2. In the SPA, switch to #/scan.
+# 3. Click 🌐 Scan now.
+# 4. Watch the SSE log for the per-source line per query:
+#       "Senior PHP"
+#         hh.ru    18
+#         habr     21
+#         trudvsem  3
+#         getmatch  0
+#         geekjob   2
+#    A value of 0 is normal for some queries — it just means that
+#    source had no matches. A "geo-blocked" or "timeout" line means
+#    the adapter reached the site but couldn't read results.
+```
+
 ### CLI 부트스트랩 흐름 ([scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
 
 부모 루트에서 한 번 실행하는 career-ops 정식 설정:

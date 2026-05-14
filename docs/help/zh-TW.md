@@ -476,6 +476,95 @@ russian_portals:
 `"Senior PHP"`,但 `title_filter.negative` 中又出現 `"php"`,
 掃描會回傳零結果,主控台會警告你這個衝突。
 
+
+### 設定俄文入口網站 — 詳細設定指南
+
+v1.29.0 內建 5 個俄文 adapter。兩個無需預設 UA 以外的額外設定(`habr-career` HTML 抓取;`trudvsem` 政府開放資料 API — 無 key、無地理閘)。兩個是科技板塊的 HTML 抓取(`getmatch`、`geekjob` — 同樣無 key)。一個是 hh.ru 標準 API,從非俄羅斯 IP 可能回傳 403,除非透過 **App settings → API keys & runtime** 設定 `HH_USER_AGENT` 環境變數(或從俄羅斯 IP / VPN 執行)。
+
+#### 來源清單
+
+| 鍵 | 顯示名稱 | 類型 | 驗證 | 地理限制 |
+|---|---|---|---|---|
+| `hh` | hh.ru | JSON API | 可選 `HH_USER_AGENT` | 非俄 IP 可能 403 |
+| `habr` | Habr Career | HTML | 無 | 無 |
+| `trudvsem` | Trudvsem | JSON API(開放資料) | 無 | 無 |
+| `getmatch` | GetMatch | HTML | 無 | 無 |
+| `geekjob` | GeekJob | HTML | 無 | 無 |
+
+#### 步驟 1 — 開啟 `portals.yml`
+
+該檔案位於父專案 `career-ops/` 根目錄(不在 `web-ui/` 內)。若尚未存在,請從父專案複製範本:
+
+```bash
+# from the parent career-ops/ root (NOT web-ui/)
+cp templates/portals.example.yml portals.yml
+$EDITOR portals.yml
+```
+
+#### 步驟 2 — 啟用 5 個來源
+
+新增或更新 `russian_portals` 區塊,列出你想掃描的所有來源。陣列順序無關緊要 — 掃描器按 registry 順序呼叫。
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob"]
+  area: 113                  # 1=Moscow, 2=SPb, 113=Russia, 1001=remote
+  per_page: 50               # how many vacancies per query per source
+  only_remote: false         # set true to keep only remote postings
+  queries:
+    - "Senior PHP"
+    - "Senior Go"
+    - "Backend Senior"
+    - "Тимлид PHP"
+```
+
+#### 步驟 3 — 調整查詢與篩選
+
+`queries` 是掃描器在每個來源中用來搜尋的字串。每個查詢會在每個來源上執行一次 — 4 個查詢 × 5 個來源 = 每次掃描 20 次呼叫。為了讓掃描在一分鐘內完成,保持列表聚焦(3–7 個查詢)。`area` 是 hh.ru 的地區代碼(其他來源會忽略)。`per_page` 限制每個來源每個查詢回傳的職位數。`only_remote: true` 在 adapter 層級過濾為遠端(結果表中仍有獨立的 Remote 篩選)。
+
+#### 常見陷阱
+
+**負面列表衝突。** 如果查詢中的字(`"php"`、`"senior"`)也出現在 `title_filter.negative` 中,所有結果會在你看到之前被篩掉。掃描器會在掃描時輸出 stderr 警告 — 尋找 `⚠ config: query "Senior PHP" contains "php" which is in the negative list` 這列。修復方式是從 `negative` 中移除衝突字:
+
+```yaml
+title_filter:
+  positive: [backend, senior, lead, php, go, golang, python]
+  negative: [junior, intern, frontend, ios, android]
+russian_portals:
+  queries:
+    - "Senior PHP"     # OK — "php" no longer in negative list
+    - "Senior Go"
+```
+
+#### 臨時停用某個來源
+
+要停用某個來源而不刪除其資料,只需從 `sources` 陣列中移除其鍵即可:
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem"]   # only 3 of 5 sources will run
+```
+
+#### 驗證設定
+
+儲存 `portals.yml` 之後:
+
+```bash
+# 1. Save portals.yml.
+# 2. In the SPA, switch to #/scan.
+# 3. Click 🌐 Scan now.
+# 4. Watch the SSE log for the per-source line per query:
+#       "Senior PHP"
+#         hh.ru    18
+#         habr     21
+#         trudvsem  3
+#         getmatch  0
+#         geekjob   2
+#    A value of 0 is normal for some queries — it just means that
+#    source had no matches. A "geo-blocked" or "timeout" line means
+#    the adapter reached the site but couldn't read results.
+```
+
 ### CLI bootstrap 流程([scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
 
 career-ops 的正式設定流程(從父專案根目錄執行一次):

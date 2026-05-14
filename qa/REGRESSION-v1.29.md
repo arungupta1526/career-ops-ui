@@ -1,7 +1,7 @@
-# career-ops-ui — full-project regression prompt (v1.29.0)
+# career-ops-ui — full-project regression prompt (v1.29.1)
 
 > **Audience:** human QA, Claude Cowork browser agent, or any automated harness running against a live stand.
-> **Scope:** every page, every endpoint, every documented invariant from **v1.6.0 baseline through v1.29.0**. Catches regressions in code that already works; does NOT describe known open backlog (see §12).
+> **Scope:** every page, every endpoint, every documented invariant from **v1.6.0 baseline through v1.29.1**. Catches regressions in code that already works; does NOT describe known open backlog (see §12).
 > **Sister doc:** [`DOCS-COVERAGE-v1.29.md`](DOCS-COVERAGE-v1.29.md) is the top-down docs-driven coverage spec; this file is the bottom-up regression contract. Run both on every release.
 > **Owner:** this file supersedes `REGRESSION-v1.27.md`. Evidence runs live under `qa/v29-regression/<run-date>-REGRESSION.md`.
 
@@ -575,6 +575,17 @@ Open `docs/help/en.md §17`. Follow steps 1-5. After:
 - [ ] help §5 portals.yml example shows 5-source list × 8 locales
 - [ ] `tests/canonical-docs-coverage.test.mjs::17-H2 parity` passes
 
+### v1.29.1 — help §5 RU-config user guide × 8 locales
+- [ ] every help-bundle §5 carries the new ### "Configuring Russian portals — detailed setup guide" subsection (title is localized; the subsection presence is the contract)
+- [ ] 5-source `russian_portals.sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob"]` YAML example present in every locale's §5
+- [ ] 5-row source inventory table (rows: `hh`, `habr`, `trudvsem`, `getmatch`, `geekjob`) present in every locale's §5
+- [ ] Negative-list collision fix example present in every locale's §5
+- [ ] Disable-one-source YAML snippet present in every locale's §5
+- [ ] HH_USER_AGENT env-var name referenced (latin literal) in every locale's §5
+- [ ] `tests/help-ru-config-section.test.mjs` — 7 / 7 pass
+- [ ] H2-parity contract stays at 17 (§5 expansion is a ### subsection, not a new H2)
+- [ ] §17 (developer flow, v1.29.0) and §5 (user flow, v1.29.1) co-exist without overlap or contradiction
+
 ---
 
 ## 9. Reporting format
@@ -681,13 +692,14 @@ These are the load-bearing contracts spanning v1.6.0 → v1.29.0. Any future cha
 
 That's it. Single open item.
 
-**Closed in v1.28.x / v1.29.0** — see `qa/DOCS-COVERAGE-v1.29.md §3.A / §3.B / §3.E / §3.F` for details:
+**Closed in v1.28.x / v1.29.x** — see `qa/DOCS-COVERAGE-v1.29.md §3.A / §3.B / §3.E / §3.F` for details:
 - AI-list drift (Issue #1) — closed v1.28.0
 - `--max-retries N` UI surface (Issue #2) — closed v1.28.0
 - Router 404 on `?query` hashes — closed v1.28.1
 - HH_USER_AGENT health-row noise — closed v1.28.1
 - RU sources limited to 2 — closed v1.29.0 (now 5 by default)
 - Three-place source-list drift — closed v1.29.0 (registry is single source of truth)
+- User-facing RU-config docs gap — closed v1.29.1 (help §5 now has full step-by-step end-user guide × 8 locales)
 
 ---
 

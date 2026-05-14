@@ -536,6 +536,95 @@ russian_portals:
 `queries`, а `"php"` оказался в `title_filter.negative`, скан вернёт
 ноль результатов и консоль предупредит о конфликте.
 
+
+### Настройка русских порталов — подробное руководство
+
+v1.29.0 поставляется с 5 русскоязычными адаптерами. Два не требуют ничего сверх дефолтного UA (`habr-career` — HTML-скрейп; `trudvsem` — государственный open-data API, без ключа и без гео-гейта). Два — HTML-скрейпы технических площадок (`getmatch`, `geekjob` — тоже без ключа). Один — каноничный hh.ru API, который может вернуть 403 с не-российских IP, если не выставить переменную `HH_USER_AGENT` через **App settings → API keys & runtime** (или не запускать сервер с российского IP / VPN-выхода).
+
+#### Список источников
+
+| Ключ | Метка | Тип | Auth | Гео-ограничение |
+|---|---|---|---|---|
+| `hh` | hh.ru | JSON API | опц. `HH_USER_AGENT` | не-RU IP могут 403 |
+| `habr` | Habr Career | HTML | нет | нет |
+| `trudvsem` | Trudvsem | JSON API (open-data) | нет | нет |
+| `getmatch` | GetMatch | HTML | нет | нет |
+| `geekjob` | GeekJob | HTML | нет | нет |
+
+#### Шаг 1 — Открой `portals.yml`
+
+Файл лежит в корне родительского проекта `career-ops/` (НЕ внутри `web-ui/`). Если его ещё нет, скопируй пример из родительского проекта:
+
+```bash
+# from the parent career-ops/ root (NOT web-ui/)
+cp templates/portals.example.yml portals.yml
+$EDITOR portals.yml
+```
+
+#### Шаг 2 — Включи все 5 источников
+
+Добавь или обнови блок `russian_portals`, перечислив все источники, которые хочешь сканировать. Порядок в массиве не важен — сканер обходит их в порядке registry.
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob"]
+  area: 113                  # 1=Moscow, 2=SPb, 113=Russia, 1001=remote
+  per_page: 50               # how many vacancies per query per source
+  only_remote: false         # set true to keep only remote postings
+  queries:
+    - "Senior PHP"
+    - "Senior Go"
+    - "Backend Senior"
+    - "Тимлид PHP"
+```
+
+#### Шаг 3 — Настрой queries и фильтры
+
+`queries` — это строки, по которым сканер ищет в каждом источнике. Каждый запрос исполняется по разу на источник — 4 query × 5 источников = 20 вызовов за скан. Держи список сфокусированным (3–7 запросов), чтобы скан укладывался в минуту. `area` — региональный код hh.ru (остальные источники его игнорируют). `per_page` — лимит вакансий на запрос на источник. `only_remote: true` фильтрует только remote на уровне адаптера (в таблице результатов также есть отдельный Remote-чип).
+
+#### Типичные ошибки
+
+**Коллизия с negative-list'ом.** Если слово из query (`"php"`, `"senior"`) также присутствует в `title_filter.negative`, все результаты вылетают на фильтре ещё до показа. Сканер на этапе скана пишет в stderr предупреждение — ищи строку `⚠ config: query "Senior PHP" contains "php" which is in the negative list`. Решение — убрать конфликтующее слово из `negative`:
+
+```yaml
+title_filter:
+  positive: [backend, senior, lead, php, go, golang, python]
+  negative: [junior, intern, frontend, ios, android]
+russian_portals:
+  queries:
+    - "Senior PHP"     # OK — "php" no longer in negative list
+    - "Senior Go"
+```
+
+#### Временно выключить один источник
+
+Чтобы отключить источник без удаления данных, просто убери его ключ из `sources`:
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem"]   # only 3 of 5 sources will run
+```
+
+#### Проверка конфигурации
+
+После сохранения `portals.yml`:
+
+```bash
+# 1. Save portals.yml.
+# 2. In the SPA, switch to #/scan.
+# 3. Click 🌐 Scan now.
+# 4. Watch the SSE log for the per-source line per query:
+#       "Senior PHP"
+#         hh.ru    18
+#         habr     21
+#         trudvsem  3
+#         getmatch  0
+#         geekjob   2
+#    A value of 0 is normal for some queries — it just means that
+#    source had no matches. A "geo-blocked" or "timeout" line means
+#    the adapter reached the site but couldn't read results.
+```
+
 ### CLI-bootstrap ([scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
 
 Канонический setup career-ops (запустите из корня родителя один раз):

@@ -512,6 +512,95 @@ list** — if `"Senior PHP"` is in `queries` but `"php"` ends up in
 `title_filter.negative`, the scan will return zero results and the
 console will warn you about the conflict.
 
+
+### Configuring Russian portals — detailed setup guide
+
+v1.29.0 ships 5 Russian-language adapters. Two need nothing more than the default UA (`habr-career`, HTML scrape; `trudvsem`, government open-data API — no key, no IP gate). Two are HTML scrapes of tech boards (`getmatch`, `geekjob` — also no key). One is the canonical hh.ru API which may 403 from non-Russian IPs unless you set a `HH_USER_AGENT` env var via **App settings → API keys & runtime** (or run the server from a Russian IP / VPN exit node).
+
+#### Source inventory
+
+| Source key | Display label | Type | Auth | Geo restriction |
+|---|---|---|---|---|
+| `hh` | hh.ru | JSON API | optional `HH_USER_AGENT` | non-RU IPs may 403 |
+| `habr` | Habr Career | HTML | none | none |
+| `trudvsem` | Trudvsem | JSON API (open-data) | none | none |
+| `getmatch` | GetMatch | HTML | none | none |
+| `geekjob` | GeekJob | HTML | none | none |
+
+#### Step 1 — Open `portals.yml`
+
+The file lives in the parent `career-ops/` root (NOT inside `web-ui/`). If it doesn't exist yet, copy the example shipped with the parent project:
+
+```bash
+# from the parent career-ops/ root (NOT web-ui/)
+cp templates/portals.example.yml portals.yml
+$EDITOR portals.yml
+```
+
+#### Step 2 — Enable all 5 sources
+
+Add or update the `russian_portals` block to list every source you want to scan. The order in the array is irrelevant; the scanner walks them in registry order.
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob"]
+  area: 113                  # 1=Moscow, 2=SPb, 113=Russia, 1001=remote
+  per_page: 50               # how many vacancies per query per source
+  only_remote: false         # set true to keep only remote postings
+  queries:
+    - "Senior PHP"
+    - "Senior Go"
+    - "Backend Senior"
+    - "Тимлид PHP"
+```
+
+#### Step 3 — Tune queries and filters
+
+`queries` are the strings the scanner uses to search each source. Each query runs once on every source — so 4 queries × 5 sources = 20 calls per scan. Keep the list focused (3–7 queries) to keep scan time under a minute. `area` is the hh.ru region code (other sources ignore it). `per_page` caps how many vacancies each source returns per query. `only_remote: true` filters every result to remote-only at the adapter level (the result table still has a separate Remote chip).
+
+#### Common pitfalls
+
+**Negative-list collision.** If a word from a query (`"php"`, `"senior"`) also appears in `title_filter.negative`, every result is filtered out before you see it. The scanner emits a stderr collision warning at scan time — look for the line `⚠ config: query "Senior PHP" contains "php" which is in the negative list`. Fix by removing the colliding word from `negative`:
+
+```yaml
+title_filter:
+  positive: [backend, senior, lead, php, go, golang, python]
+  negative: [junior, intern, frontend, ios, android]
+russian_portals:
+  queries:
+    - "Senior PHP"     # OK — "php" no longer in negative list
+    - "Senior Go"
+```
+
+#### Disabling one source temporarily
+
+To disable a source without deleting its data, just drop its key from `sources`:
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem"]   # only 3 of 5 sources will run
+```
+
+#### Verifying the setup
+
+After saving `portals.yml`:
+
+```bash
+# 1. Save portals.yml.
+# 2. In the SPA, switch to #/scan.
+# 3. Click 🌐 Scan now.
+# 4. Watch the SSE log for the per-source line per query:
+#       "Senior PHP"
+#         hh.ru    18
+#         habr     21
+#         trudvsem  3
+#         getmatch  0
+#         geekjob   2
+#    A value of 0 is normal for some queries — it just means that
+#    source had no matches. A "geo-blocked" or "timeout" line means
+#    the adapter reached the site but couldn't read results.
+```
+
 ### CLI bootstrap flow ([scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
 
 The canonical career-ops setup (run from the parent root once):

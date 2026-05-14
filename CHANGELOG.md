@@ -6,6 +6,46 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.29.1] — 2026-05-14
+
+**Detailed user-facing config guide for the 5 RU portals in help-bundle §5, all 8 locales.**
+
+### 📝 Documentation
+
+- **`docs(help): §5 "Configuring Russian portals — detailed setup guide"`** ([`docs/help/<locale>.md`](docs/help/)): new ### subsection within Portals & sources covers the end-user config flow:
+  - 5-row source-inventory table with auth + geo restrictions per adapter.
+  - Step 1 — locate `portals.yml` + bootstrap from template.
+  - Step 2 — full 5-source `russian_portals:` YAML example.
+  - Step 3 — tuning queries, `area`, `per_page`, `only_remote`.
+  - Common pitfalls — negative-list collision (with worked example showing the fix).
+  - How to disable a single source without losing data.
+  - How to verify via 🌐 Scan + the per-source SSE log line shape.
+- Universal YAML/code blocks shared across locales; prose translated for ES / PT-BR / KO / JA / RU / ZH-CN / ZH-TW.
+- §17 ("How to add a new portal") was the developer flow shipped in v1.29.0; §5 is the user flow shipped in v1.29.1.
+
+### 🧪 Tests
+
+- **`test(help): tests/help-ru-config-section.test.mjs`** — 7 cases asserting every locale's §5 contains the 5-source YAML, the negative-list collision fix, the disable-one-source example, the 5 adapter labels in the verify block, the 5-row inventory table, the `HH_USER_AGENT` env-var reference, and the 17-H2 parity contract held after the edit.
+- **540 → 547** unit + acceptance (+7).
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 547 / 547
+# ✓ no .also( leftovers in views/
+# ✓ CHANGELOG parity: all 8 locales at v1.29.1
+
+# Manual smoke (after redeploy):
+$ for lc in en es pt-BR ko ja ru zh-CN zh-TW; do
+    curl -fsS "http://127.0.0.1:4317/api/help/$lc" \
+      | python3 -c "import sys,json; print('$lc:', 'YES' if 'trudvsem' in json.load(sys.stdin).get('markdown','') else 'NO')"
+  done
+# every line ends in "YES" — the §5 expansion mentions trudvsem in every locale.
+```
+
+---
+
 ## [1.29.0] — 2026-05-14
 
 **Russian-portal scanner expanded from 2 to 5 sources. Source registry + dynamic dropdown. New help-section explaining how to add a 12th.**

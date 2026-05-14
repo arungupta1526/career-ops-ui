@@ -10,6 +10,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.29.1] — 2026-05-14
+
+**Guía detallada del usuario para configurar los 5 portales RU en el help-bundle §5, en las 8 locales.**
+
+Nueva subsección "Configurar los portales rusos — guía detallada" dentro de §5 (Portals & sources): tabla inventario de 5 fuentes con auth y restricciones geográficas, paso a paso para localizar y editar `portals.yml`, ejemplo YAML completo de las 5 fuentes, colisión con la lista negativa con corrección, cómo deshabilitar una fuente, cómo verificar vía 🌐 Scan + log SSE. §17 (shipped en v1.29.0) cubre el flujo del desarrollador; §5 v1.29.1 cubre el flujo del usuario final. **540 → 547** unit + acceptance (+7 nuevos). Detalles completos en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.29.0] — 2026-05-14
 
 **Scanner de portales rusos pasa de 2 a 5 fuentes; registry + dropdown dinámico; nueva sección §17 "Cómo añadir un nuevo portal".**

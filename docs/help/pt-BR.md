@@ -539,6 +539,95 @@ negativa** — se `"Senior PHP"` está em `queries` mas `"php"` acaba
 em `title_filter.negative`, o scan retornará zero resultados e o
 console te avisará sobre o conflito.
 
+
+### Configurar os portais russos — guia detalhado
+
+v1.29.0 inclui 5 adaptadores russos. Dois não precisam de nada além do UA padrão (`habr-career`, scraping HTML; `trudvsem`, API open-data do governo — sem key, sem barreira geográfica). Dois são scrapers HTML de portais técnicos (`getmatch`, `geekjob` — também sem key). Um é a API canônica do hh.ru, que pode retornar 403 a partir de IPs fora da Rússia, a menos que você configure a variável `HH_USER_AGENT` via **App settings → API keys & runtime** (ou rode o servidor a partir de IP russo / VPN).
+
+#### Inventário de fontes
+
+| Chave | Rótulo | Tipo | Auth | Restrição geográfica |
+|---|---|---|---|---|
+| `hh` | hh.ru | JSON API | `HH_USER_AGENT` opcional | IPs não-RU podem 403 |
+| `habr` | Habr Career | HTML | nenhum | nenhuma |
+| `trudvsem` | Trudvsem | JSON API (open-data) | nenhum | nenhuma |
+| `getmatch` | GetMatch | HTML | nenhum | nenhuma |
+| `geekjob` | GeekJob | HTML | nenhum | nenhuma |
+
+#### Passo 1 — Abra `portals.yml`
+
+O arquivo fica na raiz do projeto pai `career-ops/` (NÃO dentro de `web-ui/`). Se ainda não existir, copie o exemplo que vem com o projeto pai:
+
+```bash
+# from the parent career-ops/ root (NOT web-ui/)
+cp templates/portals.example.yml portals.yml
+$EDITOR portals.yml
+```
+
+#### Passo 2 — Habilite as 5 fontes
+
+Adicione ou atualize o bloco `russian_portals` listando todas as fontes que quer escanear. A ordem não importa; o scanner percorre na ordem do registry.
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob"]
+  area: 113                  # 1=Moscow, 2=SPb, 113=Russia, 1001=remote
+  per_page: 50               # how many vacancies per query per source
+  only_remote: false         # set true to keep only remote postings
+  queries:
+    - "Senior PHP"
+    - "Senior Go"
+    - "Backend Senior"
+    - "Тимлид PHP"
+```
+
+#### Passo 3 — Ajuste queries e filtros
+
+`queries` são as strings que o scanner usa para buscar em cada fonte. Cada query roda uma vez por fonte — 4 queries × 5 fontes = 20 chamadas por scan. Mantenha a lista focada (3–7 queries) para que o scan fique abaixo do minuto. `area` é o código de região do hh.ru (as outras fontes ignoram). `per_page` limita quantas vagas cada fonte retorna por query. `only_remote: true` filtra remoto a nível de adaptador (a tabela de resultados ainda tem chip Remoto próprio).
+
+#### Erros comuns
+
+**Colisão com lista negativa.** Se uma palavra de query (`"php"`, `"senior"`) também está em `title_filter.negative`, todos os resultados são filtrados antes de você ver. O scanner emite aviso stderr em tempo de scan — procure pela linha `⚠ config: query "Senior PHP" contains "php" which is in the negative list`. Resolva removendo a palavra de `negative`:
+
+```yaml
+title_filter:
+  positive: [backend, senior, lead, php, go, golang, python]
+  negative: [junior, intern, frontend, ios, android]
+russian_portals:
+  queries:
+    - "Senior PHP"     # OK — "php" no longer in negative list
+    - "Senior Go"
+```
+
+#### Desativar uma fonte temporariamente
+
+Para desabilitar uma fonte sem apagar seus dados, basta remover sua chave de `sources`:
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem"]   # only 3 of 5 sources will run
+```
+
+#### Verificar a configuração
+
+Depois de salvar `portals.yml`:
+
+```bash
+# 1. Save portals.yml.
+# 2. In the SPA, switch to #/scan.
+# 3. Click 🌐 Scan now.
+# 4. Watch the SSE log for the per-source line per query:
+#       "Senior PHP"
+#         hh.ru    18
+#         habr     21
+#         trudvsem  3
+#         getmatch  0
+#         geekjob   2
+#    A value of 0 is normal for some queries — it just means that
+#    source had no matches. A "geo-blocked" or "timeout" line means
+#    the adapter reached the site but couldn't read results.
+```
+
 ### Fluxo de bootstrap CLI ([scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
 
 O setup canônico do career-ops (rode a partir da raiz do pai uma vez):
