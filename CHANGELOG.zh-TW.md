@@ -8,6 +8,14 @@
 
 ---
 
+## [1.26.0] — 2026-05-14
+
+**測試金字塔 + 行覆蓋率 ≥ 93 %.**
+
+依 v1.25 待辦事項採用四級測試金字塔(unit → functional → acceptance → e2e)。新增 22 個測試,涵蓋 v1.25 的最大空白(jds.mjs 61.64 % → 100 %,auto-pipeline 拒絕路徑)。新增 `tests/acceptance/` 目錄用於跨端點使用者旅程測試。**480 → 502** unit + acceptance,Playwright 32/32 不變。完整細節見 [`CHANGELOG.md`](CHANGELOG.md) 和 [`docs/architecture/TESTING.md`](docs/architecture/TESTING.md)。
+
+---
+
 ## [1.25.0] — 2026-05-14
 
 **Auto-pipeline 手動模式短路 + 儀表板外觀微修 + CHANGELOG 對齊回填。** 一次解決 G-014(auto-pipeline 忽略 `mode: 'manual'`)、G-012(CHANGELOG 對齊漂移 — 6 個 locale 落後兩個版本),以及儀表板 `✨ ✨` 雙字符外觀問題。G-003(`README.cn.md` 重新命名)其實已自然關閉 — 此版本庫只存在 `README.zh-CN.md`。G-005(A-G → A-F 報表區塊重排)需要父專案協同提交,本版本持續延後。

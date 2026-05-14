@@ -8,6 +8,14 @@
 
 ---
 
+## [1.26.0] — 2026-05-14
+
+**测试金字塔 + 行覆盖 ≥ 93 %.**
+
+按 v1.25 待办事项采用四级测试金字塔(unit → functional → acceptance → e2e)。新增 22 个测试,覆盖 v1.25 的最大空白(jds.mjs 61.64 % → 100 %,auto-pipeline 拒绝路径)。新建 `tests/acceptance/` 目录用于跨端点用户旅程测试。**480 → 502** unit + acceptance,Playwright 32/32 不变。完整细节见 [`CHANGELOG.md`](CHANGELOG.md) 和 [`docs/architecture/TESTING.md`](docs/architecture/TESTING.md)。
+
+---
+
 ## [1.25.0] — 2026-05-14
 
 **自动管线手动短路 + 仪表盘修饰 + CHANGELOG 同步补齐。** 修复 G-014(自动管线忽略 `mode: 'manual'`)、G-012(CHANGELOG 同步滞后 — 6 个语言版本落后 2 个发布)以及仪表盘 `✨ ✨` 双字形修饰问题。G-003(`README.cn.md` 重命名)经核实已闭环 — 仓库内仅存在 `README.zh-CN.md`。G-005(A-G → A-F 报告区块对齐)需要父项目协同提交,继续推迟。

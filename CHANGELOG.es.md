@@ -10,6 +10,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.26.0] — 2026-05-14
+
+**Pirámide de tests + cobertura ≥ 93 % línea.**
+
+Adopta la estructura de 4 niveles (unit → functional → acceptance → e2e) según el backlog de v1.25. Añade 22 tests nuevos cubriendo los mayores gaps de cobertura de v1.25 (jds.mjs 61.64 % → 100 %, ramas de rechazo en auto-pipeline). Introduce el directorio `tests/acceptance/` para tests de jornada de usuario multi-endpoint. **480 → 502** unit + acceptance, 32/32 Playwright sin cambios. Detalle completo en [`CHANGELOG.md`](CHANGELOG.md) y [`docs/architecture/TESTING.md`](docs/architecture/TESTING.md).
+
+---
+
 ## [1.25.0] — 2026-05-14
 
 **Cortocircuito manual del auto-pipeline + ajuste cosmético del dashboard + nivelación de paridad del CHANGELOG.** Cierra G-014 (el auto-pipeline ignoraba `mode: 'manual'`), G-012 (deriva de paridad del CHANGELOG — 6 *locales* iban 2 versiones por detrás) y la duplicación cosmética del glifo `✨ ✨` en el dashboard. G-003 (renombrado de `README.cn.md`) ya estaba cerrado de facto — el repositorio solo contiene `README.zh-CN.md`. G-005 (realineamiento del bloque de informe A-G → A-F) requiere un *commit* coordinado en el proyecto padre y queda diferido.

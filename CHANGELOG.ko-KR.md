@@ -8,6 +8,14 @@
 
 ---
 
+## [1.26.0] — 2026-05-14
+
+**테스트 피라미드 + 라인 커버리지 ≥ 93 %.**
+
+v1.25 백로그 요구사항에 따라 4단계 테스트 피라미드(unit → functional → acceptance → e2e)를 도입했습니다. v1.25에서 가장 컸던 커버리지 gap을 메우는 22개 신규 테스트 추가 (jds.mjs 61.64 % → 100 %, auto-pipeline 거절 경로). 멀티 엔드포인트 사용자 여정 테스트를 위한 `tests/acceptance/` 디렉토리 신설. **480 → 502** unit + acceptance, Playwright 32/32 그대로. 상세 내용은 [`CHANGELOG.md`](CHANGELOG.md) 및 [`docs/architecture/TESTING.md`](docs/architecture/TESTING.md) 참조.
+
+---
+
 ## [1.25.0] — 2026-05-14
 
 **자동 파이프라인 수동 단락 처리 + 대시보드 외관 수정 + CHANGELOG 패리티 백필.** G-014 (auto-pipeline 이 `mode: 'manual'` 을 무시) 와 G-012 (CHANGELOG 패리티 드리프트 — 6개 로케일이 릴리스 2개 뒤처짐), 그리고 대시보드의 `✨ ✨` 이중 글리프 외관 문제를 마무리합니다. G-003 (`README.cn.md` 이름 변경) 은 사실상 이미 종료되어 있었습니다 — 저장소에는 `README.zh-CN.md` 만 존재합니다. G-005 (A-G → A-F 보고서 블록 재정렬) 은 부모 프로젝트와 조율된 커밋이 필요하여 계속 연기합니다.

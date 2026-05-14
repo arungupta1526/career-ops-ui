@@ -6,6 +6,104 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.26.0] — 2026-05-14
+
+**Test pyramid (unit → functional → acceptance → e2e) + coverage push to ≥ 93 % line / ≥ 83 % branch.** Adopts the 4-tier structure mandated by the v1.25 backlog. Adds 22 new tests targeting the biggest coverage gaps from v1.25's `npm run test:coverage` report; introduces the `tests/acceptance/` directory for cross-endpoint user-journey tests.
+
+### 📐 Test pyramid documentation
+
+- **`docs(architecture): TESTING.md describes the 4-tier pyramid`** ([`docs/architecture/TESTING.md`](docs/architecture/TESTING.md)) — single-source explanation of how the suite is structured and where new tests land:
+  - **Tier 1 (unit)** — pure helpers (`security`, `parsers`, `prompts`, `file-lock`, `rate-limit`, `safe-fetch`, `env-config`). No port binding, no FS beyond stubs, no subprocess.
+  - **Tier 2 (functional)** — per-endpoint contracts. `createApp()` against ephemeral port + temp `CAREER_OPS_ROOT`.
+  - **Tier 3 (acceptance)** — multi-endpoint user journeys. NEW `tests/acceptance/` directory.
+  - **Tier 4 (e2e)** — Playwright headless Chromium (`tests/playwright-{smoke,full-cycle}.mjs`, `tests/e2e{,-comprehensive}.mjs`).
+- 100% line coverage target is explicitly scoped to **working functionality** — the `if (isMain) { … }` boot block in `server/index.mjs` and live-LLM call paths in `auto-pipeline.mjs` are documented exclusions.
+
+### 🧪 Tier 2 — Functional gap fills
+
+- **`test(jds): jds-list-create-get.test.mjs`** — pre-v1.26 only the DELETE path was tested. New file adds 10 tests covering:
+  - `GET /api/jds` shape on empty + populated state
+  - `POST /api/jds` with explicit slug, auto-generated slug, slug normalization warning
+  - `POST /api/jds` empty-body / stripped-to-empty-slug 400 responses
+  - `GET /api/jds/:name` body roundtrip, 404 on unknown, traversal rejection
+  - **`server/lib/routes/jds.mjs` coverage: 61.64 % → 100 % line.**
+- **`test(auto-pipeline): auto-pipeline-rejection-paths.test.mjs`** — 10 tests covering every URL rejection branch that doesn't need a live LLM:
+  - `javascript:` / `file://` / malformed-string / empty / no-key-body
+  - SSRF: loopback, RFC1918, link-local IMDS (169.254.169.254)
+  - `mode: 'manual'` interaction with rejected URL — error precedes any done event
+  - **`server/lib/routes/auto-pipeline.mjs` branch coverage: 50.00 % → 59.38 %.**
+
+### 🧪 Tier 3 — Acceptance (NEW)
+
+- **`test(acceptance): jd-evaluate-tracker-flow.test.mjs`** — first cross-endpoint user journey. Threads 7 endpoints in the order the SPA invokes them:
+
+  1. `POST /api/jds` — save raw JD
+  2. `GET /api/jds` — confirm in list
+  3. `GET /api/jds/:name` — read body verbatim
+  4. `POST /api/evaluate` (manual fallback) — generate prompt
+  5. `POST /api/tracker` — add row
+  6. `GET /api/tracker` — verify presence
+  7. `GET /api/activity` — confirm audit-log entry
+
+  Second journey: pipeline-add → preview → tracker → delete cycle.
+
+### 🧪 Test count
+
+- **480 → 502** unit + acceptance (+22). 32/32 Playwright unchanged.
+- `npm test` now runs `tests/*.test.mjs tests/acceptance/*.test.mjs`.
+- `npm run test:coverage` same. `npm run test:ci` runs all of the above plus the two CI gates from v1.24.1 (`check-no-also-leftovers`) and v1.25.0 (`check-changelog-parity`).
+
+### Coverage snapshot
+
+```
+all files                     | 93.66 line | 83.73 branch | 92.91 func
+server/lib/security.mjs       | 99.30 line
+server/lib/safe-fetch.mjs     | 95.81 line
+server/lib/file-lock.mjs      | 93.15 line
+server/lib/rate-limit.mjs     | 100.00 line
+server/lib/parsers.mjs        | 99.57 line
+server/lib/routes/jds.mjs     | 100.00 line  ← was 61.64 in v1.25
+server/lib/routes/tracker.mjs | 100.00 line
+server/lib/routes/reports.mjs | 100.00 line
+server/lib/routes/activity.mjs| 100.00 line
+```
+
+Remaining < 95 % line modules are gated by live-LLM / spawn-mock complexity:
+
+- `auto-pipeline.mjs` (46 %) — uncovered region is the live Anthropic / Gemini evaluate path + report-save + tracker-write SSE flow. Out of scope for the 100 % target per [TESTING.md "Goal: 100% line coverage of working functionality"](docs/architecture/TESTING.md).
+- `batch.mjs` (67 %) — uncovered region is `streamNodeScript` spawn of `batch-runner.sh`. Out of scope (subprocess mocking gap).
+- `cv-import.mjs` (77 %) — uncovered region is pandoc / pdftotext fallback paths when the system tools are missing. Out of scope (env-dependent).
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 502 / 502
+# ✓ no .also( leftovers in views/
+# ✓ CHANGELOG parity: all 8 locales at v1.26.0
+
+$ npm run test:coverage 2>&1 | grep '^# all files'
+# all files | 93.66 | 83.73 | 92.91
+
+$ ls tests/acceptance/
+# jd-evaluate-tracker-flow.test.mjs
+```
+
+### Breaking changes
+
+None.
+
+### Out of scope (v1.27+)
+
+| Item | Notes |
+|---|---|
+| Live LLM-path coverage in `auto-pipeline.mjs` | Needs SDK-adapter mock + `withFileLock` stub + report-save stub. Currently 46 % line; would push toward 95 % with the mock harness. |
+| Subprocess-mocked coverage for `batch.mjs::streamNodeScript` | Needs spawn-mock; would push 67 % → 90 %. |
+| `cv-import.mjs` pandoc / pdftotext fallback path | Needs env-injected `which()` stub. |
+| G-005 (A-F report block realignment) | Still waiting on coordinated parent commit. |
+
+---
+
 ## [1.25.0] — 2026-05-14
 
 **Auto-pipeline manual short-circuit + dashboard cosmetic + CHANGELOG parity backfill.** Closes G-014 (auto-pipeline ignored `mode: 'manual'`), G-012 (CHANGELOG parity drift — 6 locales were 2 releases behind), and the dashboard `✨ ✨` double-glyph cosmetic. G-003 (`README.cn.md` rename) was de-facto already closed — repo only has `README.zh-CN.md`. G-005 (A-G → A-F report block realignment) requires a coordinated parent-project commit and stays deferred.
