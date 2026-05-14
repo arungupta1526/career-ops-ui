@@ -8,6 +8,14 @@
 
 ---
 
+## [1.29.2] — 2026-05-14
+
+**热修复:`🌐 Scan` 在 `source=both` 模式下只跑了 EN 阶段,RU 阶段被静默丢弃。**
+
+SSE 客户端(`public/js/api.js:156`)在第一个 `done` 事件就关闭了 `EventSource`,而服务端在 `source=both` 模式下每阶段各发一个 `done`。RU 阶段刚启动就被取消。修复:服务端在每个 `done` 上标记 `final: true|false`,客户端仅在 `final !== false` 时关闭。向后兼容 — 不设置 `final` 的单阶段生产者继续保持原行为。**547 → 558** 单元 + 验收测试(+11 新增)。完整细节见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.29.1] — 2026-05-14
 
 **为 help-bundle §5 的 8 个语种全部加入面向用户的 5 个 RU 门户配置详尽指南。**

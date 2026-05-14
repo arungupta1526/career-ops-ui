@@ -153,7 +153,18 @@ window.API = (function () {
           let data;
           try { data = JSON.parse(e.data); } catch { data = e.data; }
           onEvent(ev, data);
-          if (ev === 'done' || ev === 'error') es.close();
+          // v1.29.2 — close on `error` always; close on `done` UNLESS the
+          // server explicitly set `final: false`. The multi-phase
+          // `/api/stream/scan?source=both` endpoint emits one `done` per
+          // phase (EN, then RU); the intermediate `done` carries
+          // `final: false` so the EventSource stays open for the RU phase.
+          // Backward-compatible: existing single-phase producers don't set
+          // `final`, so it defaults to undefined → `!== false` → close as
+          // before. Closing early was the v1.28-and-earlier bug that
+          // silently dropped the regional scan phase ("ATS scanned but
+          // no Russian sites").
+          if (ev === 'error') { es.close(); return; }
+          if (ev === 'done' && (!data || data.final !== false)) es.close();
         });
       });
       es.onerror = () => {

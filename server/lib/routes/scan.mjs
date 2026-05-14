@@ -44,7 +44,7 @@ function openSse(res) {
  * `/api/stream/scan?source=` route uses this once for ats / regional,
  * twice for both. (v1.18.0 retired the legacy scan-{en,ru} aliases.)
  */
-async function driveOne({ res, send, runner, label, query }) {
+async function driveOne({ res, send, runner, label, query, final = true }) {
   send('start', {
     script: label,
     writeFiles: query.dryRun !== '1',
@@ -60,7 +60,13 @@ async function driveOne({ res, send, runner, label, query }) {
       signal: ctrl.signal,
       onLog: (stream, line) => { if (!aborted) send('log', { stream, line }); },
     });
-    if (!aborted) send('done', { code: 0, counts: result.counts, errors: result.errors.length });
+    // v1.29.2 — `final` lets the consumer know whether MORE phases follow.
+    // The SSE client in public/js/api.js auto-closes the EventSource on
+    // `done` only when `final !== false`. Pre-v1.29.2 the client closed on
+    // the FIRST `done` of `source=both`, terminating the stream before the
+    // regional phase could fire — that's the user-reported bug ("ATS
+    // scanned but no Russian sites").
+    if (!aborted) send('done', { code: 0, counts: result.counts, errors: result.errors.length, final });
     return { ok: true, result };
   } catch (err) {
     if (!aborted) send('error', { message: err && err.message });
@@ -82,9 +88,11 @@ export function registerScanRoutes(app) {
     } else if (source === 'regional') {
       await driveOne({ res, send, runner: runRuScan, label: 'ru-scanner', query: req.query });
     } else if (source === 'both' || source === '') {
-      const a = await driveOne({ res, send, runner: runEnScan, label: 'en-scanner', query: req.query });
+      // v1.29.2 — first phase's `done` carries `final: false` so the SSE
+      // client keeps the EventSource open for the regional phase.
+      const a = await driveOne({ res, send, runner: runEnScan, label: 'en-scanner', query: req.query, final: false });
       if (a.ok && !res.writableEnded) {
-        await driveOne({ res, send, runner: runRuScan, label: 'ru-scanner', query: req.query });
+        await driveOne({ res, send, runner: runRuScan, label: 'ru-scanner', query: req.query, final: true });
       }
     } else {
       send('error', { message: `unknown source "${source}" (expected: ats | regional | both)` });

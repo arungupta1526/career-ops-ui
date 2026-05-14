@@ -6,6 +6,63 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.29.2] — 2026-05-14
+
+**Hot-fix: `🌐 Scan` with `source=both` only ran the EN phase. RU phase was silently dropped.**
+
+### 🚑 Critical hot-fix
+
+User-reported symptom: clicking the unified `🌐 Scan` button (which calls `runScanAll()` → `GET /api/stream/scan?source=both`) returned only the EN ATS phase. The console showed `▶ ATS scan (Greenhouse + Ashby + Lever)` … `✓ ATS done · NEW=0` and then stopped. No RU phase output ever appeared, even with all 5 RU adapters listed in `russian_portals.sources`.
+
+**Root cause** — [`public/js/api.js:156`](public/js/api.js#L156) closed the `EventSource` on **the first `done` event**:
+
+```js
+if (ev === 'done' || ev === 'error') es.close();
+```
+
+But [`server/lib/routes/scan.mjs::driveOne`](server/lib/routes/scan.mjs) emits `done` once per phase, and the `source=both` branch drives two phases sequentially. The client closed after the EN `done`, the server detected `res.on('close')` → `AbortController.abort()` → the RU phase started but was immediately cancelled.
+
+**Fix — multi-phase SSE contract:**
+
+- **Server** ([`server/lib/routes/scan.mjs`](server/lib/routes/scan.mjs)): `driveOne` now accepts a `final` param (default `true`). The `done` payload carries `final: <bool>`. The `source=both` branch passes `final: false` to the first phase, `final: true` to the second.
+- **Client** ([`public/js/api.js:148-172`](public/js/api.js#L148-L172)): `stream(...)` closes the `EventSource` on `done` only when `data.final !== false`. Backward-compatible: legacy single-phase producers (`/api/stream/batch`, `/api/stream/pdf*`, etc.) don't set `final`, so the behaviour is unchanged. Close on `error` remains unconditional.
+
+### 🧪 Tests
+
+- **`test(scan): tests/scan-stream-multi-phase.test.mjs`** — 11 cases covering both server-emitted SSE contract and client decision logic:
+  - **SSE contract (6 cases):** `source=ats` → 1 `done` (`final:true`); `source=regional` → 1 `done` (`final:true`); `source=both` → 2 `done` events with `final:false` then `final:true`; `source=both` → 2 `start` events in `en-scanner`/`ru-scanner` order; static canary that the pre-v1.29.2 unconditional close pattern is gone; static canary that the v1.29.2 `data.final !== false` guard is present.
+  - **Functional proof of fix (3 cases):** `source=both` actually emits the RU-phase banner line (proves the body runs, not just empty shells); `ru-scanner` start arrives AFTER `en-scanner` done (ordering); `dryRun=1` does NOT modify `data/pipeline.md` (no phase secretly flips `writeFiles`).
+  - **Pure-logic close-decision table (1 case, parametrized over 11 inputs):** mirrors the api.js branch in JS — covers `done` with `final:false / true / undefined / null / 0 / 'false'`, plus `error` with payload/null, plus `start` / `log` (never close).
+  - **Bug-forensics (1 case):** simulates the pre-v1.29.2 client by cancelling the response stream after the first `done` and verifies the server's `res.on('close')` abort handler is still intact (documents the pre-fix mechanism for future readers).
+- **547 → 558** unit + acceptance (+11).
+
+### 🔄 Migration
+
+No user action needed beyond updating to v1.29.2. The next `🌐 Scan` will run both phases.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 553 / 553
+# ✓ no .also( leftovers in views/
+# ✓ CHANGELOG parity: all 8 locales at v1.29.2
+
+# Manual smoke — both phases should now emit:
+$ curl -sN "http://127.0.0.1:4317/api/stream/scan?source=both&dryRun=1" \
+    | grep -E '^event:|"final":'
+# event: start                                        ← en-scanner
+# ...
+# event: done                                         ← phase 1 of 2
+# data: {"code":0,"counts":{...},"errors":0,"final":false}
+# event: start                                        ← ru-scanner
+# ...
+# event: done                                         ← phase 2 of 2 (final)
+# data: {"code":0,"counts":{...},"errors":0,"final":true}
+```
+
+---
+
 ## [1.29.1] — 2026-05-14
 
 **Detailed user-facing config guide for the 5 RU portals in help-bundle §5, all 8 locales.**

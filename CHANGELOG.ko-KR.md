@@ -8,6 +8,14 @@
 
 ---
 
+## [1.29.2] — 2026-05-14
+
+**핫픽스: `🌐 Scan`을 `source=both`로 실행해도 EN 단계만 동작했음. RU 단계는 조용히 누락.**
+
+SSE 클라이언트(`public/js/api.js:156`)는 첫 번째 `done` 이벤트에서 `EventSource`를 닫았지만, 서버는 `source=both`에서 단계별로 하나씩 발행합니다. RU 단계는 시작 직후 취소되었습니다. 수정: 서버는 각 `done`에 `final: true|false`를 표시하고, 클라이언트는 `final !== false`일 때만 닫습니다. 역호환 — `final`을 설정하지 않는 단일 단계 생산자는 이전처럼 닫힙니다. **547 → 558** 유닛 + 어셉턴스(+11 신규). 상세 내역은 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.29.1] — 2026-05-14
 
 **5개 RU 포털 구성을 위한 상세 사용자 가이드를 help-bundle §5의 8개 로케일 전체에 추가.**
@@ -1247,7 +1255,7 @@ CI 의 순서: 유닛 (Node 18/20/22 매트릭스) → smoke node E2E → compre
 
 ### 🧪 테스트
 
-- **283 유닛 테스트** (이전 277): +6 신규 (B1 redirect 거부용 4개, `hasGeminiKey` 용 1개, `runAnthropic` 로그 가드용 1개).
+- **283 유닛 테스트** (이전 277): +11 신규 (B1 redirect 거부용 4개, `hasGeminiKey` 용 1개, `runAnthropic` 로그 가드용 1개).
 - **5 Playwright 브라우저 smoke 테스트** (신규, `npm run test:e2e:browser` 를 통한 옵트인): 대시보드 렌더 + 버전 푸터, 대시보드 → 스캔 → 파이프라인 → cv 내비게이션, 언어 전환 영속, 404 뷰, health 페이지 렌더. Playwright 를 부모의 `node_modules` 를 통해 해결합니다 — 신규 의존성 없음.
 - 커버리지가 ~93% 라인 / ~83% 브랜치로 유지됩니다.
 

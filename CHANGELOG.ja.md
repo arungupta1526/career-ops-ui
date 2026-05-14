@@ -8,6 +8,14 @@
 
 ---
 
+## [1.29.2] — 2026-05-14
+
+**ホットフィックス:`🌐 Scan` を `source=both` で実行しても EN フェーズのみ動作。RU フェーズが静かに破棄されていました。**
+
+SSE クライアント(`public/js/api.js:156`)が最初の `done` イベントで `EventSource` をクローズしていましたが、サーバは `source=both` でフェーズごとに 1 つずつ送出します。RU フェーズは開始直後にキャンセルされていました。修正:サーバは各 `done` に `final: true|false` を付与し、クライアントは `final !== false` の場合のみクローズします。後方互換 — `final` を設定しない単一フェーズの送出側は従来通りクローズ。**547 → 558** unit + acceptance(+11 新規)。完全な詳細は [`CHANGELOG.md`](CHANGELOG.md) を参照。
+
+---
+
 ## [1.29.1] — 2026-05-14
 
 **5 つの RU ポータルを構成するための詳細なユーザガイドを help-bundle §5 の 8 ロケール全てに追加。**
@@ -1463,7 +1471,7 @@ CI 順序: unit (Node 18/20/22 マトリクス) → smoke node E2E → 包括 no
 
 ### 🧪 テスト
 
-- **283 unit テスト** (以前 277): +6 新規 (B1 redirect 拒否で 4、`hasGeminiKey` で 1、`runAnthropic` log-guard で 1)。
+- **283 unit テスト** (以前 277): +11 新規 (B1 redirect 拒否で 4、`hasGeminiKey` で 1、`runAnthropic` log-guard で 1)。
 - **5 Playwright ブラウザ smoke テスト** (新規、`npm run test:e2e:browser` で opt-in): ダッシュボードレンダリング + バージョンフッタ、ダッシュボード → scan → pipeline → cv ナビゲーション、言語切替永続化、404 view、health ページレンダリング。Playwright は親の `node_modules` 経由で解決 — 新規依存なし。
 - カバレッジは約 93% 行 / 約 83% 分岐を維持。
 
