@@ -17,16 +17,19 @@ import { dirname, resolve } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const I18N_PATH = resolve(__dirname, '..', 'public', 'js', 'lib', 'i18n.js');
+const I18N_DICT_PATH = resolve(__dirname, '..', 'public', 'js', 'lib', 'i18n-dict.js');
 
 const REQUIRED_LANGS = ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW'];
 
 function loadDict() {
-  let src = readFileSync(I18N_PATH, 'utf8');
-  // Inject a DICT escape hatch right before the closing `})()` of the IIFE.
-  // We do it by replacing the `return { ... };` line so DICT travels with
-  // the public surface — keeps the production module untouched at runtime
-  // (we patch only the in-memory copy used by the test).
-  src = src.replace(
+  // v1.23.0 (N-1) — DICT lives in i18n-dict.js. Load that first into a
+  // stub `window`, then run i18n.js in the same context. i18n.js reads
+  // `window.__I18N_DICT` at IIFE time, so the wiring is automatic.
+  // We still inject the `_DICT: DICT` escape hatch so the test can
+  // inspect the merged dictionary the way it always could.
+  const dictSrc = readFileSync(I18N_DICT_PATH, 'utf8');
+  let logicSrc = readFileSync(I18N_PATH, 'utf8');
+  logicSrc = logicSrc.replace(
     /return\s*\{\s*t,\s*setLang,\s*getLang,\s*getLangs,\s*onChange\s*\};/,
     'return { t, setLang, getLang, getLangs, onChange, _DICT: DICT };'
   );
@@ -36,10 +39,11 @@ function loadDict() {
     document: { documentElement: { lang: 'en' }, addEventListener: () => {} },
     navigator: { language: 'en' },
   });
-  runInContext(src, ctx);
+  runInContext(dictSrc, ctx);    // populates window.__I18N_DICT
+  runInContext(logicSrc, ctx);   // reads it, builds window.I18n
   const I18n = ctx.window.I18n;
   if (!I18n || !I18n._DICT) {
-    throw new Error('failed to extract DICT — IIFE return signature changed?');
+    throw new Error('failed to extract DICT — split-load contract changed?');
   }
   return I18n._DICT;
 }

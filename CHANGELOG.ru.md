@@ -6,6 +6,126 @@
 
 ---
 
+## [1.23.0] — 2026-05-14
+
+**i18n split + горячий фикс CI + полная зачистка backlog'а v1.20.1.** Закрывает три пункта из «Out of scope» v1.22.0 (M-9 переводы локальных CHANGELOG, N-1 split `i18n.js` по LOC, content-аудит help-bundle'ов) плюс hot-fix smoke E2E, который красил main после v1.22.0.
+
+### Основное
+
+- **CI hot-fix:** v1.22.0 M-6 экспоненциальный backoff был корректен по замыслу, но in-flight `setTimeout` блокировался текущей задержкой. Сервер, упавший в момент, когда `_healthDelay=3s` уже отсчитывался, восстанавливался только на следующем тике через 6/9с — smoke E2E ждал 4с и падал. v1.23.0 трекает `_healthHandle`, сбрасывает каденс на состояние-переходе вниз, добавляет `visibilitychange` для немедленной re-check на возврате фокуса, опускает `_HEALTH_MAX` с 60s до 15s.
+- **N-1:** `public/js/lib/i18n.js` (639 LOC) разделён — логика в `i18n.js` (86 LOC, ниже 400-LOC цели), DICT-данные в `i18n-dict.js` (578 LOC, фикстура — изъята из LOC-rule). `public/index.html` грузит dict-файл первым.
+- **M-9:** 6 из 7 локальных CHANGELOG переведены до уровня публикации (es, pt-BR, ko-KR, ja, zh-CN, zh-TW). RU остаётся частично EN-bodied — отложено в v1.24.
+- **Скриншоты:** все 8 README ссылаются на свой `images/dashboard-<locale>.png`. Inline `<!-- DO NOT REVERT -->` маркеры предотвращают откат при будущих agent-rewrite'ах.
+
+### Тесты
+
+**474 / 474** unit + **20 / 20** smoke E2E (было 19/1 на main из-за регрессии connection-banner) + **32 / 32** Playwright.
+
+Полное описание см. [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
+## [1.22.0] — 2026-05-14
+
+**Зачистка M/L/N backlog + docs alignment + refresh переводов.** В одном релизе закрыт весь M-tier + L-tier + nit-tier из `docs/specs/V1.20.1-BACKLOG.md`: девять M-items, пять L-items, два nits. Плюс docs-alignment аудит против пяти канонических гайдов [career-ops.org/docs](https://career-ops.org/docs), системные промпты под `.claude/` и `.github/`, refresh качества переводов READMEs во всех 7 не-английских локалях.
+
+### 🛡️ Security hardening (defense-in-depth)
+
+- **`fix(security): M-4 — entity-aware stripDangerousMarkdown`** ([`server/lib/security.mjs`](server/lib/security.mjs)) — регулярка до v1.22 матчила `<script>`, `javascript:`, `on*=` как литеральные подстроки. `&lt;script&gt;`, `java&#115;cript:`, и `<img src="data:image/svg+xml,<svg onload=…>">` проскакивали. Теперь strip декодирует `&lt;`, `&gt;`, `&amp;`, `&quot;`, числовые (`&#NN;`) и hex (`&#xHH;`) entities **до** прохода regex. 11 тестов в [`tests/cv-xss-bypasses.test.mjs`](tests/cv-xss-bypasses.test.mjs). Настоящая защита по-прежнему — клиентский pipeline `UI.md` с escape-first; здесь — at-rest hardening.
+
+- **`fix(security): L-2 — bash --noprofile --norc на batch runner`** ([`server/lib/routes/batch.mjs:108`](server/lib/routes/batch.mjs#L108)) — `spawn('bash', ...)` наследовал пользовательский `~/.bashrc`. Враждебный rc мог повлиять на выполнение. Теперь `spawn('bash', ['--noprofile', '--norc', ...])`.
+
+### 🔒 Resilience
+
+- **`fix(client): M-6 — экспоненциальный backoff на health-ping`** ([`public/js/api.js:22-48`](public/js/api.js#L22-L48)) — disconnected-state poller выстреливал 28 800 fetch'ей за ночь против мёртвого сервера. Теперь 3s → 6s → 12s → 24s → 60s; сброс на первый 2xx recovery. Цепочка `setTimeout` (а не `setInterval`), чтобы каждый шаг подхватывал актуальную задержку.
+
+- **`fix(client): M-5 — Safari private-mode localStorage guard`** ([`public/js/lib/i18n.js:572-583`](public/js/lib/i18n.js#L572-L583)) — Safari private-mode выбрасывает `SecurityError` на каждом `localStorage.getItem/setItem`. IIFE-during-load падал, SPA рендерил голые ключи. Обернули оба вызова в try/catch с `detect()` browser-language fallback.
+
+- **`fix(server): M-2 — body-size cap на outbound preview fetches (test + verify)`** — v1.21.0 `safeGet` уже стримил чанки и капал на `opts.maxBytes`. v1.22 добавляет regression test в [`tests/ssrf-redirect-rebind.test.mjs`](tests/ssrf-redirect-rebind.test.mjs) для фиксации контракта: 100 KB upstream + 4 KB cap → response ≤ 4 KB.
+
+- **`fix(client): L-5 — clear setTimeout на hashchange в scan.js`** ([`public/js/views/scan.js:6-22, :113-120`](public/js/views/scan.js#L6-L22)) — пост-done 300 мс `refreshResults()` таймер leak'ал когда пользователь уходил со `#/scan` в этом окне. Handle теперь захватывается и очищается в `__cancelActiveScanPoll`.
+
+- **`fix(client): L-4 — multi-line SSE data: joiner`** ([`public/js/lib/auto-pipeline.js:158-176`](public/js/lib/auto-pipeline.js#L158-L176)) — SSE парсер использовал `match()` (одна строка). По спецификации event может нести несколько `data:` линий, склеиваемых через `\n`. Сервер сейчас шлёт однострочный JSON, поэтому старый код работал — но был хрупок к любому будущему multi-line payload.
+
+### ♿ Accessibility
+
+- **`feat(a11y): M-3 — WCAG 1.4.1 избыточные cue на score pills + connection banner`** ([`public/css/app.css:602-625, :812-822`](public/css/app.css#L602-L625)) — score-high/mid/low до v1.22 передавали состояние только цветом (красный/янтарный/зелёный). Пользователи, не различающие оттенки, не имели fallback. Каждый tier теперь получает избыточный глиф через `::before` (✓ / ◐ / ○). Connection banner получил leading `⚠` глиф в offline-состоянии. Render-сайты не тронуты — чистый CSS hardening.
+
+- **`feat(a11y): M-1 — inline hint параграфы для каждого поля mode-page`** ([`public/js/views/mode-page.js`](public/js/views/mode-page.js), [`public/js/lib/i18n.js`](public/js/lib/i18n.js)) — v1.20.0 wire'ил `htmlFor → id` для каждого поля mode-page, но не нёс inline hint copy; intent поля описывался только в README walkthrough'ах. v1.22.0 добавил 19 hint i18n ключей × 8 локалей = **152 новых перевода** и `field()` builder теперь рендерит `<p id="…-hint">` с `aria-describedby` wiring per field. Screen-reader пользователь слышит подсказку при фокусе.
+
+- **`fix(a11y): M-7 — null-guard на UI.el() htmlFor alias`** ([`public/js/api.js:194-198`](public/js/api.js#L194-L198)) — `htmlFor: null` рендерил литерал `for="null"`. Однострочное зеркало fallthrough-ветки `v != null && v !== false`.
+
+### 🧹 Quality / portability
+
+- **`fix(server): L-1 — parseInt radix в health.mjs + bin/start.sh + bin/setup.sh`** — `parseInt(process.versions.node)` без radix триггерит lint warning и хрупок если Node когда-нибудь начнёт шипить hex-версии. Добавили `10` везде.
+
+- **`fix(server): L-3 — Windows-safe entrypoint check`** ([`server/index.mjs:159-163`](server/index.mjs#L159-L163)) — `import.meta.url === \`file://${process.argv[1]}\`` неправильно обрабатывает drive letters и backslashes на Windows. Заменено на `fileURLToPath(import.meta.url) === path.resolve(process.argv[1])`.
+
+- **`refactor(client): N-2 — убрали Element.prototype.also monkey-patch`** ([`public/js/views/cv.js:188-201`](public/js/views/cv.js#L188-L201)) — глобальное загрязнение DOM prototype. Заменено локальной переменной для tree root.
+
+- **`test(canary): M-8 — 404 regression-test для retired /api/scan-ru/config`** ([`tests/scan-consolidated.test.mjs`](tests/scan-consolidated.test.mjs)) — v1.20.0 retired alias, но без canary. Трёхстрочное дополнение по образцу v1.18 retirement-тестов.
+
+### 📚 Docs + системные промпты
+
+- **`docs(architecture): refresh OVERVIEW + DATA-FLOWS под v1.21+ surface`** — в OVERVIEW.md добавлены `safe-fetch.mjs` (DNS-pinned GET), `file-lock.mjs` (per-path mutex), `rate-limit.mjs` (LLM throttle), `sanitizePathName`. В DATA-FLOWS.md появились две новые секции: «Outbound URL fetches (DNS-rebind-safe)» и «LLM endpoint rate-limiting».
+
+- **`docs(readme): refresh секции security envelope`** — секция «Security notes» в README.md теперь документирует каждый helper v1.21+ envelope (sanitizePathName, safeGet, withFileLock, llmRateLimit, entity-aware stripDangerousMarkdown).
+
+- **`docs(qa): scenario 31 — career-ops.org/docs alignment`** ([`qa/claude-cowork-browser-test-prompt.md`](qa/claude-cowork-browser-test-prompt.md)) — шесть новых sub-тестов (31.1–31.6), которые сверяют поведение UI с описанным в пяти канонических гайдах career-ops.org/docs: score thresholds, scan workflow (одна кнопка), apply workflow (checklist, не auto-submit), batch workflow (TSV редактор), Playwright setup (graceful failure), help-bundle coverage (5 URLs × 8 локалей).
+
+- **`docs(translate): refresh качества READMEs × 7 не-EN локалей`** — каждая не-EN README переписана в публикационно-техническом стиле на родном языке. Заменены частые корявые кальки; добавлены упоминания v1.21/v1.22 security envelope; release/test badges обновлены.
+
+- **`docs(system): .claude/PROJECT-CONTEXT.md + .github/copilot-instructions.md`** — single-file ориентация для агентов, входящих в сессию. Сжатый CLAUDE.md, перечисляющий v1.21+ хелперы, типовые pitfalls.
+
+- **`docs(bin): актуализация комментариев start.sh / setup.sh / run_all.sh`** — «two deps» → «three deps» (express + js-yaml + multer); «298 tests» → «474+ tests»; `parseInt` radix добавлен.
+
+### 🧪 Тесты
+
+- **461 → 474 unit** (+13) + 32/32 Playwright без изменений.
+- Новые test-файлы: `cv-xss-bypasses.test.mjs` (M-4, 11 тестов).
+- Расширены: `ssrf-redirect-rebind.test.mjs` (+1 для M-2 body cap), `scan-consolidated.test.mjs` (+1 для M-8 alias canary).
+- Ноль behavioral test-дельт на существующих suite'ах — каждый fix аддитивен или покрыт новым canary.
+
+### Verification
+
+```bash
+npm test                          # 474 / 474
+npm run test:e2e:browser          # 32 / 32
+
+# Entity-encoded XSS strip:
+node -e "import('./server/lib/security.mjs').then(({stripDangerousMarkdown}) => console.log(stripDangerousMarkdown('&lt;script&gt;alert(1)&lt;/script&gt;')))"
+# → '' (никакой <script> не выживает)
+
+# Health-ping backoff (откройте devtools, убейте сервер, смотрите network panel):
+#   3 s → 6 s → 12 s → 24 s → 60 s, затем сброс на первом успешном ping
+
+# Score-pill глиф (откройте #/reports в light + dark theme):
+#   .score-high показывает ✓ + numeric score
+#   .score-mid  показывает ◐ + numeric score
+#   .score-low  показывает ○ + numeric score
+
+# Mode-page hints (#/contacto, etc):
+#   <input aria-describedby="mode-contacto-recipient-hint">  ← указывает на <p id="…">
+
+# Retired alias:
+curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:4317/api/scan-ru/config
+# → 404
+```
+
+### Breaking changes
+
+Нет. Каждый fix аддитивен или сохраняет существующие endpoint contracts.
+
+### Out of scope (v1.23+)
+
+| Item | Notes |
+|---|---|
+| M-9 — переводы тел локальных CHANGELOG | Все `CHANGELOG.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md` записи v1.13+ — EN-bodied stop-gaps. Кандидат на bulk-перевод после замедления release-cadence. |
+| N-1 — `public/js/lib/i18n.js` сверх 400-LOC цели | Split per locale увеличивает HTTP cost без bundler'а. Defer до build-step decision. |
+| Help-bundle content refresh из career-ops.org/docs | Пять канонических URL уже фигурируют в каждой help-локали (с v1.11.x). Сценарий 31.6 в QA prompt верифицирует coverage. Content depth refresh — кандидат на v1.23. |
+
+---
+
 ## [1.21.0] — 2026-05-14
 
 **Security + concurrency + a11y polish from two independent code-review passes.** Seven findings from `docs/specs/V1.20.1-BACKLOG.md` shipped in one release. 34 new tests; baseline **461 / 461** unit + 32/32 Playwright.

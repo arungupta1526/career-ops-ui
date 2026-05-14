@@ -4,234 +4,443 @@ Todos los cambios destacables de **career-ops-ui**. Formato según [Keep a Chang
 
 Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [한국어](CHANGELOG.ko-KR.md) · [日本語](CHANGELOG.ja.md) · [Русский](CHANGELOG.ru.md) · [简体中文](CHANGELOG.zh-CN.md) · [繁體中文](CHANGELOG.zh-TW.md)
 
-> **Nota i18n** — desde v1.12.0 hacia adelante las entradas están localizadas en cada idioma. Entradas anteriores (v1.11.x, v1.10.x) permanecen en ruso por convención del proyecto; el contenido inglés normativo está en [CHANGELOG.md](CHANGELOG.md).
+> **Nota i18n** — desde v1.12.0 en adelante las entradas están localizadas en cada idioma. Las entradas anteriores (v1.11.x, v1.10.x) permanecen en ruso por convención del proyecto; el contenido normativo inglés está en [CHANGELOG.md](CHANGELOG.md).
+
+> **Nota de traducción (v1.22.0)** — este archivo está ahora íntegramente traducido al español técnico. Se han retirado los avisos provisionales "ver CHANGELOG.md en inglés" que aparecían en las entradas v1.13.0 a v1.21.0.
+
+---
+
+## [1.22.0] — 2026-05-14
+
+**Limpieza del backlog M/L/N + alineación documental + pase de calidad en traducciones.** Todo el tramo medio-e-inferior de `v1.20.1-BACKLOG.md` se entrega en una sola versión: nueve ítems M, cinco ítems L, dos *nits*. Se suma una auditoría de alineación contra las cinco guías canónicas de [career-ops.org/docs](https://career-ops.org/docs), una actualización de los *system prompts* bajo `.claude/` y `.github/`, y un repaso de calidad de los README en los 7 *locales* no ingleses.
+
+### 🛡️ Endurecimiento de seguridad (defensa en profundidad)
+
+- **`fix(security): M-4 — stripDangerousMarkdown consciente de entidades`** ([`server/lib/security.mjs`](server/lib/security.mjs)) — la regex previa a v1.22 coincidía con `<script>`, `javascript:`, `on*=` como subcadenas literales. `&lt;script&gt;`, `java&#115;cript:` y `<img src="data:image/svg+xml,<svg onload=…>">` se colaban sin filtro. El saneamiento ahora decodifica entidades `&lt;`, `&gt;`, `&amp;`, `&quot;`, numéricas (`&#NN;`) y hexadecimales (`&#xHH;`) **antes** de ejecutar la regex de saneamiento. Validado por 11 pruebas en [`tests/cv-xss-bypasses.test.mjs`](tests/cv-xss-bypasses.test.mjs). La defensa real sigue siendo la canalización *escape-first* `UI.md` del lado cliente; esto endurece el fichero en reposo.
+
+- **`fix(security): L-2 — bash --noprofile --norc en el ejecutor de lotes`** ([`server/lib/routes/batch.mjs:108`](server/lib/routes/batch.mjs#L108)) — `spawn('bash', [PATHS.batchRunner, ...])` heredaba el `~/.bashrc` del usuario. Un fichero rc hostil podía influir en la ejecución. Ahora `spawn('bash', ['--noprofile', '--norc', PATHS.batchRunner, ...])`.
+
+### 🔒 Resiliencia
+
+- **`fix(client): M-6 — *backoff* exponencial en el ping de salud`** ([`public/js/api.js:22-48`](public/js/api.js#L22-L48)) — el *poller* del estado desconectado lanzaba 28 800 *fetches* contra un servidor caído durante la noche. Ahora 3 s → 6 s → 12 s → 24 s → 60 s, con reinicio a 3 s en el primer 2xx de recuperación. La configuración es una cadena de `setTimeout` (no un `setInterval`), de modo que cada paso adopta el nuevo retardo.
+
+- **`fix(client): M-5 — protección frente a localStorage del modo privado de Safari`** ([`public/js/lib/i18n.js:572-583`](public/js/lib/i18n.js#L572-L583)) — Safari en modo privado lanza `SecurityError` en cada `localStorage.getItem/setItem`. La IIFE de carga rompía el módulo i18n completo y dejaba el SPA mostrando claves en bruto. Se envolvieron ambas llamadas en try/catch con respaldo a `detect()` por el idioma del navegador.
+
+- **`fix(server): M-2 — tope de tamaño en *fetches* salientes de vista previa (prueba + verificación)`** — el `safeGet` introducido en v1.21.0 ya transmitía por *chunks* y cortaba en `opts.maxBytes`. v1.22 añade una prueba explícita de regresión en [`tests/ssrf-redirect-rebind.test.mjs`](tests/ssrf-redirect-rebind.test.mjs) para fijar el contrato: 100 KB de origen + 4 KB de tope → respuesta ≤ 4 KB.
+
+- **`fix(client): L-5 — limpiar setTimeout al cambiar de hash en scan.js`** ([`public/js/views/scan.js:6-22, :113-120`](public/js/views/scan.js#L6-L22)) — el temporizador de `refreshResults()` a los 300 ms tras *done* tenía fuga si el usuario salía de `#/scan` en esa ventana. El *handle* ahora se captura y se cancela en `__cancelActiveScanPoll`.
+
+- **`fix(client): L-4 — combinador de líneas `data:` multilínea en SSE`** ([`public/js/lib/auto-pipeline.js:158-176`](public/js/lib/auto-pipeline.js#L158-L176)) — el *parser* SSE usaba `match()` (una sola línea). Según la especificación, un evento puede arrastrar varias líneas `data:` que el consumidor une con `\n`. El servidor envía hoy JSON en línea única, así que el código antiguo funcionaba — pero era frágil ante cualquier carga útil multilínea futura.
+
+### ♿ Accesibilidad
+
+- **`feat(a11y): M-3 — WCAG 1.4.1 pistas redundantes en píldoras de puntuación y banner de conexión`** ([`public/css/app.css:602-625, :812-822`](public/css/app.css#L602-L625)) — `score-high` / `score-mid` / `score-low` transmitían el estado solo por tono (rojo/ámbar/verde). Quien no percibe el tono se quedaba sin recurso. Cada nivel recibe ahora un glifo redundante vía `::before` (✓ / ◐ / ○). El banner de conexión incorpora un glifo `⚠` en el estado *offline*. Los puntos de renderizado no se tocan — endurecimiento puramente CSS.
+
+- **`feat(a11y): M-1 — párrafos de pista en línea para cada campo de mode-page`** ([`public/js/views/mode-page.js`](public/js/views/mode-page.js), [`public/js/lib/i18n.js`](public/js/lib/i18n.js)) — v1.20.0 cableó `htmlFor → id` en cada campo de *mode-page* pero no arrastró el texto de pista en línea; sólo los recorridos del README describían la intención del campo. v1.22.0 incorpora 19 claves i18n de pista × 8 *locales* = **152 traducciones nuevas** y el constructor `field()` renderiza ahora un `<p id="…-hint">` con su cableado `aria-describedby` por campo. Los usuarios de lector de pantalla oyen la pista al enfocar el campo.
+
+- **`fix(a11y): M-7 — protección contra null en el alias htmlFor de UI.el()`** ([`public/js/api.js:194-198`](public/js/api.js#L194-L198)) — `htmlFor: null` producía un literal `for="null"`. Espejo en una línea de la guarda `v != null && v !== false` de la rama de respaldo.
+
+### 🧹 Calidad / portabilidad
+
+- **`fix(server): L-1 — radix en parseInt en health.mjs + bin/start.sh + bin/setup.sh`** — `parseInt(process.versions.node)` sin radix dispara un aviso del *linter* y es frágil si Node llegara a publicar versiones hexadecimales. Se añadió `10` en todas partes.
+
+- **`fix(server): L-3 — comprobación de punto de entrada segura en Windows`** ([`server/index.mjs:159-163`](server/index.mjs#L159-L163)) — `import.meta.url === \`file://${process.argv[1]}\`` maneja mal letras de unidad y barras invertidas en Windows. Sustituido por `fileURLToPath(import.meta.url) === path.resolve(process.argv[1])`.
+
+- **`refactor(client): N-2 — eliminar el parche de Element.prototype.also`** ([`public/js/views/cv.js:188-201`](public/js/views/cv.js#L188-L201)) — contaminación global del prototipo DOM. Sustituido por una variable local con la raíz del árbol.
+
+- **`test(canary): M-8 — prueba de regresión 404 para /api/scan-ru/config retirado`** ([`tests/scan-consolidated.test.mjs`](tests/scan-consolidated.test.mjs)) — v1.20.0 retiró el alias pero no dejó canario. Añadido en tres líneas como espejo de las pruebas de retirada de v1.18.
+
+### 📚 Documentación + system prompts
+
+- **`docs(architecture): refrescar OVERVIEW + DATA-FLOWS para la superficie de v1.21+`** — añadidos `safe-fetch.mjs` (GET con DNS fijado), `file-lock.mjs` (mutex por ruta), `rate-limit.mjs` (estrangulamiento del LLM) y `sanitizePathName` a OVERVIEW.md. DATA-FLOWS.md gana dos secciones nuevas: "*Outbound URL fetches (DNS-rebind-safe)*" y "*LLM endpoint rate-limiting*".
+
+- **`docs(readme): refresco de la sección sobre el sobre de seguridad`** — la sección "Security notes" del README.md documenta ahora cada *helper* del sobre de seguridad de v1.21+ (sanitizePathName, safeGet, withFileLock, llmRateLimit, stripDangerousMarkdown consciente de entidades).
+
+- **`docs(qa): escenario 31 — alineación con career-ops.org/docs`** ([`qa/claude-cowork-browser-test-prompt.md`](qa/claude-cowork-browser-test-prompt.md)) — seis nuevas subpruebas (31.1–31.6) que verifican que la UI coincide con el comportamiento descrito en las cinco guías canónicas de career-ops.org/docs: umbrales de puntuación, flujo de *scan* (un botón), flujo de aplicación (lista, no autoenvío), flujo de lotes (editor TSV), arranque de Playwright (fallo elegante) y cobertura del *help bundle* (5 URLs × 8 *locales*).
+
+- **`docs(translate): refresco de calidad del README × 7 *locales* no ingleses`** — cada README no inglés reescrito a un estilo técnico de calidad editorial en su lengua nativa. Reemplazados los calcos torpes habituales; añadidas las menciones al sobre de seguridad v1.21/v1.22; *badges* de versión y de pruebas actualizados.
+
+- **`docs(system): .claude/PROJECT-CONTEXT.md + .github/copilot-instructions.md`** — orientación en un único fichero para los agentes que se incorporan a una sesión. Resume CLAUDE.md, nombra los *helpers* de v1.21+ y enumera los tropiezos habituales.
+
+- **`docs(bin): actualizar comentarios de start.sh / setup.sh / run_all.sh`** — "dos dependencias" → "tres dependencias" (express + js-yaml + multer); "298 tests" → "474+ tests"; radix de `parseInt` añadido.
+
+### 🧪 Tests
+
+- **461 → 474 *unit*** (+13) + 32/32 Playwright sin cambios.
+- Ficheros nuevos: `cv-xss-bypasses.test.mjs` (M-4, 11 pruebas).
+- Ampliados: `ssrf-redirect-rebind.test.mjs` (+1 para el tope de cuerpo M-2), `scan-consolidated.test.mjs` (+1 para el canario M-8 del alias).
+- Cero *deltas* de comportamiento en suites existentes — cada *fix* es aditivo o queda cubierto por un canario nuevo.
+
+### Verificación
+
+```bash
+npm test                          # 474 / 474
+npm run test:e2e:browser          # 32 / 32
+
+# Saneamiento XSS con entidades:
+node -e "import('./server/lib/security.mjs').then(({stripDangerousMarkdown}) => console.log(stripDangerousMarkdown('&lt;script&gt;alert(1)&lt;/script&gt;')))"
+# → '' (ningún <script> sobrevive)
+
+# Backoff del health-ping (abre devtools, mata el servidor, observa el panel de red):
+#   3 s → 6 s → 12 s → 24 s → 60 s, reinicio en el primer ping exitoso
+
+# Glifo de la píldora de puntuación (abre #/reports en tema claro y oscuro):
+#   .score-high muestra ✓ + puntuación numérica
+#   .score-mid  muestra ◐ + puntuación numérica
+#   .score-low  muestra ○ + puntuación numérica
+
+# Pistas en mode-page (#/contacto, etc):
+#   <input aria-describedby="mode-contacto-recipient-hint">  ← apunta a <p id="…">
+
+# Alias retirado:
+curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:4317/api/scan-ru/config
+# → 404
+```
+
+### Cambios incompatibles
+
+Ninguno. Cada *fix* es aditivo o preserva los contratos de los *endpoints* existentes.
+
+### Fuera de alcance (v1.23+)
+
+| Ítem | Notas |
+|---|---|
+| M-9 — traducción de los cuerpos del CHANGELOG por *locale* | Todas las entradas v1.13+ de `CHANGELOG.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md` eran provisionales con cuerpo inglés. Candidato a traducción masiva cuando se ralentice la cadencia de versiones. |
+| N-1 — `public/js/lib/i18n.js` por encima del objetivo de 400 LOC | Dividir por *locale* incrementa el coste HTTP sin un empaquetador. Se aplaza hasta que se decida el paso de *build*. |
+| Refresco del contenido del *help bundle* desde career-ops.org/docs | Las cinco URLs canónicas ya aparecen en el *help bundle* de cada *locale* (desde v1.11.x). El escenario 31.6 del *prompt* QA verifica la cobertura. Refresco de profundidad es candidato a v1.23. |
 
 ---
 
 ## [1.21.0] — 2026-05-14
 
-**Security + concurrency + a11y polish from two independent code-review passes.** Seven findings from `docs/specs/V1.20.1-BACKLOG.md` shipped in one release. 34 new tests; baseline **461 / 461** unit + 32/32 Playwright.
+**Pulido de seguridad + concurrencia + accesibilidad procedente de dos pases independientes de revisión de código.** Siete hallazgos del documento [`docs/specs/V1.20.1-BACKLOG.md`](docs/specs/V1.20.1-BACKLOG.md) se entregan en una sola versión: un bloqueante (TOCTOU de DNS-rebind), seis errores de severidad alta (dispersión del saneamiento de *path traversal*, hueco de *rate-limit* en despliegues LAN, condición de carrera de escritura, agujero de cobertura i18n, `aria-describedby` huérfano, asociaciones de etiqueta ausentes). 34 pruebas nuevas; la línea base sube de 427 → 461 *unit* + 32/32 Playwright. Cada *fix* aterriza tras una prueba de regresión con nombre.
 
-### Highlights
+### 🛡️ Seguridad
 
-- **B-1 (Security):** new `server/lib/safe-fetch.mjs` closes the DNS-rebind TOCTOU window in `/api/pipeline/preview` and `/api/auto-pipeline`.
-- **H-4 (Security):** `sanitizePathName` hoisted into `security.mjs`; 10 broken regex copies deleted; path-traversal sweep test added.
-- **H-5 (Security):** new `llmRateLimit` middleware — 10 req/min/IP on `HOST=0.0.0.0`. No-op on loopback.
-- **H-6 (Concurrency):** new `server/lib/file-lock.mjs::withFileLock(path, fn)` serializes read-modify-write on `applications.md` / `pipeline.md`.
-- **H-3 (i18n):** 19 missing keys × 8 locales = ~150 new translations; static-analysis canary added.
-- **H-1 / H-2 (a11y):** `id="batch-tsv-hint"` on the hint paragraph + `htmlFor` on two labels.
+- **`fix(security): B-1 — cerrar el TOCTOU de DNS-rebind con safe-fetch.mjs`** ([`server/lib/safe-fetch.mjs`](server/lib/safe-fetch.mjs)) — el patrón previo hacía un `dnsLookup` explícito para validar y luego dejaba que `fetch()` resolviera por su cuenta. Un atacante de *DNS rebind* con TTL=0 podía devolver una IP pública en la búsqueda 1 y `127.0.0.1` / `169.254.169.254` / una dirección LAN en la búsqueda 2, sorteando `isPrivateOrLoopbackHost`. El nuevo `safeGet` resuelve UNA vez, fija la conexión TCP a esa IP exacta vía node:http(s), y configura SNI/Host para que la validación del certificado siga apuntando al *hostname* original. Lo usan `/api/pipeline/preview` y `/api/auto-pipeline`. Fallo CERRADO ante un error de búsqueda (invierte el anterior `try { … } catch { /* fall through */ }`). Validado por 8 pruebas nuevas en [`tests/ssrf-redirect-rebind.test.mjs`](tests/ssrf-redirect-rebind.test.mjs).
 
-### Breaking changes
+- **`fix(security): H-4 — consolidar sanitizePathName a través de 10 rutas`** ([`server/lib/security.mjs`](server/lib/security.mjs)) — la regex `replace(/[^\w\-.]/g, '')` estaba duplicada a lo largo de `jds.mjs`, `content.mjs`, `reports.mjs`, `llm.mjs`, `runners.mjs` y conservaba los caracteres `.`, de modo que `..pdf`, `....md` y los nombres con punto inicial sobrevivían. Sólo `reports.mjs::sanitizeSlug` lo hacía bien. v1.21.0 eleva la versión correcta (`sanitizePathName`) a `security.mjs`, elimina 10 copias rotas y rechaza con 400 los resultados vacíos. Validado por 12 pruebas en [`tests/path-traversal.test.mjs`](tests/path-traversal.test.mjs).
 
-None. `LLM_RATE_LIMIT` is opt-in via env.
+- **`fix(security): H-5 — limitar la tasa en los *endpoints* LLM con bind público`** ([`server/lib/rate-limit.mjs`](server/lib/rate-limit.mjs)) — `/api/evaluate`, `/api/deep`, `/api/mode/:slug`, `/api/auto-pipeline` no tenían antes un *throttle* por IP. Los usuarios *loopback* no se ven afectados; los despliegues expuestos a LAN (`HOST=0.0.0.0`) reciben 10 req/min/IP con cabeceras `Retry-After` y `X-RateLimit-*` al rebosar. Configurable mediante `LLM_RATE_LIMIT="N/Ws"`. Defensa interina barata antes de la puerta de autenticación P-12 de v2.0. Validado por 6 pruebas en [`tests/rate-limit.test.mjs`](tests/rate-limit.test.mjs).
 
-See [`CHANGELOG.md`](CHANGELOG.md) for the full English changelog with verification commands.
+### 🔒 Concurrencia
+
+- **`fix(data): H-6 — mutex por fichero en applications.md / pipeline.md`** ([`server/lib/file-lock.mjs`](server/lib/file-lock.mjs)) — un `POST /api/tracker` concurrente (o el *auto-pipeline* compitiendo contra un alta manual) leía `num=42` por ambos lados, escribía `num=43` por ambos lados y descartaba en silencio la fila más antigua. `withFileLock(path, fn)` serializa el ciclo leer-modificar-escribir por ruta; las rutas independientes siguen ejecutándose en paralelo. Cableado en `tracker.mjs`, `pipeline.mjs` (POST + DELETE) y en el paso *tracker* de `auto-pipeline.mjs`. Validado por 5 pruebas en [`tests/concurrent-tracker-write.test.mjs`](tests/concurrent-tracker-write.test.mjs), incluida una de integración con 20 POSTs concurrentes que comprueba que las filas 001..020 aterrizan en orden.
+
+### ♿ Accesibilidad
+
+- **`fix(a11y): H-1 — id="batch-tsv-hint" en el párrafo de pista de batch.js`** ([`public/js/views/batch.js`](public/js/views/batch.js)) — v1.20.0 añadió `aria-describedby="batch-tsv-hint"` al *textarea* TSV pero nunca dotó al `<p>` de pista de un `id` coincidente. Los lectores de pantalla no tenían nada que vocalizar. Corregido.
+
+- **`fix(a11y): H-2 — htmlFor en las etiquetas batch-parallel / batch-min-score`** ([`public/js/views/batch.js`](public/js/views/batch.js)) — cuatro *inputs* de v1.20.0 recibieron *ids* nuevos pero sus etiquetas no estaban asociadas programáticamente. WCAG 3.3.2 queda ahora satisfecho.
+
+- Nuevo canario de análisis estático en [`tests/a11y-form-wires.test.mjs`](tests/a11y-form-wires.test.mjs) — recorre cada fichero de vista y comprueba que cada IDREF de `aria-describedby` / `htmlFor` apunta a un `id:` hermano. Detecta regresiones tipo-errata en tiempo de CI.
+
+### 🌐 i18n
+
+- **`fix(i18n): H-3 — 13 claves de v1.20.0 caían en silencio al inglés en 7 *locales*`** ([`public/js/lib/i18n.js`](public/js/lib/i18n.js)) — `pipe.filter`, `pipe.count`, `pipe.preview*`, `pipe.openTab`, `pipe.evaluateAll*`, `eval.jdHint`, `batch.parallelAria`, `batch.minScoreAria`, además de `common.delete`, `config.group{Core,Runtime,Regional}`, `config.profileEmpty`, `config.viewProfile`, `scan.atsBadge`, `scan.regionalBadge` se referenciaban con `t('key', 'EN fallback')` pero nunca se añadieron a DICT. Los usuarios de lector de pantalla en ruso, japonés y chino oían `aria-label` en inglés — anulando directamente la conquista WCAG 3.3.2 que reclamaba v1.20.0. v1.21.0 añade las 19 claves × 8 *locales* (≈ 150 traducciones nuevas) y extiende [`tests/i18n-coverage.test.mjs`](tests/i18n-coverage.test.mjs) con un pase de análisis estático que escanea cada llamada `t('key', …)` en `public/js/**/*.js` y comprueba que cada clave existe en DICT. La deriva futura queda detectada en tiempo de CI.
+
+### 🧪 Tests
+
+- **427 → 461 *unit*** (+34) + 32/32 Playwright sin cambios.
+- Ficheros nuevos: `ssrf-redirect-rebind`, `path-traversal`, `concurrent-tracker-write`, `rate-limit`, `a11y-form-wires`.
+- `pipeline-preview.test.mjs` recableado desde el *mock* `globalThis.fetch` al nuevo punto de inyección `_setTransport` de `safe-fetch.mjs` — la ruta SSRF ya no pasa por *fetch*, así que el *mock* viejo era sorteado en silencio.
+
+### Verificación
+
+```bash
+npm test                              # 461 / 461
+npm run test:e2e:browser              # 32 / 32
+node --test tests/ssrf-redirect-rebind.test.mjs tests/path-traversal.test.mjs \
+  tests/concurrent-tracker-write.test.mjs tests/rate-limit.test.mjs \
+  tests/a11y-form-wires.test.mjs      # 34 pruebas nuevas, todas verdes
+
+# Path-traversal: cada :name al estilo traversal devuelve 400 / 404
+curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:4317/api/jds/..pdf
+# → 400
+
+# Rate-limit con bind público:
+HOST=0.0.0.0 LLM_RATE_LIMIT=3/60s npm start &
+for i in 1 2 3 4; do
+  curl -sS -o /dev/null -w '%{http_code} ' -X POST -H 'Content-Type: application/json' \
+    -d '{"jd":"…"}' http://0.0.0.0:4317/api/evaluate
+done
+# → 200 200 200 429
+
+# Escrituras concurrentes al tracker: 20 POSTs paralelos, 20 filas aterrizan:
+node tests/concurrent-tracker-write.test.mjs
+# 20 filas secuenciales 001..020
+
+# Cordura del cableado aria:
+grep -r 'aria-describedby' public/js/views/ | wc -l
+# todas las búsquedas `id:` correspondientes resuelven (canario a11y-form-wires.test.mjs)
+```
+
+### Fuera de alcance (v1.22+)
+
+| Ítem | Notas |
+|---|---|
+| Tope por *streaming* del cuerpo en `pipeline-preview` (M-2) | `await upstream.text()` lee el cuerpo entero antes del corte a 8 KB; un *stream* malicioso de 1 GB podría agotar la memoria. Lectura por *stream* con contador de bytes y *abort*. |
+| WCAG 1.4.1 — estado sólo-color en `.connection-banner` y píldoras de puntuación (M-3) | El tono por sí solo señala el estado; añadir prefijo de icono (✓ / ◐ / ○) o sufijo de texto. |
+| Sorteos de `stripDangerousMarkdown` vía entidades HTML (M-4) | `&lt;script&gt;`, `java&#115;cript:`, `<img src="data:image/svg+xml,<svg onload=…>">` sobreviven a la regex. La defensa en profundidad vía `UI.md` aguanta; documentar y fijar los sorteos en una pasada de pruebas. |
+| Acceso a `localStorage` en modo privado de Safari sin try/catch (M-5) | `i18n.js:544/571` lanza → el SPA renderiza claves en bruto. Envolver en try/catch con `'en'` por defecto. |
+| `setInterval(checkHealth, 3000)` *poll* sin *backoff* (M-6) | Exponencial 3s → 6s → 12s → tope 60s. |
+| Falta de guarda para *null* en el alias `htmlFor` (M-7) | Defensa de una línea `if (v != null && v !== false)`. |
+| Canario 404 para `/api/scan-ru/config` retirado (M-8) | Prueba de tres líneas siguiendo el precedente de v1.18. |
+| Traducciones del cuerpo del CHANGELOG por *locale* (M-9) | Candidato a traducción masiva cuando se ralentice la cadencia de versiones. |
+| Párrafos de pista en línea para cada campo de *mode-page* (M-1) | ~168 claves i18n × 8 *locales*; reservado como pulido. |
+| Pequeñeces L-1 a L-5 | Radix de parseInt, bash --noprofile, fileURLToPath seguro en Windows, SSE multilínea, limpieza del temporizador de scan.js. |
 
 ---
 
 ## [1.20.0] — 2026-05-13
 
-**Per-component a11y polish + non-EN README parity + `/api/scan-ru/config` alias retired.** Closes the four items the v1.19.0 "Out of scope" table flagged for v1.20.
+**Pulido de accesibilidad por componente + paridad de README no inglés + retirada del alias `/api/scan-ru/config`.** Cierra los cuatro ítems que la tabla "Fuera de alcance" de v1.19.0 marcó para v1.20.
 
-### Highlights
+### ♿ WCAG 2.5.5 / 2.5.8 — auditoría de objetivo táctil por componente
 
-- **WCAG 2.5.5 / 2.5.8 — per-component touch-targets:** `.chip` → `min-height: 28px` + `.chip-row { gap: 8px }` (spaced-target exception). `.nav-item` and `.tab-btn` → `min-height: 44px`.
-- **WCAG 1.3.1 / 3.3.2 — `aria-describedby` on form hints:** every form control across `config.js` / `evaluate.js` / `batch.js` / `pipeline.js` / `mode-page.js` now owns a stable `id`, `<label htmlFor=…>`, and `aria-describedby` for inline hints. `UI.el()` learned a React-style `htmlFor` alias.
-- **Non-EN README parity:** all 7 locales now mirror the 585-line EN structure end-to-end (Why?, Quick start, full API reference, Architecture, 🌍 Getting Started walkthrough).
-- **Alias retired:** `DELETE /api/scan-ru/config`. Use `/api/scan/regional/config`. Sunset was announced in v1.19.0.
+- **`a11y(touch-target): chip min-height 28 px + 8 px de gap (excepción 2.5.8 spaced-target)`** — `.chip` era 24 × ~50 px (la vertical caía a 24, por debajo del piso 24 px de 2.5.5 para controles agrupados); la excepción *spaced-target* de 2.5.8 exige o bien ≥ 24 × 24 px, o bien 24 px de separación. Se elevó `.chip` a `min-height: 28px; padding: 6px 12px;` y la fila contenedora `.chip-row` a `gap: 8px;` para que ambas condiciones se cumplan.
+- **`a11y(touch-target): sidebar nav-item min-height 44 px`** — `.nav-item` sólo añadía `10px 14px` de relleno, con altura calculada ~36 px en la mayoría de *viewports*. Ahora `padding: 12px 14px; min-height: 44px; box-sizing: border-box;`. Coincide con el piso de `.btn`.
+- **`a11y(touch-target): tab-btn min-height 44 px`** — mismo tratamiento para *Sortable Headers* / pestañas de categoría en Reports, Tracker y resultados de Scan.
 
-### Tests
+### ♿ WCAG 1.3.1 / 3.3.2 — `aria-describedby` en pistas en línea
 
-**427 / 427** unit + 20/20 smoke + 23/23 comprehensive + 32/32 Playwright. All a11y wiring is additive; no behavioral test deltas.
+Cada control de formulario del SPA dispone ahora de un `id` estable, su `<label>` lo apunta vía `htmlFor`, y todo párrafo de pista en línea se asocia mediante `aria-describedby`. Cinco ficheros de vista han sido recableados:
 
-### Breaking changes
+- **`a11y(forms): config.js`** — `id` por clave + asociación de pista (`cfg-<key>` / `cfg-<key>-hint`).
+- **`a11y(forms): evaluate.js`** — *textarea* `eval-jd` + párrafo `eval-jd-hint` que documenta el mínimo de 50 caracteres tras el saneamiento.
+- **`a11y(forms): batch.js`** — `batch-tsv` / `batch-tsv-hint`, más `aria-label` en `batch-parallel`, `batch-min-score`, `batch-dry-run`, `batch-retry`.
+- **`a11y(forms): pipeline.js`** — `pipe-filter` + `pipe-new-url` / `pipe-new-url-hint`.
+- **`a11y(forms): mode-page.js`** — cada campo a lo largo de los 7 *modes* genéricos (`project`, `training`, `followup`, `batch-prompt`, `contacto`, `interview-prep`, `patterns`) obtiene *ids* `mode-<slug>-<name>` y etiquetas con `htmlFor`.
 
-- `GET /api/scan-ru/config` — removed (use `/api/scan/regional/config`).
+`UI.el()` aprende un alias `htmlFor` al estilo React para que el código de vista permanezca declarativo — establece el atributo subyacente `for` (que está reservado en JS como nombre de propiedad).
 
-See [`CHANGELOG.md`](CHANGELOG.md) for the full English changelog.
+### 🌍 Paridad de README no inglés
+
+- **`docs(readme): traducir 7 locales a la paridad de 585 líneas con el maestro EN`** — `README.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md` ocupaban entre 306 y 316 líneas (cubrían titulares pero saltaban los recorridos *marketing* y la mayor parte de la referencia de API). Los siete reflejan ahora la estructura EN extremo a extremo: About → instalación de un comando → Why? → Quick start (3 pasos numerados) → Requirements → tabla What you get → Scan → Architecture (árbol de directorios completo) → referencia de API (cada tabla de rutas) → Tests → Configuration → Security notes → Limitations → Contributing → recorrido 🌍 Getting Started de 5 pasos → License.
+
+### 🧹 Alias `/api/scan-ru/config` retirado
+
+- **`feat!(scan): remove /api/scan-ru/config legacy alias (sunset v1.20)`** — conservado como alias de una versión en v1.19 por compatibilidad hacia atrás. El canónico `/api/scan/regional/config` es ahora la única ruta. Eliminados: registro de ruta en `server/lib/routes/scan.mjs`, referencias en `README.md`, `docs/architecture/{OVERVIEW,SERVER,API}.md`. Las pruebas ya cubrían la ruta canónica — sin cambios de prueba.
+
+### 🧪 Tests
+
+- Misma suite que v1.19. **427 / 427** *unit* + 20/20 smoke + 23/23 *comprehensive* + 32/32 Playwright. Todo el cableado de accesibilidad es aditivo (más atributos `id` / `for` / `aria-describedby`) — sin cambios de comportamiento, sin *deltas* de prueba.
+
+### Verificación
+
+```bash
+npm test                              # 427 / 427
+npm run test:e2e:browser              # 32 / 32
+
+# Objetivos táctiles — cada chip / nav-item / tab-btn ≥ 28 / 44 / 44 px:
+#   Chrome DevTools → Computed → height/min-height en .chip, .nav-item, .tab-btn
+
+# Etiquetas de formulario — cada input tiene una asociación label[for=…]:
+#   document.querySelectorAll('input,textarea,select').forEach(el =>
+#     console.assert(el.labels?.length || el.getAttribute('aria-label'), el))
+
+# Alias desaparecido:
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:4317/api/scan-ru/config
+# → 404
+
+# Canónico sigue funcionando:
+curl -s http://127.0.0.1:4317/api/scan/regional/config | jq '.'
+```
+
+### Cambios incompatibles
+
+- `DELETE /api/scan-ru/config` — eliminado. Usa `/api/scan/regional/config`. Se anunció el *sunset* en el CHANGELOG de v1.19.0 y en su *script* de verificación.
+
+### Fuera de alcance (v1.21+)
+
+| Ítem | Notas |
+|---|---|
+| Párrafos de pista en línea por cada campo de *mode-page* | Hoy sólo la asociación `<label for=…>` está en su sitio; el texto de pista visible por campo sigue en inglés en el SPA. Los recorridos del README documentan la intención del campo en cada *locale*, así que esto es pulido, no bloqueante. |
+| Estado por sólo-color en `.connection-banner` y píldoras de puntuación del *dashboard* (WCAG 1.4.1) | El banner depende de rojo/ámbar/verde; necesita icono o sufijo de texto para quien no percibe el tono. |
+| Traducción del cuerpo del CHANGELOG por *locale* | Provisionales con cuerpo inglés persisten en `CHANGELOG.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md`. La traducción se hará cuando se ralentice la cadencia v1.x. |
 
 ---
 
 ## [1.19.0] — 2026-05-13
 
-**WCAG 1.4.3 contrast + scan unification (final) + HH_USER_AGENT removed from UI.** Closes the v1.18 out-of-scope contrast audit, finishes the EN/RU split elimination begun in v1.18, and removes the `HH_USER_AGENT` configuration knob from the UI per user direction (a sensible default bundled in the server already handles non-RU IPs for most users).
+**Contraste WCAG 1.4.3 + unificación del *scan* (final) + retirada de HH_USER_AGENT de la UI.** Cierra la auditoría de contraste fuera de alcance de v1.18, finaliza la eliminación del *split* EN/RU iniciada en v1.18, y retira el control de configuración `HH_USER_AGENT` de la UI por indicación del usuario (un valor por defecto razonable ya viene incrustado en el servidor para IPs no rusas, que cubre a la mayoría).
 
-### ♿ WCAG 1.4.3 contrast pass
+### ♿ Pase de contraste WCAG 1.4.3
 
-- **`a11y(contrast): introduce AA-passing *-text variants for accent tokens`** — light theme: `--rausch-text: #b80f42` (6.59:1 on white, was 3.52:1), `--kazan-text: #066507` (7.31:1, was 4.53:1), `--darjeeling-text: #7a5800` (5.73:1 on amber bg, was 4.24:1), `--babu-text: #00665e` (6.09:1, was 2.70:1). Dark theme: lightened mirrors (`#ff8aa0`, `#6ee7b7`, `#fcd34d`, `#5eead4`) hit the same 4.5:1 floor on `#161a22` paper.
-- Badge classes (`.badge-ok`, `.badge-warn`, `.badge-bad`, `.badge-info`) and score pills (`.score-high`, `.score-mid`, `.score-low`) now route through the new `*-text` variants — every text-on-tinted-bg combo passes AA. The accent fill tokens (`--rausch`, `--kazan`, etc.) stay unchanged for borders and outlines (which only need 3:1 for non-text UI components).
+- **`a11y(contrast): introduce AA-passing *-text variants for accent tokens`** — tema claro: `--rausch-text: #b80f42` (6,59:1 sobre blanco, antes 3,52:1), `--kazan-text: #066507` (7,31:1, antes 4,53:1), `--darjeeling-text: #7a5800` (5,73:1 sobre fondo ámbar, antes 4,24:1), `--babu-text: #00665e` (6,09:1, antes 2,70:1). Tema oscuro: espejos aclarados (`#ff8aa0`, `#6ee7b7`, `#fcd34d`, `#5eead4`) alcanzan el mismo piso 4,5:1 sobre papel `#161a22`.
+- Las clases de *badge* (`.badge-ok`, `.badge-warn`, `.badge-bad`, `.badge-info`) y las píldoras de puntuación (`.score-high`, `.score-mid`, `.score-low`) se enrutan ahora por las nuevas variantes `*-text` — cada combinación texto-sobre-fondo-tintado pasa AA. Los tokens de relleno de acento (`--rausch`, `--kazan`, etc.) no varían para bordes y contornos (que sólo necesitan 3:1 al ser componentes UI no textuales).
 
-### 🧹 Scan unification (finishes v1.18 work)
+### 🧹 Unificación del *scan* (cierra el trabajo de v1.18)
 
-- **`docs(scan): scrub remaining EN/RU split references across READMEs + help + architecture docs`** — eight READMEs + eight help bundles + three architecture docs (API.md, SERVER.md, OVERVIEW.md, DATA-FLOWS.md) + scan.js comment now describe a single consolidated scan method. The legacy `/api/stream/scan-{en,ru}` aliases were already gone in v1.18; v1.19 catches the doc/copy that still framed scanning as a two-step EN+RU process.
-- **`feat(scan): canonical /api/scan/regional/config endpoint`** — `/api/scan-ru/config` kept as a thin alias through one release for back-compat. The new path matches the source-naming convention (`?source=regional`).
+- **`docs(scan): scrub remaining EN/RU split references across READMEs + help + architecture docs`** — ocho READMEs + ocho *help bundles* + tres documentos de arquitectura (API.md, SERVER.md, OVERVIEW.md, DATA-FLOWS.md) + un comentario en scan.js describen ahora un único método de *scan* consolidado. Los alias legacy `/api/stream/scan-{en,ru}` ya habían desaparecido en v1.18; v1.19 atrapa la documentación y la copia que todavía enmarcaba el *scan* como un proceso EN+RU en dos pasos.
+- **`feat(scan): canonical /api/scan/regional/config endpoint`** — `/api/scan-ru/config` se conserva como alias delgado durante una versión por compatibilidad. La nueva ruta sigue la convención de nomenclatura por origen (`?source=regional`).
 
-### 🛠️ HH_USER_AGENT removed from UI
+### 🛠️ HH_USER_AGENT retirado de la UI
 
-- **`feat!(config): drop HH_USER_AGENT field from /#/config + KNOWN_KEYS`** — power users can still set `HH_USER_AGENT` directly in `career-ops/.env` (the server reads via `process.env.HH_USER_AGENT` in `server/lib/sources/hh.mjs` with the bundled UA as fallback). The UI no longer exposes it because the default works for most users and seeing an inscrutable User-Agent field in the App Settings page was a recurring source of confusion.
-- README mentions across 8 locales + help bundle mentions across 8 locales replaced with "run via a Russian IP / VPN" advice. The `scan.hhWarning` i18n key was rephrased to drop the env-var setup detail.
-- `KEY_GROUPS` collapsed: no more `regional` classification (it only had HH_USER_AGENT). Tests updated; `regionalActive` payload field preserved for SPA back-compat.
+- **`feat!(config): drop HH_USER_AGENT field from /#/config + KNOWN_KEYS`** — los usuarios avanzados pueden seguir fijando `HH_USER_AGENT` directamente en `career-ops/.env` (el servidor lo lee mediante `process.env.HH_USER_AGENT` en `server/lib/sources/hh.mjs` con el UA incrustado como respaldo). La UI deja de exponerlo porque el valor por defecto funciona para la mayoría y ver un campo *User-Agent* indescifrable en la página de App Settings era una fuente recurrente de confusión.
+- Las menciones en los README de 8 *locales* + las menciones en el *help bundle* de 8 *locales* se reemplazan por el consejo "ejecuta vía una IP rusa / VPN". La clave i18n `scan.hhWarning` se reformula para descartar el detalle de configuración de la variable de entorno.
+- `KEY_GROUPS` se colapsa: ya no hay clasificación `regional` (sólo contenía HH_USER_AGENT). Pruebas actualizadas; el campo `regionalActive` del *payload* se conserva por compatibilidad hacia atrás del SPA.
 
 ### 🧪 Tests
 
-- `tests/env-config.test.mjs` — `KNOWN_KEYS` assertion now excludes HH_USER_AGENT; new assertion that the key is intentionally absent.
-- `tests/config-endpoint.test.mjs` — POST-write multi-key test uses `GEMINI_MODEL` as the second known key instead of HH_USER_AGENT.
-- `tests/config-groups.test.mjs` — `groups.HH_USER_AGENT` is now expected `undefined`.
-- Total: **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive E2E + 32/32 Playwright. Same counts as v1.18.0 because every adjusted test was already counted.
+- `tests/env-config.test.mjs` — la aserción `KNOWN_KEYS` ya excluye HH_USER_AGENT; nueva aserción que la clave está deliberadamente ausente.
+- `tests/config-endpoint.test.mjs` — la prueba multi-clave POST-write usa `GEMINI_MODEL` como segunda clave conocida en lugar de HH_USER_AGENT.
+- `tests/config-groups.test.mjs` — `groups.HH_USER_AGENT` se espera ahora `undefined`.
+- Total: **427 / 427** *unit* + 20/20 smoke E2E + 23/23 *comprehensive* E2E + 32/32 Playwright. Mismos conteos que v1.18.0 porque cada prueba ajustada ya estaba contada.
 
-### Verification
+### Verificación
 
 ```bash
 npm test                              # 427 / 427
 
-# Contrast (Chrome DevTools or axe) on light + dark:
-#   .badge-ok / .badge-warn / .badge-bad / .badge-info → AA pass (4.5:1+)
+# Contraste (Chrome DevTools o axe) en claro + oscuro:
+#   .badge-ok / .badge-warn / .badge-bad / .badge-info → AA pass (4,5:1+)
 #   .score-high / .score-mid / .score-low → AA pass
 
-# HH_USER_AGENT no longer in /api/config:
+# HH_USER_AGENT ya no aparece en /api/config:
 curl -s http://127.0.0.1:4317/api/config | jq '.values | keys'
 # → ["ANTHROPIC_API_KEY","ANTHROPIC_MODEL","GEMINI_API_KEY","GEMINI_MODEL","HOST","PORT"]
-# (no HH_USER_AGENT)
+# (sin HH_USER_AGENT)
 
-# Canonical regional config endpoint:
+# Endpoint canónico de configuración regional:
 curl -s http://127.0.0.1:4317/api/scan/regional/config | jq '.'
-# Legacy alias still alive through v1.20:
+# Alias legacy todavía vivo hasta v1.20:
 curl -s http://127.0.0.1:4317/api/scan-ru/config | jq '.'
 ```
 
-### Out of scope (v1.20+)
+### Fuera de alcance (v1.20+)
 
-| Item | Notes |
+| Ítem | Notas |
 |---|---|
-| Per-component touch-target audit (filter chips, sortable headers, sidebar nav) | v1.18 set the global floor (`.btn` 44 px, `.btn-sm` 32 px); per-component verification across the SPA remains. |
-| `aria-describedby` on inline form hints (`#/config`, `#/pipeline`, `#/evaluate`, `#/batch`) | v1.17 covered `aria-label` on global search + modal close. Per-input hint association is the next polish layer. |
-| Full non-EN README parity (585 lines like EN) | v1.18 brought non-EN to ~307 (53 % of EN). Marketing-heavy "Quick start" + "🌍 Getting Started" walkthroughs remain EN-only. |
-| Remove `/api/scan-ru/config` legacy alias | Sunset planned for v1.20. The canonical `/api/scan/regional/config` is the migration target. |
+| Auditoría de objetivo táctil por componente (chips de filtro, cabeceras ordenables, *nav* lateral) | v1.18 fijó el piso global (`.btn` 44 px, `.btn-sm` 32 px); la verificación por componente a lo largo del SPA queda pendiente. |
+| `aria-describedby` en pistas de formulario en línea (`#/config`, `#/pipeline`, `#/evaluate`, `#/batch`) | v1.17 cubrió `aria-label` en la búsqueda global y el cierre de modal. La asociación de pista por *input* es la siguiente capa de pulido. |
+| Paridad total de README no inglés (585 líneas como EN) | v1.18 llevó los no ingleses a ~307 (53 % del EN). Los recorridos "Quick start" y "🌍 Getting Started" *marketing-heavy* siguen sólo en inglés. |
+| Retirar el alias legacy `/api/scan-ru/config` | *Sunset* planificado para v1.20. El canónico `/api/scan/regional/config` es el destino de migración. |
 
 ---
 
 ## [1.18.0] — 2026-05-13
 
-**Consolidación del endpoint scan + paso WCAG 2.2 AA + finalización i18n long-tail.** Retira los aliases legacy `/api/stream/scan-{en,ru}` (ventana Sunset 2026-10-01 adelantada a v1.18 por dirección del usuario). Lleva los READMEs non-EN a ~307 líneas y traduce las entradas CHANGELOG v1.16.0 + v1.17.0 RU-bodied restantes en 6 locales.
+**Consolidación del endpoint scan + paso WCAG 2.2 AA + finalización i18n long-tail.** Retira los aliases legacy `/api/stream/scan-{en,ru}` (ventana *Sunset* 2026-10-01 adelantada a v1.18 por dirección del usuario). Lleva los READMEs no ingleses a ~307 líneas y traduce las entradas CHANGELOG v1.16.0 + v1.17.0 RU-bodied restantes en 6 *locales*.
 
 ### 🚪 Breaking
 
-- **`feat!(scan): retire legacy /api/stream/scan-{en,ru} aliases`** — los endpoints SSE split EN/RU deprecados se han ido. Cada consumidor pasa por el endpoint consolidado `/api/stream/scan?source=ats|regional|both` (vivo desde v1.12.0). Los paths legacy tenían headers Deprecation + Sunset (RFC 8594) desde v1.15.0; la ventana de migración está cerrada. Integraciones externas en los paths antiguos reciben un **404** limpio en vez de ser ruteadas silenciosamente al catch-all del SPA.
+- **`feat!(scan): retire legacy /api/stream/scan-{en,ru} aliases`** — los *endpoints* SSE *split* EN/RU deprecados desaparecen. Cada consumidor pasa por el *endpoint* consolidado `/api/stream/scan?source=ats|regional|both` (vivo desde v1.12.0). Las rutas legacy llevaban cabeceras *Deprecation* + *Sunset* (RFC 8594) desde v1.15.0; la ventana de migración está cerrada. Las integraciones externas en las rutas antiguas reciben un **404** limpio en vez de ser enrutadas silenciosamente al *catch-all* del SPA.
 
 ### ♿ Accesibilidad (paso WCAG 2.2 AA)
 
-- **WCAG 2.4.1 Bypass Blocks** — nuevo link **Skip to main content** como primer focusable en cada página. Visualmente oculto vía `.skip-link` hasta que recibe focus, se ajusta a la esquina superior izquierda en Tab desde carga de página.
-- **WCAG 2.4.7 Focus Visible** — estilo global `*:focus-visible`. Mouse-click focus rings off, keyboard-Tab focus rings on (patrón estándar WAI-ARIA AP). Modal close (×) recibe un focus ring de mayor contraste.
-- **WCAG 2.5.5 Target Size** — mínimo 44×44 px touch target en `.skip-link`. `.btn-sm` mantiene 32 px min-height (combinado con row spacing cumple la excepción AAA 24×24 + spacing para controles compactos de table-row).
-- **WCAG 3.1.1 Language of Page** — `<html lang="en">` corregido de `lang="ru"`. El bootstrap JS i18n ya sobrescribía esto en load, pero el SSR default ahora coincide con el default locale del SPA.
-- **WCAG 1.3.1 Info & Relationships** — `#content` recibe `tabindex="-1"` para que el target del skip-link reciba focus limpiamente. (ARIA roles + focus-trap ya estaban en v1.17.)
+- **WCAG 2.4.1 *Bypass Blocks*** — nuevo enlace **Skip to main content** como primer enfocable en cada página. Visualmente oculto vía `.skip-link` hasta recibir foco, se ancla en la esquina superior izquierda al pulsar Tab desde la carga.
+- **WCAG 2.4.7 *Focus Visible*** — estilo global `*:focus-visible`. Anillos de foco *off* en clics de ratón, *on* en Tab desde teclado (patrón estándar WAI-ARIA AP). El cierre del modal (×) recibe un anillo de foco de mayor contraste.
+- **WCAG 2.5.5 *Target Size*** — objetivo táctil mínimo 44×44 px en `.skip-link`. `.btn-sm` mantiene `min-height: 32px` (combinado con el espaciado de fila cumple la excepción AAA 24×24 + *spacing* para controles compactos en filas de tabla).
+- **WCAG 3.1.1 *Language of Page*** — `<html lang="en">` corregido desde `lang="ru"`. El *bootstrap* JS i18n ya sobrescribía esto en carga, pero el *default* SSR coincide ahora con el *locale* por defecto del SPA.
+- **WCAG 1.3.1 *Info & Relationships*** — `#content` recibe `tabindex="-1"` para que el destino del *skip-link* reciba foco limpiamente. (Los roles ARIA + *focus-trap* ya estaban en v1.17.)
 
 ### 📚 i18n long-tail
 
-- **`docs(i18n): CHANGELOG v1.16.0 + v1.17.0 traducidos en 6 locales`** — entradas antes RU-bodied en `CHANGELOG.{es,pt-BR,ko-KR,ja,zh-CN,zh-TW}.md` están ahora en su idioma nativo. RU-char count por locale cayó 79 → 42 → 23.
-- **`docs(readme): expandir READMEs non-EN con Why / Requirements / Features / Configuration / Contributing`** — cada README non-EN creció de 240 → ~307 líneas. Ahora cubre las mismas secciones non-marketing que el EN de 585 líneas.
+- **`docs(i18n): CHANGELOG v1.16.0 + v1.17.0 traducidos en 6 locales`** — las entradas antes con cuerpo en ruso en `CHANGELOG.{es,pt-BR,ko-KR,ja,zh-CN,zh-TW}.md` están ahora en su idioma nativo. El conteo de caracteres rusos por *locale* cayó 79 → 42 → 23.
+- **`docs(readme): expandir READMEs no ingleses con Why / Requirements / Features / Configuration / Contributing`** — cada README no inglés creció de 240 → ~307 líneas. Cubre ahora las mismas secciones no *marketing* que el EN de 585 líneas.
 
 ### 🧪 Tests
 
-- Total: **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive E2E + 32/32 Playwright (count sin cambios; +2 nuevas assertions correctas de legacy-removal reemplazan las +2 assertions legacy-still-works).
+- Total: **427 / 427** *unit* + 20/20 smoke E2E + 23/23 *comprehensive* E2E + 32/32 Playwright (conteo sin cambios; +2 nuevas aserciones correctas de retirada legacy reemplazan las +2 aserciones legacy-still-works).
 
 ---
 
 ## [1.17.0] — 2026-05-13
 
-**Polish + a11y + fix de CI.** Cierra 9 follow-ups del REVIEW de v1.16.0: verificación smoke en browser, badge truth en READMEs, refresh de coverage, chip 🔒 `lastWorkdayFallback` en SPA, re-baseline E2E completo tras cambio UX de v1.16, scenarios Playwright para auto-pipeline, pase a11y ARIA + focus trap, condensación de CHANGELOG histórico en 6 locales, expansión de READMEs non-EN con secciones de referencia.
+**Pulido + accesibilidad + *fix* de CI.** Cierra 9 *follow-ups* del REVIEW de v1.16.0: verificación de humo en navegador, *badge truth* en READMEs, refresco de cobertura, *chip* 🔒 `lastWorkdayFallback` en el SPA, re-*baseline* E2E completo tras el cambio UX de v1.16, escenarios Playwright para *auto-pipeline*, pase de accesibilidad ARIA + *focus trap*, condensación del CHANGELOG histórico en 6 *locales*, expansión de los READMEs no ingleses con secciones de referencia.
 
 ### 🐛 Fixes
 
-- **`fix(e2e): smoke + comprehensive re-alineados con UX de v1.16`** — el cambio de v1.16 Cmd+K Enter → modal AutoPipeline hizo que `search.press('Enter')` en e2e tests abriera un modal que interceptaba clicks siguientes. Tests ahora usan `Shift+Enter` para el path legacy quick-add. **Este era el fallo de CI en push v1.16.0** — Playwright e2e taimaba 30s en clicks interceptados por el backdrop.
-- **`fix(mode-page): /#/batch-prompt → modes/batch.md vía serverSlug`** — v1.15 renombró el legacy mode slug a `batch-prompt`, pero el server `POST /api/mode/:slug` buscaba `modes/batch-prompt.md` que no existe. Nuevo campo `serverSlug` desacopla el hash de ruta del filename del mode del padre.
-- **`chore: bump de mensajes de deprecación de v1.16.0 → v1.17.0`** — el copy de deprecación de scan-en/scan-ru y el banner de batch-prompt referenciaban la versión pasada.
+- **`fix(e2e): smoke + comprehensive re-alineados con UX de v1.16`** — el cambio de v1.16 Cmd+K Enter → modal *AutoPipeline* hizo que `search.press('Enter')` en los tests E2E abriera un modal que interceptaba los clics siguientes. Los tests usan ahora `Shift+Enter` para el camino legacy *quick-add*. **Este era el fallo de CI en el push de v1.16.0** — Playwright E2E expiraba a los 30 s en clics interceptados por el *backdrop*.
+- **`fix(mode-page): /#/batch-prompt → modes/batch.md vía serverSlug`** — v1.15 renombró el *slug* legacy a `batch-prompt`, pero `POST /api/mode/:slug` en el servidor buscaba `modes/batch-prompt.md`, que no existe. El nuevo campo `serverSlug` desacopla el *hash* de ruta del nombre de fichero del *mode* del padre.
+- **`chore: bump de mensajes de deprecación de v1.16.0 → v1.17.0`** — la copia de deprecación de `scan-en`/`scan-ru` y el banner de `batch-prompt` referenciaban la versión pasada.
 
 ### ✨ Features
 
-- **`feat(scan): chip 🔒 Workday CAPTCHA en card Active Companies`** — el export server-side `lastWorkdayFallback` de v1.16 PR-7 es ahora consumido por el SPA. `/api/scan-results` devuelve el snapshot; `#/scan` renderiza un card warn-tinted sobre Active Companies cuando un tenant Workday cayó al fallback ("🔒 Workday tenant blocked — fallback: usa /career-ops scan (Playwright)"). Nuevo `getLastWorkdayFallback()` evita ambigüedad de live-binding ESM. 2 nuevas keys i18n × 8 locales.
+- **`feat(scan): chip 🔒 Workday CAPTCHA en card Active Companies`** — el *export* server-side `lastWorkdayFallback` de v1.16 PR-7 lo consume ahora el SPA. `/api/scan-results` devuelve la instantánea; `#/scan` renderiza una tarjeta tintada de aviso sobre *Active Companies* cuando un *tenant* Workday cayó al respaldo ("🔒 Workday tenant blocked — fallback: usa /career-ops scan (Playwright)"). El nuevo `getLastWorkdayFallback()` evita la ambigüedad de *live-binding* en ESM. 2 nuevas claves i18n × 8 *locales*.
 
 ### ♿ Accesibilidad
 
-- **`a11y: pase de ARIA roles + focus management`** —
-  - `index.html`: atributos `role` en `<aside>` (navigation), `<header>` (banner), `<section id="content">` (main), `<div id="modal">` (dialog con aria-modal/aria-labelledby), `<div id="toast">` + `#conn-banner` (status con aria-live), `<div class="searchbar">` (search).
-  - `#sidebar-toggle` obtiene `aria-controls="sidebar"` + `aria-expanded` sincronizado por JS en open/close.
-  - `#global-search` obtiene un `<label>` visually-hidden más un `aria-label` explícito que surface el hint del shortcut Cmd+K.
-  - El close del modal (×) obtiene `aria-label="Close dialog"`.
-  - Backdrops decorativos obtienen `aria-hidden="true"`.
-  - **Focus trap en modal** — `UI.modal()` recuerda el click owner, focusea el primer focusable non-close en open, y cicla Tab/Shift+Tab dentro del modal. `UI.closeModal()` restaura focus al owner previo.
-  - Nuevo utility class `.visually-hidden` en `public/css/app.css` (patrón estándar WAI-ARIA AP).
+- **`a11y: pase de roles ARIA + gestión de foco`** —
+  - `index.html`: atributos `role` en `<aside>` (*navigation*), `<header>` (*banner*), `<section id="content">` (*main*), `<div id="modal">` (*dialog* con `aria-modal`/`aria-labelledby`), `<div id="toast">` + `#conn-banner` (*status* con `aria-live`), `<div class="searchbar">` (*search*).
+  - `#sidebar-toggle` recibe `aria-controls="sidebar"` + `aria-expanded` sincronizado por JS al abrir/cerrar.
+  - `#global-search` obtiene un `<label>` *visually-hidden* más un `aria-label` explícito que aflora la pista del atajo Cmd+K.
+  - El cierre del modal (×) recibe `aria-label="Close dialog"`.
+  - Los *backdrops* decorativos reciben `aria-hidden="true"`.
+  - **Focus trap en modal** — `UI.modal()` recuerda el propietario del clic, enfoca el primer enfocable no *close* al abrir, y cicla Tab/Shift+Tab dentro del modal. `UI.closeModal()` restaura el foco al propietario previo.
+  - Nueva clase de utilidad `.visually-hidden` en `public/css/app.css` (patrón estándar WAI-ARIA AP).
 
 ### 📚 Documentación
 
-- **`docs(readme): badge truth a través de 8 READMEs`** — badge de tests `284 / 379 / 360` → **427**; badge release `v1.9.1 / v1.13.0` → **v1.16.0** luego → v1.17.0 vía el bump de v1.17. Targets de links de release actualizados.
-- **`docs(readme): expandir 7 READMEs non-EN con secciones de referencia`** — cada uno creció 170 → ~240 líneas con nuevas secciones Architecture / API reference / Security notes / Tests / A11y / Limitations / License en el idioma nativo. Todavía no en paridad completa de 585 líneas con EN pero cubre todos los surfaces non-marketing clave.
-- **`docs(changelog): condensar entradas pre-v1.12 en 6 locales`** — las entradas largas RU-bodied v1.11.x + v1.10.x que sangraban en los CHANGELOGs non-EN/non-RU son ahora reemplazadas por un resumen ejecutivo "Earlier releases" compacto en el idioma nativo de cada locale. Historia detallada queda en `CHANGELOG.md` (EN).
+- **`docs(readme): badge truth a través de 8 READMEs`** — *badge* de pruebas `284 / 379 / 360` → **427**; *badge* de versión `v1.9.1 / v1.13.0` → **v1.16.0**, luego → v1.17.0 vía el *bump* de v1.17. Destinos de los enlaces de versión actualizados.
+- **`docs(readme): expandir 7 READMEs no ingleses con secciones de referencia`** — cada uno creció de 170 a ~240 líneas con nuevas secciones *Architecture* / *API reference* / *Security notes* / *Tests* / *A11y* / *Limitations* / *License* en el idioma nativo. Todavía no en paridad completa de 585 líneas con EN, pero cubre todas las superficies no *marketing* clave.
+- **`docs(changelog): condensar entradas pre-v1.12 en 6 locales`** — las entradas largas con cuerpo en ruso de v1.11.x + v1.10.x que sangraban en los CHANGELOG no-EN/no-RU se reemplazan ahora por un resumen ejecutivo compacto "*Earlier releases*" en el idioma nativo de cada *locale*. La historia detallada queda en `CHANGELOG.md` (EN).
 
 ### 🛠️ Tooling
 
-- **`coverage: refresh de números`** — último publicado fue 95.46 % línea / 84.06 % rama (REVIEW v1.13.0). Baseline v1.17: **94.14 % línea / 82.98 % rama / 93.20 % función**. Caída ligera por nuevos error paths en auto-pipeline + reports-write; aún muy arriba del piso 80 % en CLAUDE.md.
+- **`coverage: refresh de números`** — el último publicado fue 95,46 % de líneas / 84,06 % de ramas (REVIEW v1.13.0). Línea base v1.17: **94,14 % líneas / 82,98 % ramas / 93,20 % funciones**. Caída ligera por nuevas rutas de error en *auto-pipeline* + *reports-write*; muy por encima aún del piso de 80 % en CLAUDE.md.
 
 ### 🧪 Tests
 
-- Total: **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive E2E + **32 / 32** Playwright (era 28; +4 nuevos scenarios auto-pipeline: button abre modal, Cmd+K paste triggers modal, URL inválida gates step 1, framing de eventos SSE `POST /api/auto-pipeline`).
-- Suite E2E re-alineado con UX de v1.16.0 (Shift+Enter quick-add, /#/batch-prompt para mode legacy).
+- Total: **427 / 427** *unit* + 20/20 smoke E2E + 23/23 *comprehensive* E2E + **32 / 32** Playwright (era 28; +4 escenarios nuevos de *auto-pipeline*: botón abre modal, Cmd+K *paste* dispara modal, URL inválida cierra el paso 1, encuadre de eventos SSE `POST /api/auto-pipeline`).
+- Suite E2E re-alineada con UX de v1.16.0 (Shift+Enter *quick-add*, /#/batch-prompt para el *mode* legacy).
 
-### Out of scope (v1.18+)
+### Fuera de alcance (v1.18+)
 
-| Item | Notas |
+| Ítem | Notas |
 |---|---|
-| Traducir entrada v1.16.0 en CHANGELOGs non-EN | Actualmente RU-bodied (~30 líneas × 6 locales = 180 líneas). Fue fuera del scope explícito v1.11.x/v1.10.x del user. |
-| Paridad completa de README non-EN (585 líneas como EN) | v1.17 trajo non-EN a ~240; los walkthroughs "Why?" / "Quick start" marketing-heavy permanecen EN-only. |
-| Audit completo WCAG 2.2 AA | v1.17 cubrió ARIA estructural + focus trap; audit per-componente contrast/Tab-order pendiente. |
+| Traducir la entrada v1.16.0 en los CHANGELOG no ingleses | Actualmente con cuerpo en ruso (~30 líneas × 6 *locales* = 180 líneas). Quedó fuera del alcance explícito v1.11.x/v1.10.x del usuario. |
+| Paridad completa de README no inglés (585 líneas como EN) | v1.17 llevó los no ingleses a ~240; los recorridos "Why?" / "Quick start" *marketing-heavy* permanecen sólo en inglés. |
+| Auditoría completa WCAG 2.2 AA | v1.17 cubrió ARIA estructural + *focus trap*; la auditoría por componente de contraste/orden de Tab queda pendiente. |
 
 ---
 
 ## [1.16.0] — 2026-05-13
 
-**Finalización del auto-pipeline + pulido de adapters + i18n long-tail.** Cierra los 11 follow-ups del REVIEW de v1.15.0: SSE auto-pipeline server-side, primitiva `POST /api/reports`, atajo Cmd+K, paginación SmartRecruiters, Workday CAPTCHA-fallback, gate CI de drift de screenshots, UX del filtro de source en scan, traducción del CHANGELOG histórico (v1.13.0/v1.12.0 × 6 locales), expansión de READMEs non-EN, importer paste-ready de empresas trending.
+**Finalización del auto-pipeline + pulido de adaptadores + i18n long-tail.** Cierra los 11 *follow-ups* del REVIEW de v1.15.0: SSE *auto-pipeline* en el servidor, primitiva `POST /api/reports`, atajo Cmd+K, paginación de SmartRecruiters, respaldo CAPTCHA de Workday, puerta de CI para *drift* de capturas, UX del filtro de origen en *scan*, traducción del CHANGELOG histórico (v1.13.0/v1.12.0 × 6 *locales*), expansión de los READMEs no ingleses, importador *paste-ready* de empresas en tendencia.
 
 ### ✨ Features
 
-- **`feat(auto-pipeline): orchestrator SSE server-side`** (#1, #2, #3, #8) — el orchestrator client-side chained-fetch de v1.15 ha sido eliminado. `POST /api/auto-pipeline` es ahora un endpoint SSE curl-able que ejecuta validate → fetch JD → evaluate → save report → tracker en el servidor con eventos step en tiempo real. La llamada lenta a Anthropic (30–90 s) ahora emite eventos `running` en vez de un spinner genérico. Los fallos emiten `error` con `step` + `message`. El orchestrator también persiste el markdown del report en el padre `reports/<slug>.md` (se perdía en v1.15).
-- **`feat(reports): primitiva POST /api/reports`** — nuevo writer en `server/lib/routes/reports.mjs`. Saneamiento de slug con guard de path-traversal. Tope de 1 MB (413). 409 en file existente sin `overwrite:true`. Atomic write a través de `stripDangerousMarkdown`. Logs activity.reports.save. Tests: 9 casos.
-- **`feat(app): Cmd+K paste URL → auto-pipeline`** — pegar URL en global search + Enter abre el modal AutoPipeline con `autoStart=true`. Shift+Enter preserva la ruta legacy "add to pipeline only".
-- **`feat(portals): paginación SmartRecruiters`** (#4) — `server/lib/sources/smartrecruiters.mjs` recorre páginas vía `?limit=100&offset=N` hasta alcanzar `totalFound` O página vacía O safety cap de 30 páginas / 3000 jobs. Boards grandes (Procter & Gamble) ya no pierden el resto de sus postings. Tests: 6 casos.
-- **`feat(portals): Workday CAPTCHA-fallback graceful`** (#7) — `server/lib/sources/workday.mjs` ya no lanza en 4xx / non-JSON / network errors. Devuelve `[]` y anota el nuevo export `lastWorkdayFallback`. La timeline del scanner continúa con el siguiente tenant. Opt-in al throw de v1.14 vía `strict:true`. Tests: 7 casos.
+- **`feat(auto-pipeline): orquestador SSE server-side`** (#1, #2, #3, #8) — el orquestador *client-side chained-fetch* de v1.15 se elimina. `POST /api/auto-pipeline` es ahora un *endpoint* SSE *curl-able* que ejecuta validar → traer JD → evaluar → guardar informe → tracker en el servidor con eventos por paso en tiempo real. La llamada lenta a Anthropic (30–90 s) emite ahora eventos `running` en vez de un *spinner* genérico. Los fallos emiten `error` con `step` + `message`. El orquestador también persiste el *markdown* del informe en `reports/<slug>.md` del padre (se perdía en v1.15).
+- **`feat(reports): primitiva POST /api/reports`** — nuevo *writer* en `server/lib/routes/reports.mjs`. Saneamiento de *slug* con guarda contra *path traversal*. Tope de 1 MB (413). 409 si el fichero existe sin `overwrite:true`. Escritura atómica a través de `stripDangerousMarkdown`. Registro de actividad `activity.reports.save`. Pruebas: 9 casos.
+- **`feat(app): Cmd+K paste URL → auto-pipeline`** — pegar una URL en la búsqueda global + Enter abre el modal *AutoPipeline* con `autoStart=true`. Shift+Enter preserva el camino legacy "*add to pipeline only*".
+- **`feat(portals): paginación SmartRecruiters`** (#4) — `server/lib/sources/smartrecruiters.mjs` recorre páginas mediante `?limit=100&offset=N` hasta alcanzar `totalFound`, O página vacía, O tope de seguridad de 30 páginas / 3000 *jobs*. Boards grandes (Procter & Gamble) ya no pierden el resto de sus publicaciones. Pruebas: 6 casos.
+- **`feat(portals): respaldo CAPTCHA de Workday elegante`** (#7) — `server/lib/sources/workday.mjs` deja de lanzar en 4xx / no-JSON / errores de red. Devuelve `[]` y anota el nuevo *export* `lastWorkdayFallback`. La línea de tiempo del *scanner* continúa con el siguiente *tenant*. *Opt-in* al *throw* de v1.14 vía `strict:true`. Pruebas: 7 casos.
 
 ### 🛠️ Tooling + CI
 
-- **`ci(workflows): drift gate de dashboard-screenshots`** (#5) — nuevo `.github/workflows/dashboard-screenshots.yml`. En PRs que tocan `public/css/app.css`, `public/js/views/dashboard.js`, `public/js/lib/i18n.js` o `public/index.html`, el workflow bootea el server contra un /tmp scaffold, regenera los 8 hero PNGs vía Playwright + chromium, y falla el build si el resultado drift'a de lo committed.
-- **`feat(scripts): import-trending-companies.mjs`** (#11) — verifica las 13 empresas trending en `docs/portals-examples.md` vía su boards-API real y emite YAML pegueable para el `portals.yml::tracked_companies` del padre. `enabled: false` se estampa en candidatos cuyo slug 404'ea. Run vía `npm run import:trending`.
-- **`feat(scripts): npm run capture:dashboards`** — expone `scripts/capture-dashboard-screenshots.mjs` como top-level script.
+- **`ci(workflows): puerta de drift de dashboard-screenshots`** (#5) — nuevo `.github/workflows/dashboard-screenshots.yml`. En PRs que tocan `public/css/app.css`, `public/js/views/dashboard.js`, `public/js/lib/i18n.js` o `public/index.html`, el *workflow* arranca el servidor contra un andamiaje en /tmp, regenera los 8 PNG *hero* vía Playwright + chromium, y falla la *build* si el resultado deriva del *committed*.
+- **`feat(scripts): import-trending-companies.mjs`** (#11) — verifica las 13 empresas en tendencia de `docs/portals-examples.md` vía su API de *boards* real y emite YAML pegable para el `portals.yml::tracked_companies` del padre. `enabled: false` se estampa en candidatos cuyo *slug* devuelve 404. Se ejecuta con `npm run import:trending`.
+- **`feat(scripts): npm run capture:dashboards`** — expone `scripts/capture-dashboard-screenshots.mjs` como *script* de primer nivel.
 
 ### 🎨 UX
 
-- **`fix(scan): dropdown de filtro source consolidado`** (#6) — el dropdown de source de `#/scan` reconstruido del adapter registry de v1.14: 6 ATSes + hh.ru + Habr Career, alfabético, sin prefijos geo. `runEnScan`/`runRuScan` ahora apuntan al endpoint consolidado `/api/stream/scan?source={ats,regional}`.
+- **`fix(scan): dropdown de filtro source consolidado`** (#6) — el desplegable de origen en `#/scan` reconstruido a partir del *registry* de adaptadores de v1.14: 6 ATSes + hh.ru + Habr Career, alfabético, sin prefijos geográficos. `runEnScan`/`runRuScan` apuntan ahora al *endpoint* consolidado `/api/stream/scan?source={ats,regional}`.
 
 ### 📚 i18n long-tail
 
-- **`docs(i18n): traducir CHANGELOG v1.13.0 + v1.12.0 en 6 locales`** (#9) — entradas antes RU-bodied en `CHANGELOG.{es,pt-BR,ko-KR,ja,zh-CN,zh-TW}.md` ahora están en su locale real. Cada CHANGELOG non-EN/non-RU también recibe una nota i18n explicando que las entradas pre-v1.12 permanecen en RU por convención del proyecto.
-- **`docs: expandir READMEs non-EN con sección de highlights v1.16.0`** (#10) — 6 READMEs non-EN (es / pt-BR / ko-KR / ja / ru / zh-CN / zh-TW) reciben una nueva sección de ~35 líneas cubriendo: flujo one-click auto-pipeline + ejemplo curl, paginación SmartRecruiters, Workday fallback, UX del filtro source en scan, script importer, y workflow CI de screenshots.
+- **`docs(i18n): traducir CHANGELOG v1.13.0 + v1.12.0 en 6 locales`** (#9) — entradas antes con cuerpo en ruso en `CHANGELOG.{es,pt-BR,ko-KR,ja,zh-CN,zh-TW}.md` ahora en su *locale* real. Cada CHANGELOG no-EN/no-RU recibe además una nota i18n explicando que las entradas pre-v1.12 permanecen en ruso por convención del proyecto.
+- **`docs: expandir READMEs no ingleses con sección de destacados v1.16.0`** (#10) — 6 READMEs no ingleses (es / pt-BR / ko-KR / ja / ru / zh-CN / zh-TW) reciben una nueva sección de ~35 líneas que cubre: flujo de un clic *auto-pipeline* + ejemplo curl, paginación de SmartRecruiters, respaldo de Workday, UX del filtro de origen en *scan*, *script* importador y *workflow* CI de capturas.
 
 ### 🧪 Tests
 
-- Nuevo `tests/reports-write.test.mjs` (9 casos) — happy path, slug sanitization (incl. path-traversal guard), conflicto 409, flag overwrite, strip XSS, 400 en campos faltantes, 413 en >1 MB, round-trip GET/POST.
-- Nuevo `tests/auto-pipeline.test.mjs` (5 casos) — framing SSE, gate URL inválida, gate SSRF/loopback, ruta error sin LLM key, header Content-Type `text/event-stream`.
-- Nuevo `tests/smartrecruiters-pagination.test.mjs` (6 casos) — single page, 3 pages, empty-page early-stop, hard cap honored, query strip, 503 lanza.
-- Nuevo `tests/workday-fallback.test.mjs` (7 casos) — happy path, 403/429 graceful, non-JSON body, network error, strict opt-in para 4xx y network errors.
-- Total: **427 / 427** unit (era 400; +27 netos). 0 fallos. 28/28 Playwright + 23/23 comprehensive E2E + 20/20 smoke E2E verde desde baseline v1.15.0.
+- Nuevo `tests/reports-write.test.mjs` (9 casos) — camino feliz, saneamiento de *slug* (incl. guarda contra *path traversal*), conflicto 409, *flag* *overwrite*, *strip* XSS, 400 con campos faltantes, 413 con >1 MB, *round-trip* GET/POST.
+- Nuevo `tests/auto-pipeline.test.mjs` (5 casos) — encuadre SSE, puerta de URL inválida, puerta SSRF/*loopback*, ruta de error sin clave LLM, cabecera `Content-Type: text/event-stream`.
+- Nuevo `tests/smartrecruiters-pagination.test.mjs` (6 casos) — *single page*, 3 páginas, *early-stop* por página vacía, tope duro respetado, *query strip*, lanzamiento en 503.
+- Nuevo `tests/workday-fallback.test.mjs` (7 casos) — camino feliz, 403/429 elegante, cuerpo no-JSON, error de red, *opt-in* estricto para 4xx y errores de red.
+- Total: **427 / 427** *unit* (era 400; +27 netos). 0 fallos. 28/28 Playwright + 23/23 *comprehensive* E2E + 20/20 smoke E2E en verde desde la línea base v1.15.0.
 
-### Out of scope (v1.17+)
+### Fuera de alcance (v1.17+)
 
-| Item | Notas |
+| Ítem | Notas |
 |---|---|
-| Translate pre-v1.12 CHANGELOG entries (v1.11.x, v1.10.x) | Convención preservada: RU-bodied. Backport es ~1800 líneas de traducción; diferido. |
-| Paridad completa de README non-EN (585 líneas como EN) | v1.16 agregó ~35 líneas por locale; mirror completo es un pase de traducción separado. |
-| Surface de `lastWorkdayFallback` en el card SPA Active Companies | Server export cableado; consumo UI es v1.17. |
-| Bulk add per-company de `tracked_companies` para las 9 trending verificadas | El script `import:trending` lo hace 1-comando + 1-paste. Automatizar writes al `portals.yml` del padre violaría CLAUDE.md hard rule #1. |
+| Traducir entradas pre-v1.12 del CHANGELOG (v1.11.x, v1.10.x) | Convención preservada: con cuerpo en ruso. El *backport* son ~1800 líneas de traducción; diferido. |
+| Paridad completa de README no inglés (585 líneas como EN) | v1.16 añadió ~35 líneas por *locale*; el espejo completo es un pase de traducción aparte. |
+| Aflorar `lastWorkdayFallback` en la tarjeta *Active Companies* del SPA | *Export* en servidor cableado; consumo en UI es v1.17. |
+| *Bulk add* per-empresa de `tracked_companies` para las 9 en tendencia ya verificadas | El *script* `import:trending` lo hace en 1 comando + 1 pegado. Automatizar escrituras al `portals.yml` del padre violaría la regla dura #1 de CLAUDE.md. |
 
-### Verification
+### Verificación
 
 ```
 npm test                              # 427 / 427
@@ -251,156 +460,154 @@ curl -X POST http://127.0.0.1:4317/api/reports \
 
 ## [1.15.0] — 2026-05-13
 
-**Doc-conformance релиз.** Закрывает 9 из 10 открытых findings из conformance audit (`qa/conformance-vs-docs/00-CONFORMANCE-REPORT.md`) плюс локализованные hero-images. Приводит UI в соответствие с canonical career-ops.org/docs workflow — тот же pipeline что обещает CLI, теперь end-to-end через браузер во всех 8 локалях.
+**Release de conformidad documental.** Cierra 9 de 10 hallazgos abiertos en la auditoría de conformidad (`qa/conformance-vs-docs/00-CONFORMANCE-REPORT.md`) más imágenes *hero* localizadas. Alinea la UI con el flujo canónico de career-ops.org/docs — el mismo pipeline que promete el CLI, ahora extremo a extremo en navegador y en las 8 *locales*.
 
-### ✨ Фичи
+### ✨ Features
 
-- **`feat(auto-pipeline): PR-C — 1-click "paste URL → report + PDF + tracker row"`** (G-007) — до v1.15 пользователи делали 5 ручных кликов через /#/pipeline → /#/evaluate → /#/cv → /#/tracker. Теперь одна ✨ кнопка на /#/dashboard chain'ит: validate URL → fetch JD (SSRF-safe) → evaluate против CV → generate PDF → добавить tracker row. Step-by-step modal timeline с [✓]/[…]/[✗]. Heuristic company/role extraction. Новый файл: `public/js/lib/auto-pipeline.js`. 19 новых i18n ключей × 8 локалей.
-- **`feat(modes): PR-D — modes/_profile.md редактор как #/config → Modes таб`** (G-008) — канонический "Career framing" файл из Quick Start §Step-5 теперь виден в UI. Новые endpoints `GET/PUT /api/modes/_profile` с 256 KB cap, `stripDangerousMarkdown` XSS pass, scaffold из `_profile.template.md`. 9 новых i18n ключей × 8 локалей.
-- **`feat(profile): PR-E — canonical schema + location + headline`** (G-009) — `/api/profile` принимает И legacy (`candidate:{...}`) И canonical (top-level `full_name`, `narrative.headline`, `target_roles.primary`, `compensation.target_range`). Legacy выигрывает при коллизии. Новый `summarizeProfile()`. /#/profile показывает `narrative.headline` как новую карточку. 2 новых i18n ключа × 8 локалей.
-- **`feat(tracker): PR-B — Legitimacy колонка на #/tracker`** (G-006) — восстанавливает паритет с canonical pipeline output table. Между Status и PDF, badge-ok/warn/bad подсветка. Graceful degrade для pre-v1.15 строк. 1 новый i18n ключ × 8 локалей.
-- **`fix(routing): PR-H — dedupe sidebar; #/batch → v1.13.0 TSV SPA`** (G-011) — до фикса /#/batch был ДВАЖДЫ в sidebar И оба пункта вели в legacy mode-prompt builder. v1.13.0 TSV SPA (8 KB) был недоступен. Убран дубликат; legacy переименован в `batch-prompt` с deprecation banner.
+- **`feat(auto-pipeline): PR-C — un clic "pegar URL → informe + PDF + fila de tracker"`** (G-007) — hasta v1.15 el usuario hacía 5 clics manuales por /#/pipeline → /#/evaluate → /#/cv → /#/tracker. Ahora un único botón ✨ en /#/dashboard encadena: validar URL → traer JD (a prueba de SSRF) → evaluar contra el CV → generar PDF → añadir fila al *tracker*. Línea de tiempo modal paso a paso con [✓]/[…]/[✗]. Extracción heurística de empresa/rol. Fichero nuevo: `public/js/lib/auto-pipeline.js`. 19 claves i18n nuevas × 8 *locales*.
+- **`feat(modes): PR-D — editor modes/_profile.md como pestaña Modes en #/config`** (G-008) — el fichero canónico "*Career framing*" del Quick Start §Step-5 es ahora visible en la UI. Nuevos *endpoints* `GET/PUT /api/modes/_profile` con tope 256 KB, pase XSS de `stripDangerousMarkdown`, andamiaje desde `_profile.template.md`. 9 claves i18n nuevas × 8 *locales*.
+- **`feat(profile): PR-E — esquema canónico + location + headline`** (G-009) — `/api/profile` acepta TANTO el legacy (`candidate:{...}`) COMO el canónico (top-level `full_name`, `narrative.headline`, `target_roles.primary`, `compensation.target_range`). El legacy gana en colisión. Nuevo `summarizeProfile()`. /#/profile muestra `narrative.headline` como nueva tarjeta. 2 claves i18n nuevas × 8 *locales*.
+- **`feat(tracker): PR-B — columna Legitimacy en #/tracker`** (G-006) — restaura paridad con la tabla de salida del *pipeline* canónico. Entre Status y PDF, con realce *badge-ok/warn/bad*. Degradación elegante para filas previas a v1.15. 1 clave i18n nueva × 8 *locales*.
+- **`fix(routing): PR-H — deduplicar sidebar; #/batch → SPA TSV de v1.13.0`** (G-011) — antes del *fix*, /#/batch aparecía DOS veces en el *sidebar* Y ambas entradas llevaban al constructor de *mode-prompt* legacy. El SPA TSV de v1.13.0 (8 KB) era inaccesible. Duplicado eliminado; el legacy renombrado a `batch-prompt` con banner de deprecación.
 
-### 📚 Документация
+### 📚 Documentación
 
-- **`docs(evaluate): PR-A — Block A-F realignment`** (G-005) — career-ops.org/docs использует A–F (Strategy/Personalization/STAR stories в C/E/F). Мы эмитили A–G. v1.15 обновляет все 8 help bundles §9 с canonical A–F и callout о back-compat. ⚠ Parent commit ещё требуется: `santifer/career-ops::modes/oferta.md` надо переписать upstream.
-- **`docs: PR-F — seniority_boost + search_queries в help §5 × 8 локалей + scaffold`** (G-010) — Help §5 во всех 8 локалях документирует третий title-filter ключ + блок-пример search_queries. `bin/setup.sh` сидит `seniority_boost: ["Senior", "Staff", "Lead"]` по умолчанию.
-- **`docs: PR-I — локализованные hero images по локалям README`** — каждый из 8 README имеет locale-specific `images/dashboard-<locale>.png` (HiDPI 1440×900) сгенерированных через `scripts/capture-dashboard-screenshots.mjs`. Старый `public/images/screen_vacancy_found.png` удалён.
+- **`docs(evaluate): PR-A — realineación Block A-F`** (G-005) — career-ops.org/docs usa A–F (Estrategia/Personalización/historias STAR en C/E/F). Emitíamos A–G. v1.15 actualiza los 8 *help bundles* §9 con A–F canónico y un *callout* de compatibilidad hacia atrás. ⚠ Aún se requiere un *commit* en el padre: `santifer/career-ops::modes/oferta.md` debe reescribirse aguas arriba.
+- **`docs: PR-F — seniority_boost + search_queries en help §5 × 8 locales + scaffold`** (G-010) — la sección §5 de la ayuda en las 8 *locales* documenta la tercera clave *title-filter* + bloque ejemplo `search_queries`. `bin/setup.sh` siembra `seniority_boost: ["Senior", "Staff", "Lead"]` por defecto.
+- **`docs: PR-I — imágenes hero localizadas por locale de README`** — cada uno de los 8 README tiene su `images/dashboard-<locale>.png` específico (HiDPI 1440×900) generado vía `scripts/capture-dashboard-screenshots.mjs`. El viejo `public/images/screen_vacancy_found.png` se elimina.
 
-### 🧹 Carryover cleanups
+### 🧹 Limpiezas arrastradas
 
-- **`PR-G — G-001`** scan.noResults i18n: заменены 8 строк с "EN or RU scan" литералом.
-- **`PR-G — G-002`** 📄 Generate PDF теперь surface'ит на #/interview-prep result panel'ях.
-- **`PR-G — G-003`** `README.cn.md` → `README.zh-CN.md` (canonical locale tag).
-- **`PR-G — G-004`** `/api/stream/scan-en` + `scan-ru` теперь эмитят RFC 8594 Sunset + Deprecation + Link headers (sunset 2026-10-01). Удаление в v1.16.0.
+- **`PR-G — G-001`** i18n `scan.noResults`: 8 cadenas con el literal "EN or RU scan" reemplazadas.
+- **`PR-G — G-002`** 📄 *Generate PDF* aflora ahora en los paneles de resultado de `#/interview-prep`.
+- **`PR-G — G-003`** `README.cn.md` → `README.zh-CN.md` (etiqueta *locale* canónica).
+- **`PR-G — G-004`** `/api/stream/scan-en` + `scan-ru` emiten ahora cabeceras RFC 8594 *Sunset* + *Deprecation* + *Link* (sunset 2026-10-01). Retirada en v1.16.0.
 
-### 🧪 Тесты
+### 🧪 Tests
 
-- Новый `tests/profile-canonical-schema.test.mjs` (6 кейсов).
-- Новый `tests/modes-profile-crud.test.mjs` (8 кейсов).
-- Исправлена isolation регрессия в test fixtures: тесты теперь используют `before/after + dynamic-import` pattern, чтобы не мутировать parent `config/profile.yml`.
-- Итого: **400 / 400** unit-тестов (было 386; +14). 0 падений.
+- Nuevo `tests/profile-canonical-schema.test.mjs` (6 casos).
+- Nuevo `tests/modes-profile-crud.test.mjs` (8 casos).
+- Corregida una regresión de aislamiento en *fixtures* de prueba: las pruebas usan ahora el patrón `before/after + dynamic-import` para no mutar el `config/profile.yml` del padre.
+- Total: **400 / 400** pruebas *unit* (era 386; +14). 0 fallos.
 
-### Out of scope (v1.16+)
+### Fuera de alcance (v1.16+)
 
-| Item | Notes |
+| Ítem | Notas |
 |---|---|
-| Parent commit для canonical A–F prompt | `santifer/career-ops::modes/oferta.md` надо переписать upstream. CLAUDE.md hard rule #1 запрещает нам трогать parent. |
-| Server-side `POST /api/auto-pipeline` SSE | Client-side orchestrator ships UX win; server-side даст retry-from-step-N + curl-able CI. |
-| `POST /api/reports` primitive | Auto-pipeline показывает markdown inline, но не persist'ит в parent `reports/`. |
-| Cmd+K paste-URL → run auto-pipeline | Defer to v1.16+. |
+| *Commit* en el padre para el *prompt* canónico A–F | `santifer/career-ops::modes/oferta.md` debe reescribirse aguas arriba. La regla dura #1 de CLAUDE.md nos prohíbe tocar el padre. |
+| `POST /api/auto-pipeline` SSE en el servidor | El orquestador *client-side* aporta la victoria UX; el server-side dará *retry-from-step-N* + ejecutable por curl en CI. |
+| Primitiva `POST /api/reports` | *Auto-pipeline* muestra el *markdown* en línea pero no lo persiste en `reports/` del padre. |
+| Cmd+K pegar-URL → ejecutar *auto-pipeline* | Diferido a v1.16+. |
 
 ---
 
 ## [1.14.0] — 2026-05-13
 
-3 nuevos adaptadores ATS sobre el registry de v1.13.0, llevando el total de 3 → 6 ATSes soportados (Greenhouse / Ashby / Lever **+ Workable / SmartRecruiters / Workday-beta**). Documentación user-facing actualizada en los 17 archivos de "3 ATSes" a "6 ATSes" en una sola pasada (42 frases): README × 8 locales, help bundle × 8 locales, PROJECT.md. Añadidos bloques YAML listos para pegar de 13 empresas trending en `docs/portals-examples.md` para el `portals.yml` del padre.
+3 nuevos adaptadores ATS sobre el *registry* de v1.13.0, llevando el total de 3 → 6 ATSes soportados (Greenhouse / Ashby / Lever **+ Workable / SmartRecruiters / Workday-beta**). Documentación de cara al usuario actualizada en los 17 archivos de "3 ATSes" a "6 ATSes" en una sola pasada (42 frases): README × 8 *locales*, *help bundle* × 8 *locales*, PROJECT.md. Añadidos bloques YAML listos para pegar de 13 empresas en tendencia en `docs/portals-examples.md` para el `portals.yml` del padre.
 
 ### ✨ Features
 
-- **`feat(portals): 3 nuevos ATS — Workable, SmartRecruiters, Workday-beta`** — el registry ahora resuelve 6 ATSes (antes 3). Nuevos archivos: `server/lib/portals/adapters/{workable,smartrecruiters,workday}.mjs` (envoltorios finos con el uniform contract) + `server/lib/sources/{workable,smartrecruiters,workday}.mjs` (HTTP crudo + normalización al shape canónico).
-  - **Workable**: detecta `apply.workable.com/<slug>` Y legacy `<subdomain>.workable.com`. Endpoint: `https://apply.workable.com/api/v3/accounts/<slug>/jobs?details=true`.
-  - **SmartRecruiters**: detecta `jobs.smartrecruiters.com/<slug>` Y `careers.smartrecruiters.com/<slug>`. Endpoint: `https://api.smartrecruiters.com/v1/companies/<slug>/postings`.
-  - **Workday (beta)**: detecta `<tenant>.wd<N>.myworkdayjobs.com/<lang>/<site>`. Endpoint: POST a `/wday/cxs/<tenant>/<site>/jobs`. Default `site=External` si la URL no incluye site. Beta porque algunos tenants cierran el feed CXS con CAPTCHA — fallback al `/career-ops scan` del padre (Playwright).
+- **`feat(portals): 3 nuevos ATS — Workable, SmartRecruiters, Workday-beta`** — el *registry* resuelve ahora 6 ATSes (antes 3). Ficheros nuevos: `server/lib/portals/adapters/{workable,smartrecruiters,workday}.mjs` (envoltorios finos con el contrato uniforme) + `server/lib/sources/{workable,smartrecruiters,workday}.mjs` (HTTP crudo + normalización al *shape* canónico).
+  - **Workable**: detecta `apply.workable.com/<slug>` Y legacy `<subdomain>.workable.com`. *Endpoint*: `https://apply.workable.com/api/v3/accounts/<slug>/jobs?details=true`.
+  - **SmartRecruiters**: detecta `jobs.smartrecruiters.com/<slug>` Y `careers.smartrecruiters.com/<slug>`. *Endpoint*: `https://api.smartrecruiters.com/v1/companies/<slug>/postings`.
+  - **Workday (beta)**: detecta `<tenant>.wd<N>.myworkdayjobs.com/<lang>/<site>`. *Endpoint*: POST a `/wday/cxs/<tenant>/<site>/jobs`. `site=External` por defecto si la URL no incluye *site*. Beta porque algunos *tenants* cierran el *feed* CXS con CAPTCHA — el respaldo es el `/career-ops scan` del padre (Playwright).
 
 ### 📚 Documentación
 
-- **`docs(portals-examples): trending boards block`** — `docs/portals-examples.md` extendido con la sección v1.14.0 listando 13 empresas trending como YAML listo para pegar en `tracked_companies`: Greenhouse-hosted (Stripe, GitLab, HashiCorp, Cloudflare, Datadog, Hugging Face) + Ashby-hosted (Notion, Linear, PostHog, Replicate, Modal Labs, Fly.io, Render). Todas con `enabled: false` — el usuario verifica el slug antes de activarlo. Más bloques de ejemplo para Workable / SmartRecruiters / Workday.
-- **`docs(framing): 42 frases ATS actualizadas en 17 archivos user-facing`** — toda aparición de "Greenhouse / Ashby / Lever" en documentación de usuario ahora se lee como "Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday". Afectados: README × 8 locales, help bundle × 8 locales, PROJECT.md. Entradas históricas del CHANGELOG y documentos de prescripción bug-fix (`qa/fixes/F-014`, `qa/FIX-PROMPT`) deliberadamente sin tocar — describen estado pasado o ya correcto.
-- **`docs(qa): browser test scenario 19`** — `qa/claude-cowork-browser-test-prompt.md` extendido con Scenario 19: invariante `ALL_ADAPTERS.length === 6`, sweep de URL-detection vía `resolveAdapter()` para los 6, soft-check del card Active Companies en `#/scan`, check estructural de `docs/portals-examples.md`.
+- **`docs(portals-examples): bloque de boards en tendencia`** — `docs/portals-examples.md` extendido con la sección v1.14.0 que lista 13 empresas en tendencia como YAML listo para pegar en `tracked_companies`: alojadas en Greenhouse (Stripe, GitLab, HashiCorp, Cloudflare, Datadog, Hugging Face) + alojadas en Ashby (Notion, Linear, PostHog, Replicate, Modal Labs, Fly.io, Render). Todas con `enabled: false` — el usuario verifica el *slug* antes de activar. Bloques de ejemplo adicionales para Workable / SmartRecruiters / Workday.
+- **`docs(framing): 42 frases ATS actualizadas en 17 ficheros de cara al usuario`** — cada aparición de "Greenhouse / Ashby / Lever" en documentación de usuario se lee ahora como "Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday". Afectados: README × 8 *locales*, *help bundle* × 8 *locales*, PROJECT.md. Las entradas históricas del CHANGELOG y los documentos prescriptivos de *bug-fix* (`qa/fixes/F-014`, `qa/FIX-PROMPT`) se dejan intactos deliberadamente — describen estado pasado o ya correcto.
+- **`docs(qa): escenario 19 del *browser test*`** — `qa/claude-cowork-browser-test-prompt.md` extendido con el escenario 19: invariante `ALL_ADAPTERS.length === 6`, barrido de detección de URL vía `resolveAdapter()` para los 6, comprobación *soft* de la tarjeta *Active Companies* en `#/scan`, comprobación estructural de `docs/portals-examples.md`.
 
 ### 🧪 Tests
 
-- `tests/adapter-registry.test.mjs` extendido con 7 casos nuevos para los 3 adaptadores (Workable apply-URL, Workable legacy subdomain, SmartRecruiters jobs.* + careers.*, Workday tenant.wd5.* con site explícito, Workday fallback a default-site, invariante `ALL_ADAPTERS.length === 6`, compatibilidad de shape legacy `detectApi()`).
-- Total: **386 / 386** tests unitarios (antes 379; +7 netos). 0 fallos.
+- `tests/adapter-registry.test.mjs` extendido con 7 casos nuevos para los 3 adaptadores (Workable *apply-URL*, Workable subdominio legacy, SmartRecruiters jobs.* + careers.*, Workday `tenant.wd5.*` con *site* explícito, Workday respaldo a *site* por defecto, invariante `ALL_ADAPTERS.length === 6`, compatibilidad del *shape* legacy `detectApi()`).
+- Total: **386 / 386** pruebas *unit* (antes 379; +7 netos). 0 fallos.
 
-### Out of scope
+### Fuera de alcance
 
-| Item | Notas |
+| Ítem | Notas |
 |---|---|
-| Entradas per-company para las 13 empresas trending Greenhouse/Ashby | El bloque v1.14.0 de `docs/portals-examples.md` las lista como YAML pegueable; el bulk-add al `portals.yml` del padre es fase aparte. |
-| Automatización del fallback CAPTCHA de Workday | El adapter Workday lanza cuando el feed CXS está bloqueado; el fallback planificado delega al `/career-ops scan` del padre (Playwright). El wiring en el UX de scan del SPA es para v1.15+. |
+| Entradas por empresa para las 13 en tendencia Greenhouse/Ashby | El bloque v1.14.0 de `docs/portals-examples.md` las lista como YAML pegable; el *bulk-add* al `portals.yml` del padre es fase aparte. |
+| Automatización del respaldo CAPTCHA de Workday | El adaptador Workday lanza cuando el *feed* CXS está bloqueado; el respaldo planificado delega al `/career-ops scan` del padre (Playwright). El cableado en el UX de *scan* del SPA es para v1.15+. |
 
 ---
 
 ## [1.13.0] — 2026-05-13
 
-Gran release. Cierra los 4 items diferidos en un solo commit: PR-4 (pipeline multer completo), Adapter registry (continuación arquitectónica de F-018), página SPA Batch evaluate, y locale-aware mode-template scaffolding. Más un fix mid-session de tablas en dark theme.
+Gran versión. Cierra los 4 ítems diferidos en un solo *commit*: PR-4 (*pipeline multer* completo), *Adapter registry* (continuación arquitectónica de F-018), página SPA *Batch evaluate*, y andamiaje de *mode-template* consciente del *locale*. Más un *fix* a mitad de sesión de tablas en tema oscuro.
 
 ### ✨ Features
 
-- **`feat(cv): multer multipart upload (PR-4 completo)`** — `/api/cv/import` ahora acepta TANTO octet-stream (contrato original) COMO `multipart/form-data` via multer. El 415-reject de v1.10.2 era un stopgap; v1.13.0 es el fix real. curl `-F`, default de Postman, cualquier cliente HTTP funcionan sin fricción. Nueva dependencia: `multer ^2.1.1`.
-- **`feat(portals): adapter registry`** — los fetchers de Greenhouse / Ashby / Lever extraídos a `server/lib/portals/adapters/*.mjs` con contrato uniforme. `server/lib/portals/registry.mjs::resolveAdapter()` es el único punto de dispatch. Añadir un nuevo ATS = un archivo en `adapters/` + una línea en `ALL_ADAPTERS`.
-- **`feat(batch): #/batch evaluate page`** — nueva vista SPA + 4 endpoints (`GET /api/batch`, `PUT /api/batch`, `GET /api/stream/batch`, `POST /api/batch/merge`). Editor TSV para `batch/batch-input.tsv`, controles parallel/min-score/dry-run/retry, log SSE en vivo de `bash batch/batch-runner.sh`, botón `Merge to tracker` (ejecuta `node merge-tracker.mjs`). Link en sidebar. 21 keys i18n nuevas × 8 locales.
-- **`feat(prompts): locale-aware mode scaffolding`** — `buildModePrompt` + `buildEvaluationPrompt` ahora envuelven el cuerpo inglés del mode-template del parent con scaffolding localizado (role-line, "Read these files first", "User-supplied context") en 8 locales.
+- **`feat(cv): subida multipart con multer (PR-4 completo)`** — `/api/cv/import` acepta ahora TANTO *octet-stream* (contrato original) COMO `multipart/form-data` mediante multer. El rechazo 415 de v1.10.2 era un parche; v1.13.0 es la corrección real. curl `-F`, *default* de Postman, cualquier cliente HTTP funcionan sin fricción. Nueva dependencia: `multer ^2.1.1`.
+- **`feat(portals): adapter registry`** — los *fetchers* de Greenhouse / Ashby / Lever extraídos a `server/lib/portals/adapters/*.mjs` con contrato uniforme. `server/lib/portals/registry.mjs::resolveAdapter()` es el único punto de despacho. Añadir un nuevo ATS = un fichero en `adapters/` + una línea en `ALL_ADAPTERS`.
+- **`feat(batch): página #/batch *evaluate*`** — nueva vista SPA + 4 *endpoints* (`GET /api/batch`, `PUT /api/batch`, `GET /api/stream/batch`, `POST /api/batch/merge`). Editor TSV para `batch/batch-input.tsv`, controles *parallel*/*min-score*/*dry-run*/*retry*, *log* SSE en vivo de `bash batch/batch-runner.sh`, botón `Merge to tracker` (ejecuta `node merge-tracker.mjs`). Enlace en *sidebar*. 21 claves i18n nuevas × 8 *locales*.
+- **`feat(prompts): andamiaje de mode consciente del locale`** — `buildModePrompt` + `buildEvaluationPrompt` envuelven ahora el cuerpo inglés de la plantilla *mode* del padre con andamiaje localizado (línea de rol, "Read these files first", "User-supplied context") en 8 *locales*.
 
-### 🎨 UX fixes
+### 🎨 Fixes de UX
 
-- **`fix(theme): tablas dark-mode + tab-btn`** — `#fafafa` / `#fff` / `#f7f7f7` hardcoded reemplazados con tokens. Hover en dark ahora legible. Añadido `.row-boosted` accent strip.
+- **`fix(theme): tablas en modo oscuro + tab-btn`** — `#fafafa` / `#fff` / `#f7f7f7` *hardcoded* sustituidos por *tokens*. El *hover* en oscuro es ahora legible. Añadido `.row-boosted` con franja de acento.
 
 ### 🧪 Tests
 
 - Nuevos `tests/adapter-registry.test.mjs` (7), `tests/batch-endpoints.test.mjs` (5), `tests/locale-scaffold.test.mjs` (6).
-- `tests/cv-upload-multipart-reject.test.mjs` reescrito al contrato v1.13.0 (multipart parsed properly).
-- Total: **379 / 379** unit (era 360; +19). 0 failures. Cobertura **95.46 % líneas / 84.06 % ramas**.
-- 20/20 smoke E2E · 23/23 comprehensive E2E · 28/28 Playwright.
+- `tests/cv-upload-multipart-reject.test.mjs` reescrito al contrato v1.13.0 (*multipart* parseado correctamente).
+- Total: **379 / 379** *unit* (era 360; +19). 0 fallos. Cobertura **95,46 % líneas / 84,06 % ramas**.
+- 20/20 smoke E2E · 23/23 *comprehensive* E2E · 28/28 Playwright.
 
-### Fuera de scope
+### Fuera de alcance
 
-- **14 adapters de portal nuevos** — registry está; añadirlos = un archivo cada uno; queda el portal-by-portal research.
-- **Traducir cuerpos de `modes/<slug>.md` del parent** — requiere PR upstream a `santifer/career-ops` (CLAUDE.md hard rule #1).
+- **14 adaptadores de portal nuevos** — el *registry* está; añadirlos = un fichero cada uno; queda el *research* portal por portal.
+- **Traducir cuerpos de `modes/<slug>.md` del padre** — requiere PR aguas arriba a `santifer/career-ops` (regla dura #1 de CLAUDE.md).
 
 ### Documentación
 
 - `docs/reviews/REVIEW-2026-05-13-v1.13.0.md`.
-- Texto completo: [CHANGELOG.md](CHANGELOG.md#1130--2026-05-13).
 
 ---
 
 ## [1.12.0] — 2026-05-13
 
-Pass de bug-fix + UX + brand. Cierra 8 items del backlog tras v1.11.1 (huecos de test #9–12, console error #8, drift portals-dead #4, surface seniority_boost #6, consolidación de endpoint F-018). Añadido toggle day/night de tema, eliminada la mención "Airbnb-styled" de todos los docs, metadata del package y descripción del repo GitHub.
+Pase de *bug-fix* + UX + *brand*. Cierra 8 ítems del *backlog* tras v1.11.1 (huecos de prueba #9–12, error de consola #8, deriva *portals-dead* #4, afloramiento de `seniority_boost` #6, consolidación de *endpoint* F-018). Añadido conmutador día/noche de tema, eliminada la mención "*Airbnb-styled*" de todos los documentos, *metadata* del paquete y descripción del repo de GitHub.
 
 ### ✨ Features
 
-- **`feat(theme): toggle day/night`** — nuevo botón de tema en la top-bar. Ciclo light ↔ dark, persiste en `localStorage`, se restaura antes del primer pintado via `public/js/lib/theme-bootstrap.js`. Respeta `prefers-color-scheme` en la primera carga. Paleta dark completa en `public/css/app.css` bajo `[data-theme="dark"]`.
-- **`feat(scan): /api/stream/scan?source=ats|regional|both` (F-018 LITE)`** — un endpoint SSE consolidado. El SPA abre UN solo event-stream que ejecuta secuencialmente ambas fases (ATS, luego regional). Legacy `/api/stream/scan-en` + `/api/stream/scan-ru` permanecen como deprecated aliases.
-- **`feat(scan): seniority_boost surface`** — ambos scanners leen `portals.yml::title_filter.seniority_boost` y marcan `_boosted: true` en jobs coincidentes. El SPA ordena las filas boosted arriba y renderiza un badge `⬆ boosted`.
+- **`feat(theme): conmutador día/noche`** — nuevo botón de tema en la *top-bar*. Ciclo claro ↔ oscuro, persistente en `localStorage`, restaurado antes del primer pintado vía `public/js/lib/theme-bootstrap.js`. Respeta `prefers-color-scheme` en la primera carga. Paleta oscura completa en `public/css/app.css` bajo `[data-theme="dark"]`.
+- **`feat(scan): /api/stream/scan?source=ats|regional|both` (F-018 LITE)`** — un *endpoint* SSE consolidado. El SPA abre UN único *event-stream* que ejecuta secuencialmente ambas fases (ATS, después regional). Los legacy `/api/stream/scan-en` + `/api/stream/scan-ru` permanecen como alias deprecados.
+- **`feat(scan): afloramiento de seniority_boost`** — ambos *scanners* leen `portals.yml::title_filter.seniority_boost` y marcan `_boosted: true` en *jobs* coincidentes. El SPA ordena las filas potenciadas arriba y renderiza un *badge* `⬆ boosted`.
 
 ### 🐛 Fixes
 
-- **`fix(ui): .message null-safe en 4 sitios (#8)`** — `app.js`, `views/tracker.js`, `views/apply.js`, `views/evaluate.js`. Antes un Promise rejection sin Error payload arrojaba "Cannot read properties of undefined" en e2e teardown.
-- **`fix(test): drift portals-dead como warning, no failure (#4)`** — assertion convertida a warning en stderr. CI sigue verde en parent drift; las decisiones de release son manuales.
+- **`fix(ui): .message null-safe en 4 sitios (#8)`** — `app.js`, `views/tracker.js`, `views/apply.js`, `views/evaluate.js`. Antes, un *Promise rejection* sin *payload Error* lanzaba "Cannot read properties of undefined" en el *teardown* E2E.
+- **`fix(test): drift portals-dead como aviso, no fallo (#4)`** — aserción convertida en aviso por *stderr*. CI sigue en verde ante deriva del padre; las decisiones de versión son manuales.
 
 ### 📝 Brand / docs
 
-- **`docs(brand): eliminadas referencias 'Airbnb' de todos los doc + package + descripción del repo GitHub`** — 8 README, CLAUDE.md, FRONTEND.md, package.json y la descripción del repo migrados de "Airbnb-styled" a "Clean, docs-style".
+- **`docs(brand): eliminadas referencias 'Airbnb' de todos los doc + package + descripción del repo de GitHub`** — 8 README, CLAUDE.md, FRONTEND.md, package.json y la descripción del repo migrados de "*Airbnb-styled*" a "*Clean, docs-style*".
 
 ### 🧪 Tests
 
-- Nuevo `tests/canonical-docs-coverage.test.mjs` (5 casos) cierra test gaps #9–12.
+- Nuevo `tests/canonical-docs-coverage.test.mjs` (5 casos) cierra los huecos de prueba #9–12.
 - Nuevo `tests/scan-consolidated.test.mjs` (6 casos) cubre F-018 LITE.
-- Total: **360 / 360** unit (era 349; +11 nuevos). 0 failures. Cobertura: **95.62 % líneas / 84.37 % ramas**.
-- 20/20 smoke E2E · 23/23 comprehensive E2E · 28/28 Playwright.
+- Total: **360 / 360** *unit* (era 349; +11 netos). 0 fallos. Cobertura: **95,62 % líneas / 84,37 % ramas**.
+- 20/20 smoke E2E · 23/23 *comprehensive* E2E · 28/28 Playwright.
 
 ### Documentación
 
 - `docs/reviews/REVIEW-2026-05-13-v1.12.0.md`.
-- Texto completo: [CHANGELOG.md](CHANGELOG.md#1120--2026-05-13).
 
-### Fuera de scope (sin cambios desde v1.11.1)
+### Fuera de alcance (sin cambios desde v1.11.1)
 
-Página SPA Batch evaluate; adapter registry completo (refactor arquitectónico F-018); pipeline multer completo (PR-4); traducción de mode templates.
+Página SPA *Batch evaluate*; *adapter registry* completo (refactor arquitectónico F-018); *pipeline multer* completo (PR-4); traducción de plantillas *mode*.
 
 ---
 
-## Releases anteriores (v1.11.x y v1.10.x)
+## Versiones anteriores (v1.11.x y v1.10.x)
 
 Las entradas detalladas para v1.11.0 / v1.11.1 / v1.10.0–v1.10.3 viven en el [CHANGELOG EN](CHANGELOG.md). Resumen ejecutivo:
 
-- **v1.11.1 — 2026-05-13** · Polish: hint Playwright en `#/apply`, taglines unificadas, dashboard score-thresholds card. 349/349 tests.
-- **v1.11.0 — 2026-05-13** · Integración career-ops.org/docs en las 8 help bundles y los 8 README. Nuevo `docs/career-ops-canonical.md`. Conceptos Mode/Archetype/Pipeline/Tracker/Report/Scan history documentados. 348/349 tests.
-- **v1.10.3 — 2026-05-12** · Bug-fix slice: cierra 7 de 11 hallazgos QA del run de regresión v1.10.2.
-- **v1.10.2 — 2026-05-12** · CV multipart 415-reject (parche temporal hasta v1.13.0 multer); fix de generación de PDF.
-- **v1.10.1 — 2026-05-09** · Parche crítico del QA regression run del v1.10.0.
-- **v1.10.0 — 2026-05-08** · `#/profile` editor + CV upload UX (pandoc/pdftotext/passthrough), 8 locales × 16 H2 help parity, locale switcher.
+- **v1.11.1 — 2026-05-13** · Pulido: pista de Playwright en `#/apply`, *taglines* unificadas, tarjeta de umbrales de puntuación en el *dashboard*. 349/349 pruebas.
+- **v1.11.0 — 2026-05-13** · Integración de career-ops.org/docs en los 8 *help bundles* y los 8 README. Nuevo `docs/career-ops-canonical.md`. Documentados los conceptos *Mode*/*Archetype*/*Pipeline*/*Tracker*/*Report*/*Scan history*. 348/349 pruebas.
+- **v1.10.3 — 2026-05-12** · Tramo de *bug-fix*: cierra 7 de 11 hallazgos QA del pase de regresión de v1.10.2.
+- **v1.10.2 — 2026-05-12** · Rechazo 415 en *multipart* CV (parche temporal hasta el multer de v1.13.0); corrección de generación de PDF.
+- **v1.10.1 — 2026-05-09** · Parche crítico del pase de regresión QA de v1.10.0.
+- **v1.10.0 — 2026-05-08** · Editor `#/profile` + UX de subida de CV (pandoc/pdftotext/passthrough), 8 *locales* × 16 H2 de paridad de ayuda, conmutador de *locale*.

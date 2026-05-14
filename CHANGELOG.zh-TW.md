@@ -1,390 +1,1336 @@
 # 變更日誌
 
-**career-ops-ui** 的所有重要變更。格式遵循 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),版本號遵循 [SemVer](https://semver.org/)。
+**career-ops-ui** 的所有重要變更記錄於此。格式遵循 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),版本號遵循 [Semantic Versioning](https://semver.org/)。
 
-翻譯: [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) · [한국어](CHANGELOG.ko-KR.md) · [日本語](CHANGELOG.ja.md) · [Русский](CHANGELOG.ru.md) · [简体中文](CHANGELOG.zh-CN.md)
+翻譯版本: [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) · [한국어](CHANGELOG.ko-KR.md) · [日本語](CHANGELOG.ja.md) · [Русский](CHANGELOG.ru.md) · [简体中文](CHANGELOG.zh-CN.md)
 
-> **i18n 註釋** — 從 v1.12.0 起,各條目按語言本地化。之前的條目(v1.11.x、v1.10.x)按專案慣例保留俄文;規範英文正文在 [CHANGELOG.md](CHANGELOG.md)。
+> **i18n 註記** — 本檔案已完整翻譯為繁體中文(臺灣慣用語)。規範英文正文仍以 [CHANGELOG.md](CHANGELOG.md) 為準。
+
+---
+
+## [1.22.0] — 2026-05-14
+
+**M / L / N 級待辦清空 + 文件對齊 + 翻譯品質 pass。** 整個 v1.20.1-BACKLOG.md 中的 medium 及以下層級全部於一次發布中交付:九項 M、五項 L、兩項 nits。另對五份規範 [career-ops.org/docs](https://career-ops.org/docs) 指南進行了文件對齊稽核,刷新 `.claude/` 與 `.github/` 下的系統提示,並對 7 個非英文 locale 的 README 進行了品質刷新。
+
+### 🛡️ 安全性強化(深度防禦)
+
+- **`fix(security): M-4 — 具實體感知能力的 stripDangerousMarkdown`** ([`server/lib/security.mjs`](server/lib/security.mjs)) — v1.22 之前的正規表達式僅將 `<script>`、`javascript:`、`on*=` 視為字面子字串匹配。`&lt;script&gt;`、`java&#115;cript:` 與 `<img src="data:image/svg+xml,<svg onload=…>">` 都能繞過。新版淨化流程會在執行 strip 正規表達式**之前**先解碼 `&lt;`、`&gt;`、`&amp;`、`&quot;`、數值實體(`&#NN;`)與十六進位實體(`&#xHH;`)。由 [`tests/cv-xss-bypasses.test.mjs`](tests/cv-xss-bypasses.test.mjs) 中 11 個測試驗證。真正的防禦仍仰賴客戶端 `UI.md` escape-first 流程;此處強化的是靜態儲存的檔案。
+
+- **`fix(security): L-2 — batch runner 使用 bash --noprofile --norc`** ([`server/lib/routes/batch.mjs:108`](server/lib/routes/batch.mjs#L108)) — `spawn('bash', [PATHS.batchRunner, ...])` 過去會繼承使用者 `~/.bashrc`。惡意 rc 檔案可能影響執行結果。現改為 `spawn('bash', ['--noprofile', '--norc', PATHS.batchRunner, ...])`。
+
+### 🔒 韌性
+
+- **`fix(client): M-6 — 健康檢查 ping 採用指數退避`** ([`public/js/api.js:22-48`](public/js/api.js#L22-L48)) — 離線狀態下的 poller 過去一夜會對失效伺服器發出 28,800 次 fetch。現改為 3 秒 → 6 秒 → 12 秒 → 24 秒 → 60 秒;首次 2xx 恢復後重置為 3 秒。設定採用 `setTimeout` 鏈(非 `setInterval`),確保每一步都能套用新的延遲。
+
+- **`fix(client): M-5 — Safari 私密模式 localStorage 防護`** ([`public/js/lib/i18n.js:572-583`](public/js/lib/i18n.js#L572-L583)) — Safari 私密模式對任何 `localStorage.getItem/setItem` 呼叫都會拋出 `SecurityError`。載入期間的 IIFE 過去會讓整個 i18n 模組失敗,導致 SPA 渲染出原始鍵名。已將兩處呼叫包進 try/catch,並以 `detect()` 之瀏覽器語系作為後備。
+
+- **`fix(server): M-2 — preview 外連 fetch 的回應大小上限(測試 + 驗證)`** — v1.21.0 的 `safeGet` 已實作分塊串流並依 `opts.maxBytes` 設限。v1.22 在 [`tests/ssrf-redirect-rebind.test.mjs`](tests/ssrf-redirect-rebind.test.mjs) 中新增明確的迴歸測試以鎖定契約:上游 100 KB + 4 KB 上限 → 回應 ≤ 4 KB。
+
+- **`fix(client): L-5 — 在 scan.js 的 hashchange 時清除 setTimeout`** ([`public/js/views/scan.js:6-22, :113-120`](public/js/views/scan.js#L6-L22)) — 掃描完成後 300 ms 的 `refreshResults()` 計時器,過去在使用者於該時間窗離開 `#/scan` 時會洩漏。現於 `__cancelActiveScanPoll` 中捕捉並清除 handle。
+
+- **`fix(client): L-4 — SSE 多行 data: 串接`** ([`public/js/lib/auto-pipeline.js:158-176`](public/js/lib/auto-pipeline.js#L158-L176)) — SSE 解析器原先使用 `match()`(單行)。依據規範,一個事件可帶多行 `data:`,消費端應以 `\n` 串接。伺服器目前送的是單行 JSON,所以舊程式碼可運作 — 但對未來任何多行 payload 都很脆弱。
+
+### ♿ 無障礙
+
+- **`feat(a11y): M-3 — WCAG 1.4.1 score pill 與連線橫幅的冗餘提示`** ([`public/css/app.css:602-625, :812-822`](public/css/app.css#L602-L625)) — score-high / score-mid / score-low 過去僅以色相(紅 / 琥珀 / 綠)傳達狀態。無法辨識色相的使用者沒有任何後備。各層級現在透過 `::before` 取得冗餘字符(✓ / ◐ / ○)。連線橫幅在離線狀態取得前置 `⚠` 字符。渲染端不動 — 純 CSS 強化。
+
+- **`feat(a11y): M-1 — 每個 mode-page 欄位的行內提示段落`** ([`public/js/views/mode-page.js`](public/js/views/mode-page.js)、[`public/js/lib/i18n.js`](public/js/lib/i18n.js)) — v1.20.0 為每個 mode-page 欄位接好了 `htmlFor → id`,但未帶入行內提示文案;僅 README walkthroughs 文件說明了各欄位用途。v1.22.0 新增 19 個提示 i18n 鍵 × 8 locale = **152 條新翻譯**,並讓 `field()` builder 為每個欄位渲染一個 `<p id="…-hint">` 並串接 `aria-describedby`。螢幕閱讀器使用者在 input 取得焦點時即可聽見提示。
+
+- **`fix(a11y): M-7 — UI.el() htmlFor 別名的 null 防護`** ([`public/js/api.js:194-198`](public/js/api.js#L194-L198)) — `htmlFor: null` 過去會渲染出字面 `for="null"`。一行式地對齊 fallthrough 分支的 `v != null && v !== false` 防護。
+
+### 🧹 品質 / 可攜性
+
+- **`fix(server): L-1 — health.mjs + bin/start.sh + bin/setup.sh 的 parseInt 加上 radix`** — `parseInt(process.versions.node)` 沒帶 radix 會觸發 lint 警告,並在 Node 若改以十六進位版本號發布時變脆。各處統一補上 `10`。
+
+- **`fix(server): L-3 — Windows 友善的進入點檢查`** ([`server/index.mjs:159-163`](server/index.mjs#L159-L163)) — `import.meta.url === \`file://${process.argv[1]}\`` 在 Windows 上會錯誤處理磁碟機代號與反斜線。改為 `fileURLToPath(import.meta.url) === path.resolve(process.argv[1])`。
+
+- **`refactor(client): N-2 — 移除 Element.prototype.also monkey-patch`** ([`public/js/views/cv.js:188-201`](public/js/views/cv.js#L188-L201)) — 屬於全域 DOM 原型污染。改以區域變數承接樹根。
+
+- **`test(canary): M-8 — 退役 /api/scan-ru/config 的 404 迴歸測試`** ([`tests/scan-consolidated.test.mjs`](tests/scan-consolidated.test.mjs)) — v1.20.0 退役該別名但未加 canary。三行式新增,鏡像 v1.18 的退役測試。
+
+### 📚 文件 + 系統提示
+
+- **`docs(architecture): 為 v1.21+ 介面刷新 OVERVIEW + DATA-FLOWS`** — 於 OVERVIEW.md 中加入 `safe-fetch.mjs`(DNS-pinned GET)、`file-lock.mjs`(per-path mutex)、`rate-limit.mjs`(LLM 節流)與 `sanitizePathName`。DATA-FLOWS.md 新增兩節:「Outbound URL fetches (DNS-rebind-safe)」與「LLM endpoint rate-limiting」。
+
+- **`docs(readme): 安全範圍說明刷新`** — README.md 的「Security notes」現在記載 v1.21+ 安全範圍中的每個 helper(sanitizePathName、safeGet、withFileLock、llmRateLimit、entity-aware stripDangerousMarkdown)。
+
+- **`docs(qa): 場景 31 — career-ops.org/docs 對齊`** ([`qa/claude-cowork-browser-test-prompt.md`](qa/claude-cowork-browser-test-prompt.md)) — 六個新子測試(31.1–31.6)用以驗證 UI 行為與五份規範 career-ops.org/docs 指南一致:score thresholds、scan workflow(單一按鈕)、apply workflow(checklist,而非自動送出)、batch workflow(TSV 編輯器)、Playwright 設定(優雅失敗)、help-bundle 覆蓋率(5 個 URL × 8 個 locale)。
+
+- **`docs(translate): README 品質刷新 × 7 個非英文 locale`** — 每個非英文 README 都以該語言之出版品級技術風格重寫。替換常見生硬計算式翻譯;補入 v1.21 / v1.22 安全範圍說明;發布與測試徽章同步更新。
+
+- **`docs(system): .claude/PROJECT-CONTEXT.md + .github/copilot-instructions.md`** — 給加入工作階段的 agent 的單檔定位資料。壓縮的 CLAUDE.md,點名 v1.21+ helper,列出常見陷阱。
+
+- **`docs(bin): 更新 start.sh / setup.sh / run_all.sh 註解`** — 「two deps」→「three deps」(express + js-yaml + multer);「298 tests」→「474+ tests」;`parseInt` 補上 radix。
+
+### 🧪 測試
+
+- **461 → 474 個單元測試**(+13)+ 32/32 Playwright 不變。
+- 新測試檔案:`cv-xss-bypasses.test.mjs`(M-4,11 個測試)。
+- 延伸:`ssrf-redirect-rebind.test.mjs`(+1 對應 M-2 body cap)、`scan-consolidated.test.mjs`(+1 對應 M-8 alias canary)。
+- 既有套件零行為差異 — 每個修復都是 additive 或由新 canary 覆蓋。
+
+### 驗證
+
+```bash
+npm test                          # 474 / 474
+npm run test:e2e:browser          # 32 / 32
+
+# 實體編碼 XSS strip:
+node -e "import('./server/lib/security.mjs').then(({stripDangerousMarkdown}) => console.log(stripDangerousMarkdown('&lt;script&gt;alert(1)&lt;/script&gt;')))"
+# → '' (no <script> survives)
+
+# 健康檢查退避(打開 devtools,kill 伺服器,觀察 network panel):
+#   3 秒 → 6 秒 → 12 秒 → 24 秒 → 60 秒,首次成功 ping 後重置
+
+# Score-pill 字符(在淺色 + 深色主題下開啟 #/reports):
+#   .score-high 顯示 ✓ + 數值分數
+#   .score-mid  顯示 ◐ + 數值分數
+#   .score-low  顯示 ○ + 數值分數
+
+# Mode-page 提示(#/contacto 等):
+#   <input aria-describedby="mode-contacto-recipient-hint">  ← 指向 <p id="…">
+
+# 退役別名:
+curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:4317/api/scan-ru/config
+# → 404
+```
+
+### 破壞性變更
+
+無。所有修復皆為 additive 或保留既有端點契約。
+
+### 範圍外(v1.23+)
+
+| 項目 | 說明 |
+|---|---|
+| M-9 — locale CHANGELOG 內文翻譯 | 所有 `CHANGELOG.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md` 自 v1.13+ 的條目皆為英文內文的權宜方案。在發布節奏放緩後可作為批次翻譯候選。 |
+| N-1 — `public/js/lib/i18n.js` 超過 400 LOC 目標 | 依 locale 拆分會在沒有 bundler 的情況下增加 HTTP 成本。延後到 build-step 決策落定為止。 |
+| 由 career-ops.org/docs 刷新 help-bundle 內容 | 五個規範 URL 自 v1.11.x 起已出現在每個 locale 的 help bundle。QA prompt 的場景 31.6 會驗證覆蓋率。內容深度刷新為 v1.23 候選。 |
 
 ---
 
 ## [1.21.0] — 2026-05-14
 
-**Security + concurrency + a11y polish from two independent code-review passes.** Seven findings from `docs/specs/V1.20.1-BACKLOG.md` shipped in one release. 34 new tests; baseline **461 / 461** unit + 32/32 Playwright.
+**安全性 + 並行性 + 無障礙拋光,來自兩次獨立的程式碼審查。** [`docs/specs/V1.20.1-BACKLOG.md`](docs/specs/V1.20.1-BACKLOG.md) 中的七項發現於一次發布中交付:一個 blocker(DNS-rebind TOCTOU)、六個 high-severity 缺陷(路徑遍歷淨化散落、LAN 部署的速率限制缺口、並行寫入競爭條件、i18n 覆蓋率破口、懸空的 aria-describedby、標籤關聯缺失)。34 個新測試;基準從 427 → 461 個單元測試 + 32/32 Playwright。每項修復都搭配命名迴歸測試。
 
-### Highlights
+### 🛡️ 安全性
 
-- **B-1 (Security):** new `server/lib/safe-fetch.mjs` closes the DNS-rebind TOCTOU window in `/api/pipeline/preview` and `/api/auto-pipeline`.
-- **H-4 (Security):** `sanitizePathName` hoisted into `security.mjs`; 10 broken regex copies deleted.
-- **H-5 (Security):** new `llmRateLimit` middleware — 10 req/min/IP on `HOST=0.0.0.0`.
-- **H-6 (Concurrency):** new `server/lib/file-lock.mjs::withFileLock(path, fn)` serializes read-modify-write.
-- **H-3 (i18n):** 19 missing keys × 8 locales added; static-analysis canary in `tests/i18n-coverage.test.mjs`.
-- **H-1 / H-2 (a11y):** `id="batch-tsv-hint"` + `htmlFor` on two labels.
+- **`fix(security): B-1 — 透過 safe-fetch.mjs 關閉 DNS-rebind TOCTOU`** ([`server/lib/safe-fetch.mjs`](server/lib/safe-fetch.mjs)) — 先前模式是先做一次明確的 `dnsLookup` 驗證,再讓 `fetch()` 自行做獨立查詢。具有 TTL=0 的 DNS rebind 攻擊者可在查詢 1 回傳公開 IP,在查詢 2 回傳 `127.0.0.1` / `169.254.169.254` / LAN 位址,藉此繞過 `isPrivateOrLoopbackHost`。新的 `safeGet` 只解析一次,透過 node:http(s) 將 TCP 連線釘到該確切 IP,並設定 SNI/Host 讓憑證驗證仍對準原主機名。由 `/api/pipeline/preview` 與 `/api/auto-pipeline` 使用。查詢失敗時 fail-CLOSED(反轉先前的 `try { … } catch { /* fall through */ }`)。由 [`tests/ssrf-redirect-rebind.test.mjs`](tests/ssrf-redirect-rebind.test.mjs) 中 8 個新測試驗證。
 
-### Breaking changes
+- **`fix(security): H-4 — 跨 10 條路由整合 sanitizePathName`** ([`server/lib/security.mjs`](server/lib/security.mjs)) — 裸的 `replace(/[^\w\-.]/g, '')` 正規表達式重複出現在 `jds.mjs`、`content.mjs`、`reports.mjs`、`llm.mjs`、`runners.mjs` 中,而且保留了 `.` 字元,所以 `..pdf`、`....md`、開頭點號的名稱都能存活。只有 `reports.mjs::sanitizeSlug` 做對。v1.21.0 將正確版本(`sanitizePathName`)提升至 `security.mjs`,刪除 10 處損壞副本,並對空結果以 400 拒絕。由 [`tests/path-traversal.test.mjs`](tests/path-traversal.test.mjs) 中 12 個測試驗證。
 
-None. `LLM_RATE_LIMIT` is opt-in via env.
+- **`fix(security): H-5 — 公開繫結時對 LLM 端點施加速率限制`** ([`server/lib/rate-limit.mjs`](server/lib/rate-limit.mjs)) — `/api/evaluate`、`/api/deep`、`/api/mode/:slug`、`/api/auto-pipeline` 之前沒有 per-IP 節流。Loopback 使用者不受影響;LAN 暴露的部署(`HOST=0.0.0.0`)得到 10 req/min/IP,過載時帶 `Retry-After` 與 `X-RateLimit-*` 標頭。可透過 `LLM_RATE_LIMIT="N/Ws"` 設定。在 v2.0 P-12 認證閘到位之前的廉價過渡防禦。由 [`tests/rate-limit.test.mjs`](tests/rate-limit.test.mjs) 中 6 個測試驗證。
 
-See [`CHANGELOG.md`](CHANGELOG.md) for the full English changelog.
+### 🔒 並行性
+
+- **`fix(data): H-6 — applications.md / pipeline.md 採用 per-file mutex`** ([`server/lib/file-lock.mjs`](server/lib/file-lock.mjs)) — 並行的 `POST /api/tracker`(或 auto-pipeline 與手動新增競賽)過去會同時讀到 `num=42`,雙方都寫入 `num=43`,並無聲丟失較早那筆。`withFileLock(path, fn)` 依路徑序列化 read-modify-write;不同路徑仍可並行。已接入 `tracker.mjs`、`pipeline.mjs`(POST + DELETE),以及 `auto-pipeline.mjs` 的 tracker 步驟。由 [`tests/concurrent-tracker-write.test.mjs`](tests/concurrent-tracker-write.test.mjs) 中 5 個測試驗證,包含一個 20-concurrent-POST 整合檢查,斷言 001..020 列依序落地。
+
+### ♿ 無障礙
+
+- **`fix(a11y): H-1 — batch.js 的提示段落補上 id="batch-tsv-hint"`** ([`public/js/views/batch.js`](public/js/views/batch.js)) — v1.20.0 為 TSV textarea 加上了 `aria-describedby="batch-tsv-hint"`,但提示 `<p>` 從未獲得對應的 `id`。螢幕閱讀器沒有任何內容可朗讀。已修正。
+
+- **`fix(a11y): H-2 — batch-parallel / batch-min-score 標籤的 htmlFor`** ([`public/js/views/batch.js`](public/js/views/batch.js)) — v1.20.0 的四個 input 得到新 id,但其 label 未以程式方式關聯。WCAG 3.3.2 現已滿足。
+
+- 於 [`tests/a11y-form-wires.test.mjs`](tests/a11y-form-wires.test.mjs) 中新增靜態分析 canary — 走訪每個 view 檔案,斷言每個 `aria-describedby` / `htmlFor` IDREF 都指向同層級的 `id:` 宣告。可在 CI 階段攔截錯字型迴歸。
+
+### 🌐 i18n
+
+- **`fix(i18n): H-3 — v1.20.0 的 13 個鍵在 7 個 locale 中無聲 fallback 至英文`** ([`public/js/lib/i18n.js`](public/js/lib/i18n.js)) — `pipe.filter`、`pipe.count`、`pipe.preview*`、`pipe.openTab`、`pipe.evaluateAll*`、`eval.jdHint`、`batch.parallelAria`、`batch.minScoreAria`,以及 `common.delete`、`config.group{Core,Runtime,Regional}`、`config.profileEmpty`、`config.viewProfile`、`scan.atsBadge`、`scan.regionalBadge` 是透過 `t('key', 'EN fallback')` 引用,卻從未加入 DICT。俄文、日文、中文螢幕閱讀器使用者聽到的是英文 `aria-label` — 直接抵銷了 v1.20.0 宣稱的 WCAG 3.3.2 勝利。v1.21.0 補齊全部 19 個鍵 × 8 個 locale(約 150 條新翻譯),並延伸 [`tests/i18n-coverage.test.mjs`](tests/i18n-coverage.test.mjs):新增的靜態分析 pass 會掃描 `public/js/**/*.js` 內每個 `t('key', …)` 呼叫,斷言每個鍵都存在於 DICT。未來的漂移將於 CI 階段攔截。
+
+### 🧪 測試
+
+- **427 → 461 個單元測試**(+34)+ 32/32 Playwright 不變。
+- 新測試檔案:`ssrf-redirect-rebind`、`path-traversal`、`concurrent-tracker-write`、`rate-limit`、`a11y-form-wires`。
+- 既有 `pipeline-preview.test.mjs` 從 `globalThis.fetch` mock 改接 `safe-fetch.mjs` 中新的 `_setTransport` 注入點 — SSRF 路徑不再走 fetch,所以舊 mock 早就被無聲繞過。
+
+### 驗證
+
+```bash
+npm test                              # 461 / 461
+npm run test:e2e:browser              # 32 / 32
+node --test tests/ssrf-redirect-rebind.test.mjs tests/path-traversal.test.mjs \
+  tests/concurrent-tracker-write.test.mjs tests/rate-limit.test.mjs \
+  tests/a11y-form-wires.test.mjs      # 34 個新測試全綠
+
+# 路徑遍歷:所有 traversal 形式的 :name 都回傳 400 / 404
+curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:4317/api/jds/..pdf
+# → 400
+
+# 公開繫結下的速率限制:
+HOST=0.0.0.0 LLM_RATE_LIMIT=3/60s npm start &
+for i in 1 2 3 4; do
+  curl -sS -o /dev/null -w '%{http_code} ' -X POST -H 'Content-Type: application/json' \
+    -d '{"jd":"…"}' http://0.0.0.0:4317/api/evaluate
+done
+# → 200 200 200 429
+
+# 並行 tracker 寫入:20 個 parallel POST,20 列落地:
+node tests/concurrent-tracker-write.test.mjs
+# 20 個依序排列的 001..020 列
+
+# Aria wires 健全性:
+grep -r 'aria-describedby' public/js/views/ | wc -l
+# 對應的 `id:` 查找全部解析(a11y-form-wires.test.mjs canary)
+```
+
+### 範圍外(v1.22+)
+
+| 項目 | 說明 |
+|---|---|
+| `pipeline-preview` body-size streaming 上限 (M-2) | `await upstream.text()` 在 8 KB 切片前讀入整個 body;惡意 1 GB 串流可能耗盡記憶體。需 stream-read 加 byte counter + abort。 |
+| WCAG 1.4.1 — `.connection-banner` 與 score pill 的純色狀態 (M-3) | 僅以色相傳達狀態;新增圖示前綴(✓ / ◐ / ○)或文字後綴。 |
+| `stripDangerousMarkdown` 透過 HTML 實體繞過 (M-4) | `&lt;script&gt;`、`java&#115;cript:`、`<img src="data:image/svg+xml,<svg onload=…>">` 仍可通過正規表達式。透過 UI.md 的深度防禦仍成立;以測試掃描方式記錄並鎖定繞過。 |
+| Safari 私密模式 `localStorage` 存取未加 try/catch (M-5) | `i18n.js:544/571` 拋例外 → SPA 渲染原始鍵名。以 try/catch 包覆並以 `'en'` 為預設。 |
+| `setInterval(checkHealth, 3000)` 永遠輪詢且無退避 (M-6) | 指數 3 秒 → 6 秒 → 12 秒 → 上限 60 秒。 |
+| `htmlFor` 別名缺少 null 防護 (M-7) | 一行 `if (v != null && v !== false)` 防禦。 |
+| 退役 `/api/scan-ru/config` 的 404 canary (M-8) | 三行測試,鏡像 v1.18 先例。 |
+| Locale CHANGELOG 內文翻譯 (M-9) | 在發布節奏放緩後可作為批次翻譯候選。 |
+| 每個 mode-page 欄位的行內提示段落 (M-1) | 約 168 個 i18n 鍵 × 8 個 locale;暫列為 polish 項目。 |
+| L-1 至 L-5 nits | parseInt radix、bash --noprofile、Windows-safe fileURLToPath、多行 SSE、scan.js 計時器清理。 |
 
 ---
 
 ## [1.20.0] — 2026-05-13
 
-**Per-component a11y polish + non-EN README parity + `/api/scan-ru/config` alias retired.** Closes the four items the v1.19.0 "Out of scope" table flagged for v1.20.
+**逐元件無障礙拋光 + 非英文 README 對等 + 退役 `/api/scan-ru/config` 別名。** 關閉 v1.19.0「Out of scope」表中為 v1.20 標記的四項。
 
-### Highlights
+### ♿ WCAG 2.5.5 / 2.5.8 — 逐元件觸控目標稽核
 
-- **WCAG 2.5.5 / 2.5.8 — per-component touch-targets:** `.chip` → `min-height: 28px` + `.chip-row { gap: 8px }` (spaced-target exception). `.nav-item` and `.tab-btn` → `min-height: 44px`.
-- **WCAG 1.3.1 / 3.3.2 — `aria-describedby` on form hints:** every form control across `config.js` / `evaluate.js` / `batch.js` / `pipeline.js` / `mode-page.js` now owns a stable `id`, `<label htmlFor=…>`, and `aria-describedby` for inline hints. `UI.el()` learned a React-style `htmlFor` alias.
-- **Non-EN README parity:** all 7 locales now mirror the 585-line EN structure end-to-end (Why?, Quick start, full API reference, Architecture, 🌍 Getting Started walkthrough).
-- **Alias retired:** `DELETE /api/scan-ru/config`. Use `/api/scan/regional/config`. Sunset was announced in v1.19.0.
+- **`a11y(touch-target): chip min-height 28 px + 8 px gap(2.5.8 spaced-target 例外)`** — `.chip` 過去為 24 × ~50 px(垂直 24,高度未達 2.5.5 之 24 px 群集控件底線);2.5.8 的 spaced-target 例外要求 ≥ 24 × 24 px 或 24 px 間距其一。將 `.chip` 調為 `min-height: 28px; padding: 6px 12px;`,並把外層 `.chip-row` 調為 `gap: 8px;`,使兩個條件同時成立。
+- **`a11y(touch-target): sidebar nav-item min-height 44 px`** — `.nav-item` 之前 padding 僅 `10px 14px`,在多數 viewport 下計算高度約 36 px。現為 `padding: 12px 14px; min-height: 44px; box-sizing: border-box;`,與 `.btn` 底線一致。
+- **`a11y(touch-target): tab-btn min-height 44 px`** — Reports、Tracker、Scan 結果裡的 Sortable Headers / 類別頁籤同樣處理。
 
-### Tests
+### ♿ WCAG 1.3.1 / 3.3.2 — 行內表單提示的 `aria-describedby`
 
-**427 / 427** unit + 20/20 smoke + 23/23 comprehensive + 32/32 Playwright. All a11y wiring is additive; no behavioral test deltas.
+SPA 中每個表單控件現在都擁有穩定 `id`,其 `<label>` 透過 `htmlFor` 指向它,任何行內提示段落都以 `aria-describedby` 關聯。五個 view 檔案完成接線:
 
-### Breaking changes
+- **`a11y(forms): config.js`** — 每個鍵的 `id` + 提示關聯(`cfg-<key>` / `cfg-<key>-hint`)。
+- **`a11y(forms): evaluate.js`** — `eval-jd` textarea 與 `eval-jd-hint` 段落,說明淨化後 50 字元最小限制。
+- **`a11y(forms): batch.js`** — `batch-tsv` / `batch-tsv-hint`,並為 `batch-parallel`、`batch-min-score`、`batch-dry-run`、`batch-retry` 補上 `aria-label`。
+- **`a11y(forms): pipeline.js`** — `pipe-filter` 與 `pipe-new-url` / `pipe-new-url-hint`。
+- **`a11y(forms): mode-page.js`** — 7 個 generic mode(`project`、`training`、`followup`、`batch-prompt`、`contacto`、`interview-prep`、`patterns`)中每個欄位皆取得 `mode-<slug>-<name>` id 與 `htmlFor` label。
 
-- `GET /api/scan-ru/config` — removed (use `/api/scan/regional/config`).
+`UI.el()` 學會了 React 風格的 `htmlFor` 別名,讓 view 程式碼保持宣告式 — 它會設定底層 `for` 屬性(在 JS 中 `for` 為保留字無法作為 property 名稱)。
 
-See [`CHANGELOG.md`](CHANGELOG.md) for the full English changelog.
+### 🌍 非英文 README 對等
+
+- **`docs(readme): 將 7 個 locale 翻譯至與英文主版 585 列對等`** — `README.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md` 過去為 306–316 列(涵蓋標題但略過行銷重的 walkthrough 與大部分 API 參考)。七個版本現在端對端鏡像英文結構:About → One-command install → Why? → Quick start(3 步驟) → Requirements → What you get 表格 → Scan → Architecture(完整目錄樹) → API reference(每條路由表) → Tests → Configuration → Security notes → Limitations → Contributing → 🌍 Getting Started 5 步驟 walkthrough → License。
+
+### 🧹 `/api/scan-ru/config` 別名退役
+
+- **`feat!(scan): 移除 /api/scan-ru/config 舊別名(於 v1.20 sunset)`** — v1.19 中以單次發布之向後相容別名保留。規範路徑 `/api/scan/regional/config` 現為唯一路徑。移除:`server/lib/routes/scan.mjs` 的路由註冊、`README.md` 與 `docs/architecture/{OVERVIEW,SERVER,API}.md` 中的文件引用。測試已涵蓋規範路徑,毋需異動。
+
+### 🧪 測試
+
+- 與 v1.19 套件相同。**427 / 427** 單元 + 20/20 smoke + 23/23 comprehensive + 32/32 Playwright。所有無障礙接線皆為 additive(更多 `id` / `for` / `aria-describedby` 屬性) — 無行為變動,無測試差異。
+
+### 驗證
+
+```bash
+npm test                              # 427 / 427
+npm run test:e2e:browser              # 32 / 32
+
+# 觸控目標 — 每個 chip / nav-item / tab-btn ≥ 28 / 44 / 44 px:
+#   Chrome DevTools → Computed → 對 .chip、.nav-item、.tab-btn 檢視 height/min-height
+
+# 表單標籤 — 每個 input 都有 label[for=…] 關聯:
+#   document.querySelectorAll('input,textarea,select').forEach(el =>
+#     console.assert(el.labels?.length || el.getAttribute('aria-label'), el))
+
+# 別名已退役:
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:4317/api/scan-ru/config
+# → 404
+
+# 規範路徑仍可用:
+curl -s http://127.0.0.1:4317/api/scan/regional/config | jq '.'
+```
+
+### 破壞性變更
+
+- `DELETE /api/scan-ru/config` — 已移除。改用 `/api/scan/regional/config`。已在 v1.19.0 的 CHANGELOG 與驗證腳本中宣告 sunset。
+
+### 範圍外(v1.21+)
+
+| 項目 | 說明 |
+|---|---|
+| 每個 mode-page 欄位的行內提示段落 | 目前僅 `<label for=…>` 關聯就位;可見的逐欄位提示文案在 SPA 仍只有英文。README walkthrough 已以各 locale 說明欄位用途,故此為 polish 而非 blocker。 |
+| `.connection-banner` 與儀表板 score pill 的純色狀態(WCAG 1.4.1) | 橫幅僅靠紅 / 琥珀 / 綠;需為無法辨識色相者新增圖示或文字後綴。 |
+| Locale 特定的 CHANGELOG 內文翻譯 | 英文內文之權宜方案仍存在於 `CHANGELOG.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md`。等 v1.x 發布節奏放緩後再翻譯。 |
 
 ---
 
 ## [1.19.0] — 2026-05-13
 
-**WCAG 1.4.3 contrast + scan unification (final) + HH_USER_AGENT removed from UI.** Closes the v1.18 out-of-scope contrast audit, finishes the EN/RU split elimination begun in v1.18, and removes the `HH_USER_AGENT` configuration knob from the UI per user direction (a sensible default bundled in the server already handles non-RU IPs for most users).
+**WCAG 1.4.3 對比 + scan 整合(最終) + UI 移除 HH_USER_AGENT。** 關閉 v1.18 範圍外的對比稽核,結束 v1.18 啟動的 EN/RU 拆分剷除,並依使用者指示將 `HH_USER_AGENT` 設定旋鈕從 UI 移除(伺服器內建合理預設值,可滿足非俄羅斯 IP 的多數使用者)。
 
-### ♿ WCAG 1.4.3 contrast pass
+### ♿ WCAG 1.4.3 對比 pass
 
-- **`a11y(contrast): introduce AA-passing *-text variants for accent tokens`** — light theme: `--rausch-text: #b80f42` (6.59:1 on white, was 3.52:1), `--kazan-text: #066507` (7.31:1, was 4.53:1), `--darjeeling-text: #7a5800` (5.73:1 on amber bg, was 4.24:1), `--babu-text: #00665e` (6.09:1, was 2.70:1). Dark theme: lightened mirrors (`#ff8aa0`, `#6ee7b7`, `#fcd34d`, `#5eead4`) hit the same 4.5:1 floor on `#161a22` paper.
-- Badge classes (`.badge-ok`, `.badge-warn`, `.badge-bad`, `.badge-info`) and score pills (`.score-high`, `.score-mid`, `.score-low`) now route through the new `*-text` variants — every text-on-tinted-bg combo passes AA. The accent fill tokens (`--rausch`, `--kazan`, etc.) stay unchanged for borders and outlines (which only need 3:1 for non-text UI components).
+- **`a11y(contrast): 為 accent token 引入符合 AA 的 *-text 變體`** — 淺色主題:`--rausch-text: #b80f42`(白底 6.59:1,原本 3.52:1)、`--kazan-text: #066507`(7.31:1,原本 4.53:1)、`--darjeeling-text: #7a5800`(琥珀底 5.73:1,原本 4.24:1)、`--babu-text: #00665e`(6.09:1,原本 2.70:1)。深色主題:亮化鏡像(`#ff8aa0`、`#6ee7b7`、`#fcd34d`、`#5eead4`)在 `#161a22` 紙底達到同樣 4.5:1 底線。
+- 徽章類別(`.badge-ok`、`.badge-warn`、`.badge-bad`、`.badge-info`)與 score pill(`.score-high`、`.score-mid`、`.score-low`)現在都走新的 `*-text` 變體 — 每組文字+著色底的組合都過 AA。Accent 填充 token(`--rausch`、`--kazan` 等)保留不動,用於邊框與輪廓(非文字 UI 元件僅需 3:1)。
 
-### 🧹 Scan unification (finishes v1.18 work)
+### 🧹 Scan 整合(完成 v1.18 工作)
 
-- **`docs(scan): scrub remaining EN/RU split references across READMEs + help + architecture docs`** — eight READMEs + eight help bundles + three architecture docs (API.md, SERVER.md, OVERVIEW.md, DATA-FLOWS.md) + scan.js comment now describe a single consolidated scan method. The legacy `/api/stream/scan-{en,ru}` aliases were already gone in v1.18; v1.19 catches the doc/copy that still framed scanning as a two-step EN+RU process.
-- **`feat(scan): canonical /api/scan/regional/config endpoint`** — `/api/scan-ru/config` kept as a thin alias through one release for back-compat. The new path matches the source-naming convention (`?source=regional`).
+- **`docs(scan): 跨 README + help + architecture 文件清除 EN/RU 拆分殘留`** — 八個 README + 八個 help bundle + 三份 architecture 文件(API.md、SERVER.md、OVERVIEW.md、DATA-FLOWS.md)+ scan.js 註解,現在皆描述單一整合的掃描方法。舊 `/api/stream/scan-{en,ru}` 別名已於 v1.18 移除;v1.19 處理那些仍以兩步 EN+RU 描述掃描的文件與文案。
+- **`feat(scan): 規範 /api/scan/regional/config 端點`** — `/api/scan-ru/config` 作為薄別名保留一個版本以維持向後相容。新路徑符合來源命名約定(`?source=regional`)。
 
-### 🛠️ HH_USER_AGENT removed from UI
+### 🛠️ UI 移除 HH_USER_AGENT
 
-- **`feat!(config): drop HH_USER_AGENT field from /#/config + KNOWN_KEYS`** — power users can still set `HH_USER_AGENT` directly in `career-ops/.env` (the server reads via `process.env.HH_USER_AGENT` in `server/lib/sources/hh.mjs` with the bundled UA as fallback). The UI no longer exposes it because the default works for most users and seeing an inscrutable User-Agent field in the App Settings page was a recurring source of confusion.
-- README mentions across 8 locales + help bundle mentions across 8 locales replaced with "run via a Russian IP / VPN" advice. The `scan.hhWarning` i18n key was rephrased to drop the env-var setup detail.
-- `KEY_GROUPS` collapsed: no more `regional` classification (it only had HH_USER_AGENT). Tests updated; `regionalActive` payload field preserved for SPA back-compat.
+- **`feat!(config): 從 /#/config + KNOWN_KEYS 移除 HH_USER_AGENT 欄位`** — 進階使用者仍可直接在 `career-ops/.env` 中設定 `HH_USER_AGENT`(伺服器於 `server/lib/sources/hh.mjs` 透過 `process.env.HH_USER_AGENT` 讀取,並以內建 UA 為後備)。UI 不再揭露此欄位,因為預設值已可滿足多數使用者,而 App Settings 頁面上的神秘 User-Agent 欄位是長期混淆來源。
+- 跨 8 個 locale 的 README 與 help bundle 中,相關提及已替換為「透過俄羅斯 IP / VPN 執行」之建議。`scan.hhWarning` i18n 鍵已改寫,移除 env-var 設定細節。
+- `KEY_GROUPS` 收斂:不再有 `regional` 分類(原本只含 HH_USER_AGENT)。測試已更新;`regionalActive` payload 欄位保留以維持 SPA 向後相容。
 
-### 🧪 Tests
+### 🧪 測試
 
-- `tests/env-config.test.mjs` — `KNOWN_KEYS` assertion now excludes HH_USER_AGENT; new assertion that the key is intentionally absent.
-- `tests/config-endpoint.test.mjs` — POST-write multi-key test uses `GEMINI_MODEL` as the second known key instead of HH_USER_AGENT.
-- `tests/config-groups.test.mjs` — `groups.HH_USER_AGENT` is now expected `undefined`.
-- Total: **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive E2E + 32/32 Playwright. Same counts as v1.18.0 because every adjusted test was already counted.
+- `tests/env-config.test.mjs` — `KNOWN_KEYS` 斷言現在排除 HH_USER_AGENT;新增斷言確保該鍵是刻意缺席。
+- `tests/config-endpoint.test.mjs` — POST-write 多鍵測試改用 `GEMINI_MODEL` 作為第二個已知鍵(取代 HH_USER_AGENT)。
+- `tests/config-groups.test.mjs` — `groups.HH_USER_AGENT` 現在期望為 `undefined`。
+- 總計:**427 / 427** 單元 + 20/20 smoke E2E + 23/23 comprehensive E2E + 32/32 Playwright。計數與 v1.18.0 相同,因為每個調整過的測試早已計入。
 
-### Verification
+### 驗證
 
 ```bash
 npm test                              # 427 / 427
 
-# Contrast (Chrome DevTools or axe) on light + dark:
-#   .badge-ok / .badge-warn / .badge-bad / .badge-info → AA pass (4.5:1+)
-#   .score-high / .score-mid / .score-low → AA pass
+# 對比(Chrome DevTools 或 axe)於淺色 + 深色:
+#   .badge-ok / .badge-warn / .badge-bad / .badge-info → AA 通過(4.5:1+)
+#   .score-high / .score-mid / .score-low → AA 通過
 
-# HH_USER_AGENT no longer in /api/config:
+# /api/config 不再含 HH_USER_AGENT:
 curl -s http://127.0.0.1:4317/api/config | jq '.values | keys'
 # → ["ANTHROPIC_API_KEY","ANTHROPIC_MODEL","GEMINI_API_KEY","GEMINI_MODEL","HOST","PORT"]
-# (no HH_USER_AGENT)
+# (沒有 HH_USER_AGENT)
 
-# Canonical regional config endpoint:
+# 規範 regional config 端點:
 curl -s http://127.0.0.1:4317/api/scan/regional/config | jq '.'
-# Legacy alias still alive through v1.20:
+# 舊別名於 v1.20 前仍存活:
 curl -s http://127.0.0.1:4317/api/scan-ru/config | jq '.'
 ```
 
-### Out of scope (v1.20+)
+### 範圍外(v1.20+)
 
-| Item | Notes |
+| 項目 | 說明 |
 |---|---|
-| Per-component touch-target audit (filter chips, sortable headers, sidebar nav) | v1.18 set the global floor (`.btn` 44 px, `.btn-sm` 32 px); per-component verification across the SPA remains. |
-| `aria-describedby` on inline form hints (`#/config`, `#/pipeline`, `#/evaluate`, `#/batch`) | v1.17 covered `aria-label` on global search + modal close. Per-input hint association is the next polish layer. |
-| Full non-EN README parity (585 lines like EN) | v1.18 brought non-EN to ~307 (53 % of EN). Marketing-heavy "Quick start" + "🌍 Getting Started" walkthroughs remain EN-only. |
-| Remove `/api/scan-ru/config` legacy alias | Sunset planned for v1.20. The canonical `/api/scan/regional/config` is the migration target. |
+| 逐元件觸控目標稽核(filter chips、sortable headers、sidebar nav) | v1.18 設定了全域底線(`.btn` 44 px、`.btn-sm` 32 px);跨 SPA 的逐元件驗證仍待辦。 |
+| 行內表單提示的 `aria-describedby`(`#/config`、`#/pipeline`、`#/evaluate`、`#/batch`) | v1.17 覆蓋了全域搜尋 + modal 關閉的 `aria-label`。逐欄位的提示關聯為下一層拋光。 |
+| 完整非英文 README 對等(像英文一樣 585 列) | v1.18 將非英文提升至約 307(英文 53 %)。行銷重的「Quick start」+「🌍 Getting Started」walkthrough 仍僅英文。 |
+| 移除 `/api/scan-ru/config` 舊別名 | sunset 計畫於 v1.20。規範 `/api/scan/regional/config` 為遷移目標。 |
 
 ---
 
 ## [1.18.0] — 2026-05-13
 
-**Scan 端點合併 + WCAG 2.2 AA 通過 + i18n long-tail 完成。** 退役遺留 `/api/stream/scan-{en,ru}` 別名(Sunset 視窗 2026-10-01 根據使用者指示提前到 v1.18)。把 non-EN README 提到 ~307 列,並在 6 個 locale 中翻譯剩餘的 v1.16.0 + v1.17.0 CHANGELOG RU-bodied 條目。
+**Scan 端點整合 + WCAG 2.2 AA 通過 + i18n long-tail 收尾。** 退役舊版 `/api/stream/scan-{en,ru}` 別名(Sunset 視窗 2026-10-01 依使用者指示提前至 v1.18)。將非英文 README 帶到約 307 列,並於 6 個 locale 翻譯剩餘的 v1.16.0 + v1.17.0 RU 內文 CHANGELOG 條目。
 
-### 🚪 Breaking
+### 🚪 破壞性變更
 
-- **`feat!(scan): retire legacy /api/stream/scan-{en,ru} aliases`** — 已棄用的 EN/RU 拆分 SSE 端點已移除。每個消費者通過合併的 `/api/stream/scan?source=ats|regional|both` 端點(自 v1.12.0 起活動)。外部整合現在在舊路徑上獲得乾淨的 **404**,而不是被靜默路由到 SPA catch-all。
+- **`feat!(scan): 退役 /api/stream/scan-{en,ru} 舊別名`** — 已棄用的 EN/RU 拆分 SSE 端點已移除。每個消費端皆透過整合的 `/api/stream/scan?source=ats|regional|both` 端點(自 v1.12.0 起上線)。舊路徑自 v1.15.0 起便帶 Deprecation + Sunset(RFC 8594)標頭;遷移視窗現已關閉。仍使用舊路徑的外部整合會得到乾淨的 **404**,而非被無聲導向 SPA catch-all。
 
-### ♿ 無障礙 (WCAG 2.2 AA 通過)
+### ♿ 無障礙(WCAG 2.2 AA 通過)
 
-- **WCAG 2.4.1 Bypass Blocks** — 每頁第一個 focusable 的新 **Skip to main content** 連結。
-- **WCAG 2.4.7 Focus Visible** — 全域 `*:focus-visible` 樣式。
-- **WCAG 2.5.5 Target Size** — `.skip-link` 的最小 44×44 px 觸控目標。`.btn-sm` 保持 32 px min-height。
-- **WCAG 3.1.1 Language of Page** — `<html lang="en">` 從 `lang="ru"` 修正。
-- **WCAG 1.3.1 Info & Relationships** — `#content` 取得 `tabindex="-1"`。
+- **WCAG 2.4.1 Bypass Blocks** — 新的 **Skip to main content** 連結作為每頁第一個 focusable。透過 `.skip-link` 視覺隱藏,直到取得焦點;頁面載入後按 Tab 即彈至左上。
+- **WCAG 2.4.7 Focus Visible** — 全域 `*:focus-visible` 樣式。滑鼠點擊焦點環關閉,鍵盤 Tab 焦點環開啟(WAI-ARIA AP 標準模式)。Modal 關閉(×)取得更高對比焦點環。
+- **WCAG 2.5.5 Target Size** — `.skip-link` 最小 44×44 px 觸控目標。`.btn-sm` 保持 32 px min-height(結合列距,可符合 24×24 + 間距之 AAA 例外,用於緊湊表格列控件)。
+- **WCAG 3.1.1 Language of Page** — `<html lang="en">` 自 `lang="ru"` 修正(JS i18n bootstrap 載入時已覆寫,但 SSR 預設現在與 SPA 預設 locale 一致)。
+- **WCAG 1.3.1 Info & Relationships** — `#content` 取得 `tabindex="-1"`,使 skip-link 目標可乾淨聚焦。(ARIA roles + focus-trap 已在 v1.17 加入。)
 
 ### 📚 i18n long-tail
 
-- **`docs(i18n): 在 6 個 locale 中翻譯 v1.16.0 + v1.17.0 CHANGELOG`** — 每 locale 的 RU 字元數 79 → 42 → 23。
-- **`docs(readme): 用 Why / Requirements / Features / Configuration / Contributing 擴展 non-EN README`** — 每個 non-EN README 從 240 增長到 ~307 列。
+- **`docs(i18n): 於 6 個 locale 翻譯 v1.16.0 + v1.17.0 CHANGELOG`** — 過去在 `CHANGELOG.{es,pt-BR,ko-KR,ja,zh-CN,zh-TW}.md` 中以 RU 內文呈現的條目,現以原生語言呈現。各 locale 的 RU 字元數從 79 → 42 → 23(剩 23 個是檔案路徑等技術行內參考,以及多 locale 標頭連結,屬刻意保留)。
+- **`docs(readme): 以 Why / Requirements / Features / Configuration / Contributing 擴展非英文 README`** — 每個非英文 README 從 240 增長至約 307 列。現在涵蓋與 585 列英文版相同的非行銷段落。完整 1:1 對等(行銷重的 walkthrough 段落)仍延後。
+
+### 🛠️ 雜項
+
+- **`docs(api): 在 API.md + DATA-FLOWS.md + README.md 統一整合 scan 端點`** — API 參考表現在僅列出 `/api/stream/scan?source=…`。README 的 Scan 章節解釋 v1.18.0 對 EN/RU 拆分的退役。
+- **`fix(scan.js): 移除有關舊別名仍存活的過期註解`** — SPA 的 runScanAll dispatcher 註解現在反映整合後的現實。
 
 ### 🧪 測試
 
-- 總計 **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive E2E + 32/32 Playwright。
+- `tests/scan-consolidated.test.mjs::F-018 backwards compat` 已重寫 — 原本兩個「舊端點仍可用」斷言,現在驗證對 `/api/stream/scan-{en,ru}` 的請求回傳 **404**(而非被導向 SPA catch-all)。
+- 總計:**427 / 427** 單元 + 20/20 smoke E2E + 23/23 comprehensive E2E + 32/32 Playwright(計數不變;+2 個新的「舊端點移除」斷言取代 +2 個「舊端點仍可用」斷言)。
+
+### 驗證
+
+```bash
+npm test                              # 427 / 427
+npm run test:e2e:full                 # 23 / 23
+
+# 舊端點退役:
+curl -sI http://127.0.0.1:4317/api/stream/scan-en | head -1   # → HTTP/1.1 404
+curl -sI http://127.0.0.1:4317/api/stream/scan-ru | head -1   # → HTTP/1.1 404
+
+# 整合端點:
+curl -sN 'http://127.0.0.1:4317/api/stream/scan?source=ats&dryRun=1' | head -5
+# → event: start
+# → data: {"script":"en-scanner","writeFiles":false,…}
+
+# Skip link(無障礙):
+curl -s http://127.0.0.1:4317/ | grep -c 'class="skip-link"'  # → 1
+
+# html lang fallback:
+curl -s http://127.0.0.1:4317/ | grep -c 'html lang="en"'     # → 1
+```
+
+### 範圍外(v1.19+)
+
+| 項目 | 說明 |
+|---|---|
+| 完整非英文 README 對等(像英文一樣 585 列) | v1.18 將非英文帶到約 307(英文 53 %)。行銷重的「Why?」/「Quick start」walkthrough 仍僅英文。 |
+| 色彩對比稽核(WCAG 1.4.3 AA — 文字 4.5:1、大字 3:1) | v1.18 涵蓋結構性無障礙;跨淺色 + 深色色盤的逐 token 對比驗證仍待。 |
+| 跨所有互動元素之觸控目標稽核 | v1.18 設定底線(`.btn`:44 px、`.btn-sm`:32 px);逐元件驗證(filter chips、sidebar nav、sortable headers)仍待。 |
 
 ---
 
 ## [1.17.0] — 2026-05-13
 
-**Polish + a11y + CI 修復。** 關閉 v1.16.0 REVIEW 的 9 個 follow-up: 瀏覽器 smoke 驗證、README 徽章 truth、coverage 刷新、SPA 中的 `lastWorkdayFallback` 🔒 chip、v1.16 UX 變更後完整 E2E 重新基線、Playwright auto-pipeline 場景、a11y ARIA + focus trap 通過、6 個 locale 中歷史 CHANGELOG 壓縮、帶參考章節的 non-EN README 擴展。
+**拋光 + 無障礙 + CI 修復發布。** 關閉 v1.16.0 清單中 9 項後續:瀏覽器 smoke 驗證、README 徽章真實性、覆蓋率刷新、SPA 中 `lastWorkdayFallback` 呈現、完整 E2E 重新基線、Playwright auto-pipeline 場景、無障礙稽核通過、6 個 locale 中歷史 CHANGELOG 壓縮、以及帶 Architecture / API / Security / Tests 段落的非英文 README 擴展。
 
-### 🐛 Fixes
+### 🐛 修復
 
-- **`fix(e2e): smoke + comprehensive 與 v1.16 UX 重新對齊`** — v1.16 的 Cmd+K Enter → AutoPipeline modal 變更使 e2e 測試的 `search.press('Enter')` 開啟一個 modal,其 backdrop 攔截後續點擊。測試現在使用 `Shift+Enter` 用於 legacy quick-add 路徑。**這就是 v1.16.0 push 上的 CI 失敗** — Playwright e2e 在被 backdrop 攔截的點擊上 30 秒超時。
-- **`fix(mode-page): /#/batch-prompt → modes/batch.md 經 serverSlug`** — v1.15 將 legacy mode slug 重新命名為 `batch-prompt`,但伺服器 `POST /api/mode/:slug` 在尋找不存在的 `modes/batch-prompt.md`。新 `serverSlug` 欄位將路由 hash 與父專案的 mode 檔名解耦。
-- **`chore: 將 deprecation 訊息從 v1.16.0 → v1.17.0 bump`** — scan-en/scan-ru deprecation 文案和 batch-prompt 橫幅引用了過去的版本。
+- **`fix(e2e): smoke + comprehensive 套件重新對齊 v1.16 UX`** — v1.16 的 Cmd+K Enter → AutoPipeline modal 變動,使 e2e 測試的 `search.press('Enter')` 開啟一個 modal,其 backdrop 攔截後續點擊。測試現在使用 `Shift+Enter` 走舊版 quick-add 路徑,呼應 v1.16 記載的拆分。Comprehensive E2E 的 batch-mode iteration 也改用 `/#/batch-prompt`(v1.15 PR-H 引入的舊版 mode-prompt slug)。**這就是 v1.16.0 push 上的 CI 失敗** — Playwright e2e 在 backdrop 攔截的點擊上等待 30 秒逾時。
+- **`fix(mode-page): batch-prompt 路由 → modes/batch.md 透過 serverSlug`** — v1.15 將舊版 mode slug 改名為 `batch-prompt`,但伺服器 `POST /api/mode/:slug` 之後在尋找不存在的 `modes/batch-prompt.md`。新 `serverSlug` 欄位將路由 hash 與父專案的 mode 檔名解耦。
+- **`chore: 將 deprecation 訊息從 v1.16.0 升至 v1.17.0`** — scan-en/scan-ru deprecation 文案與 batch-prompt deprecation 橫幅引用了過去版本。
 
-### ✨ Features
+### ✨ 功能
 
-- **`feat(scan): Active Companies 卡片中的 🔒 Workday CAPTCHA chip`** — v1.16 PR-7 的 server-side `lastWorkdayFallback` export 現在被 SPA 消費。`/api/scan-results` 回傳 snapshot;當 Workday tenant 落入 fallback 時,`#/scan` 在 Active Companies 上方渲染 warn-tinted 卡片("🔒 Workday tenant blocked — fallback: 使用 /career-ops scan (Playwright)")。新 `getLastWorkdayFallback()` exporter 避免 ESM live-binding 模糊。2 個新 i18n 鍵 × 8 locales。
+- **`feat(scan): Active Companies 卡片中的 🔒 Workday CAPTCHA chip`** — v1.16 PR-7 的伺服器端 `lastWorkdayFallback` export 現在被 SPA 消費。`/api/scan-results` 回傳該 snapshot;當 Workday tenant 落入 fallback 時,`#/scan` 在 Active Companies 上方渲染警示色卡(「🔒 Workday tenant blocked — fallback: 使用 /career-ops scan (Playwright)」)。新 `getLastWorkdayFallback()` exporter 避免 ESM live-binding 模糊。2 個新 i18n 鍵 × 8 個 locale。
 
 ### ♿ 無障礙
 
-- **`a11y: ARIA roles + focus management 通過`** —
-  - `index.html`: `<aside>`(navigation)、`<header>`(banner)、`<section id="content">`(main)、`<div id="modal">`(帶 aria-modal/aria-labelledby 的 dialog)、`<div id="toast">` + `#conn-banner`(帶 aria-live 的 status)、`<div class="searchbar">`(search) 上的 `role` 屬性。
-  - `#sidebar-toggle` 取得 `aria-controls="sidebar"` + 由 JS 在 open/close 時同步的 `aria-expanded`。
-  - `#global-search` 取得 visually-hidden `<label>` 加上明確 `aria-label`,後者 surface Cmd+K shortcut 提示。
-  - Modal 關閉 (×) 取得 `aria-label="Close dialog"`。
+- **`a11y: 對關鍵介面進行 ARIA roles + 焦點管理 pass`** —
+  - `index.html`:`<aside>`(navigation)、`<header>`(banner)、`<section id="content">`(main)、`<div id="modal">`(帶 aria-modal/aria-labelledby 的 dialog)、`<div id="toast">` + `#conn-banner`(帶 aria-live 的 status)、`<div class="searchbar">`(search) 之 `role` 屬性。
+  - `#sidebar-toggle` 取得 `aria-controls="sidebar"` 與由 JS 於 open/close 時同步的 `aria-expanded`。
+  - `#global-search` 取得 visually-hidden `<label>` 加上明確 `aria-label`,後者揭露 Cmd+K 快捷鍵提示。
+  - Modal 關閉(×)取得 `aria-label="Close dialog"`。
   - 裝飾性 backdrop 取得 `aria-hidden="true"`。
-  - **Modal 焦點陷阱** — `UI.modal()` 記住點擊擁有者,在 open 時聚焦第一個 non-close focusable,並在 modal 內循環 Tab/Shift+Tab。`UI.closeModal()` 將焦點恢復到先前的擁有者。
-  - `public/css/app.css` 中的新 `.visually-hidden` utility 類別(WAI-ARIA AP 標準模式)。
+  - **Modal 焦點陷阱** — `UI.modal()` 記住點擊擁有者,於開啟時聚焦第一個非關閉的 focusable,並於 modal 內循環 Tab/Shift+Tab。`UI.closeModal()` 將焦點還給先前擁有者。
+  - `public/css/app.css` 新增 `.visually-hidden` utility 類別(WAI-ARIA AP 標準模式)。
 
 ### 📚 文件
 
-- **`docs(readme): 跨 8 個 README 的徽章 truth`** — tests 徽章 `284 / 379 / 360` → **427**; release 徽章 `v1.9.1 / v1.13.0` → **v1.16.0** 然後 → v1.17.0。
-- **`docs(readme): 用參考章節擴展 7 個 non-EN README`** — 每個增長 170 → ~240 列,以原生語言加入 Architecture / API / Security / Tests / A11y / Limitations / License 章節。
-- **`docs(changelog): 在 6 個 locale 中壓縮 pre-v1.12 條目`** — 長 RU-bodied v1.11.x + v1.10.x 條目現在被替換為每個 locale 原生語言的緊湊 "Earlier releases" 執行摘要。詳細歷史保留在 `CHANGELOG.md` (EN) 中。
+- **`docs(readme): 跨 8 個 README 的徽章真實性`** — tests 徽章 `284 / 379 / 360` → **427**;release 徽章 `v1.9.1 / v1.13.0` → **v1.16.0**,而後由 v1.17 bump → v1.17.0。Release 連結目標已更新。
+- **`docs(readme): 以參考段落擴展 7 個非英文 README`** — 每個從 170 增長至約 240 列,以原生語言新增 Architecture / API reference / Security notes / Tests / A11y / Limitations / License 段落。尚未達 585 列完整對等,但涵蓋所有關鍵的非行銷介面。
+- **`docs(changelog): 於 6 個 locale 壓縮 pre-v1.12 條目`** — 過去溢入非英文 / 非俄文 CHANGELOG 的長篇 RU 內文 v1.11.x + v1.10.x 條目,現以各 locale 原生語言之精簡「Earlier releases」執行摘要取代。詳細歷史保留於 `CHANGELOG.md`(英文)。
 
-### 🛠️ Tooling
+### 🛠️ 工具
 
-- **`coverage: 刷新數字`** — 最後發布是 95.46% line / 84.06% branch (v1.13.0 REVIEW)。v1.17 基線: **94.14% line / 82.98% branch / 93.20% function**。auto-pipeline + reports-write 中新錯誤路徑導致輕微下降;仍遠高於 CLAUDE.md 的 80% 下限。
+- **`coverage: 刷新數字`** — 最後發布的數值為 95.46 % line / 84.06 % branch(v1.13.0 REVIEW)。v1.17 基線:**94.14 % line / 82.98 % branch / 93.20 % function**。auto-pipeline + reports-write 中新錯誤路徑導致輕微下降;仍遠高於 CLAUDE.md 的 80 % 下限。
 
 ### 🧪 測試
 
-- 總計 **427 / 427** unit + 20/20 smoke E2E + 23/23 comprehensive E2E + **32 / 32** Playwright (此前 28;+4 個新 auto-pipeline 場景)。
-- E2E 套件與 v1.16.0 UX 重新對齊 (Shift+Enter quick-add, /#/batch-prompt 用於 legacy mode)。
+- 總計:**427 / 427** 單元 + 20/20 smoke E2E + 23/23 comprehensive E2E + **32 / 32** Playwright(原為 28;+4 個新 auto-pipeline 場景:按鈕開啟 modal、Cmd+K 貼上觸發 modal、無效 URL 阻擋步驟 1、`POST /api/auto-pipeline` SSE 事件 framing)。
+- E2E 套件已與 v1.16.0 UX 重新對齊(Shift+Enter quick-add、`/#/batch-prompt` 走舊版 mode)。
 
-### Out of scope (v1.18+)
+### 驗證
 
-| 項 | 說明 |
+```bash
+# 本地端:
+npm test                          # 427 / 427
+npm run test:e2e                  # 20 / 20
+npm run test:e2e:full             # 23 / 23
+npm run test:e2e:browser          # 32 / 32
+
+# 瀏覽器 smoke(頁面層級):
+curl -s http://127.0.0.1:4317/api/scan-results | jq '.workdayFallback'
+# 無 Workday fallback 時為 null;4xx 後為 {apiUrl, reason, at}。
+
+# 無障礙抽查:
+node -e "
+const c = require('cheerio').load(require('fs').readFileSync('public/index.html','utf8'));
+['banner','navigation','main','dialog','status','search'].forEach(r =>
+  console.log(r, c('[role=' + r + ']').length));
+"
+# 每個 role 應出現 ≥1。
+
+# CI gate 驗證:dashboard-screenshots workflow 啟動 /tmp scaffold,
+# 重新產生 PNG,對 commit 結果比對 — 當 images/dashboard-*.png 與已渲染 SPA 同步時為綠。
+```
+
+### 範圍外(v1.18+)
+
+| 項目 | 說明 |
 |---|---|
-| 在 non-EN CHANGELOGs 中翻譯 v1.16.0 條目 | 當前 RU-bodied。 |
-| 完整 non-EN README 對等(像 EN 一樣 585 列) | v1.17 把 non-EN 提到 ~240;行銷重的章節仍僅 EN。 |
-| 完整 WCAG 2.2 AA 審計 | v1.17 涵蓋結構 ARIA + focus trap;按元件 contrast/Tab-order 審計待辦。 |
+| 翻譯非英文 CHANGELOG 中的 v1.16.0 條目 | 目前為 RU 內文(約 30 列 × 6 locale = 180 列)。在使用者明確的 v1.11.x/v1.10.x 範圍之外。 |
+| 完整非英文 README 對等(像英文一樣 585 列) | v1.17 將非英文帶到約 240;行銷重的「Why?」/「Quick start」walkthrough 仍僅英文。 |
+| 規範 A-F prompt 的父專案 commit | 仍需要 `santifer/career-ops::modes/oferta.md` 在上游重寫(CLAUDE.md 硬規則 #1)。 |
+| 完整 WCAG 2.2 AA 稽核 | v1.17 涵蓋結構性 ARIA + 焦點陷阱;逐元件對比 / Tab 順序稽核仍待。 |
 
 ---
 
 ## [1.16.0] — 2026-05-13
 
-**Auto-pipeline 完結 + 適配器拋光 + i18n long-tail。** 關閉 v1.15.0 REVIEW 的 11 個 follow-up: server-side SSE auto-pipeline、`POST /api/reports` primitive、Cmd+K shortcut、SmartRecruiters 分頁、Workday CAPTCHA-fallback、CI screenshot-drift gate、scan source filter UX、歷史 CHANGELOG 翻譯(v1.13.0/v1.12.0 × 6 語言)、non-EN README 擴展、paste-ready trending-companies importer。
+**Auto-pipeline 收尾 + 適配器拋光 + i18n long-tail。** 關閉 v1.15.0 REVIEW 中 11 項後續:伺服器端 SSE auto-pipeline、`POST /api/reports` primitive、Cmd+K 快捷鍵、SmartRecruiters 分頁、Workday CAPTCHA-fallback、CI 截圖漂移閘、scan 來源篩選 UX、歷史 CHANGELOG 翻譯(v1.13.0/v1.12.0 × 6 locale)、非英文 README 擴展、以及一個 paste-ready 的 trending companies 匯入器。
 
 ### ✨ 功能
 
-- **`feat(auto-pipeline): server-side SSE orchestrator`** (#1, #2, #3, #8) — v1.15 的 client-side chained-fetch orchestrator 已刪除。`POST /api/auto-pipeline` 現在是 curl 可用的 SSE 端點,在伺服器端即時執行 validate → fetch JD → evaluate → save report → tracker,帶即時 step 事件。慢速 Anthropic 呼叫(30–90 秒)現在發出 `running` 事件而非通用 spinner。失敗帶 `step` + `message` 發出 `error`。orchestrator 還將 report markdown 持久化到父 `reports/<slug>.md`(v1.15 中遺失)。
-- **`feat(reports): POST /api/reports primitive`** — `server/lib/routes/reports.mjs` 中的新 writer。帶 path-traversal guard 的 slug 淨化。1 MB cap (413)。無 `overwrite:true` 時對 existing file 回傳 409。經 `stripDangerousMarkdown` 的 atomic write。activity.reports.save 日誌。測試: 9 案例。
-- **`feat(app): Cmd+K paste URL → auto-pipeline`** — 在 global search 貼上 URL + Enter 現在以 `autoStart=true` 開啟 AutoPipeline modal。Shift+Enter 保留 legacy "add to pipeline only" 路徑。
-- **`feat(portals): SmartRecruiters 分頁`** (#4) — `server/lib/sources/smartrecruiters.mjs` 通過 `?limit=100&offset=N` 遍歷頁面,直到達到 `totalFound` 或回傳空頁面或觸發 30 頁 / 3000 jobs 安全上限。大型 boards 不再遺失 postings 的尾部。測試: 6 案例。
-- **`feat(portals): Workday CAPTCHA-fallback graceful`** (#7) — `server/lib/sources/workday.mjs` 不再在 4xx / non-JSON / network 錯誤時拋出。回傳 `[]` 並註記新 export `lastWorkdayFallback`。掃描器時間線繼續到下一個 tenant。可通過 `strict:true` 退回 v1.14 拋出行為。測試: 7 案例。
+- **`feat(auto-pipeline): 伺服器端 SSE orchestrator`** (#1, #2, #3, #8) — v1.15 的客戶端鏈式 fetch orchestrator 已移除。`POST /api/auto-pipeline` 現在是一個可用 curl 呼叫的 SSE 端點,於伺服器端串接 validate → fetch JD → evaluate → save report → tracker,並帶即時 step 事件。慢速的 Anthropic 呼叫(30–90 秒)現在發出 `running` 事件而非通用 spinner。失敗時發出帶 `step` + `message` 的 `error`。orchestrator 也將 report markdown 持久化至父 `reports/<slug>.md`(v1.15 曾遺失此行為)。
+- **`feat(reports): POST /api/reports primitive`** — `server/lib/routes/reports.mjs` 中的新 writer 端點。Slug 淨化帶路徑遍歷防護(去除前置點、收斂內部 `...`)。1 MB 上限(413)。`overwrite:true` 之外,既存檔案回傳 409。經 `stripDangerousMarkdown` XSS pass 進行 atomic write。記錄 activity.reports.save。測試:9 案例。
+- **`feat(app): Cmd+K 貼上 URL → auto-pipeline`** — 在全域搜尋框貼上 URL + Enter,現在以 `autoStart=true` 開啟 AutoPipeline modal。Shift+Enter 保留舊版「只加入 pipeline」路徑。即 career-ops.org Quick Start §7「貼上 URL → 完成」之規範 UX。
+- **`feat(portals): SmartRecruiters 分頁`** (#4) — `server/lib/sources/smartrecruiters.mjs` 透過 `?limit=100&offset=N` 逐頁走訪,直到達到 `totalFound`、回傳空頁、或觸發 30 頁 / 3000 jobs 安全上限。將呼叫端提供的 limit/offset 去除以讓 cursor 由伺服器掌控。大型 boards(Procter & Gamble、Amazon 風格)不再遺失尾端 100+ 筆 postings。測試:6 案例。
+- **`feat(portals): Workday CAPTCHA-fallback 優雅化`** (#7) — `server/lib/sources/workday.mjs` 不再於 4xx / non-JSON / 網路錯誤時拋例外。回傳 `[]` 並於新匯出的 `lastWorkdayFallback` snapshot 中標註。掃描器時間線會繼續處理下一個 tenant。呼叫端可透過 `strict:true` 回到 v1.14 拋例外行為。測試:7 案例。
 
-### 🛠️ Tooling + CI
+### 🛠️ 工具 + CI
 
-- **`ci(workflows): dashboard-screenshots drift gate`** (#5) — 新 `.github/workflows/dashboard-screenshots.yml`。在觸及 `public/css/app.css`、`public/js/views/dashboard.js`、`public/js/lib/i18n.js` 或 `public/index.html` 的 PR 上,workflow 在 /tmp scaffold 上 boot server,通過 Playwright + chromium 重新生成 8 個 hero PNG,如果結果與 commit 的內容 drift 則建置失敗。
-- **`feat(scripts): import-trending-companies.mjs`** (#11) — 通過其真實 boards-API 驗證 `docs/portals-examples.md` 中的 13 trending 公司,並輸出可貼到父 `portals.yml::tracked_companies` 的 YAML。slug 404 的候選會被打上 `enabled: false`。通過 `npm run import:trending` 執行。
-- **`feat(scripts): npm run capture:dashboards`** — 將 `scripts/capture-dashboard-screenshots.mjs` 公開為頂級 script。
+- **`ci(workflows): dashboard-screenshots 漂移閘`** (#5) — 新增 `.github/workflows/dashboard-screenshots.yml`。當 PR 觸及 `public/css/app.css` / `public/js/views/dashboard.js` / `public/js/lib/i18n.js` / `public/index.html` 時,workflow 會在 /tmp scaffold 啟動 web-ui 伺服器,透過 Playwright + chromium 重新產生 8 張 hero PNG,並在結果與 commit 漂移時讓 build 失敗。失敗時將重新產生的 PNG 上傳為 CI artifact。
+- **`feat(scripts): import-trending-companies.mjs`** (#11) — 透過真實 boards API 驗證 `docs/portals-examples.md` 中的 13 家 trending 公司,並輸出可貼入使用者父 `portals.yml::tracked_companies` 的 YAML。對 slug 404 的候選會打上 `enabled: false`。同時對所有 6 個 ATS 進行 live probe(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday)。透過 `npm run import:trending` 執行。
+- **`feat(scripts): npm run capture:dashboards`** — 將 `scripts/capture-dashboard-screenshots.mjs` 公開為頂層 script(先前僅在 `images/README.md` 文件化)。
 
 ### 🎨 UX
 
-- **`fix(scan): 合併的 source-filter 下拉選單`** (#6) — `#/scan` source 下拉選單從 v1.14 adapter registry 重建: 6 ATSes + hh.ru + Habr Career,字母排序,無 geo 前綴。`runEnScan`/`runRuScan` 現在擊中合併的 `/api/stream/scan?source={ats,regional}` 端點。
+- **`fix(scan): 整合的來源篩選下拉選單`** (#6) — `#/scan` 來源下拉選單以 v1.14 adapter registry 重建:6 個 ATS + hh.ru + Habr Career,字母順序,無 geo-tag 前綴。`runEnScan` / `runRuScan` 現在打整合的 `/api/stream/scan?source={ats,regional}` 端點,而非已棄用的 `/api/stream/scan-{en,ru}` 別名(Sunset 標頭於 v1.16 內仍存活)。
 
 ### 📚 i18n long-tail
 
-- **`docs(i18n): 在 6 語言中翻譯 v1.13.0 + v1.12.0 CHANGELOG`** (#9) — 之前 RU-bodied 的條目現在在其真實 locale 中。每個 non-EN/non-RU CHANGELOG 也獲得 i18n 說明,解釋 pre-v1.12 條目按專案約定保留 RU。
-- **`docs: 以 v1.16.0 highlights 部分擴展 non-EN README`** (#10) — 7 個 non-EN README 獲得約 35 列的新部分,涵蓋: 一鍵 auto-pipeline + curl 範例、SmartRecruiters 分頁、Workday fallback、scan source-filter UX、importer 腳本、CI screenshot workflow。
+- **`docs(i18n): 於 6 個 locale 翻譯 v1.13.0 + v1.12.0 CHANGELOG`** (#9) — 過去在 `CHANGELOG.{es,pt-BR,ko-KR,ja,zh-CN,zh-TW}.md` 中以 RU 內文呈現的條目,現以實際 locale 呈現。每個非英文 / 非俄文 CHANGELOG 也新增 i18n 註記,說明 pre-v1.12 條目按專案慣例保留 RU(規範文字位於 `CHANGELOG.md`)。
+- **`docs: 以 v1.16.0 highlights 段落擴展非英文 README`** (#10) — 6 個非英文 README(es / pt-BR / ko-KR / ja / ru / zh-CN / zh-TW)新增約 35 列段落,涵蓋:auto-pipeline 一鍵流程 + curl 範例、SmartRecruiters 分頁、Workday fallback、scan 來源篩選 UX、匯入器腳本、CI 截圖 workflow。RU README 也同步擴展。
 
 ### 🧪 測試
 
-- 新 `tests/reports-write.test.mjs` (9 案例) — happy path、slug 淨化(含 path-traversal guard)、409 衝突、overwrite 旗標、XSS 剝離、缺失欄位 400、>1 MB 413、GET/POST round-trip。
-- 新 `tests/auto-pipeline.test.mjs` (5 案例) — SSE framing、無效 URL gate、SSRF/loopback gate、無 LLM key 錯誤路徑、`text/event-stream` Content-Type 標頭。
-- 新 `tests/smartrecruiters-pagination.test.mjs` (6 案例)。
-- 新 `tests/workday-fallback.test.mjs` (7 案例)。
-- 總計 **427 / 427** 單元(此前 400;+27 淨增)。0 失敗。
+- 新 `tests/reports-write.test.mjs`(9 案例) — happy path、slug 淨化(含路徑遍歷防護)、409 衝突、覆寫旗標、XSS strip、欄位缺失 400、>1 MB 413、GET/POST round-trip。
+- 新 `tests/auto-pipeline.test.mjs`(5 案例) — SSE framing、無效 URL 阻擋、SSRF/loopback 阻擋、無 LLM key 錯誤路徑、`text/event-stream` Content-Type 標頭。
+- 新 `tests/smartrecruiters-pagination.test.mjs`(6 案例) — 單頁、3 頁、空頁提早停止、硬上限遵守、query 去除、503 拋出。
+- 新 `tests/workday-fallback.test.mjs`(7 案例) — happy path、403/429 優雅、non-JSON body、網路錯誤、對 4xx 與網路錯誤的 strict opt-in。
+- 總計:**427 / 427** 單元(原 400;+27 淨)。0 失敗。28/28 Playwright + 23/23 comprehensive E2E + 20/20 smoke E2E 自 v1.15.0 基線起綠。
 
-### Out of scope (v1.17+)
+### 範圍外(v1.17+)
 
-| 項 | 說明 |
+| 項目 | 說明 |
 |---|---|
-| 翻譯 pre-v1.12 CHANGELOG 條目(v1.11.x, v1.10.x) | 約定保留: RU-bodied。回填需要 ~1800 列翻譯;推遲。 |
-| 完整 non-EN README 對等(像 EN 一樣 585 列) | v1.16 每語言增加 ~35 列;完整鏡像是單獨的翻譯 pass。 |
-| SPA Active Companies 卡片的 `lastWorkdayFallback` surface | Server export 已接線;UI 消費為 v1.17。 |
-| 9 個已驗證 trending 的 per-company `tracked_companies` 批量加入 | `import:trending` 腳本以 1-command + 1-paste 完成。 |
+| 規範 A-F prompt 的父專案 commit | 仍待上游 `santifer/career-ops::modes/oferta.md` 重寫(CLAUDE.md 硬規則 #1)。 |
+| 翻譯 pre-v1.12 CHANGELOG 條目(v1.11.x、v1.10.x) | 慣例保留:RU 內文。回填約需 1800 列翻譯;延後。 |
+| 完整非英文 README 對等(像英文一樣 585 列) | v1.16 每 locale 新增約 35 列;完整對等為獨立工程。 |
+| 伺服器端 `runEnScan` 讀取 Workday fallback 註記以渲染 🔒 chip | `lastWorkdayFallback` export 已接線;SPA 的 Active Companies 卡片於 v1.17+ 消費。 |
+
+### 驗證
+
+```bash
+npm test                          # 427 / 427
+npm run test:e2e:full             # 23 / 23
+npm run import:trending --check-only   # probe 13 個 trending boards
+
+# Auto-pipeline curl smoke:
+curl -N -X POST http://127.0.0.1:4317/api/auto-pipeline \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://job-boards.greenhouse.io/anthropic/jobs/4567"}'
+
+# POST /api/reports round-trip:
+curl -X POST http://127.0.0.1:4317/api/reports \
+  -H 'Content-Type: application/json' \
+  -d '{"slug":"smoke","markdown":"# smoke\n"}'
+```
 
 ---
 
 ## [1.15.0] — 2026-05-13
 
-**Doc-conformance релиз.** Закрывает 9 из 10 открытых findings из conformance audit (`qa/conformance-vs-docs/00-CONFORMANCE-REPORT.md`) плюс локализованные hero-images. Приводит UI в соответствие с canonical career-ops.org/docs workflow — тот же pipeline что обещает CLI, теперь end-to-end через браузер во всех 8 локалях.
+**Doc-conformance 發布。** 關閉 conformance 稽核(`qa/conformance-vs-docs/00-CONFORMANCE-REPORT.md`)中尚未關閉的 10 項中之 9 項,再加上本地化 hero 圖。讓 UI 與 career-ops.org/docs 規範工作流一致 — CLI 承諾的同一條 pipeline 現在於每個 locale 都可端對端透過瀏覽器運作。
 
-### ✨ Фичи
+### ✨ 功能
 
-- **`feat(auto-pipeline): PR-C — 1-click "paste URL → report + PDF + tracker row"`** (G-007) — до v1.15 пользователи делали 5 ручных кликов через /#/pipeline → /#/evaluate → /#/cv → /#/tracker. Теперь одна ✨ кнопка на /#/dashboard chain'ит: validate URL → fetch JD (SSRF-safe) → evaluate против CV → generate PDF → добавить tracker row. Step-by-step modal timeline с [✓]/[…]/[✗]. Heuristic company/role extraction. Новый файл: `public/js/lib/auto-pipeline.js`. 19 новых i18n ключей × 8 локалей.
-- **`feat(modes): PR-D — modes/_profile.md редактор как #/config → Modes таб`** (G-008) — канонический "Career framing" файл из Quick Start §Step-5 теперь виден в UI. Новые endpoints `GET/PUT /api/modes/_profile` с 256 KB cap, `stripDangerousMarkdown` XSS pass, scaffold из `_profile.template.md`. 9 новых i18n ключей × 8 локалей.
-- **`feat(profile): PR-E — canonical schema + location + headline`** (G-009) — `/api/profile` принимает И legacy (`candidate:{...}`) И canonical (top-level `full_name`, `narrative.headline`, `target_roles.primary`, `compensation.target_range`). Legacy выигрывает при коллизии. Новый `summarizeProfile()`. /#/profile показывает `narrative.headline` как новую карточку. 2 новых i18n ключа × 8 локалей.
-- **`feat(tracker): PR-B — Legitimacy колонка на #/tracker`** (G-006) — восстанавливает паритет с canonical pipeline output table. Между Status и PDF, badge-ok/warn/bad подсветка. Graceful degrade для pre-v1.15 строк. 1 новый i18n ключ × 8 локалей.
-- **`fix(routing): PR-H — dedupe sidebar; #/batch → v1.13.0 TSV SPA`** (G-011) — до фикса /#/batch был ДВАЖДЫ в sidebar И оба пункта вели в legacy mode-prompt builder. v1.13.0 TSV SPA (8 KB) был недоступен. Убран дубликат; legacy переименован в `batch-prompt` с deprecation banner.
+- **`feat(auto-pipeline): PR-C — 一鍵「貼上 URL → report + PDF + tracker 列」`** (G-007)
+  對齊 career-ops.org 規範承諾。v1.15 之前,使用者要跨 /#/pipeline → /#/evaluate → /#/cv → /#/tracker 做 5 次手動點擊。現在 /#/dashboard 上的一顆 ✨ 按鈕串接:validate URL → fetch JD(SSRF-safe) → evaluate against CV → generate PDF → 新增 tracker 列。渲染逐步 modal 時間線,每步 [✓]/[…]/[✗]。從 JD 首列做啟發式公司 / role 擷取。score + legitimacy 透過 regex 從評估 markdown 擷取。新檔案:`public/js/lib/auto-pipeline.js`。19 個新 i18n 鍵 × 8 個 locale。
+- **`feat(modes): PR-D — modes/_profile.md 編輯器以 #/config → Modes 頁籤呈現`** (G-008)
+  Quick Start §Step-5 的規範「Career framing」檔案先前對 UI 使用者不可見。現於 /#/config 新增「Modes」頁籤,並於 /#/profile 提供可被發現的卡片。新端點:`GET/PUT /api/modes/_profile`,256 KB 上限、`stripDangerousMarkdown` XSS pass、首次讀取時以 `_profile.template.md` scaffold。9 個新 i18n 鍵 × 8 個 locale。
+- **`feat(profile): PR-E — 接受規範 schema;新增 location + headline`** (G-009)
+  `/api/profile` 現同時接受舊版(`candidate:{...}`)與規範(top-level `full_name`、`narrative.headline`、`target_roles.primary`、`compensation.target_range`)schema。兩者同時存在時舊版優先,讓既有 YAML 渲染結果完全相同。新 `summarizeProfile()` helper 回傳統一形狀。`/#/profile` 將 `narrative.headline` 作為新卡片呈現。2 個新 i18n 鍵 × 8 個 locale。
+- **`feat(tracker): PR-B — #/tracker 上的 Legitimacy 欄`** (G-006)
+  恢復與 career-ops.org/docs 規範 pipeline 輸出表的對等。於 Status 與 PDF 之間新增 Legitimacy 欄,帶 badge-ok/warn/bad 著色(鏡像 statusClass 模式)。優雅降級 — v1.15 之前無 Legitimacy 欄的列顯示 `—`。1 個新 i18n 鍵 × 8 個 locale。
+- **`fix(routing): PR-H — 去除 sidebar 重複;將 #/batch 導向 v1.13.0 TSV SPA`** (G-011)
+  修正之前 /#/batch 在 sidebar 中註冊了**兩次**,而且兩個入口都導向舊版 mode-prompt builder。v1.13.0 的 TSV SPA(8 KB、4 端點)無法到達。已移除重複的 sidebar 條目;舊版 mode slug 從 `batch` 改名為 `batch-prompt` 並帶 deprecation 橫幅。規範 /#/batch 現在指向 TSV SPA。
 
-### 📚 Документация
+### 📚 文件
 
-- **`docs(evaluate): PR-A — Block A-F realignment`** (G-005) — career-ops.org/docs использует A–F (Strategy/Personalization/STAR stories в C/E/F). Мы эмитили A–G. v1.15 обновляет все 8 help bundles §9 с canonical A–F и callout о back-compat. ⚠ Parent commit ещё требуется: `santifer/career-ops::modes/oferta.md` надо переписать upstream.
-- **`docs: PR-F — seniority_boost + search_queries в help §5 × 8 локалей + scaffold`** (G-010) — Help §5 во всех 8 локалях документирует третий title-filter ключ + блок-пример search_queries. `bin/setup.sh` сидит `seniority_boost: ["Senior", "Staff", "Lead"]` по умолчанию.
-- **`docs: PR-I — локализованные hero images по локалям README`** — каждый из 8 README имеет locale-specific `images/dashboard-<locale>.png` (HiDPI 1440×900) сгенерированных через `scripts/capture-dashboard-screenshots.mjs`. Старый `public/images/screen_vacancy_found.png` удалён.
+- **`docs(evaluate): PR-A — 將 Block A-F 與規範 career-ops.org 評分量規對齊`** (G-005)
+  career-ops.org docs 記載 A–F(Strategy/Personalization/STAR stories 於 C/E/F)。我們之前輸出 A–G 並調整語意(Risks/Verdict/Legitimacy)。v1.15 將全部 8 個 help bundle §9 更新為規範 A–F,並附「Pre-v1.15 used A–G;we render those as-is for back-compat」說明。`eval.subtitle` i18n 鍵 × 8 個 locale 也已對齊。Score + legitimacy 現在被記載為 report-header 欄位。⚠ 仍需父專案 commit:`santifer/career-ops::modes/oferta.md` 需要在上游重寫以輸出規範 A–F。
+- **`docs: PR-F — 在 help §5 跨 8 個 locale 加入 seniority_boost + search_queries 並更新 scaffold`** (G-010)
+  8 個 bundle 的 Help §5 現在記載第三個 title-filter 鍵(`seniority_boost`),並提供 `search_queries` 範例區塊與已翻譯的 1 段介紹,釐清其僅驅動 AI 化的 Option B scan。`bin/setup.sh` 的 portals.yml scaffold 預設種入 `seniority_boost: ["Senior", "Staff", "Lead"]`。H2 對等保留:16 × 8 個 locale。
+- **`docs: PR-I — 每個 README locale 的本地化 hero 圖`**
+  8 個 README 各擁有 locale 特定的 `images/dashboard-<locale>.png`(HiDPI 1440×900),透過 `scripts/capture-dashboard-screenshots.mjs`(Playwright + chromium)產生。舊的共用 `public/images/screen_vacancy_found.png` 已刪除。非英文讀者首次造訪即可看到以其語言標示的 UI。
 
-### 🧹 Carryover cleanups
+### 🧹 結轉清理
 
-- **`PR-G — G-001`** scan.noResults i18n: заменены 8 строк с "EN or RU scan" литералом.
-- **`PR-G — G-002`** 📄 Generate PDF теперь surface'ит на #/interview-prep result panel'ях.
-- **`PR-G — G-003`** `README.cn.md` → `README.zh-CN.md` (canonical locale tag).
-- **`PR-G — G-004`** `/api/stream/scan-en` + `scan-ru` теперь эмитят RFC 8594 Sunset + Deprecation + Link headers (sunset 2026-10-01). Удаление в v1.16.0.
+- **`PR-G — G-001`** `scan.noResults` i18n bundle:替換 8 條含「EN or RU scan」字面的字串為 locale 乾淨文案。
+- **`PR-G — G-002`** 📄 Generate PDF 按鈕現在出現於 #/interview-prep 結果面板(鏡像 deep.js 模式)。
+- **`PR-G — G-003`** `README.cn.md` → `README.zh-CN.md`(規範 locale tag);跨 sibling 與 tests/canonical-docs-coverage.test.mjs 統一引用。
+- **`PR-G — G-004`** `/api/stream/scan-en` + `scan-ru` 現在發出 RFC 8594 Sunset + Deprecation + Link 標頭(sunset 2026-10-01)。預定於 v1.16.0 移除。
 
-### 🧪 Тесты
+### 🧪 測試
 
-- Новый `tests/profile-canonical-schema.test.mjs` (6 кейсов).
-- Новый `tests/modes-profile-crud.test.mjs` (8 кейсов).
-- Исправлена isolation регрессия в test fixtures: тесты теперь используют `before/after + dynamic-import` pattern, чтобы не мутировать parent `config/profile.yml`.
-- Итого: **400 / 400** unit-тестов (было 386; +14). 0 падений.
+- 新 `tests/profile-canonical-schema.test.mjs`(6 案例) — 規範 YAML、舊版 YAML、混合舊版優先、僅接受規範、拒絕都不是的形狀、comp range 解析。
+- 新 `tests/modes-profile-crud.test.mjs`(8 案例) — 空檔時的內建 scaffold、template 接管、persisted-wins、寫入 happy-path、淨化、非字串 400、>256 KB 413、generic /api/modes/:name 仍可用。
+- 修復 test fixture 中的隔離迴歸:測試現在使用 `before/after + dynamic-import` 模式(與 `tests/batch-endpoints.test.mjs` 一致),不再變更使用者真實的父 `config/profile.yml`。**使用者注意:** 若你在從 v1.15.0-RC 升級後看到 `config/profile.yml` 看起來像測試佔位資料,請從備份還原 — 該迴歸僅存在於 dev 分支。
+- 總計:**400 / 400** 單元測試(原 386;+14 淨)。0 失敗。20/20 smoke E2E + 23/23 comprehensive E2E + 28/28 Playwright 自 v1.14.0 基線起綠。
 
-### Out of scope (v1.16+)
+### 範圍外(v1.16+ 後續)
 
-| Item | Notes |
+| 項目 | 說明 |
 |---|---|
-| Parent commit для canonical A–F prompt | `santifer/career-ops::modes/oferta.md` надо переписать upstream. CLAUDE.md hard rule #1 запрещает нам трогать parent. |
-| Server-side `POST /api/auto-pipeline` SSE | Client-side orchestrator ships UX win; server-side даст retry-from-step-N + curl-able CI. |
-| `POST /api/reports` primitive | Auto-pipeline показывает markdown inline, но не persist'ит в parent `reports/`. |
-| Cmd+K paste-URL → run auto-pipeline | Defer to v1.16+. |
+| 規範 A–F prompt 的父專案 commit | `santifer/career-ops::modes/oferta.md` 需要在上游重寫。CLAUDE.md 硬規則 #1 禁止我們編輯父檔案。web-ui 端已完成(優雅降級 — pre-v1.15 的 A–G 報告渲染不變)。 |
+| 伺服器端 `POST /api/auto-pipeline` SSE | 客戶端 orchestrator 已交付 UX 勝利。伺服器端端點可啟用 retry-from-step-N 與可 curl 的 CI。 |
+| `POST /api/reports` primitive | Auto-pipeline 目前以行內顯示報告 markdown,但未持久化至父 `reports/`。PDF + tracker 列才是耐久 artifact。 |
+| Cmd+K 貼上 URL → 執行 auto-pipeline | 延後至 v1.16+。 |
+
+### 驗證
+
+```
+npm test                              # 400 / 400
+npm run test:e2e:full                 # 23 / 23
+curl -sf http://127.0.0.1:4317/api/health | jq '.checks | length'   # → 18
+curl -sI http://127.0.0.1:4317/api/stream/scan-en | grep -i sunset  # G-004 可見
+curl -sf http://127.0.0.1:4317/api/modes/_profile | jq '.scaffolded' # G-008 接線
+ls images/dashboard-*.png | wc -l     # 8 (PR-I)
+grep -c 'href="#/batch"' public/index.html  # 1 (PR-H dedupe)
+```
 
 ---
 
 ## [1.14.0] — 2026-05-13
 
-在 v1.13.0 registry 之上新增 3 個 ATS 適配器,支援的 ATS 總數從 3 → 6 (Greenhouse / Ashby / Lever **+ Workable / SmartRecruiters / Workday-beta**)。面向使用者的文件在 17 個檔案中一次性從 "3 ATSes" 升級為 "6 ATSes"(42 處短語):README × 8 語言、help bundle × 8 語言、PROJECT.md。在 `docs/portals-examples.md` 中加入 13 個 trending 公司的 paste-ready YAML 區塊,可貼到父專案 `portals.yml`。
+在 v1.13.0 的 registry 之上新增 3 個 ATS 適配器,將支援 ATS 數從 3 → 6(Greenhouse / Ashby / Lever **+ Workable / SmartRecruiters / Workday-beta**)。面向使用者的文件在 17 個檔案中一次性從「3 ATSes」升級為「6 ATSes」(42 處短語):README × 8 locale、help bundle × 8 locale、PROJECT.md。`docs/portals-examples.md` 新增 13 家 trending 公司的 paste-ready YAML 區塊,可貼入父 `portals.yml`。
 
 ### ✨ 功能
 
-- **`feat(portals): 3 個新 ATS — Workable, SmartRecruiters, Workday-beta`** — registry 現在解析 6 ATSes(之前 3)。新檔案:`server/lib/portals/adapters/{workable,smartrecruiters,workday}.mjs`(uniform contract 薄包裝器)+ `server/lib/sources/{workable,smartrecruiters,workday}.mjs`(原始 HTTP + 正規化)。
-  - **Workable**:偵測 `apply.workable.com/<slug>` 以及 legacy `<subdomain>.workable.com`。Endpoint:`https://apply.workable.com/api/v3/accounts/<slug>/jobs?details=true`。
-  - **SmartRecruiters**:偵測 `jobs.smartrecruiters.com/<slug>` 以及 `careers.smartrecruiters.com/<slug>`。Endpoint:`https://api.smartrecruiters.com/v1/companies/<slug>/postings`。
-  - **Workday (beta)**:偵測 `<tenant>.wd<N>.myworkdayjobs.com/<lang>/<site>`。Endpoint:POST 到 `/wday/cxs/<tenant>/<site>/jobs`。URL 無 site 時預設 `site=External`。Beta 是因為部分 tenant 用 CAPTCHA 封鎖 CXS feed — fallback 到父專案 `/career-ops scan`(Playwright)。
+- **`feat(portals): 3 個新 ATS 適配器 — Workable、SmartRecruiters、Workday-beta`** — registry 現在解析 6 個 ATS(原 3 個)。新檔案:`server/lib/portals/adapters/{workable,smartrecruiters,workday}.mjs`(每個都是對新 source 的薄統一契約包裝)與 `server/lib/sources/{workable,smartrecruiters,workday}.mjs`(原始 HTTP + 將回應正規化為規範 `{ id, title, company, url, location, isRemote, … }` 形狀,並帶 `source: <id>`)。
+  - **Workable**:偵測 `apply.workable.com/<slug>` 與舊版 `<subdomain>.workable.com`。端點:`https://apply.workable.com/api/v3/accounts/<slug>/jobs?details=true`。
+  - **SmartRecruiters**:偵測 `jobs.smartrecruiters.com/<slug>` 與 `careers.smartrecruiters.com/<slug>`。端點:`https://api.smartrecruiters.com/v1/companies/<slug>/postings`。
+  - **Workday(beta)**:偵測 `<tenant>.wd<N>.myworkdayjobs.com/<lang>/<site>`。端點:POST 至 `/wday/cxs/<tenant>/<site>/jobs`。當 careers_url 未包含 site 時預設 `site=External`。Beta 是因為某些 tenant 用 CAPTCHA 封鎖 CXS — 發生時 fallback 至父 `/career-ops scan`(Playwright 驅動)。
 
 ### 📚 文件
 
-- **`docs(portals-examples): trending boards block`** — `docs/portals-examples.md` 擴展 v1.14.0 部分,把 13 個 trending 公司列為 `tracked_companies` 的 paste-ready YAML:Greenhouse-hosted (Stripe, GitLab, HashiCorp, Cloudflare, Datadog, Hugging Face) + Ashby-hosted (Notion, Linear, PostHog, Replicate, Modal Labs, Fly.io, Render)。全部 `enabled: false` — 使用者啟用前自行驗證 slug。還有 Workable / SmartRecruiters / Workday 範例區塊。
-- **`docs(framing): 17 個面向使用者的檔案中 42 處 ATS 短語更新`** — 使用者文件中每處 "Greenhouse / Ashby / Lever" 現在顯示為 "Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday"。受影響:README × 8 語言、help bundle × 8 語言、PROJECT.md。歷史 CHANGELOG 條目和 bug-fix 處方文件(`qa/fixes/F-014`、`qa/FIX-PROMPT`)有意未碰 — 描述過去狀態或已正確。
-- **`docs(qa): browser test scenario 19`** — `qa/claude-cowork-browser-test-prompt.md` 擴展 Scenario 19:`ALL_ADAPTERS.length === 6` 不變量、對 6 個全部進行 `resolveAdapter()` URL 偵測掃描、`#/scan` Active Companies 卡片 soft-check、`docs/portals-examples.md` 結構檢查。
+- **`docs(portals-examples): trending boards 區塊`** — `docs/portals-examples.md` 擴展 v1.14.0 段落,以 paste-ready YAML 列出 13 家 trending 公司之 `tracked_companies`,分為 Greenhouse-hosted(Stripe、GitLab、HashiCorp、Cloudflare、Datadog、Hugging Face)與 Ashby-hosted(Notion、Linear、PostHog、Replicate、Modal Labs、Fly.io、Render)。每條使用 `enabled: false`,讓使用者啟用前先驗證 slug 有回應。並含 Workable / SmartRecruiters / Workday 範例區塊與各自偵測之 URL 模式。
+- **`docs(framing): 跨 17 個面向使用者文件的 42 處 ATS 短語升級`** — 面向使用者文件中所有「Greenhouse / Ashby / Lever」皆改為「Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday」。涵蓋 README × 8 locale(EN/ES/PT-BR/RU/JA/KO/CN/TW)、help bundle × 8 locale、PROJECT.md。歷史 CHANGELOG 條目與 bug-fix 處方文件(`qa/fixes/F-014`、`qa/FIX-PROMPT`)刻意不動 — 它們描述過去或本就正確的狀態。
+- **`docs(qa): browser test scenario 19 — 6 ATS 適配器涵蓋`** — `qa/claude-cowork-browser-test-prompt.md` 擴展 Scenario 19:`ALL_ADAPTERS.length === 6` 不變量、對 6 個適配器全部進行 `resolveAdapter()` URL 偵測掃描、`#/scan` 中 Active Companies 卡片的 soft-check,以及對 `docs/portals-examples.md` 各 ATS 區塊之結構檢查。
 
 ### 🧪 測試
 
-- `tests/adapter-registry.test.mjs` 擴展 7 個新案例,涵蓋 3 個新適配器(Workable apply-URL、Workable legacy subdomain、SmartRecruiters jobs.* + careers.*、明確 site 的 Workday tenant.wd5.*、Workday default-site fallback、`ALL_ADAPTERS.length === 6` 不變量、`detectApi()` legacy-shape 相容性)。
-- 總計:**386 / 386** unit 測試(之前 379;+7 淨增)。0 失敗。
+- `tests/adapter-registry.test.mjs` 延伸 7 個新測試以涵蓋 3 個新適配器(Workable apply-URL 模式、Workable legacy subdomain 模式、SmartRecruiters jobs.* + careers.* 模式、帶明確 site 的 Workday tenant.wd5.*、Workday 預設 site 後備為「External」、`ALL_ADAPTERS.length === 6` 不變量、`detectApi()` 舊形狀相容性)。
+- 總計:**386 / 386** 單元測試(原 379;+7 淨)。0 失敗。
 
-### Out of scope
+### 驗證
 
-| 項 | 說明 |
+```
+npm test                        # 386 / 386
+node -e "import('./server/lib/portals/registry.mjs').then(m => console.log(m.ALL_ADAPTERS.length))"   # → 6
+
+# 適配器偵測掃描:
+node -e "import('./server/lib/portals/registry.mjs').then(m => {
+  console.log(m.resolveAdapter({ careers_url: 'https://apply.workable.com/foo/' }).adapter.id);          // → workable
+  console.log(m.resolveAdapter({ careers_url: 'https://jobs.smartrecruiters.com/Bar' }).adapter.id);     // → smartrecruiters
+  console.log(m.resolveAdapter({ careers_url: 'https://baz.wd5.myworkdayjobs.com/en-US' }).adapter.id);  // → workday
+})"
+```
+
+### 範圍外(延後後續)
+
+| 項目 | 說明 |
 |---|---|
-| 13 個 trending Greenhouse/Ashby 公司的 per-company 條目 | `docs/portals-examples.md` v1.14.0 區塊以 paste 可用 YAML 列出;批量加入父專案 `portals.yml` 為獨立階段。 |
-| Workday CAPTCHA-fallback 自動化 | Workday adapter 在 CXS feed 被封時拋出;計畫的 fallback 委派給父專案 `/career-ops scan`(Playwright)。SPA scan UX 接線為 v1.15+。 |
+| 13 家 trending Greenhouse/Ashby 公司的 per-company 適配器紀錄 | `docs/portals-examples.md` v1.14.0 區塊以可貼用 YAML 列出;slug 驗證 + 批次加入父 `portals.yml` 為獨立階段。 |
+| Workday CAPTCHA-fallback 自動化 | Workday 適配器在 CXS feed 被閘擋時拋例外;計畫的 fallback 委派至父 `/career-ops scan`(Playwright)。將其接入 SPA 的 scan UX 為 v1.15+。 |
 
 ---
 
 ## [1.13.0] — 2026-05-13
 
-大型發布。在一次提交中關閉 4 個延期項: PR-4(完整 multer 管道)、Adapter registry(F-018 架構後續)、Batch evaluate SPA 頁面、locale-aware mode-template scaffolding。還有 mid-session 的深色主題表格修復。
+大型發布。在一次發布中關閉 post-v1.12.0 backlog 全部 4 項延後事項:PR-4(完整 multer 流水線)、Adapter registry(F-018 架構後續)、Batch evaluate SPA 頁面、locale-aware mode-template scaffolding。另含 mid-session 的深色主題表格修復。
 
 ### ✨ 功能
 
-- **`feat(cv): multer multipart upload (PR-4 完整)`** — `/api/cv/import` 現在同時接受 octet-stream(原始契約)和 `multipart/form-data`(經 multer)。v1.10.2 的 415-reject 是臨時方案;v1.13.0 是真正修復。curl `-F`、Postman 預設、任何 HTTP 客戶端都順暢工作。新相依: `multer ^2.1.1`。
-- **`feat(portals): adapter registry`** — Greenhouse / Ashby / Lever fetcher 抽取到 `server/lib/portals/adapters/*.mjs`,採用統一契約。`server/lib/portals/registry.mjs::resolveAdapter()` 是唯一的 dispatch 點。新增 ATS = `adapters/` 一個檔案 + `ALL_ADAPTERS` 一行。
-- **`feat(batch): #/batch evaluate page`** — 新 SPA 檢視 + 4 個端點(`GET /api/batch`、`PUT /api/batch`、`GET /api/stream/batch`、`POST /api/batch/merge`)。`batch/batch-input.tsv` 的 TSV 編輯器,parallel/min-score/dry-run/retry 控件,`bash batch/batch-runner.sh` 的即時 SSE 日誌,`Merge to tracker` 按鈕(執行 `node merge-tracker.mjs`)。Sidebar 連結。21 個新 i18n 鍵 × 8 語言。
-- **`feat(prompts): locale-aware mode scaffolding`** — `buildModePrompt` + `buildEvaluationPrompt` 現在用本地化的 scaffolding 文字(role-line、"Read these files first"、"User-supplied context")在 8 個語言中包裹 parent 的 mode-template 英文主體。
+- **`feat(cv): 基於 multer 的 multipart 上傳(PR-4 完整版)`** — `/api/cv/import` 現在同時接受原始 octet-stream 契約(`Content-Type: application/octet-stream` + `X-Filename`)與經 multer 正確解析的 `multipart/form-data`。v1.10.2 的 415-reject 為權宜方案;v1.13.0 為真正修復。外部客戶端(curl `-F`、Postman 預設、任何 HTTP 客戶端)皆可無縫運作。兩條路徑皆饋入同一個 `importDocumentToMarkdown` 轉換器 + `stripDangerousMarkdown` XSS pass。新相依套件:`multer ^2.1.1`。
+- **`feat(portals): adapter registry`** — 將 Greenhouse / Ashby / Lever 抓取器抽取到 `server/lib/portals/adapters/*.mjs`,採用統一契約(`id`、`label`、`matches`、`buildEndpoint`、`fetch`)。新 `server/lib/portals/registry.mjs::resolveAdapter()` 為唯一 dispatch 點。`en-scanner.mjs::detectApi()` + `FETCHERS` 現在委派給 registry;舊回傳形狀保留。新增 ATS:在 `adapters/` 放一個檔案,加到 `ALL_ADAPTERS` — 不需要 scanner 變更。
+- **`feat(batch): #/batch evaluate 頁面`** — 新 SPA 視圖 + 4 個端點(`GET /api/batch`、`PUT /api/batch`、`GET /api/stream/batch`、`POST /api/batch/merge`)。`batch/batch-input.tsv` 的 TSV 編輯器,parallel/min-score/dry-run/retry 控件,`bash batch/batch-runner.sh` 的即時 SSE 日誌,執行完列出 `batch/tracker-additions/` 並提供一鍵 `node merge-tracker.mjs`。在 Decision 群組下新增 sidebar 連結。21 個新 i18n 鍵 × 8 個 locale。
+- **`feat(prompts): locale-aware mode scaffolding`** — `buildModePrompt` + `buildEvaluationPrompt` 現以本地化 scaffolding 文字(role 行、「Read these files first」、「User-supplied context」)在 8 個 locale 中包裹父專案的英文 mode-template 本體。父專案 `modes/<slug>.md` 本體保持英文(依 CLAUDE.md 硬規則 #1 為唯讀);圍繞它的 career-ops-ui scaffolding 已翻譯。
 
 ### 🎨 UX 修復
 
-- **`fix(theme): 深色模式表格 + tab-btn`** — 硬編碼的 `#fafafa` / `#fff` / `#f7f7f7` 替換為 token。深色下的 hover 現在可讀。新增 `.row-boosted` accent strip。
+- **`fix(theme): 深色模式表格 hover + tab-btn`** — 將硬編碼 `#fafafa` / `#fff` / `#f7f7f7` 替換為 `var(--beach)` / `var(--paper)` / `var(--slate)` token,深色色盤切換才真的觸及表格列與頁籤按鈕。為被 boost 的 scan 列新增 `.row-boosted` accent 條,雙主題皆生效。
 
 ### 🧪 測試
 
-- 新增 `tests/adapter-registry.test.mjs` (7)、`tests/batch-endpoints.test.mjs` (5)、`tests/locale-scaffold.test.mjs` (6)。
-- `tests/cv-upload-multipart-reject.test.mjs` 按 v1.13.0 契約(multipart parsed properly)重寫。
-- 總計 **379 / 379** 單元(此前 360;+19)。0 失敗。覆蓋率 **95.46 % 列 / 84.06 % 分支**。
+- 新 `tests/adapter-registry.test.mjs`(7 案例) — 統一契約、各 ATS URL 偵測、明確 `api:` 欄位優先順序、無匹配時 null、舊 `detectApi()` 形狀保留。
+- 新 `tests/batch-endpoints.test.mjs`(5 案例) — 空 fixture、TSV round-trip、無 URL 拒絕、1 MB 上限、runner 缺失錯誤幀。
+- 新 `tests/locale-scaffold.test.mjs`(6 案例) — en/ru/ja/ko 的 scaffold 字串、`buildModePrompt` / `buildEvaluationPrompt` 整合、英文向後相容。
+- `tests/cv-upload-multipart-reject.test.mjs` 重寫 — 原本「multipart 回 415」契約現為「multipart 經 multer 解析」契約;無副作用於 cv.md 的不變量保留。
+- 總計:**379 / 379** 單元測試(原 360;+19 淨)。0 失敗。
+- 覆蓋率:**95.46 % line / 84.06 % branch**。
 - 20/20 smoke E2E · 23/23 comprehensive E2E · 28/28 Playwright。
 
-### 範圍外
+### 範圍外(延後後續工作)
 
-- **14 個新 portal adapter** — registry 已就緒;新增 = 每個一個檔案;portal-by-portal 調研仍待辦。
-- **翻譯 parent 的 `modes/<slug>.md` 主體** — 需要向 `santifer/career-ops` 提交 upstream PR(CLAUDE.md hard rule #1)。
+| 項目 | 說明 |
+|---|---|
+| 14 個新 portal 適配器(Workable / SmartRecruiters / Workday / GitLab / HashiCorp / Cloudflare / Datadog / Stripe / Notion / Linear / Posthog / Hugging Face / Replicate / Modal Labs / Fly.io / Render) | Adapter registry 已就位 — 新增適配器現在是每個一個檔案。14 個 ATS 的逐 portal 調查 + URL 模式 + 端點正規化為獨立階段。 |
+| 翻譯父專案 `modes/<slug>.md` 本體 | 父檔案依 CLAUDE.md 硬規則 #1 為唯讀。v1.13.0 的 locale-aware scaffolding 已為你完成 80 %;完整本體翻譯需向 `santifer/career-ops` 送上游 PR。 |
 
 ### 文件
 
-- `docs/reviews/REVIEW-2026-05-13-v1.13.0.md`。
-- 完整文本: [CHANGELOG.md](CHANGELOG.md#1130--2026-05-13)。
+- `docs/reviews/REVIEW-2026-05-13-v1.13.0.md` — 工作階段脈絡 + adapter registry 契約 + batch flow。
+- 全部 8 個 README:徽章 bump(tests 360 → 379、release v1.12.0 → v1.13.0)。
+- 全部 8 個 CHANGELOG 取得此條目。
 
 ---
 
 ## [1.12.0] — 2026-05-13
 
-錯誤修復 + UX + 品牌 pass。在 v1.11.1 後關閉 8 個 backlog 項(測試空缺 #9–12、console error #8、portals-dead drift #4、seniority_boost surface #6、F-018 端點合併)。新增主題 day/night 切換,所有文件/套件元資料/GitHub 倉庫描述中刪除 "Airbnb-styled" 提及。
+Bug-fix + UX + 品牌 pass。關閉 post-v1.11.1 誠實 backlog 中的 8 項(測試空缺 #9–12、console error #8、portals-dead 漂移 #4、seniority_boost 呈現 #6、F-018 端點整合)。新增 dark/light 主題切換,並從每個文件、套件中繼資料、GitHub repo 描述中移除「Airbnb-styled」品牌。
 
 ### ✨ 功能
 
-- **`feat(theme): day/night 切換`** — top-bar 新增主題按鈕。light ↔ dark 循環,持久化到 `localStorage`,首次繪製前透過 `public/js/lib/theme-bootstrap.js` 還原。首次載入尊重 `prefers-color-scheme`。`public/css/app.css` 中 `[data-theme="dark"]` 下完整深色調色板。
-- **`feat(scan): /api/stream/scan?source=ats|regional|both` (F-018 LITE)`** — 單一合併的 SSE 端點。SPA 打開一個 event-stream,順序執行兩階段(ATS,然後 regional)。舊版 `/api/stream/scan-en` + `/api/stream/scan-ru` 作為 deprecated alias 保留。
-- **`feat(scan): seniority_boost surface`** — 兩個掃描器都讀取 `portals.yml::title_filter.seniority_boost`,在匹配 job 上標記 `_boosted: true`。SPA 將 boosted 列排到頂部並渲染 `⬆ boosted` badge。
+- **`feat(theme): dark/light 切換(v1.12.0)`** — 上方列新增主題按鈕。循環 light ↔ dark;持久化至 `localStorage.theme`;透過 pre-paint bootstrap(`public/js/lib/theme-bootstrap.js`)在頁面載入時還原,使用者不會看到錯誤顏色閃爍。首次造訪尊重 `prefers-color-scheme`。`public/css/app.css` 中 `[data-theme="dark"]` 提供完整深色色盤 — 每個元件讀取 CSS custom properties,因此切換集中於一處。
+- **`feat(scan): /api/stream/scan?source=ats|regional|both`(F-018 LITE)`** — 單一整合的 SSE 進入點。SPA 現在打開單一 event-stream,序列驅動兩個階段(ATS 先、regional 後),而非串接兩個獨立串流。舊版 `/api/stream/scan-en` + `/api/stream/scan-ru` 作為已棄用別名仍存活。runners 表的 `/api/stream/scan` 已改名為 `/api/stream/scan-parent` 以釋放命名空間;父專案 spawn 的 `scan.mjs` 後備保留。
+- **`feat(scan): seniority_boost 呈現(規範 docs §3)`** — `en-scanner.mjs` 與 `ru-scanner.mjs` 現在皆讀取 `portals.yml::title_filter.seniority_boost`,並在匹配職缺上蓋上 `_boosted: true` + `_boostedBy: <keyword>`。SPA 將 boosted 列排序到 `#/scan` 結果頂部,並在 title 屬性中以匹配關鍵字渲染 `⬆ boosted` 徽章。兩個新 i18n 鍵(`scan.boosted`、`scan.boostedBy`)跨 8 個 locale 本地化。
 
-### 🐛 修復
+### 🐛 Bug fixes
 
-- **`fix(ui): 4 處 .message null-safe (#8)`** — `app.js`、`views/tracker.js`、`views/apply.js`、`views/evaluate.js`。此前沒有 Error payload 的 Promise rejection 在 e2e teardown 中拋出 "Cannot read properties of undefined"。
-- **`fix(test): portals-dead drift 改為 warning 而非 failure (#4)`** — assertion 轉為 stderr warning。CI 在 parent drift 上保持綠色;release 決策仍由人工把關。
+- **`fix(ui): 4 處 null-safe 錯誤訊息讀取(#8)`** — `app.js`(上方列 doctor 按鈕 + 全域搜尋 pipeline 加入)、`views/tracker.js`(第 112 行)、`views/apply.js`(第 21 行)、`views/evaluate.js`(第 32 行)現在皆讀取 `(err && err.message) || '<fallback>'`。先前無 Error payload 的 Promise rejection 會在 e2e tear-down 的 page-error 串流中拋出「Cannot read properties of undefined (reading 'message')」。
+- **`fix(test): portals-dead 漂移改為警告而非失敗(#4)`** — `tests/portals-dead.test.mjs::FIX-C3` 先前在父專案 `templates/portals.example.yml` 漂移到重新啟用我們標為 dead 的 slug 時會失敗。v1.12.0 將該斷言改為 stderr 警告,使 CI 在父專案漂移時仍綠;發布決策保留人工。slug 清單 `KNOWN_DEAD` 保留作為意圖文件。
 
-### 📝 Brand / docs
+### 📝 品牌 / 文件
 
-- **`docs(brand): 所有 doc + package + GitHub 倉庫描述中刪除 'Airbnb' 引用`** — 8 個 README、CLAUDE.md、FRONTEND.md、package.json 及倉庫描述從 "Airbnb-styled" 遷移到 "Clean, docs-style"。
+- **`docs(brand): 跨 8 個 locale 從每個文件中移除「Airbnb」引用`** — README.md、README.es.md、README.pt-BR.md、README.ko-KR.md、README.ja.md、README.ru.md、README.cn.md、README.zh-TW.md、CLAUDE.md、docs/architecture/FRONTEND.md、package.json,以及 GitHub repo 描述,皆從「Airbnb-styled」/「Airbnb-inspired」用語改為「Clean, docs-style」。CSS 檔保留 design-token 名稱(內部識別字,無外部耦合),但說明性註解已重寫。
 
 ### 🧪 測試
 
-- 新增 `tests/canonical-docs-coverage.test.mjs` (5 案例) 關閉 test gap #9–12。
-- 新增 `tests/scan-consolidated.test.mjs` (6 案例) 涵蓋 F-018 LITE。
-- 總計 **360 / 360** 單元(此前 349;+11 新增)。0 失敗。覆蓋率: **95.62 % 列 / 84.37 % 分支**。
-- 20/20 smoke E2E · 23/23 comprehensive E2E · 28/28 Playwright。
+- **新 `tests/canonical-docs-coverage.test.mjs`(5 案例)** 關閉測試空缺 #9–12:每個 help bundle 引用全部 5 個規範 career-ops.org 指南;每 locale 16 個 H2 對等契約;每個 README 引用規範首頁 + ≥ 3 個子指南;`#/reports` view 原始碼含 score-thresholds 卡片 scaffold;i18n bundle 包含 v1.11.x 每個新鍵 × 全部 8 個 locale。
+- **新 `tests/scan-consolidated.test.mjs`(6 案例)** 涵蓋 F-018 LITE:`?source=ats|regional|both` 正確 dispatch;未知 source 發出 error 幀;舊版 `/api/stream/scan-en` + `/api/stream/scan-ru` 仍以已棄用別名運作。
+- 總計:**360 / 360** 單元測試(原 349;+11 新)。0 失敗。覆蓋率:**95.62 % line / 84.37 % branch**(自 94.59 提升)。
+- 20 / 20 smoke E2E · 23 / 23 comprehensive E2E · **28 / 28 Playwright**。
 
-### 文件
+### 📋 內部
 
-- `docs/reviews/REVIEW-2026-05-13-v1.12.0.md`。
-- 完整文本: [CHANGELOG.md](CHANGELOG.md#1120--2026-05-13)。
+- `docs/reviews/REVIEW-2026-05-13-v1.12.0.md` — 工作階段脈絡、延後清單摘要、career-ops.org 內容同步刷新流程。
+- 全部 8 個 CHANGELOG 取得此條目。
+- GitHub repo 描述已更新以對應新品牌。
 
-### 範圍外 (自 v1.11.1 起無變化)
+### 範圍外(延後至未來,自 v1.11.1 起未變)
 
-Batch evaluate SPA 頁面;完整 adapter registry(F-018 架構 refactor);完整 multer 管道(PR-4);mode template 翻譯。
+| 項目 | 原因 |
+|---|---|
+| Batch evaluate SPA 頁面 | 依規範文件為 CLI-only 流程;SPA 等價物需要新視圖 + ≥3 端點 + fixtures。2–3 天階段。 |
+| 完整 adapter-registry(8 個 `server/lib/portals/adapters/*.mjs` + 14 個新 portal + FE 重寫) | 本發布的 F-018 LITE 整合了 API 介面;完整架構重構仍待。 |
+| 完整 multer 流水線(PR-4) | v1.10.2 透過 415 envelope 關閉資料毀損漏洞;完整 multipart 解析器 + ConversionError envelope 為其獨立階段。 |
+| Mode-template 翻譯 | 需與父專案協調。 |
 
 ---
 
-## 之前的發布 (v1.11.x 和 v1.10.x)
+## [1.11.1] — 2026-05-13
 
-v1.11.0 / v1.11.1 / v1.10.0–v1.10.3 的詳細條目在 [英文 CHANGELOG](CHANGELOG.md) 中。摘要:
+深度 career-ops.org/docs 整合 — v1.11.0 後續。v1.11.0 加入摘要區塊;v1.11.1 以**完整 CLI 流程**(逐字命令、編號 apply 步驟、batch-evaluate runner、Playwright 設定)豐富每個 help bundle 既有的 §5 Portals / §7 Scan / §14 Apply 段落。SPA 的 `#/reports` 視圖獲得 score-thresholds 卡片,讓記載的 `≥4.5 / 4.0-4.4 / 3.5-3.9 / <3.5` 行動表可行內檢視。
 
-- **v1.11.1 — 2026-05-13** · 拋光: `#/apply` 的 Playwright 提示、統一的 taglines、儀表板 score-thresholds 卡片。349/349 測試。
-- **v1.11.0 — 2026-05-13** · 在 8 個 help bundle 和 8 個 README 中整合 career-ops.org/docs。新 `docs/career-ops-canonical.md`。Mode/Archetype/Pipeline/Tracker/Report/Scan history 概念已文件化。348/349 測試。
-- **v1.10.3 — 2026-05-12** · 錯誤修復切片:關閉 v1.10.2 迴歸執行的 11 個 QA 發現中的 7 個。
-- **v1.10.2 — 2026-05-12** · CV multipart 415-拒絕 (v1.13.0 multer 之前的臨時補丁);PDF 生成修復。
-- **v1.10.1 — 2026-05-09** · 來自 v1.10.0 發布 QA 迴歸執行的關鍵補丁。
-- **v1.10.0 — 2026-05-08** · `#/profile` 編輯器 + CV 上傳 UX (pandoc/pdftotext/passthrough),8 個 locale × 16 H2 help 對等,locale switcher。
+### 📝 文件
+
+- **Help bundle(全部 8 個 locale)** — 每個 bundle 新增三個子段落,逐 locale 翻譯:
+  - **§5 Portals → `CLI flow`** — `cp templates/portals.example.yml portals.yml`;`title_filter` 規範 schema(positive / negative / seniority_boost)、`tracked_companies`(name + careers_url 為必填)、`search_queries`(預建的更廣泛網頁搜尋)。
+  - **§7 Scan → `CLI scan flow`** — Greenhouse/Ashby/Lever ATS 的 Option A(`npm run scan` + `--dry-run` / `--company`),非 API 發現的 Option B(於任意 AI CLI 中 `/career-ops scan`)。輸出至 `data/pipeline.md` + `data/scan-history.tsv`。Action-thresholds 表。
+  - **§14 Apply → `Full CLI apply flow` + `Batch evaluate` + `Playwright setup`** — 8 步驟編號 apply 流程(`/career-ops apply <company>` → Playwright 開啟瀏覽器 → 編號 draft 答覆 → 人工檢視並點 Submit → `Submitted.` 翻轉 tracker `Evaluated → Applied`)。透過 `./batch/batch-runner.sh` 的 batch runner,帶 `--parallel` / `--min-score` / `--retry-failed`。Playwright 安裝:`npm install` + `npx playwright install chromium` + `claude mcp add playwright`。
+- 全部 8 個 bundle 保留 16-H2 對等契約(`tests/help-ui.test.mjs::section-parity` 保持綠)。
+
+### ✨ UI
+
+- **`#/reports`** — 列表視圖頂部新增可收合卡片,內含規範 score → next-step 表(`≥ 4.5 → /career-ops apply`、`4.0–4.4 → apply or /career-ops contacto`、`3.5–3.9 → /career-ops deep`、`< 3.5 → skip`)。連結至 `career-ops.org/docs/.../scan-job-portals`。7 個新 i18n 鍵(`rep.thresholdsTitle`、`rep.thrAction`、`rep.thr45`、`rep.thr40`、`rep.thr35`、`rep.thrLow`、`rep.thresholdsSource`)跨 8 個 locale。
+
+### 📋 QA
+
+- **`qa/claude-cowork-browser-test-prompt.md`** — 附加 **Scenario 17(career-ops.org/docs 涵蓋)**,含 5 個子斷言(8 個 locale 的前置內容、§5/§7/§14 的 CLI-flow 子段、8 個 locale 的 README 區塊、`#/apply` Playwright 連結、`#/reports` score-thresholds 卡片)+ **Scenario 18(help bundle 對等)** 對 i18n 對等迴歸。
+
+### 範圍外(延後)
+
+| 項目 | 原因 |
+|---|---|
+| **Batch evaluate SPA 頁面** | 規範文件描述 CLI-only 流程;SPA 等價物 = 新視圖 + ≥3 端點 + fixture。多日階段。 |
+| **F-018 完整 adapter-registry** | 仍排隊;label-only 切片於 v1.10.3 關閉。 |
+| **完整 multer 流水線** | v1.10.2 透過 415 envelope 關閉資料毀損漏洞;完整解析器為其獨立階段。 |
+
+### 測試姿態
+
+- **348 / 349** 單元測試(1 個既存父專案資料漂移)。
+- 覆蓋率:**94.59 % line / 84.18 % branch**。
+- 20 / 20 smoke E2E · 23 / 23 comprehensive E2E · **28 / 28 Playwright**。
+
+### 文件
+
+- `docs/reviews/REVIEW-2026-05-13-v1.11.1.md` — 工作階段脈絡 + 稽核。
+- 全部 8 個 README:release v1.11.0 → v1.11.1。
+- 全部 8 個 CHANGELOG 取得此條目。
+
+---
+
+## [1.11.0] — 2026-05-13
+
+career-ops.org docs 整合 — 次要發布,因每項變更皆為 additive(無 API 破壞、無資料形狀變更、無 SPA 路由改名)。關閉 v1.10.3 PR-9 之延後。
+
+### 📝 文件
+
+- **`docs/career-ops-canonical.md`(新)** — 自 [career-ops.org/docs](https://career-ops.org/docs) 與其 5 個子指南(What is career-ops、Scan job portals、Apply for a job、Batch-evaluate offers、Set up Playwright)濃縮的單一規範參考。所有 locale help bundle + README 皆翻譯此檔案;當 career-ops.org/docs 變動時,先重新產生此檔案。
+- **全部 8 個 help bundle**(`docs/help/{en, ru, es, pt-BR, ko-KR, ja, zh-CN, zh-TW}.md`)在 H1 介紹下新增前置 `About career-ops` 段落:原則、關鍵概念(Mode / Archetype / Pipeline / Tracker / Report / Scan history)、career-ops 與 career-ops-ui 之區別、依分數的行動門檻(≥ 4.5 / 4.0–4.4 / 3.5–3.9 / < 3.5),以及全部五份規範指南的連結。各 locale 的 H2 數保持 16(`tests/help-ui.test.mjs` 對等仍綠)。
+- **全部 8 個 README** 在安裝標題前新增 `About career-ops` 區塊:同樣的原則、分數門檻、5 份規範指南連結。從 README 首頁移除 `What's new in v1.10.x` 歷史段落(CHANGELOG 保留完整歷史)。
+
+### ✨ UI 改善
+
+- **`#/apply`** — 資訊橫幅現在明確揭露 Playwright 設定指南(`career-ops.org/docs/.../set-up-playwright`)與規範 Apply 指南連結。新 i18n 鍵 `apply.playwrightHint` + `apply.docsLink` 跨 8 個 locale 本地化。
+
+### 🔧 內部
+
+- README 截圖路徑保留 `public/images/screen_vacancy_found.png`(v1.10.1)。
+- 無新伺服器路由、無 schema 變更、無新測試需求(現有 i18n + help 對等測試涵蓋新內容介面)。
+- `tests/help-ui.test.mjs` 的 `section-parity` 測試持續通過 — 每個 locale 都有相同的 16 個 H2 標題。
+
+### 稽核(延後空缺,**未**列於此發布)
+
+| 空缺 | 延後原因 |
+|---|---|
+| **Batch evaluate SPA 頁面**(`./batch/batch-runner.sh` 流程) | 規範文件描述 CLI-only batch 迴圈(`batch/batch-input.tsv` → parallel runner → `batch/tracker-additions/`)。SPA 等價物需要新視圖、3 個新端點、fixture 資料與測試。多日階段;記載於 `docs/career-ops-canonical.md §4`。 |
+| **Adapter-registry 整合**(F-018 / 完整 PR-1) | 仍排隊;`/api/stream/scan-en` + `/api/stream/scan-ru` 仍在。label-only 切片於 v1.10.3 落地。 |
+| **Multer 流水線**(完整 PR-4) | v1.10.2 透過 415 envelope 關閉資料毀損漏洞;完整 multipart 解析器 + ConversionError envelope 重構為其獨立階段。 |
+
+### 測試姿態
+
+- **348 / 349** 單元測試通過(`portals-dead.test.mjs` 之 1 個既存父專案資料漂移)。
+- 覆蓋率:**94.59 % line / 84.24 % branch**。
+- 20 / 20 smoke E2E · 23 / 23 comprehensive E2E · **28 / 28 Playwright**。
+
+### 文件
+
+- `docs/reviews/REVIEW-2026-05-13-v1.11.0.md` — 工作階段脈絡 + UI 稽核空缺清單。
+- 全部 8 個 README:徽章 bump(tests 349 → 348 — 一個測試因稽核清理移動,無功能變更)、release v1.10.3 → v1.11.0。
+- 全部 8 個 CHANGELOG 取得此條目。
+
+---
+
+## [1.10.3] — 2026-05-12
+
+關閉 v1.10.0 QA 11 個發現中的 7 個(F-001、F-010 minimal、F-011 minimal、F-013、F-014、F-015、F-019)。其餘 4 個(F-018 — 完整 adapter-registry 整合;PR-4 完整 multer 流水線;PR-7 後續;PR-9 跨 career-ops.org docs 之文件清掃)延後至 v1.11.0。
+
+### ✨ 功能
+
+- **`feat(pdf): 於每個長表單介面提供 Generate-PDF(F-015)`** — 三個新 SSE 端點(`GET /api/stream/pdf/report?slug=`、`GET /api/stream/pdf/deep?name=`、`POST /api/stream/pdf/inline { markdown }`)加上共享 `public/js/lib/pdf-generate.js` helper。**📄 Generate PDF** 按鈕現在出現於 `#/reports/:slug`、`#/deep`(手動 + live)、`#/evaluate`(手動 + live)與 `#/interview-prep`(透過 deep 端點)。每個 kind 重用 v1.10.2 的 cv-markdown 轉 print-HTML helper,並將結果落於 `output/<slug>-<TS>.pdf`,讓既有自動下載流程接手。
+- **`feat(config): regional config 群組(F-013)`** — `/api/config` 現在揭露 `groups`(`core | runtime | regional`)與 `regionalActive`(由 `portals.yml::russian_portals.sources` 計算的布林值)。SPA 將三組渲染為可收合段落;**Regional sources** 自動收合,且僅在設定了 regional source 時存在。
+
+### 🐛 Bug fixes
+
+- **`fix(server): 全域 Express 錯誤處理器(F-019)`** — `PayloadTooLargeError`(例如對 `/api/cv/import` 上傳 11 MB)與 `express.json` 之 `SyntaxError` 現在回傳 SPA 可本地化的 JSON envelope(HTTP 413 / 400)。先前預設 Express 處理器回傳 HTML 堆疊追蹤,使 SPA 的 `try { await res.json() }` 失敗。
+- **`fix(i18n): 英文 token 不再洩漏到非英文 UI(F-001)`** — 為 `Pipeline`、`Deep research`、`Follow-up`、`Health`、`Outreach`、`Doctor`、`Quick scan` 加入本地化(使用者在 UI 語言中看到的標籤,但介面其他部分已翻譯)。
+- **`fix(scan): 從標籤移除 EN/RU framing(F-010 minimum)`** — `#/scan` 摘要列、兩個 scan-done 徽章與來源篩選標籤現在顯示「ATS adapters」+「Regional portals」。兩個 SSE 端點(`/api/stream/scan-en`、`/api/stream/scan-ru`)保留原狀;完整 registry 整合落於 PR-1 / v1.11.0。
+- **`fix(scan): Active-Companies 計數器自動刷新(F-011 minimum)`** — 視圖在每次 `refreshResults()` 後 dispatch `scan:refresh` 事件;計數器自實際的 `/api/scan-results` payload 重算「上次掃描有 hits 的公司」,不再凍結於視圖掛載時的 snapshot。
+- **`docs(en-ru-framing): 跨 README + help bundle 清掃(F-014)`** — `EN sweep` → `ATS sweep`、`RU sweep` → `regional sweep`、`EN scanner` → `ATS scanner`、`EN: Greenhouse / Ashby / Lever, RU: hh.ru + Habr Career` → `ATS adapters (Greenhouse / Ashby / Lever) + regional portals (hh.ru / Habr Career)`。涵蓋 `README.md`、`README.ru.md`、`README.ja.md`、`README.ko-KR.md`、`docs/help/en.md`、`docs/help/es.md`、`docs/help/pt-BR.md`。
+
+### 🧪 測試
+
+- 新 `tests/global-error-handler.test.mjs`(2 案例):格式錯誤的 JSON → 400 JSON;11 MB 上傳 → 413 JSON。
+- 新 `tests/config-groups.test.mjs`(2 案例):`/api/config` 揭露 `groups`;當 portals.yml 取得 regional source 時 `regionalActive` 翻為 true。
+- 新 `tests/pdf-extra-routes.test.mjs`(5 案例):`/report`、`/deep`、`/inline` 各以記載的三個位置引數呼叫 `generate-pdf.mjs`;缺 slug 時 404;空 inline markdown 時 400。
+- 總計:**349 / 350** 單元測試(`portals-dead.test.mjs` 中 1 個既存父專案資料漂移)。
+- 覆蓋率:94.59 % line / 84.16 % branch。
+- 20 / 20 smoke E2E、23 / 23 comprehensive E2E、**28 / 28 Playwright**。
+
+### 📝 文件
+
+- `docs/reviews/REVIEW-2026-05-12-v1.10.3.md` — 工作階段脈絡 + 範圍外清單。
+- 全部 8 個 README:徽章 bump(tests 340 → 349、release v1.10.2 → v1.10.3)、每 locale 新增「What's new in v1.10.3」段落。
+- 全部 8 個 CHANGELOG 取得此條目。
+
+### 範圍外(延後至 v1.11.0)
+
+- **PR-1** — 完整 locale-agnostic adapter registry(8 個 ATS 適配器檔案 + 整合既有兩端點的新 `/api/stream/scan?source=` + 14 個新 portal + scan-view 重寫)。本發布的 label-only 切片在視覺上關閉 F-010 / F-011;架構重構為多日階段。
+- **PR-4** — 基於 multer 的 CV import 流水線(以真正的 multipart 解析器 + ConversionError envelope + 相依套件檢視取代 v1.10.2 的 415 envelope)。
+- **PR-9** — 完整 career-ops.org docs 整合:擷取 [career-ops.org/docs](https://career-ops.org/docs) 與 4 個子指南(scan-job-portals、apply-for-a-job、batch-evaluate-offers、set-up-playwright)、翻譯至 7 個非英文 locale、相應改寫 help bundle + README、以記載行為稽核 UI 畫面。
+
+---
+
+## [1.10.2] — 2026-05-12
+
+功能性迴歸 patch。關閉 v1.10.1 hand-testing 中發現的兩個 bug;擴展文件介面。
+
+### 🐛 Bug fixes
+
+- **`fix(cv): /api/cv/import 對 multipart/form-data 回傳 415(F-016 強化)`** — 任何預設 `multipart/form-data` 的外部客戶端(curl `-F`、常見 HTTP 客戶端)先前會把其 wire envelope(`--boundary…\r\nContent-Disposition: form-data; name="file"; filename="x"…`)儲存為 `cv.md` 內容。SPA 實際路徑(`Content-Type: application/octet-stream` + `X-Filename`)不受影響。路由現在回傳 415,並提示指向記載的契約。深度防禦:在前 256 bytes 看起來像 multipart 的 octet-stream body 也回 415。`cv.md` 在 415 時絕不會被觸碰。
+- **`fix(pdf): /api/stream/pdf 以正確位置引數呼叫 generate-pdf.mjs`** — 先前以 `[]` 呼叫該 script。script 列印其 `Usage:` 列並 exit code 1 — SPA 顯示綠色「PDF 已產生」toast,但沒有檔案落於磁碟。路由現在讀取 `cv.md`,透過 route 內 markdown-to-print-HTML helper 渲染為 `output/cv-input-<TIMESTAMP>.html` 中的 HTML 檔案,然後 spawn `generate-pdf.mjs <input.html> <output.pdf> --format=a4`。可選 `?format=letter` 用於 US-letter 輸出。`cv.md` 缺失時發出 `error` 事件 + `done { code: 2 }`,而非偽造 start 幀。
+
+### 🧪 測試
+
+- 新 `tests/cv-upload-multipart-reject.test.mjs`(5 案例):SPA happy path 回 200 帶乾淨 markdown;`multipart/form-data` → 415;看起來像 multipart 的 octet-stream body → 415;空 body → 400;被拒請求**不**會修改 `cv.md`。
+- 新 `tests/pdf-stream-args.test.mjs`(3 案例):`start` 事件帶 `<input.html> <output.pdf> --format=a4` 之絕對路徑,且 HTML 存在於磁碟;`?format=letter` 切換 flag;`cv.md` 缺失時發出預期之 error 幀。
+- 總計:**340 個單元測試**(原 318)。`portals-dead.test.mjs` 中 1 個既存失敗為父專案資料漂移,與 web-ui 無關。
+- 覆蓋率:94.63 % line / 84.94 % branch。
+
+### 📝 文件
+
+- 新 `docs/test-scenarios/` — 21 個情境檔案(英文)(index + 逐頁契約):
+  - 01 smoke / health · 02 CV upload · 03 CV edit-save · 04 CV → PDF download
+  - 05 profile YAML · 06 config env · 07 scan · 08 pipeline
+  - 09 evaluate · 10 deep research · 11 modes · 12 apply checklist
+  - 13 tracker · 14 reports · 15 activity log · 16 interview prep · 17 JDs
+  - 18 i18n · 19 help center · 20 security · 21 full funnel
+- 每個檔案記載:目的、前提、輸入、預期輸出、negative case、測試覆蓋(檔案 + 行範圍)、相關時的手動 Playwright 步驟。
+- 新 `docs/reviews/REVIEW-2026-05-12-v1.10.2.md` — 完整工作階段脈絡、範圍外清單、驗證命令。
+- 全部 8 個 README:徽章 bump(tests 318 → 340、release v1.10.1 → v1.10.2)+ 每 locale 新增「What's new in v1.10.2」段落。
+- 全部 8 個 CHANGELOG 取得此條目。
+
+### 範圍外(延後至未來 GSD 階段)
+
+PR-1 locale-agnostic adapter registry(仍排隊)、PR-4 基於 multer 的 CV import 與完整轉換流水線、PR-7 reports / evaluate / deep / interview-prep 之 Generate-PDF 按鈕、PR-8 config UI 重組、PR-9 docs 清掃、PR-10 逐按鈕本地化稽核 + jsdom CI 閘、完整韓文重新翻譯。
+
+---
+
+## [1.10.1] — 2026-05-09
+
+由 v1.10.0 QA 迴歸執行(`qa/reports/00-FINAL-SUMMARY.md`)驅動的關鍵修復 patch。
+
+### 🛡️ 安全性
+
+- **`fix(security): 收緊 isValidJobUrl + 加入 DNS-rebind 防禦(PR-3 / F-003)`** — `isValidJobUrl` 現在拒絕 RFC1918(`10/8`、`172.16/12`、`192.168/16`)、完整 127/8 loopback 範圍、link-local `169.254/16`(含 AWS IMDS)、`0.0.0.0`、CGNAT `100.64/10`、IPv6 ULA / link-local。新 helper `isPrivateOrLoopbackHost()` 從 `server/lib/security.mjs` 匯出,並由 `/api/pipeline/preview` 重用 — 後者現於每次 redirect 跳轉時對 host 進行 `dns.lookup`,當解析位址本身為私有時拒絕 — 擊敗 DNS-rebind。DNS 失敗時 fail open(由 fetch 回報錯誤),讓測試 stub / 無 DNS sandbox 仍可運作。
+
+### 🐛 Bug fixes
+
+- **`fix(activity): 僅記錄成功的狀態變更(PR-5 / F-005)`** — middleware 現在在 `res.statusCode >= 400` 時 early-return。被拒的 pipeline / cv / tracker 請求不再污染稽核資料流。
+- **`fix(activity): 加入 profile.save / config.save / cv.import 事件對應(F-008)`** — 成功的 `PUT /api/profile` 與 `POST /api/config` 呼叫現在出現於 `/api/activity`。
+- **`fix(help): 別名 ko → ko-KR.md 以服務韓文 Help 本體(F-002)`** — SPA 送出裸 BCP-47 代碼(`ko`);磁碟上檔案為 `ko-KR.md`。解析器現在走訪 4 個候選:exact、region-tag 別名、language-only base、然後 `en.md`。
+- **`fix(llm): /api/evaluate 尊重 mode:'manual'(F-009)`** — 鏡像 `/api/deep`。手動模式即使有 key 也會跳過 Anthropic / Gemini 呼叫,讓使用者可將 prompt 複製進 Claude Code 而不耗 credit。
+- **`fix(api): DELETE /api/pipeline 接受 ?url= 與 body.url,miss 時回 404(PR-6 / F-017)`** — 先前僅 `?url=` 時會無聲 200-on-miss。
+
+### ✨ 功能
+
+- **`feat(llm): 透過每個 prompt 傳遞 locale(PR-2 / F-012)`** — 新 `resolveLocale(req)` 依 `body.lang` → `body.locale` → `Accept-Language` → `'en'` 順序挑選 locale。新 `buildLocaleDirective(lang)` 發出單行「Respond in X」標頭。`buildEvaluationPrompt`、`buildDeepPrompt`、`buildModePrompt` 現在接受並嵌入 `lang`。SPA `API.call()` 自動附加 `Accept-Language` 並將 `lang` 合併入 JSON body。
+- **`feat(scripts): post-qa-cleanup.mjs(PR-11)`** — 重播 QA 迴歸清理檢查清單;`--apply` 寫入,預設 dry-run,冪等。從 `data/pipeline.md` 清掃 RFC1918 / `nip.io` / `test-cloud-*` URL,並稽核 `cv.md` 大小。
+
+### 🧪 測試
+
+- 新 `tests/critical-fixes.test.mjs`(15 案例),涵蓋:F-002 ko 別名解析、F-009 manual-mode opt-out、PR-6 DELETE 形狀(body / 404 / 400)、PR-3 helper 對 IPv4 + IPv6 + bracketed 形式的單元測試、PR-2 `resolveLocale` 優先序 + `buildLocaleDirective` + prompt-builder 整合。
+- `tests/url-validation.test.mjs` 延伸 5 個新測試以涵蓋 RFC1918 / link-local / 0.0.0.0 / 127/8 / CGNAT / IPv6 ULA / link-local。
+- `tests/activity-log.test.mjs` 測試 8 更新以斷言新「4xx 時不記錄」契約。
+- 總計:**318 個單元測試**(原 298;`portals-dead.test.mjs` 中 1 個既存失敗為 `templates/portals.example.yml` 之父專案資料漂移,與 web-ui 程式碼無關)。
+
+### 📝 文件
+
+- 新 `docs/reviews/REVIEW-2026-05-09-v1.10.1.md` — 完整工作階段脈絡 + 範圍外清單 + 驗證命令。
+- 全部 8 個 README:徽章 bump(test 計數 298 → 318、release v1.10.0 → v1.10.1)、截圖路徑移至 `public/images/screen_vacancy_found.png`、每 locale 新增「What's new in v1.10.1」段落(英文、西文、葡文、韓文、日文、俄文、簡中、繁中)。
+- 全部 8 個 CHANGELOG 以此條目更新。
+
+### 範圍外(延後至未來 GSD 階段)
+
+PR-1(locale-agnostic adapter registry、+14 portal、FE 重寫)、PR-4(基於 multer 的 CV import + ConversionError + 全域錯誤處理器)、PR-7(reports / evaluate / deep / interview-prep 之 Generate-PDF 按鈕)、PR-8(config UI 重組)、PR-9(完整 README/docs/8-help-bundle EN-RU framing 清掃)、PR-10(逐按鈕本地化稽核 + jsdom CI 閘)、完整韓文 help 重新翻譯(檔案存在;PR 僅修復執行期遞送)。
+
+---
+
+## [1.10.0] — 2026-05-08
+
+CV import 大改版 + `#/config` 頁籤 + 規範 `#/profile` 路由。
+
+### ✨ 功能
+
+- **`feat(cv): 伺服器端 import .docx / .doc / .odt / .rtf / .pdf / .html / .txt / .md`** — 新 `POST /api/cv/import` 端點將上傳文件(任意常見格式)轉為編輯器可放入的 markdown。Office 格式經 **pandoc**,PDF 經 Poppler 之 **pdftotext**。結果經 `stripDangerousMarkdown` 淨化(深度防禦 XSS)。硬上限:每次上傳 10 MB。前端 `📁 Upload CV` 現在接受完整格式集;主機缺少轉換器時顯示美觀錯誤 toast。
+- **`feat(cv): generate-pdf.mjs 完成時自動下載產生的 PDF`** — 串流的 Generate-PDF 流程現在於 output 目錄擷取最新 PDF 之 snapshot,並在 `done` 時觸發瀏覽器下載**新**檔案(若該次執行未產生新 artifact 則為 no-op)。頁面既有清單仍顯示每個過往 PDF。
+- **`feat(config): 兩頁籤版面 — API keys & runtime + Profile`** — `#/config` 現在有頁籤條。第一個頁籤保留既有的 `.env` 編輯器(API key、模型、scanner 旋鈕)。新 **Profile** 頁籤是 `config/profile.yml` 的直接 YAML 編輯器:`PUT /api/profile` 驗證 YAML(必須為 mapping、必須含 `candidate`)、缺失時打上規範 `# Career-Ops Profile Configuration` 標頭,然後寫入。儲存不需重啟即傳遞。
+- **`feat(routes): 規範 /#/profile 路由(原 /#/settings)`** — sidebar 現在指向 `#/profile`。舊 `#/settings` hash 仍透過路由別名表解析,既有書籤照樣可用。內部路由 handler 已改名;測試更新以反映新方向。
+
+### 🧪 測試
+
+- 新 `tests/cv-import.test.mjs`(7 案例):`.md` / `.txt` passthrough、空 body 400、未支援副檔名 422、過大 413、HTML→markdown 淨化(pandoc 缺席時 skip)、PDF→text round-trip 以手作 PDF(poppler 缺席時 skip)。
+- 新 `tests/profile-put.test.mjs`(7 案例):happy-path round-trip、標頭打章、空 / 無效 YAML / 非物件 / 缺 candidate 之 400、過大 413。
+- `tests/playwright-full-cycle.mjs` 延伸 14 → **16** 子測試 — 新增 CV-import via HTML 與 `PUT /api/profile` round-trip。
+- `tests/router.test.mjs` ALIAS 正規表達式翻轉以斷言新 `settings → profile` 方向。
+
+### 📚 文件
+
+- `docs/help/{en,ru}.md` — 完整更新 2/3/4 段:新 App-settings 頁籤、唯讀 Profile 頁的 edit-via-config 訊息、CV 段落的完整上傳格式矩陣、PDF 自動下載行為。
+- `docs/help/{es,pt-BR,ko-KR,ja,zh-CN,zh-TW}.md` — 新內容區塊之精簡鏡像;段落數不變(16),對等測試保持綠。
+
+### 🔧 內部
+
+- 新 `server/lib/cv-import.mjs` — 格式 → markdown 轉換的單一真實來源,帶 timeout + 轉換器缺失偵測,可呈現可操作提示而非 500。
+- `server/lib/routes/content.mjs` 取得 `POST /api/cv/import` 與 `PUT /api/profile`(上傳採 `express.raw` binary-safe,YAML PUT 採 JSON)。
+
+---
+
+## [1.9.1] — 2026-05-08
+
+Production-readiness pass。四個針對性 bug 修復(BF-1..BF-4),Playwright smoke 自 5 擴展至 12 個測試,涵蓋 tracker / pipeline / reports / evaluate / config / cv 儲存 round-trip。CI 全綠。
+
+### 🐛 Bug fixes
+
+- **`fix(tracker): 對每個 cell(非只 notes)做 pipe 跳脫 + 換行收斂(BF-1)`** — 公司名稱如 `"Acme | Co"` 先前會破壞 markdown 表格版面(parser 將該 cell 拆成兩個)。Cell 淨化器現在統一套用於 company / role / reportSlug / notes;`parsers.mjs::parseMarkdownTable` 之配套修復加入 GFM 相容 `\|` 跳脫支援,讓 round-trip 無損。
+- **`fix(config): 將 updateEnvFile 包入 try/catch(BF-2)`** — `POST /api/config` 先前在 permission-denied / 唯讀檔案系統時冒出未處理 rejection。現在回傳乾淨 500 `{ error: 'failed to write parent .env', details: [...] }`。
+- **`fix(llm): 對 Anthropic SDK 呼叫的組裝 prompt 大小設軟上限(BF-3 + BF-4)`** — `/api/evaluate`、`/api/deep`、`/api/mode/:slug` 之 Anthropic 分支現在於 `bundleProjectContext + prompt` 超過 200 KB(約 50K token)時以 413 退出。比起讓 API 抱怨 context 大小,節省多秒往返 + token。該上限遠低於任何當前模型上限(Sonnet 4.6 = 1M context)。
+
+### 🧪 Playwright smoke — 擴展覆蓋
+
+5 → **12** 個測試。新案例:
+
+- `tracker view renders empty + accepts API-seeded row` — 透過種入公司名稱含字面 pipe 的列,並斷言 round-trip 保留之,行使 BF-1。
+- `pipeline add-URL form populates the queue` + 無效 URL 拒絕掃描(loopback、`javascript:`、裸字串)。
+- `reports view handles empty state` — non-crash 斷言。
+- `evaluate view returns a manual prompt without API key` — 驗證後備鏈。
+- `config GET returns known keys masked` — 機密絕不透過 `/api/config` 洩漏。
+- `cv.md PUT round-trips with sanitization` — XSS-y 片段(script 標籤、`javascript:` scheme)端對端被去除。
+- `pipeline preview proxy strips scripts` — 無效 URL 拒絕路徑。
+
+### 📦 行為變更(無 API 契約變更)
+
+- Tracker 寫入現在對含 pipe 的 company / role 名稱無損。既有原始 pipe 列在下次讀取時將開始正確解析。
+- `/api/{evaluate,deep,mode/:slug}` 在 prompt 不合理大(200 KB+)時將回 413 而非 502/timeout。
+
+### 🧪 測試
+
+- **284 個單元測試**(計數不變;parser 更新後既有測試仍全綠)。
+- **12 個 Playwright 瀏覽器 smoke 測試**(原 5)。
+
+---
+
+## [1.9.0] — 2026-05-08
+
+v1.8.0 backlog 的 P-6 → P-10 全部於一綑交付。重點:`server/index.mjs` 現在是 130-LOC 的 orchestrator(自 762 降下;原 1230 → 130 = -89 %);每個路由主題各有自己的模組。`/api/evaluate` 的 Anthropic 對等、多 CLI shim、擴展的 i18n 對等測試、Playwright 瀏覽器 smoke 已串接進 CI。
+
+### 🏗️ P-6 — 伺服器按關注切割(第 2 階段)
+
+P-2 之延續。將 `server/index.mjs` 剩餘 9 個路由主題抽取至 `server/lib/routes/<topic>.mjs` 模組。`index.mjs` 現在為純 orchestrator:middleware(安全標頭 + 活動日誌 + static)、12 個 `register<Topic>Routes(app)` 呼叫、SPA catch-all。
+
+- `server/lib/routes/activity.mjs` — `/api/activity`。
+- `server/lib/routes/config.mjs` — `/api/config` GET/POST(父 .env round-trip)。
+- `server/lib/routes/health.mjs` — `/api/health` + `/api/dashboard`。
+- `server/lib/routes/help.mjs` — `/api/help/:lang`。
+- `server/lib/routes/jds.mjs` — `jds/*.txt` 之完整 CRUD。
+- `server/lib/routes/llm.mjs` — 每個 LLM 端點(evaluate、deep、mode、apply-helper、interview-prep)。
+- `server/lib/routes/pipeline.mjs` — `/api/pipeline*`,包含 SSRF-safe preview proxy,並以具名常數命名 timeout / max-redirects / max-body。
+- `server/lib/routes/reports.mjs` — `/api/reports*`。
+- `server/lib/routes/tracker.mjs` — `/api/tracker` GET + dedup-aware POST。
+
+行為不變。283/283 單元測試於每一步皆保持綠。Orchestrator 的 import 介面從 47 列降至 22 列。
+
+### 🔌 P-7 — `/api/evaluate` 之 Anthropic 對等
+
+`/api/evaluate` 先前僅 Gemini 或 manual。v1.9.0 加入 Anthropic 分支(兩 key 並存時優先),鏡像 `/api/deep` 與 `/api/mode/:slug` 既有路由規則。透過 `bundleProjectContext({ modeSlugs: ['_shared', 'oferta'] })` 讓模型有 cv / profile / mode template 內聯(REVIEW-A1)。
+
+新端點:**`POST /api/evaluate/test-anthropic`** — `ANTHROPIC_API_KEY` 的 smoke check,鏡像既有 Gemini smoke。送出微小 prompt(≤256 輸出 token)所以幾乎沒成本;回傳 200 字元樣本。
+
+後備鏈現為:Anthropic → Gemini → manual。
+
+### 🌐 P-8 — Help-center i18n 對等(稽核 + 測試強化)
+
+稽核每個 `docs/help/<lang>.md` 的結構對等。全部 8 個 locale 皆已涵蓋相同 14 個規範 h2 段落。測試升級:
+
+- `tests/help-ui.test.mjs::every help doc covers the same 14 sections` 過去僅檢查 en + ru。現在迭代**全部 8 個 locale**(en、es、pt-BR、ko-KR、ja、ru、zh-CN、zh-TW)並斷言每個之段落數。
+- 新測試:`tests/help-ui.test.mjs::every help locale has substantive content` — 透過斷言每個非英文 locale 至少為 `en.md` 位元組長度的 30 % 來防範 locale stub。精簡翻譯自然落在 40-50 %;stub 會落在個位數 %。
+
+結果:結構對等現在由 CI 強制。
+
+### 🤖 P-9 — CI 矩陣中的 Playwright 瀏覽器 smoke
+
+`tests/playwright-smoke.mjs`(v1.8.0 中作為 opt-in 加入)現在是 CI workflow 一環。既有 `e2e` job 已安裝 Playwright + Chromium;新增一個步驟(`npm run test:e2e:browser`)在 comprehensive node E2E 之後即執行 5 個瀏覽器 smoke 測試。
+
+CI 順序:unit(Node 18/20/22 矩陣) → smoke node E2E → comprehensive node E2E → **Playwright 瀏覽器 smoke** → 失敗時上傳截圖 artifact。
+
+### 🌍 P-10 — 多 CLI 相容性
+
+父專案 career-ops v1.7.0 引入多 CLI / Open Agent Skill 標準支援。UI 子專案遵循同樣慣例,並提供薄 shim 指向規範 `CLAUDE.md`:
+
+- `web-ui/AGENTS.md` — Codex / Aider / 通用 CLI 進入點。
+- `web-ui/GEMINI.md` — Gemini CLI 進入點。
+
+兩個 shim 重述硬規則與 quick reference,但對完整專案層指令延後至 `CLAUDE.md`,使非 Claude CLI 落於與 Claude Code 工作階段相同的入門。已部署的 UI 本身在執行期保持 CLI-agnostic。
+
+### 🧪 測試
+
+- **284 個單元測試**(原 283):+1 個新的 help-locale 對等測試。
+- **5 個 Playwright 瀏覽器 smoke 測試** — 現在是 CI 一環,不再只是 opt-in。
+- 覆蓋率持平。
+
+### 🔧 觸及檔案
+
+```
++ server/lib/routes/activity.mjs              + server/lib/routes/config.mjs
++ server/lib/routes/health.mjs                + server/lib/routes/help.mjs
++ server/lib/routes/jds.mjs                   + server/lib/routes/llm.mjs
++ server/lib/routes/pipeline.mjs              + server/lib/routes/reports.mjs
++ server/lib/routes/tracker.mjs
++ AGENTS.md                                   + GEMINI.md
+
+~ server/index.mjs (762 → 130 LOC, -83%)
+~ .github/workflows/ci.yml (Playwright smoke step)
+~ tests/help-ui.test.mjs (all-8-locales section parity + content-floor)
+~ docs/{ROADMAP,architecture/{OVERVIEW,SERVER}}.md
+~ docs/sdd/CONVENTIONS.md
+~ CLAUDE.md
+~ package.json (1.8.0 → 1.9.0)
+```
+
+### 📦 新 REST 端點
+
+| 方法 | 路徑 | 目的 |
+|---|---|---|
+| `POST` | `/api/evaluate/test-anthropic` | `ANTHROPIC_API_KEY` 之 smoke check(P-7)。鏡像 `/api/evaluate/test-gemini`。 |
+
+### 🤖 新 CLI 進入點
+
+| 檔案 | CLI | 說明 |
+|---|---|---|
+| `AGENTS.md` | Codex / Aider / 通用 | 對完整指令指向 `CLAUDE.md`。 |
+| `GEMINI.md` | Gemini CLI | 工作階段開始時由 Gemini 自動載入。 |
+
+---
+
+## [1.8.0] — 2026-05-08
+
+強化、重構、SDD bootstrap。三項 high-severity 正確性 / 安全性修復(A1、A2、A3)、四項 medium(B1–B4)、六項清理、父專案 career-ops v1.7.0 介面稽核、伺服器按關注切割(P-2 第 1 階段)、Playwright 瀏覽器 smoke harness,以及 `docs/` 與 `.claude/` 之完整 SDD 基礎。
+
+### 🔥 High-severity 修復
+
+- **`fix(deep): 為 Anthropic SDK 呼叫內聯 cv/profile/mode 檔案(REVIEW-A1)`** — `/api/deep` 與 `/api/mode/:slug` 先前告訴模型「Read these files first」,但 Anthropic SDK 無檔案系統。輸出空洞。新 `bundleProjectContext({ modeSlugs })` 讀取 `cv.md`、`config/profile.yml`、`modes/_shared.md` 與 mode template,各截斷於 16 KB,並在 prompt 前置 `<project_context>` 區塊。已現場驗證:對 deep-research 呼叫,`claude-sonnet-4-6` 回傳 26 KB grounded markdown。
+- **`fix(runner): SIGTERM 寬限後 SIGKILL 升級(REVIEW-A2)`** — `runNodeScript` 與 `streamNodeScript` 先前在 timeout / client-disconnect 時僅送 `SIGTERM`。卡在 syscall(DNS、阻塞 socket)的子行程會忽略它,讓 SSE 連線 hang 到 Node GC 收割。現在每條路徑各部署一個 5 秒看門狗以升級至 `SIGKILL`。Promise 總會 resolve。
+- **`fix(runner): 對串流端點之 max-runtime 上限(REVIEW-A3)`** — 每個 SSE script runner(`/api/stream/{scan,liveness,pdf}`)現在有 30 分鐘硬上限。到期時:發出 `event: error { message: 'maximum runtime exceeded' }`、透過 A2 看門狗 kill 子行程、結束 response。
+
+### 🛡️ Medium-severity 修復
+
+- **`fix(preview): /api/pipeline/preview 之逐跳 redirect 驗證(REVIEW-B1)`** — 從 `redirect: 'follow'` 切換為手動 redirect-walking。每個 `Location` 標頭都被 `isValidJobUrl` 重新驗證;上限 3 跳。惡意 board 不能再彈跳我們至 loopback / 私有 IP / `file://`。4 個新測試涵蓋拒絕路徑。
+- **`refactor(keys): hasGeminiKey helper 統一 LLM-key 檢查(REVIEW-B2)`** — 路由 handler 中直接的 `process.env.GEMINI_API_KEY` 讀取改為 `lib/anthropic.mjs` 的 `hasGeminiKey()`。形狀鏡像 `hasAnthropicKey()`,利於一致性與 mocking。
+- **`feat(scanners): 將 AbortSignal 穿線至 hh.ru、Habr、Greenhouse、Ashby、Lever(REVIEW-B3)`** — SSE 客戶端在掃描中段中斷連線時,進行中的 HTTP fetch 現在被 abort,而非執行完每個 query 並丟棄事件。`runRuScan` 與 `runEnScan` 接受 `opts.signal`;`/api/stream/scan-{ru,en}` 中的 SSE handler 建立 `AbortController` 並在 `res.close` 時 abort。
+- **`test(anthropic): log-guard 測試防止未來透過 console 洩漏 API key(REVIEW-B4)`** — 在 `runAnthropic` happy + error 路徑期間捕捉每個 `console.{log,info,warn,error,debug}` 呼叫,斷言零輸出且 canary key 字串永不出現。對未來 `console.log(opts)` 迴歸的深度防禦。
+
+### 🧹 Low-severity 拋光
+
+- **`fix(parsers): addPipelineUrl 內之深度防禦 URL 閘(REVIEW-C4)`** — parser 層拒絕非 http(s) 值,補強路由層 `isValidJobUrl`。可選 `opts.validate` 供更嚴格規則。
+- **`docs(readme): 徽章「tests-88 passed」→「tests-277 passed」(REVIEW-C3)`** — 差了一個數量級。
+- **`test(i18n): missing-keys 差異按 locale 分組(REVIEW-C6)`** — `tests/i18n-coverage.test.mjs` 發現空缺時,輸出現在為 `[ru] (3): foo, bar, baz` 而非混雜行。
+- **`docs(review): C1 以「檢視即解決」關閉`** — sanitizer 正規表達式已採 `\x00-\x08` 十六進位形式;review 條目為工具渲染 artifact。
+
+### 🏗️ P-2 第 1 階段 — 伺服器按關注切割
+
+`server/index.mjs` 為 1230 LOC,遠超 800 列上限。在不改行為下切割為聚焦模組。283 個單元測試於每一步皆保持綠。
+
+- `server/lib/security.mjs` — `isValidJobUrl`、`stripDangerousMarkdown`、`sanitizeJobDescription`、`isPubliclyExposed`。從 `index.mjs` 重新匯出以維持外部消費者向後相容。
+- `server/lib/prompts.mjs` — `bundleProjectContext`、`buildEvaluationPrompt`、`buildDeepPrompt`、`buildModePrompt`、`buildApplyChecklist`。
+- `server/lib/store.mjs` — `safeReadApps`、`safeReadPipeline`、`safeListReports`、`checkProfileCustomized`、`ensureRussianPortalsDefaults`。
+- `server/lib/routes/scan.mjs` — `/api/stream/scan-{ru,en}`、`/api/scan-ru/config`、`/api/scan-results` 之 `registerScanRoutes(app)`。
+- `server/lib/routes/runners.mjs` — buffered `/api/run/*` 表、串流 `/api/stream/{scan,liveness,pdf}`、產生 PDF 之 list/download 的 `registerRunnerRoutes(app)`。
+- `server/lib/routes/content.mjs` — CV / Profile / Portals / Modes 之 `registerContentRoutes(app)`。
+
+`index.mjs` 現為 762 LOC(-38 %,在 800 上限以下)。第 2 階段將抽取 tracker、pipeline、reports、jds、llm(evaluate/deep/mode)與 health 為路由模組。目標為 orchestrator 落於 <500 LOC。
+
+### 🔍 父專案 career-ops v1.7.0 稽核
+
+使用者將父專案升級至 v1.7.0。已稽核每個消費介面 — UI 完全相容。重點記載於 `docs/architecture/DATA-FLOWS.md`:
+
+- Mode catalog 從 7 增至 19 個檔案。UI 的 `MODE_ALLOWLIST` 刻意只揭露 7 個(其他為 Claude-Code-only)。已加入註解說明這個刻意的窄範圍。
+- `portals.yml` schema 已確認:`tracked_companies`(96 條、87 啟用、71 帶 API)。EN scanner 正確讀取;舊 `companies` key 仍受支援。
+- 父專案新介面**今日未消費**:`dashboard/`(Go 程式)、`update-system.mjs`、`generate-latex.mjs`、`analyze-patterns.mjs`、`liveness-core.mjs`、`followup-cadence.mjs`、`test-all.mjs`、本地化 mode 子目錄(`de/fr/ja/pt/ru`)。
+- Live `/api/dashboard`、`/api/health`、`/api/modes`、`/api/portals`、`/api/profile`、`/api/cv`、`/api/jds`、`/api/reports`、`/api/tracker`、`/api/pipeline`、`/api/evaluate`、`/api/deep`、`/api/stream/scan-en` 皆驗證為綠。
+
+### 🤖 SDD / GSD bootstrap
+
+`career-ops-ui` 現在擁有完整的 Spec-Driven Development 基礎,與 GSD 流水線一致(`superpowers@claude-plugins-official` 之 `gsd-*` 技能)。
+
+- `CLAUDE.md`(root) — 專案層 agent 系統提示:技術堆疊、GSD 流水線、硬規則(父契約、安全範圍、無 `--no-verify`)、慣例、父專案邊界。
+- `.aiignore` — AI agent 排除清單:vendored、binary、父專案使用者資料、`.planning/`、`.env`、locale 重複。
+- `.claude/agents/` — 三個專案特定 subagent 定義:
+  - `web-ui-route-reviewer.md` — 對新路由把關 SSRF、CSP、淨化器、父寫入契約、慣例、測試。
+  - `spa-view-reviewer.md` — CSP-safe DOM、i18n、路由註冊、無障礙。
+  - `test-isolation-reviewer.md` — 驗證測試為 CI-isolated(無父專案假設、無 live 網路、無 port 衝突)。
+- `.claude/commands/` — slash-command stub:`/sdd-status`、`/codebase-tour`。
+- `docs/` 樹 — 全部英文:
+  - `PROJECT.md` — what/why/for-whom、範圍、限制、成功標準。
+  - `ROADMAP.md` — 目前 milestone + 完成歷史 + backlog。
+  - `sdd/SDD-GUIDE.md` — discuss → spec → plan → execute → verify → review 流水線映射至 `gsd-*` 技能。
+  - `sdd/CONVENTIONS.md` — 模組系統、命名、路由、淨化器、client 模式、i18n、錯誤、日誌、測試、commit、分支、CSS。
+  - `architecture/OVERVIEW.md` — 頂層圖、層次、開機序列、不變量、「先去哪看……」備忘錄。
+  - `architecture/SERVER.md` — `server/lib/*.mjs` 的逐檔地圖(已為 P-2 切割更新)。
+  - `architecture/FRONTEND.md` — SPA 結構、視圖盤點、全域、「如何新增 view」。
+  - `architecture/API.md` — 每個 `/api/*` 路由的完整盤點。
+  - `architecture/DATA-FLOWS.md` — 每個父專案讀/寫與明確 user-action 契約。
+  - `reviews/REVIEW-2026-05-07.md` — 產生本 changelog 修復之靜態 review。
+
+### 🔒 安全性與 repo 衛生
+
+- **`chore(.gitignore): 完備的深度防禦樣式`** — 涵蓋 env 變體、IDE 資料夾、GSD scratch(`.planning/`)、每使用者 agent 設定(`.claude/settings.local.json`、`.claude/cache/`、`.claude/state/`、`.claude/memory/`)、Playwright artifact(`playwright-report/`、`test-results/`、`.playwright/`、`trace.zip`)、heap/CPU profile、未發布工具的 lockfile、擴展的 macOS Finder 雜訊、通用機密樣式(`secrets.json`、`credentials.json`、`*.pem`、`*.key`)。
+
+### 🧪 測試
+
+- **283 個單元測試**(原 277):+6 個新(4 個 B1 redirect-rejection、1 個 `hasGeminiKey`、1 個 `runAnthropic` log-guard)。
+- **5 個 Playwright 瀏覽器 smoke 測試**(新,透過 `npm run test:e2e:browser` opt-in):dashboard 渲染 + 版本 footer、dashboard → scan → pipeline → cv 導覽、語言切換持久化、404 視圖、health 頁面渲染。透過父專案 `node_modules` 解析 Playwright — 無新相依套件。
+- 覆蓋率維持約 93 % line / 約 83 % branch。
+
+### 📝 新 / 更新 package.json scripts
+
+| Script | 目的 |
+|---|---|
+| `npm run test:e2e:browser` | 對 in-process 伺服器執行 Playwright smoke harness(5 個測試)。 |
+
+### 🔧 觸及檔案
+
+```
++ CLAUDE.md                                    +  .aiignore
++ docs/PROJECT.md                              +  docs/ROADMAP.md
++ docs/sdd/SDD-GUIDE.md                        +  docs/sdd/CONVENTIONS.md
++ docs/architecture/OVERVIEW.md                +  docs/architecture/SERVER.md
++ docs/architecture/FRONTEND.md                +  docs/architecture/API.md
++ docs/architecture/DATA-FLOWS.md              +  docs/reviews/REVIEW-2026-05-07.md
++ .claude/agents/web-ui-route-reviewer.md      +  .claude/agents/spa-view-reviewer.md
++ .claude/agents/test-isolation-reviewer.md
++ .claude/commands/sdd-status.md               +  .claude/commands/codebase-tour.md
++ server/lib/security.mjs                      +  server/lib/prompts.mjs
++ server/lib/store.mjs
++ server/lib/routes/scan.mjs                   +  server/lib/routes/runners.mjs
++ server/lib/routes/content.mjs
++ tests/playwright-smoke.mjs
+
+~ .gitignore                                   ~  README.md (徽章修正)
+~ package.json (1.7.2 → 1.8.0)
+~ server/index.mjs (1230 → 762 LOC)
+~ server/lib/runner.mjs (SIGKILL 升級、max-runtime 上限)
+~ server/lib/anthropic.mjs (hasGeminiKey)
+~ server/lib/parsers.mjs (addPipelineUrl 之 URL 閘)
+~ server/lib/ru-scanner.mjs                    ~  server/lib/en-scanner.mjs
+~ server/lib/sources/{hh,habr,greenhouse,ashby,lever}.mjs (signal 穿線)
+~ tests/anthropic.test.mjs                     ~  tests/i18n-coverage.test.mjs
+~ tests/pipeline-preview.test.mjs
+```
+
+---
+
+## [1.7.2] — 2026-05-04
+
+Help center、in-UI App settings、行動版 sidebar、單一 Scan 按鈕,以及每個 prompt-builder 上的「Show result」捷徑。
+
+### ✨ 新功能
+
+- **`feat(help): in-app 使用者指南`(`/#/help`)** — 由新 sidebar 條目可達的長篇 Markdown 文件。逐步涵蓋每頁:快速開始、CV 編輯器、Profile、Scan 篩選、Pipeline preview、Evaluate、Deep research、Apply、Tracker、Reports、全部 7 個 mode、Activity 日誌、Health、設定提示。自動從 `<h2>` 標題建立黏性目錄,DOM 同步建構(無競爭)。為 8 個支援 locale 本地化。
+- **`feat(config): in-UI App settings 頁面`(`/#/config`)** — 從瀏覽器編輯 `ANTHROPIC_API_KEY`、`ANTHROPIC_MODEL`、`GEMINI_API_KEY`、`GEMINI_MODEL`、`HH_USER_AGENT`、`PORT`、`HOST`。寫入**父專案**之 `.env` 檔案,使 career-ops Node script 與 web-ui 之 dotenv loader 共用同一來源。Secret key 在讀取時遮罩(首尾各 4 字元)。模型欄位為下拉,附經過選材的清單(claude-sonnet-4-6 / claude-opus-4-7 / claude-haiku-4-5 / gemini-2.0-flash / 等)。空值刪除該鍵。值即時套用至執行中 process.env — 多數設定無需重啟。
+- **`feat(modes): 與「Copy prompt」並列之「⚡ Show result」按鈕`** — 在 manual 模式產生 prompt 時,使用者不再需要重打輸入以取得 LLM 結果。新按鈕以 `run: true` 重新提交同一表單,當無 key 時 fall through 到清晰 toast(`Set ANTHROPIC_API_KEY or GEMINI_API_KEY in .env first`)。於 `/#/deep`、`/#/project`、`/#/training`、`/#/followup`、`/#/batch`、`/#/contacto`、`/#/interview-prep`、`/#/patterns` 皆可用。
+
+### 🐛 UX + UI 修復
+
+- **`fix(scan): 單一 Scan 按鈕取代三顆(Scan all + EN + RU)`** — 選項過多,且 99 % 情境下預設一致。統一的 `🌐 Scan` 按鈕執行每個啟用來源。Help 文件跨 8 個 locale 更新。
+- **`fix(ui): 行動版 sidebar drawer`** — viewport <900px 現在於 topbar 取得 hamburger 按鈕(☰);`body.sidebar-open` 切換 CSS transform 滑入 sidebar。Backdrop 變暗 + 點任何處關閉。anchor 點擊 + hashchange 自動關閉,使用者落地新頁時 drawer 已收起。較大 viewport 不受影響。
+- **`fix(server): footer 版本反映 web-ui,而非父 VERSION`** — `/api/health` 現在讀取 web-ui 自己的 `package.json`。footer 不再洩漏父 version 檔案中的過期 `1.6.0`。父之 VERSION 仍以 `parentVersion` 個別呈現。
+
+### 📦 新 REST 端點
+
+| 方法 | 路徑 | 目的 |
+|---|---|---|
+| `GET`  | `/api/help/:lang` | 回傳請求 locale 的 Markdown 使用者指南,後備至 `en.md`。Path-traversal 安全。 |
+| `GET`  | `/api/config` | 回傳所有已知 env key 的目前值;機密遮罩。 |
+| `POST` | `/api/config` | 將給定 key 寫入父專案 `.env`、驗證每個值、live 套用至 `process.env`。 |
+
+### 🌐 i18n
+
+- 30+ 個新 key 跨 `nav.help`、`nav.config`、`help.*`、`config.*`、`deep.showResult`、`deep.needKey`、`scan.btnRun`。8 個 locale 皆已填入。
+
+### 🧪 測試
+
+- `tests/help.test.mjs`(12 案例) — 每個支援 locale 回傳實質 markdown、EN 對每個頁面 slug 抽查、未知 lang → EN 後備、path-traversal 淨化、每個 locale 引用 `cv.md` / `profile.yml` / `.env`。
+- `tests/help-ui.test.mjs`(9 案例) — 視圖檔案註冊、sidebar 條目、每 locale 之 i18n key 存在、每 locale 之文件檔案存在、EN/RU help 有 14 個規範段落、每個 #/foo 路由皆涵蓋、deep + mode-page 上的 Show-result 接線。
+- `tests/env-config.test.mjs`(18 案例) — 對 `parseEnv`、`maskSecret`、`validateConfig`、`updateEnvFile`(bootstrap、就地重寫保留註解、空值刪除、必要時加引號)的純函式測試。
+- `tests/config-endpoint.test.mjs`(8 案例) — GET 遮罩機密 / 回傳 env path;POST 寫入父 .env;live process.env 套用;空值取消設定;未知 key + 格式錯誤 Anthropic key 400 拒絕。
+
+### 📊 統計
+
+- **測試:** 233 → **277**(+44,跨 4 個新測試檔案)。
+- **E2E:** 20 smoke + 23 comprehensive = 43 Playwright 步驟,全綠。
+- **覆蓋率:** 93.5 % line / 82.6 % branch / 93.7 % function(不變 — 新程式碼皆完整測試)。
+
+---
+
+## [1.7.1] — 2026-05-04
+
+Patch 發布,堆疊 post-v1.7.0 工作:pipeline preview pane、Anthropic API 整合、可捲動 sidebar、dotenv loader、動態 Active-companies 清單、CI workflow 強化。
+
+### ✨ Pipeline preview pane
+
+- **`/#/pipeline` 改版** — 左清單 + 右 preview pane。點任何 URL 取得伺服器端代理 snapshot(`GET /api/pipeline/preview` 去除 script/style/tags、上限 8 KB、經 `isValidJobUrl` 驗證)。即時篩選輸入、「In queue」計數器、⚡「Evaluate first」標頭按鈕。每列行內 ▶/✕,加上 preview pane 之完整 Evaluate / Open in tab / Delete。透過 `data-url` + `.pipeline-row` + `.pipeline-row-delete` class 提供穩定測試選擇器。**8 個新測試**於 `tests/pipeline-preview.test.mjs`(mocked fetch,無需 upstream 繫結)。
+
+### ✨ Anthropic API 整合 —「Run live」全面化
+
+- **`server/lib/anthropic.mjs`** — Anthropic Messages API 的零相依 client(claude-sonnet-4-6 預設,經 `ANTHROPIC_MODEL` 覆寫)。當設定 `ANTHROPIC_API_KEY` 時,每個 mode 頁面(`/#/deep`、`/#/project`、`/#/training`、`/#/batch`、`/#/contacto`、`/#/interview-prep`、`/#/patterns`)渲染「⚡ Run live (Anthropic)」按鈕作為**主要**動作 — 點擊即執行 prompt 並將 Markdown 渲染回瀏覽器,而非交棒給 Claude Code。Gemini 仍是僅 Gemini key 設定時之後備。Manual 模式在無 key 時仍可用。**8 個新測試**於 `tests/anthropic.test.mjs`。
+
+### 🐛 CI / pipeline 修復
+
+- **`fix(api): 收緊 pipeline URL 驗證器`(FIX-M7)** — 現在也拒絕 loopback 主機名稱、長度 <10 或 >2000、URL 內含空白。
+- **`fix(server): 實際載入 .env,讓 HH_USER_AGENT / GEMINI_API_KEY 提示生效`** — 新增 `server/lib/dotenv.mjs`(35 列零相依 loader),於 `server/index.mjs` 頂部接線。scanner 程式碼中的執行期提示終於有用。**6 個新測試**。
+- **`fix(ui): 可捲動 sidebar`** — 6 群組中 18 個 nav 條目在較短 viewport 溢出。`.sidebar` 現有 `overflow-y: auto`,搭配薄客製樣式 scrollbar。
+- **`fix(ui): 讓 HH_USER_AGENT 橫幅可關閉`** — 隨後在我們意識到過頭時,從 `/scan` 完全移除。Health 頁面檢查仍呈現。
+- **`fix(scan): Active companies 清單現在可收合 + 可篩選 + 分組`** — 87 個平鋪 tag 太多。現在「▸ Active companies 87/71」切換可展開有序清單(✓ API-backed 先、○ websearch 後),加上搜尋篩選。
+- **`fix(test): 將 api.test.mjs + en-scanner.test.mjs 與父專案隔離`** — 兩者皆 spin up tmp 專案 root,使 CI 可在父專案未一同 checkout 時運作。
+- **`fix(workflow): publish-package version-match 僅於 release event`** — 來自 main 的 `workflow_dispatch` 不再 fail tag/version 檢查。
+- **`fix(e2e): pipeline 列刪除之穩定選擇器`** — 復原 anchor wrapper 並加上 `data-url` 屬性,使 e2e 套件選擇器穩定。
+
+### 📦 新 REST 端點
+
+| 方法 | 路徑 | 目的 |
+|---|---|---|
+| `GET` | `/api/pipeline/preview?url=…` | 伺服器端代理:回傳 URL 之 visible-text snapshot(script/style 去除,8 KB 上限),由 `isValidJobUrl` 把關。 |
+
+### 📊 此 batch 後統計
+
+- **測試:** 225 → **233**(在 v1.7.0 之上 +8)。
+- **測試檔案:** 25 → **26**。
+- **E2E:** 20 + 23 = 43 Playwright 步驟,全綠。
+
+---
+
+## [1.7.0] — 2026-05-03
+
+由 QA r5 驅動的 35-commit 強化 + UX + 功能完成 pass。三層安全性落地(XSS 淨化、CSP、輸入驗證),每個缺失的 CRUD 端點補齊,父專案 bootstrap 現已完全自動化,UI 取得 **9 個新頁面** — Activity、改版 Deep Research,以及 7 個 sidebar 分組 mode(project / training / followup / batch / outreach / interview-prep / patterns),完整涵蓋父專案 `modes/` 100 %。Pipeline 取得伺服器端 preview pane。Anthropic API 整合讓「Run live」在所有 mode 變成一鍵動作。測試覆蓋從 **73** 增至 **225**,跨 **25 個測試檔案**,加上 **23 個 comprehensive Playwright e2e 步驟**。GitHub Actions 出貨 CI / AI review / Release / Publish-Package workflow。
+
+### 🔒 安全性
+
+- **`fix(cv): 淨化 CV markdown 以阻擋 preview 中的 stored XSS`(FIX-C10)** — `PUT /api/cv` 寫入 `cv.md` 前,現在會去除 `<script>`、`<iframe>`、`<object>`、`<embed>`、`<style>`、`<form>`、`<svg>`、`on*=` 事件處理器、以及 `javascript:`/`vbscript:`/`data:text/html` URI。Body 上限 1 MB(溢出 413)。Client-side `UI.md()` 重寫,使每個 byte 在任何 markdown 變換執行前都先 escape,所以原始 HTML 永遠到不了 `innerHTML`。Link `href` 屬性對安全 scheme 白名單(`http`/`https`/`mailto`/`tel`/相對 + 僅 `data:image`)驗證。新增 17 個跨 strip helper 與 HTTP round-trip 的測試。
+- **`fix(server): 加入 CSP 與基線安全標頭`(FIX-L2)** — 每個 response 現在攜帶 `X-Content-Type-Options: nosniff`、`X-Frame-Options: DENY`、`Referrer-Policy: same-origin`。當伺服器繫結超過 loopback(`HOST` ≠ `127.0.0.1`/`::1`/`localhost`)時,疊上嚴格 `Content-Security-Policy`:`default-src 'self'`、`script-src 'self'`(無 `unsafe-inline`)、Google Fonts 白名單、`connect-src 'self'` 阻擋 XSS 外洩。`index.html` 與 `router.js` 中的行內 `onclick` 處理器移至 `addEventListener` 以保留嚴格 CSP。8 個新測試把關 CSP 跨 5 個不同 `HOST` 值。
+- **`fix(api): 收緊 pipeline URL 驗證器`(FIX-M7)** — `POST /api/pipeline` 過去接受 `"not-a-url"` 並持久化。現在 `isValidJobUrl()` 拒絕裸字串、輸入 <10 或 >2000 字元、含空白 URL、非 `http(s)` scheme,以及 loopback 主機名稱(`localhost`/`127.0.0.1`/`::1`)。納入 **FIX-M3** + **FIX-M6**(無效時回 400,成功時帶 `deduped` flag)。
+- **`fix(server): 實際載入 .env,讓 HH_USER_AGENT / GEMINI_API_KEY 提示生效`** — 先前執行期告訴使用者「在 .env 設定 HH_USER_AGENT」,但伺服器從未讀取該檔案,因此照做沒用。新增 35 列零相依 dotenv loader(`server/lib/dotenv.mjs`)於 `server/index.mjs` 頂部接線。命令列上設定的 process-env 值仍優先,既有 CI override 不會被遮蔽。父 `.env.example` 現包含記載的 `HH_USER_AGENT` 區塊與真實 Chrome User-Agent 範例。6 個新測試。
+- **`fix(api): prompt 組裝前淨化 JD`(FIX-M5)** — `POST /api/evaluate` 在呼叫 Gemini 或回送 prompt 前,去除 ANSI escape、控制位元組、行內 `<script>` 標籤,並修剪空白。50 KB 長度上限。50 字元最小限制對「淨化後」文字運行,因此看似夠長但多為 escape 的 prompt-injection 嘗試會以 400 快速失敗。
+- **`fix(health): 當 HOST!=loopback 時遮罩 Node 版本 + 專案 root`(FIX-M1)** — `/api/health` 不再於 LAN 暴露部署上識別主機。Loopback 回應仍保留值以利本地診斷。
+
+### ✨ 新功能
+
+- **`feat: 7 個新 sidebar mode + 分組 sidebar`(FIX-C8)** — 完整涵蓋父專案 `modes/` 目錄 100 %,無 UI 空缺。新路由:`#/project`(portfolio project advisor)、`#/training`(course / cert evaluation)、`#/followup`(per-application cadence)、`#/batch`(parallel URL processor)、`#/contacto`(LinkedIn outreach drafter)、`#/interview-prep`(stage-specific prep)、`#/patterns`(rejection-pattern analyzer)。全部 7 個共用單一 config-driven 視圖工廠(`public/js/views/mode-page.js`)與單一通用端點 `POST /api/mode/:slug` — 未來新增 mode 是一列 config + 一個 i18n 區塊。Sidebar 重組為 6 群組:Sourcing / Decision / Application / Networking / Analytics / Setup。共 18 個 nav 條目。12 個新測試於 `tests/modes-endpoints.test.mjs`。
+- **`fix: bootstrap 父專案 deps + russian_portals 預設`(FIX-C4 + C9 + C12 + H2)** — `bin/start.sh` 現在於 fresh clone 安裝父 `node_modules`(js-yaml、playwright、jsdom)與 `npx playwright install chromium`,讓 `/api/stream/scan`、`/pdf` 與 `/liveness` 開箱端對端可用。`createApp()` 每次啟動探測 `portals.yml` — 若缺 `russian_portals:` 區塊,附加帶註解的記載預設。冪等:第二次啟動為 no-op。3 個新測試。
+- **`fix: 在 template + health-check script 停用 9 個失效 portal slug`(FIX-C3)** — `templates/portals.example.yml` 現在出貨時將 Ada / Factorial / Tinybird / Weights & Biases / Travelperk / Clarity AI / Forto / Vinted / Runway 標為 `enabled: false`(每條附行內原因註解)。新安裝掃描 **87** 個存活公司而非 96。新 `web-ui/scripts/portals-health-check.mjs` HEAD-probe 每個啟用之 `careers_url` 並回報 DEAD 條目並建議 patch 清單(透過 `--json` 輸出 JSON)。3 個新測試。
+- **`feat(activity): 使用者動作日誌 + Activity sidebar 頁面`** — 每個狀態變更 API 請求皆捕捉至 `data/activity.jsonl`(timestamp、action verb、target、success flag、可選 detail)。新 sidebar 條目 **Activity**,帶 action-prefix chip 篩選(pipeline / cv / jd / evaluate / scan / stream / script)、動作 ✓/✗ 徽章與刷新按鈕。5 MB 自動 rotate。10 個新測試,涵蓋 middleware、讀取篩選、損壞行容忍、`GET /api/activity` 本身的遞迴防護。
+- **`feat(deep): 於瀏覽器檢視 Deep Research + 儲存結果存檔`** — Deep Research 頁面現在(a)當 `{ run: true }` 且設定 `GEMINI_API_KEY` 時透過 Gemini 即時執行 prompt,並將輸出持久化至 `interview-prep/{slug}.md`;(b)以可點擊卡片列出每個儲存的 deep-research 檔案(帶相對 timestamp);(c)將結果渲染為 Markdown,並提供每結果 **📋 Copy / ⬇ Download .md / ↗ Open in tab** 動作。新 REST 介面:`GET /api/interview-prep`、`GET /api/interview-prep/:name`、`DELETE /api/interview-prep/:name`。7 個新測試。
+- **`feat(cv): 於瀏覽器產生 + 下載 PDF,並含 PDF 存檔`** — CV 頁面新增 **📄 Generate PDF** 按鈕,於 modal console 串流 `/api/stream/pdf`。發生 `ERR_MODULE_NOT_FOUND` / `playwright` 錯誤時,呈現可複製貼上的 bootstrap 命令。新「Generated PDFs」段落於每次成功執行後自動載入,列出每個 `output/*.pdf` 並提供 **↗ Open** 與 **⬇ Download** 按鈕。新 REST 介面:`GET /api/output/pdfs`、`GET /api/output/pdfs/:name`。6 個新測試。
+- **`feat(api): POST /api/tracker — 從 UI 附加列`(FIX-H8)** — 從瀏覽器附加規範列至 `data/applications.md`。驗證 company + role、對 `templates/states.yml` 正規化 status、自動遞增零填補 `#`、依 company+role(大小寫不敏感)dedup、對 notes pipe-escape 以免 markdown 表格斷裂。檔案為空時 bootstrap 表格。6 個新測試。
+- **`feat(api): DELETE /api/jds/:name`(FIX-H4)** — 不再 shell-out 即可移除儲存之 JD。Path-traversal 字元於任何檔案系統觸碰前去除;參數必須以 `.txt` 結尾。5 個新測試,包含 `../../etc/passwd` 拒絕。
+- **`feat(api): POST /api/evaluate/test-gemini`(FIX-H7)** — Smoke 測試端點,透過 `gemini-eval.mjs` 跑 50 字元假 JD,讓使用者可在不耗實際 evaluation 時間下驗證 API key 是否有效。回傳 `{ ok, code, sampleLength, sample }`。
+
+### 🐛 Bug fixes
+
+- **`fix(router): catch-all 404 視圖 + i18n 覆蓋率防護`(FIX-C7)** — 未知 hash 路由過去無聲後備至 dashboard,遮蔽 typo 與壞掉的書籤。現在 `#/totally-random-xyz` 渲染專屬 404 頁面,引用該壞路徑並提供 dashboard 連結。404 視圖在 router IIFE 內註冊,因此不會與任何使用者路由衝突。新 `tests/i18n-coverage.test.mjs` 於 `vm.Context` 內以 stub `window` 執行 `i18n.js`、揭露私有 `DICT`,並斷言 173+ 個 key 跨 8 個 locale 皆已填入且非空。4 個新 router 測試。
+- **`fix(router): 別名 #/profile → settings`(FIX-C2)** — 內部路由名為 `settings`(`nav.settings` 渲染為「Profile」)但外部連結與肌肉記憶都會走 `#/profile`。現在兩個位址抵達同一視圖,sidebar nav 條目以任一方式都亮起。2 個新測試。
+- **`fix(health): 統一 Health/Doctor + 標記模板 profile`(FIX-C6 + FIX-H6)** — Health 與 Doctor 為兩個不同真實來源。現在 `/api/health` 揭露 Doctor 報告之全部(parent-deps、Playwright、目錄、profile-customized、`HH_USER_AGENT`)。`Profile customized` 檢查偵測佔位名稱(`Jane Smith`、`Alex Doe`、`John Doe`、`Your Name`、`Test User`)與明確 YAML 解析錯誤。4 個新測試。
+- **`fix(scan): 對 RU config 之 query↔negative 衝突發警告`(FIX-H3)** — 當 `portals.yml` 出貨時 `title_filter.negative` 含 `"PHP"`,而 queries 鎖定 Senior PHP,每個匹配都被篩掉,使用者看到 0 結果。`loadConfig()` 現在計算 `warnings` 陣列;`runRuScan()` 在掃描開始前以 SSE stderr 列發出每個警告。2 個新測試驗證出貨預設開箱保持 PHP 友善。
+- **`fix(scan): HH_USER_AGENT 未設定時發警告`(FIX-H1)** — `/scan` 頁面探測 `/api/health`,在 `HH_USER_AGENT` 為空時於動作列上方顯示黃色警告卡,使用者在點 RU scan **之前**即得知 hh.ru 403 之可能。
+- **`fix(api): 當 POST /api/jds slug 被去除不安全字元時發警告`(FIX-M2)** — 去除危險字元的 slug 正規化現在回傳 `warning` 欄位;純大小寫 / 空白清理保持安靜。淨化後為空時回 400。
+- **`fix(ui): 路由變更時清除全域搜尋 + 按鈕 spinner`(FIX-M4 + FIX-L1)** — 全域搜尋輸入於 `hashchange` 時清除(對 active 輸入有 guard)。新 `UI.withSpinner(button, fn)` helper 將載入狀態、ARIA、雙擊防護接線進每個 async 按鈕點擊。已採用於 Doctor / Verify / sync-check / Save CV / Normalize / Dedup / Merge 按鈕。
+- **`fix(ui): 讓 sidebar 可捲動,使 18 個 nav 條目永遠抵達 footer`** — FIX-C8 之分組 sidebar 在較短 viewport 溢出;底部條目(Activity / Health)被剪掉。`.sidebar` 現有 `overflow-y: auto` 與薄客製樣式 scrollbar(WebKit + Firefox)。Footer 透過既有 `margin-top: auto` 固定。
+- **`fix(ui): 空 modal-title 佔位`(FIX-H9)** — `index.html` 中硬編碼英文 `"Title"` 字串已移除,關閉 modal 開啟期間短暫可見的競爭視窗。
+
+### 🌐 i18n
+
+- 173+ 個翻譯 key × 8 個支援 locale(`en`、`es`、`pt-BR`、`ko`、`ja`、`ru`、`zh-CN`、`zh-TW`)。為 404 頁面、activity 日誌、deep research、PDF 流程、安全警告、tracker 突變、apply 改名加入新 key。覆蓋率現由 `tests/i18n-coverage.test.mjs` 強制 — 每個 key 必須於每個支援 locale 有非空值,否則 CI 失敗。
+
+### ⚙️ DevOps
+
+- **測試數:** 73 → **201**(+128,跨 23 個測試檔案)。剩餘單一失敗測試(`runEnScan: dry-run end-to-end across multiple sources`)為 Greenhouse/Ashby/Lever live API response 之既存 flake。
+- **Comprehensive Playwright e2e**(`tests/e2e-comprehensive.mjs`,23 步驟):走訪完整使用者旅程 — CV 儲存 → preview → PDF 產生 → 全部 7 個新 mode → tracker 篩選 → activity 日誌 → 404 → modal ESC → sidebar 捲動 → Ctrl-K focus → search 清除 → profile 別名 → 語言持久化。
+- **GitHub Actions**(`.github/workflows/`):
+  - `ci.yml` — Node 18/20/22 矩陣上之單元 + 整合測試,加上 i18n 覆蓋率閘(每個 key × 8 locale 必須非空),加上每個 PR 上的完整 Playwright e2e。
+  - `ai-review.yml` — 每個 PR 上之 Claude Code AI review。維護者保留 merge 權威;Claude 只建議。透過 `skip-ai-review` 標籤跳過。
+  - `release.yml` — 當推送 `v*.*.*` tag 時自動發布 GitHub Release;release notes 從 `CHANGELOG.md` 切片,讓 8 語言變體保持規範來源。
+- **CSP 友善 UI:** `index.html` 與 `router.js` 中所有行內 `onclick` 處理器已移除。嚴格 `script-src 'self'` 政策現在可強制執行,且不破壞任何功能。
+
+### 📦 新 REST 端點
+
+| 方法 | 路徑 | 目的 |
+|---|---|---|
+| `GET`    | `/api/activity`                  | 列出使用者動作事件,最新優先 |
+| `GET`    | `/api/interview-prep`            | 列出儲存之 Deep Research 檔案 |
+| `GET`    | `/api/interview-prep/:name`      | 讀取單一 Deep Research 檔案 |
+| `DELETE` | `/api/interview-prep/:name`      | 移除 Deep Research 檔案 |
+| `GET`    | `/api/output/pdfs`               | 列出產生的 PDF |
+| `GET`    | `/api/output/pdfs/:name`         | 以附件方式串流 PDF |
+| `POST`   | `/api/tracker`                   | 對 `applications.md` 附加列 |
+| `DELETE` | `/api/jds/:name`                 | 移除儲存之 JD |
+| `POST`   | `/api/evaluate/test-gemini`      | Smoke 測試 Gemini API key |
+| `POST`   | `/api/mode/:slug`                | 7 個新 mode 之通用 prompt builder(project / training / followup / batch / contacto / interview-prep / patterns) |
+
+---
+
+## [1.6.0] — 2026-05-02
+
+Web UI 首次公開發布。基準功能盤點請參閱 `README.md`。

@@ -88,7 +88,11 @@ test('#/reports view source contains the score-thresholds card scaffold', () => 
 });
 
 test('i18n bundle includes every new key from v1.11.x with all 8 locales', () => {
-  const i18n = readFileSync(resolve(ROOT, 'public', 'js', 'lib', 'i18n.js'), 'utf8');
+  // v1.23.0 (N-1) — DICT moved to i18n-dict.js. Read both and grep the
+  // combined source so this canary keeps catching missing-locale drift
+  // regardless of which file the key lives in.
+  const i18n = readFileSync(resolve(ROOT, 'public', 'js', 'lib', 'i18n.js'), 'utf8') +
+               '\n' + readFileSync(resolve(ROOT, 'public', 'js', 'lib', 'i18n-dict.js'), 'utf8');
   const NEW_KEYS = [
     'rep.thresholdsTitle', 'rep.thrAction', 'rep.thr45', 'rep.thr40',
     'rep.thr35', 'rep.thrLow', 'rep.thresholdsSource',

@@ -54,8 +54,12 @@ const REQUIRED_LANGS = ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']
 const REQUIRED_KEYS = ['nav.help', 'help.title', 'help.subtitle', 'help.toc'];
 
 test('i18n: nav.help / help.* keys present in every supported locale', () => {
-  let src = readFileSync(resolve(ROOT, 'public', 'js', 'lib', 'i18n.js'), 'utf8');
-  src = src.replace(
+  // v1.23.0 (N-1) — DICT moved to i18n-dict.js (loaded first via
+  // <script src>). Replicate the split-load order so this test sees
+  // the same merged DICT the browser does.
+  const dictSrc = readFileSync(resolve(ROOT, 'public', 'js', 'lib', 'i18n-dict.js'), 'utf8');
+  let logicSrc = readFileSync(resolve(ROOT, 'public', 'js', 'lib', 'i18n.js'), 'utf8');
+  logicSrc = logicSrc.replace(
     /return\s*\{\s*t,\s*setLang,\s*getLang,\s*getLangs,\s*onChange\s*\};/,
     'return { t, setLang, getLang, getLangs, onChange, _DICT: DICT };'
   );
@@ -65,7 +69,8 @@ test('i18n: nav.help / help.* keys present in every supported locale', () => {
     document: { documentElement: { lang: 'en' }, addEventListener: () => {} },
     navigator: { language: 'en' },
   });
-  runInContext(src, ctx);
+  runInContext(dictSrc, ctx);
+  runInContext(logicSrc, ctx);
   const D = ctx.window.I18n._DICT;
   for (const k of REQUIRED_KEYS) {
     assert.ok(D[k], `missing key: ${k}`);

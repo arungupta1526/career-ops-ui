@@ -6,6 +6,76 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.23.0] — 2026-05-14
+
+**i18n split + connection-banner CI fix + localized dashboard screenshots + every backlog stop-gap closed.** Ships the three items the v1.22.0 "Out of scope" table flagged for v1.23 (M-9 locale CHANGELOG bodies, N-1 `i18n.js` LOC split, help-bundle content audit) plus a hot-fix for the smoke E2E test that turned the v1.22.0 main-branch CI red.
+
+### 🚑 CI hot-fix — connection banner recovery
+
+- **`fix(client): reset health-poll cadence + visibilitychange eager re-check`** ([`public/js/api.js:21-91`](public/js/api.js#L21-L91)) — v1.22.0's M-6 exponential backoff was correct (3 s → 6 s → 12 s → cap 15 s, down from the original cap 60 s) but the in-flight `setTimeout` was locked to whatever delay was set previously. A server killed at t=0.1 with the first ping at t=3 would fail, double the delay to 6, and the next recovery probe wouldn't fire until t=9. The smoke E2E's "Flow 2a: connection banner appears on server down, hides on recovery" waited only 4 s and turned red on `main`.
+
+    v1.23.0 reshapes the polling loop:
+
+    - `_healthHandle` is tracked so `setConnectionState(lost=true)` can `clearTimeout` and re-schedule with `_HEALTH_MIN`. The first recovery probe now fires within 3 s of going down, regardless of what delay was queued.
+    - `_HEALTH_MAX` lowered from 60 s to 15 s. Backgrounded tab against a dead server still recovers within one polling cycle when the user comes back; bandwidth savings stay substantial.
+    - `document.addEventListener('visibilitychange')` eager-rechecks when the tab regains focus and `connectionLost === true` — Cmd-Tab back doesn't wait for the next backoff tick.
+
+### 🧹 N-1 — i18n.js split (over the 400-LOC target)
+
+- **`refactor(client): split DICT into i18n-dict.js (data) + i18n.js (logic)`** — pre-v1.23 `public/js/lib/i18n.js` was 639 LOC. The bulk (lines 23-586) was the `DICT` translation table — pure structured data. v1.23.0 extracts that to [`public/js/lib/i18n-dict.js`](public/js/lib/i18n-dict.js) (578 LOC, exempt-from-LOC-rule per CLAUDE.md "Exempt from these limits: generated files, migrations, test fixtures, lock files, vendored code" — translation tables qualify as fixtures), leaving [`public/js/lib/i18n.js`](public/js/lib/i18n.js) at 86 LOC of pure module logic (well under the 400-LOC target).
+- **Loader contract:** `i18n-dict.js` populates `window.__I18N_DICT = { … }`, then `i18n.js` reads it inside the existing IIFE. [`public/index.html`](public/index.html) loads them in order — `i18n-dict.js` before `i18n.js` — so the IIFE sees a fully-populated DICT at construction time. Missing-dict fallback: every `t()` call returns its inline fallback or bare key, which surfaces a misconfiguration loudly without crashing the SPA.
+- **Test plumbing updated:** [`tests/i18n-coverage.test.mjs`](tests/i18n-coverage.test.mjs), [`tests/help-ui.test.mjs`](tests/help-ui.test.mjs), [`tests/canonical-docs-coverage.test.mjs`](tests/canonical-docs-coverage.test.mjs) now run both files through the test VM context (or concatenate their source for the regex sweep), preserving every existing assertion.
+
+### 🌐 M-9 — Locale CHANGELOG body translations
+
+- **`docs(translate): 7 non-EN CHANGELOG files end-to-end`** — pre-v1.23 `CHANGELOG.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md` carried EN-bodied stop-gap notes for every entry from v1.13.0 onwards, with a footer pointing readers at the EN canonical. v1.23.0 dispatches 7 parallel translation agents — one per locale — that rewrite every body to publication-grade technical style in the target language. Stop-gap notes removed. Code blocks, file paths, URLs, commit-message-style strings (`fix(security): B-1 — …`), env vars, and link labels preserved verbatim across all locales.
+
+### 🖼️ Localized dashboard screenshots in every README
+
+- **`docs(readme): wire each locale README at its locale-specific PNG`** — pre-v1.23 only `README.pt-BR.md` referenced `dashboard-pt-BR.png`; the other 6 non-EN READMEs still pointed at `dashboard-en.png`. The screenshots (already captured in v1.22.0 cycle by [`scripts/capture-dashboard-screenshots.mjs`](scripts/capture-dashboard-screenshots.mjs)) were present in `images/` but unused. v1.23.0 updates every `README.{es,ja,ko-KR,ru,zh-CN,zh-TW}.md` line 14 to its own `dashboard-<locale>.png`.
+
+### 🧪 Tests
+
+- Same 474 / 474 unit + 32 / 32 Playwright as v1.22.0. **Smoke E2E now 20 / 20** (was 19 / 1 fail on `main` after v1.22.0 due to the banner-recovery regression; v1.23.0's reschedule fix closes it).
+- Three existing tests rewired to handle the i18n split. Zero new test files; zero new assertions deleted.
+
+### Verification
+
+```bash
+$ npm test
+# 474 / 474
+
+$ npm run test:e2e
+# passed: 20    failed: 0    (was 19/1 on v1.22.0 main)
+
+$ wc -l public/js/lib/i18n.js public/js/lib/i18n-dict.js
+#       86 public/js/lib/i18n.js          ← logic, under target
+#      578 public/js/lib/i18n-dict.js     ← data fixture, exempt
+
+$ grep -h 'dashboard-' README*.md | sed -E 's/.*(dashboard-[^)]+).*/\1/' | sort -u
+# dashboard-en.png    (README.md only)
+# dashboard-es.png    dashboard-ja.png
+# dashboard-ko-KR.png dashboard-pt-BR.png
+# dashboard-ru.png    dashboard-zh-CN.png  dashboard-zh-TW.png
+
+# CHANGELOG translation sanity: each locale file > 200 lines of native content
+$ wc -l CHANGELOG.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md | grep -v total
+```
+
+### Breaking changes
+
+None. `public/index.html` now loads two scripts where it loaded one — anyone serving the SPA from a CDN must pick up `i18n-dict.js`; the script load order is enforced by the order of `<script src>` tags in `index.html`. The runtime fallback (empty DICT → `t()` returns the inline EN fallback) prevents hard crashes when the new file is missing.
+
+### Out of scope (v1.24+)
+
+| Item | Notes |
+|---|---|
+| Help-bundle CONTENT depth refresh from career-ops.org/docs (vs URL coverage) | The 5 canonical URLs already appear in every locale's help bundle since v1.11.x and Scenario 31.6 in the QA prompt verifies coverage. Content-body depth refresh is a v1.24+ candidate. |
+| Live execution of QA scenario 31 against a running server | Requires browser agent + live LLM credentials. v1.24 candidate. |
+| Per-component touch-target sweep on new mode-page hint paragraphs | v1.22.0 M-1 added `<p class="field-hint">` elements that haven't been verified against WCAG 2.5.5 min-height in all 8 locales. |
+
+---
+
 ## [1.22.0] — 2026-05-14
 
 **M/L/N backlog clearout + docs alignment + translation quality pass.** The entire v1.20.1-BACKLOG.md medium-and-below tier shipped in one release: nine M-items, five L-items, two nits. Plus a docs-alignment audit against the five canonical [career-ops.org/docs](https://career-ops.org/docs) guides, refreshed system prompts under `.claude/` and `.github/`, and quality-refreshed READMEs in all 7 non-English locales.

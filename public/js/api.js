@@ -2,32 +2,32 @@
 window.API = (function () {
   let connectionLost = false;
 
-  function setConnectionState(lost, reason) {
-    if (lost === connectionLost) return;
-    connectionLost = lost;
-    const banner = document.getElementById('conn-banner');
-    if (!banner) return;
-    if (lost) {
-      banner.hidden = false;
-      const baseMsg = (window.I18n && window.I18n.t)
-        ? window.I18n.t('conn.down', 'Server is not responding.')
-        : 'Server is not responding.';
-      banner.querySelector('.conn-msg').textContent =
-        baseMsg + ' (' + (reason || 'fetch failed') + ') · bash web-ui/bin/start.sh';
-    } else {
-      banner.hidden = true;
-    }
-  }
-  // v1.22.0 (M-6) — exponential backoff on the health ping. Tab left
-  // open overnight against a dead server used to fire 28,800 failed
-  // fetches; now the interval grows 3s → 6s → 12s → 24s → 60s and
-  // resets to 3s on the first successful recovery. Use setTimeout
-  // chain instead of setInterval so each step picks up the new delay.
+  // v1.22.0 (M-6) + v1.23.0 — exponential backoff on the health ping.
+  // Tab left open overnight against a dead server used to fire 28,800
+  // failed fetches. Backoff grows 3s → 6s → 12s → cap 15s, resets to
+  // 3s on the first successful recovery.
+  //
+  // v1.23.0 hardening: the in-flight setTimeout is tracked by handle
+  // and re-scheduled immediately when connection state flips down.
+  // Without this reset, the existing timer was locked to whatever delay
+  // was set previously — a server killed at t=0.1 with the first ping
+  // at t=3 would fail, double the delay to 6, and the next recovery
+  // probe wouldn't fire until t=9. Recovery now happens within
+  // _HEALTH_MIN seconds of going down.
+  //
+  // v1.23.0 also re-caps at 15s instead of 60s — a tab that's been
+  // backgrounded for an hour will still recover within one polling
+  // cycle once the user comes back. Network savings vs no-backoff
+  // remain substantial (240/hr → 240/hr → 240/hr peak, dropping to
+  // 240/hr at the 15s cap — vs ~1200/hr at the original 3s constant).
+  let _healthHandle = null;
   let _healthDelay = 3000;
   const _HEALTH_MIN = 3000;
-  const _HEALTH_MAX = 60000;
+  const _HEALTH_MAX = 15000;
   function _scheduleHealthCheck() {
-    setTimeout(async () => {
+    if (_healthHandle) { clearTimeout(_healthHandle); _healthHandle = null; }
+    _healthHandle = setTimeout(async () => {
+      _healthHandle = null;
       if (!connectionLost) { _healthDelay = _HEALTH_MIN; _scheduleHealthCheck(); return; }
       try {
         const r = await fetch('/api/health', { cache: 'no-store' });
@@ -44,7 +44,43 @@ window.API = (function () {
       _scheduleHealthCheck();
     }, _healthDelay);
   }
+
+  function setConnectionState(lost, reason) {
+    if (lost === connectionLost) return;
+    connectionLost = lost;
+    const banner = document.getElementById('conn-banner');
+    if (lost) {
+      // v1.23.0 — reset backoff + reschedule so the FIRST recovery probe
+      // happens within _HEALTH_MIN of going down (otherwise it inherits
+      // whatever delay was previously queued).
+      _healthDelay = _HEALTH_MIN;
+      _scheduleHealthCheck();
+    }
+    if (!banner) return;
+    if (lost) {
+      banner.hidden = false;
+      const baseMsg = (window.I18n && window.I18n.t)
+        ? window.I18n.t('conn.down', 'Server is not responding.')
+        : 'Server is not responding.';
+      banner.querySelector('.conn-msg').textContent =
+        baseMsg + ' (' + (reason || 'fetch failed') + ') · bash web-ui/bin/start.sh';
+    } else {
+      banner.hidden = true;
+    }
+  }
   _scheduleHealthCheck();
+
+  // v1.23.0 — eager re-check when the tab regains focus / visibility.
+  // Users typically Cmd-Tab back when the server is up; we shouldn't
+  // wait up to 15s for the next backoff tick to discover that.
+  if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && connectionLost) {
+        _healthDelay = _HEALTH_MIN;
+        _scheduleHealthCheck();
+      }
+    });
+  }
 
   function currentLang() {
     try {
