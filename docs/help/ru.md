@@ -14,8 +14,7 @@
 
 [career-ops](https://career-ops.org) — open-source-система поиска
 работы, которая запускается как slash-команды внутри любого AI-CLI
-для разработки (Claude Code, Codex, Cursor, Gemini CLI, GitHub
-Copilot CLI). Модель-агностична. Оценивает каждую вакансию против
+для разработки (Claude Code, Codex, OpenCode, Qwen CLI — другие Claude-совместимые CLI работают через тот же интерфейс slash-команд). Модель-агностична. Оценивает каждую вакансию против
 вашего CV по шестимерной рубрике 0.0–5.0, генерирует подогнанные
 PDF-резюме и отслеживает каждую заявку локально на вашей машине.
 
@@ -86,7 +85,7 @@ career-ops прикасается):
 
 | | career-ops (CLI) | career-ops-ui (это приложение) |
 |---|---|---|
-| Где работает | внутри Claude Code / Codex / Cursor / Gemini CLI | `http://127.0.0.1:4317` в браузере |
+| Где работает | внутри Claude Code / Codex / OpenCode / Qwen CLI | `http://127.0.0.1:4317` в браузере |
 | Поверхность | slash-команды `/career-ops <mode>` | сайдбар, по одной странице на этап |
 | Заполнение форм | да, через Playwright MCP | нет — выдаёт чек-лист, остальное доделывается в CLI |
 | PDF | `generate-pdf.mjs` | `📄 Generate PDF` на `#/cv`, `#/reports/:slug`, `#/evaluate`, `#/deep`, `#/interview-prep` |

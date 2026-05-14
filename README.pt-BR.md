@@ -16,7 +16,7 @@
 
 ## Sobre o career-ops
 
-O [career-ops](https://career-ops.org) é um sistema open-source de busca de emprego que roda como slash commands dentro de qualquer CLI de IA para código (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot CLI). É agnóstico em relação ao modelo. Avalia cada vaga contra o seu CV usando uma rubrica de seis dimensões na escala 0.0–5.0, gera currículos em PDF personalizados e registra cada candidatura localmente — sem contas em nuvem, sem telemetria, sem envio automático.
+O [career-ops](https://career-ops.org) é um sistema open-source de busca de emprego que roda como slash commands dentro de qualquer CLI de IA para código (Claude Code, Codex, OpenCode, Qwen CLI — outras CLIs compatíveis com Claude também funcionam pela mesma superfície de slash-commands). É agnóstico em relação ao modelo. Avalia cada vaga contra o seu CV usando uma rubrica de seis dimensões na escala 0.0–5.0, gera currículos em PDF personalizados e registra cada candidatura localmente — sem contas em nuvem, sem telemetria, sem envio automático.
 
 **Este repositório (career-ops-ui)** é uma interface web polida sobre essa base. O CLI continua responsável pelo preenchimento de formulários (via Playwright MCP) e pelos modos de slash commands; a SPA oferece uma superfície de navegador no estilo CRM sobre os mesmos arquivos `cv.md` / `data/applications.md` / `reports/`. Os dois compartilham os mesmos dados.
 

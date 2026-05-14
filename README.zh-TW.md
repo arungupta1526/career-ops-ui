@@ -16,7 +16,7 @@
 
 ## 關於 career-ops
 
-[career-ops](https://career-ops.org) 是一套開源求職系統,以 slash 指令的形式運行於任何 AI 編碼 CLI(Claude Code、Codex、Cursor、Gemini CLI、GitHub Copilot CLI)之內。模型無關。它以六維度 0.0–5.0 評分準則將每一筆職缺與你的 CV 進行配對、產生量身打造的 PDF 履歷,並在本機追蹤每一次投遞 — 不需要雲端帳號、不收集遙測資料、絕不自動送出。
+[career-ops](https://career-ops.org) 是一套開源求職系統,以 slash 指令的形式運行於任何 AI 編碼 CLI(Claude Code、Codex、OpenCode、Qwen CLI — 其他 Claude 相容 CLI 也透過相同的斜線指令介面運作)之內。模型無關。它以六維度 0.0–5.0 評分準則將每一筆職缺與你的 CV 進行配對、產生量身打造的 PDF 履歷,並在本機追蹤每一次投遞 — 不需要雲端帳號、不收集遙測資料、絕不自動送出。
 
 **本儲存庫(career-ops-ui)** 是建構於其上的精緻網頁介面。CLI 仍負責表單填寫(透過 Playwright MCP)與 slash 指令模式;SPA 則在相同的 `cv.md` / `data/applications.md` / `reports/` 檔案之上,提供 CRM 風格的瀏覽器介面。兩者共用同一份資料。
 

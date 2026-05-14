@@ -8,6 +8,16 @@
 
 ---
 
+## [1.28.0] — 2026-05-14
+
+**文件對齊 + `#/batch` 新增 `--max-retries N` 控制項。**關閉 `qa/QA-PROMPT-docs-vs-app.md` 中提出的兩個未決 issue。
+
+- **Issue #2** — `#/batch` 現在提供「Max retries」數字輸入(1–10),僅在勾選「Retry failed」時啟用。伺服器端使用 `parseInt` 並驗證 1≤N≤10,超出範圍的值會靜默丟棄;未啟用 `--retry-failed` 時 `--max-retries` 旗標被忽略。`tests/batch-max-retries.test.mjs` 中 7 個測試案例。新增 2 個 i18n key × 8 語系。
+- **Issue #1** — 8 個 help-bundle 與 8 個 README 的 AI CLI 列表與 career-ops.org/docs 正典(Claude Code · Codex · OpenCode · Qwen CLI)對齊,並附本地化一句:*「其他 Claude 相容 CLI 也透過相同的斜線指令介面運作」*。README 中關於 web-ui 自身 shim 檔案的「Multi-CLI」項目保持不變(那是另一種 surface)。`tests/canonical-docs-coverage.test.mjs` 中新增 2 個回歸 canary。
+- **506 → 515** 單元 + 驗收測試(+9 新增)。Playwright 32/32 無變化。完整細節見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.27.0] — 2026-05-14
 
 **外觀 + 無障礙打磨：去重側邊欄 `#/dashboard` 入口。**

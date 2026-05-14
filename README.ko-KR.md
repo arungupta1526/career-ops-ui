@@ -16,7 +16,7 @@
 
 ## career-ops 소개
 
-[career-ops](https://career-ops.org)는 모든 AI 코딩 CLI(Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot CLI) 안에서 슬래시 명령으로 동작하는 오픈소스 구직 시스템입니다. 모델 무관(model-agnostic)으로 설계되어 있으며, 6차원 0.0–5.0 루브릭으로 각 채용 공고를 사용자의 CV와 대조하여 평가하고, 맞춤형 PDF 이력서를 생성하며, 모든 지원 이력을 로컬에 기록합니다. 클라우드 계정도, 텔레메트리도, 자동 제출 기능도 사용하지 않습니다.
+[career-ops](https://career-ops.org)는 모든 AI 코딩 CLI(Claude Code, Codex, OpenCode, Qwen CLI — 다른 Claude 호환 CLI도 동일한 슬래시 커맨드 인터페이스에서 작동합니다) 안에서 슬래시 명령으로 동작하는 오픈소스 구직 시스템입니다. 모델 무관(model-agnostic)으로 설계되어 있으며, 6차원 0.0–5.0 루브릭으로 각 채용 공고를 사용자의 CV와 대조하여 평가하고, 맞춤형 PDF 이력서를 생성하며, 모든 지원 이력을 로컬에 기록합니다. 클라우드 계정도, 텔레메트리도, 자동 제출 기능도 사용하지 않습니다.
 
 **이 저장소(career-ops-ui)** 는 그 위에 얹은 완성도 높은 웹 인터페이스입니다. 폼 자동 입력(Playwright MCP 경유)과 슬래시 명령 모드는 여전히 CLI가 담당하며, SPA는 동일한 `cv.md` / `data/applications.md` / `reports/` 파일 위에 CRM 형태의 브라우저 화면을 제공합니다. 두 도구는 같은 데이터를 공유합니다.
 

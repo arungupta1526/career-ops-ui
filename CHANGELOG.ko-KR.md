@@ -8,6 +8,16 @@
 
 ---
 
+## [1.28.0] — 2026-05-14
+
+**도큐 정렬 + `#/batch`의 `--max-retries N` 컨트롤.** `qa/QA-PROMPT-docs-vs-app.md`에서 제기된 두 개의 open 이슈를 종료합니다.
+
+- **Issue #2** — `#/batch`에 숫자 입력 "Max retries"(1–10)가 추가되었으며, "Retry failed"가 체크된 경우에만 활성화됩니다. 서버는 `parseInt` + 1≤N≤10 범위 검증을 수행하고, 범위 밖 값은 조용히 폐기하며, `--retry-failed`가 없으면 `--max-retries`를 생략합니다. `tests/batch-max-retries.test.mjs`의 7 케이스. 새 i18n 키 2개 × 8 로케일.
+- **Issue #1** — 8개 help-bundle + 8개 README의 AI CLI 목록이 career-ops.org/docs 정본(Claude Code · Codex · OpenCode · Qwen CLI)에 맞춰지고, 로컬라이즈된 한 줄을 추가: *「다른 Claude 호환 CLI도 동일한 슬래시 커맨드 인터페이스에서 작동합니다」*. README의 "Multi-CLI" 항목(web-ui 자체 shim 파일 설명)은 그대로 유지(다른 surface). `tests/canonical-docs-coverage.test.mjs`에 새 카나리아 2개.
+- **506 → 515** 유닛 + 어셉턴스(+9 신규). Playwright 32/32 변동 없음. 상세 내역은 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.27.0] — 2026-05-14
 
 **겉모양 + 접근성 다듬기: 사이드바 `#/dashboard` 항목 중복 제거.**

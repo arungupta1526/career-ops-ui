@@ -10,6 +10,16 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.28.0] — 2026-05-14
+
+**Alineación de docs + nuevo control `--max-retries N` en `#/batch`.** Cierra las dos issues abiertas levantadas por `qa/QA-PROMPT-docs-vs-app.md`.
+
+- **Issue #2** — `#/batch` ahora expone un campo numérico "Max retries" (1–10) que sólo se habilita cuando "Retry failed" está activado. El servidor parsea + valida 1≤N≤10 (los valores fuera de rango se descartan silenciosamente) y omite `--max-retries` sin `--retry-failed`. 7 casos de prueba en `tests/batch-max-retries.test.mjs`. 2 claves i18n nuevas × 8 locales.
+- **Issue #1** — la lista de CLIs de IA en los 8 help-bundles y 8 READMEs se alinea con el canon de career-ops.org/docs (Claude Code · Codex · OpenCode · Qwen CLI), con una frase localizada: *«otras CLIs compatibles con Claude también funcionan vía la misma superficie de slash-comandos»*. El bullet "Multi-CLI" del README sobre los archivos shim de web-ui se conserva intacto (describe otra superficie). 2 nuevos canarios en `tests/canonical-docs-coverage.test.mjs`.
+- **506 → 515** unit + acceptance (+ 9 nuevos). Playwright 32/32 sin cambios. Detalles completos en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.27.0] — 2026-05-14
 
 **Pulido cosmético + a11y: deduplicar la entrada de barra lateral `#/dashboard`.**

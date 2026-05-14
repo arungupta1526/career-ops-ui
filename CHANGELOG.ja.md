@@ -8,6 +8,16 @@
 
 ---
 
+## [1.28.0] — 2026-05-14
+
+**ドキュメント整合 + `#/batch` の `--max-retries N` コントロール。**`qa/QA-PROMPT-docs-vs-app.md` から提起された 2 件のオープン issue を解消します。
+
+- **Issue #2** — `#/batch` に数値入力「Max retries」(1–10) を追加。「Retry failed」がチェックされた場合のみ有効化。サーバ側で `parseInt` と 1≤N≤10 のレンジ検証を行い、範囲外は静かに破棄、`--retry-failed` なしで `--max-retries` は付与されません。`tests/batch-max-retries.test.mjs` の 7 ケース。新規 i18n キー 2 個 × 8 ロケール。
+- **Issue #1** — 8 個の help-bundle と 8 個の README の AI CLI リストを career-ops.org/docs の正典(Claude Code・Codex・OpenCode・Qwen CLI)に揃え、ローカライズされた一文を追記:*「同じスラッシュコマンド・サーフェスで他の Claude 互換 CLI も動作します」*。README の「Multi-CLI」項目(web-ui 自身の shim ファイル説明)はそのまま(別 surface)。`tests/canonical-docs-coverage.test.mjs` に新規カナリア 2 個。
+- **506 → 515** unit + acceptance(+9 新規)。Playwright 32/32 変更なし。完全な詳細は [`CHANGELOG.md`](CHANGELOG.md) を参照。
+
+---
+
 ## [1.27.0] — 2026-05-14
 
 **外観 + アクセシビリティ調整: サイドバーの `#/dashboard` エントリ重複排除。**

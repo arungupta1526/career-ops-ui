@@ -1,6 +1,6 @@
 # QA-PROMPT — career-ops-ui vs career-ops.org/docs
 
-> **Built:** 2026-05-14, against `web-ui@1.27.0`.
+> **Built:** 2026-05-14, against `web-ui@1.28.0`.
 > **Source of truth (docs):** 5 canonical guides at https://career-ops.org/docs (Quick Start + 4 sub-guides).
 > **Source of truth (app):** this repo's [`server/lib/routes/*.mjs`](../server/lib/routes/), [`public/js/views/*.js`](../public/js/views/), [`public/index.html`](../public/index.html), [`docs/help/<locale>.md`](../docs/help/).
 > **Scope:** every feature, button, screen, command, file, threshold, error path the docs name — verified to exist in the SPA + tested ×8 locales.
@@ -11,7 +11,7 @@
 ## 0. Pre-flight
 
 ```bash
-curl -fsS http://127.0.0.1:4317/api/health | jq '.version'   # → "1.27.0" (or newer)
+curl -fsS http://127.0.0.1:4317/api/health | jq '.version'   # → "1.28.0" (or newer)
 curl -fsS http://127.0.0.1:4317/ | grep -c 'href="#/dashboard"'   # → 1   (v1.27.0 PR-D)
 git -C $WEB_UI describe --tags --abbrev=0                     # → v1.27.0+
 
@@ -46,7 +46,7 @@ Every row is verified on **all 8 locales** (en, es, pt-BR, ko-KR, ja, ru, zh-CN,
 | 3 | Step 3 — `cp config/profile.example.yml config/profile.yml` + edit `full_name`, `email`, `location`, `target_roles.primary`, `compensation.target_range`, `narrative.headline` | PASS | `#/config → Profile tab` (full YAML editor) + read-only summary at `#/profile` | `GET/POST /api/profile`, `GET /api/portals` | `tests/profile-canonical-schema.test.mjs` | every field label `data-i18n` × all 8 |
 | 4 | Step 4 — author `cv.md` (Summary / Experience / Skills / Education) | PASS | `#/cv` editor + 📁 Upload CV | `GET/PUT /api/cv`, `POST /api/cv/upload` | `tests/cv-roundtrip.test.mjs` | upload accepts .docx/.doc/.odt/.rtf/.pdf/.html/.txt/.md (pandoc + pdftotext on parent) × all 8 |
 | 5 | Step 5 — `cp modes/_profile.template.md modes/_profile.md` + customize | PASS | `#/config → Modes tab` | `GET/PUT /api/modes/_profile` | — | tab label i18n × all 8 |
-| 6 | Step 6 — open Claude / Codex / OpenCode / Qwen CLI | **DRIFT** | help-bundle §intro lists Claude Code / Codex / Cursor / Gemini CLI / GitHub Copilot CLI | — | — | **Action:** decide canonical list — is "OpenCode" + "Qwen CLI" canonical or are "Cursor / Gemini CLI / Copilot CLI" canonical? Today neither matches the other. **All 8 locales drift identically.** |
+| 6 | Step 6 — open Claude / Codex / OpenCode / Qwen CLI | PASS *(was DRIFT, closed v1.28.0)* | help-bundle §intro + 8 READMEs now list Claude Code / Codex / OpenCode / Qwen CLI (+ one-liner noting other Claude-compatible CLIs work via the same surface) | — | `tests/canonical-docs-coverage.test.mjs::v1.28.0 — every help-bundle + README lists OpenCode + Qwen CLI` + `…no help-bundle or README still names the pre-v1.28 broader list` | every locale's first ~30 lines × all 8 |
 | 7 | Step 7 — `/career-ops auto-pipeline <url>` runs full pipeline ~1-2 min | PASS | `#/dashboard → ✨ Auto-pipeline a URL` button | `POST /api/auto-pipeline` (with `llmRateLimit` + `isValidJobUrl` + `safeGet`) | `tests/auto-pipeline-rejection-paths.test.mjs` + `auto-pipeline-manual-mode.test.mjs` | button label `data-i18n="dash.autoPipeline"` × all 8 |
 | 8 | Anything below 4.0 = probably not a strong fit | PASS | `#/dashboard` + `#/tracker` highlight ≥ 4.0 | `GET /api/dashboard` | `tests/dashboard.test.mjs` | score-pill glyphs ✓ ◐ ○ × all 8 |
 | 9 | Troubleshooting collapses (report fail / PDF fail / inaccurate scoring) | PASS | help-bundle §16 troubleshooting table | `GET /api/help/:lang` | `tests/help-ui.test.mjs::section-parity` | table renders in current locale × all 8 |
@@ -104,7 +104,7 @@ Every row is verified on **all 8 locales** (en, es, pt-BR, ko-KR, ja, ru, zh-CN,
 | 3 | `--parallel N` (1, 2, 3) | PASS | `#/batch` parallel select (1 / 2 / 3) | `GET /api/stream/batch?parallel=N` | `tests/batch-runner.test.mjs` | label × all 8 |
 | 4 | `--min-score X.X` | PASS | `#/batch` min-score input | `GET /api/stream/batch?minScore=…` | `tests/batch-runner.test.mjs` | label × all 8 |
 | 5 | `--retry-failed` | PASS | `#/batch` retry-failed checkbox | `GET /api/stream/batch?retryFailed=1` | `tests/batch-runner.test.mjs` | label × all 8 |
-| 6 | `--max-retries N` (default 2) | **GAP — verify** | `#/batch` UI: is max-retries surfaced? **Run §2.D.6 below.** | `GET /api/stream/batch?maxRetries=…`? | manual smoke | × all 8 (if surfaced) |
+| 6 | `--max-retries N` (default 2) | PASS *(was GAP, closed v1.28.0)* | `#/batch` has a 5th numeric input "Max retries" (1-10), enabled only when "Retry failed" is checked | `GET /api/stream/batch?retry=1&maxRetries=N` (server validates int 1..10, silently drops out-of-range) | `tests/batch-max-retries.test.mjs` (7 cases: present / out-of-range / non-int / without `retry=1` / no-param / combined-with-other-flags) | `data-i18n="batch.maxRetriesLbl"` + `batch.maxRetriesAria` × all 8 |
 | 7 | Reports land in `reports/{id}-{company}-{date}.md` | PASS | `#/reports` lists every file | `GET /api/reports` | `tests/reports.test.mjs` | × all 8 |
 | 8 | Summary rows append to `batch/tracker-additions/*.tsv` | PASS | `#/tracker → ▶ Merge` consumes these files | `POST /api/batch/merge`, `POST /api/run/merge` | `tests/batch.test.mjs::merge` | merge-button label × all 8 |
 | 9 | `node merge-tracker.mjs` + `--dry-run` | PASS | `#/tracker → ▶ Merge` button (no dry-run UI checkbox — confirm with QA) | `POST /api/run/merge` | `tests/runners.test.mjs::merge` | merge label × all 8 |
@@ -276,7 +276,7 @@ Each is a mode page (`views/mode-page.js`). Per-mode form, **▶ Generate prompt
 | **Min score** input (0.0-5.0) | × all 8 |
 | **Dry-run** checkbox | × all 8 |
 | **Retry failed** checkbox | × all 8 |
-| **Max retries** input — **CONFIRM IS PRESENT** (1.D row #6) | × all 8 if surfaced |
+| **Max retries** input (number, 1-10) — **enabled only when "Retry failed" is checked**; `data-i18n="batch.maxRetriesLbl"` | × all 8 |
 | **▶ Run batch** → SSE stream of per-row progress | × all 8 |
 | Legacy `#/batch-prompt` resolves with deprecation banner pointing at `#/batch` | × all 8 |
 
@@ -311,11 +311,13 @@ Each is a mode page (`views/mode-page.js`). Per-mode form, **▶ Generate prompt
 - **Reports view:** renders BOTH schemas — legacy A-G files display verbatim; new A-F files use the realigned semantics.
 - **Status:** **DRIFT (deferred to a coordinated parent commit — `REGRESSION-v1.27.md §11`).** QA reports the schema actually shipped on the test stand and notes the drift; does NOT file as a bug.
 
-### 3.B — AI-assistant list mismatch
+### 3.B — AI-assistant list mismatch ✓ CLOSED in v1.28.0
 
 - **Canonical Quick Start (docs):** Claude Code / Codex / OpenCode / Qwen CLI.
-- **Our help-bundle §intro:** Claude Code / Codex / Cursor / Gemini CLI / GitHub Copilot CLI.
-- **Status:** **DRIFT — needs human decision.** Both lists are partial; neither covers the other. **Action:** ask the project owner which list is canonical, then sync both surfaces. Not actionable in QA — record only.
+- **Pre-v1.28 help-bundle §intro (drifted):** Claude Code / Codex / Cursor / Gemini CLI / GitHub Copilot CLI.
+- **Resolution (v1.28.0, Issue #1):** aligned downstream — all 8 help-bundles (intro paragraph + comparison-table row) and all 8 READMEs (intro paragraph) now match upstream canonical, with a one-liner appended: *"other Claude-compatible CLIs work too via the same slash-command surface"* (localized to each of the 8 locales).
+- **Out of scope:** the README's "Multi-CLI" feature bullet — that describes web-ui's own shim files (`CLAUDE.md` / `AGENTS.md` / `GEMINI.md`) and legitimately retains the broader list (Cursor / Aider / Gemini CLI), since those CLIs do drive our shims even though career-ops upstream doesn't have a verified setup walkthrough for them.
+- **Regression gate:** `tests/canonical-docs-coverage.test.mjs` carries two new canaries: (i) every help-bundle + README must mention "OpenCode" and "Qwen CLI"; (ii) no help-bundle or README may contain the pre-v1.28 stale phrase "Cursor, Gemini CLI, GitHub Copilot CLI" (Latin or CJK delimiter).
 
 ### 3.C — `/career-ops ofertas`
 
@@ -329,11 +331,12 @@ Each is a mode page (`views/mode-page.js`). Per-mode form, **▶ Generate prompt
 - **Our SPA:** `#/dashboard → ✨ Auto-pipeline a URL` button → `POST /api/auto-pipeline` with `mode:'manual'` short-circuit (v1.25.0 G-014) for no-key users.
 - **Status:** **PASS** — verify the manual short-circuit returns in ≤ 2 s (`REGRESSION-v1.27.md §3.7`) and that the live-key path emits SSE step events for `validate / fetch / save_jd / evaluate / save_report / append_tracker`.
 
-### 3.E — `--max-retries N` UI surface
+### 3.E — `--max-retries N` UI surface ✓ CLOSED in v1.28.0
 
 - **Docs:** batch-evaluate-offers lists `--max-retries N` (default 2) as a flag.
-- **Our SPA:** `#/batch` has 4 controls (Parallel / Min score / Dry-run / Retry failed) — confirm whether `max-retries` is also present.
-- **Status:** **VERIFY (§2.K above)** — if missing, file as a small **GAP** ticket (UI control to expose the flag the CLI already supports).
+- **Pre-v1.28 SPA:** `#/batch` had only 4 controls — `max-retries` was not surfaced; the runner always fell back to its hard-coded default 2.
+- **Resolution (v1.28.0, Issue #2):** added a 5th numeric input (`<input type="number" min="1" max="10">`) on `#/batch`, labelled "Max retries" via `data-i18n="batch.maxRetriesLbl"` (× 8 locales). Disabled by default; enables only when "Retry failed" is checked. Empty value omits the flag (runner default 2 wins). On submit the client appends `&maxRetries=N` to `GET /api/stream/batch`; the server-side handler in [`server/lib/routes/batch.mjs`](../server/lib/routes/batch.mjs) parses with `parseInt` + range-check (1 ≤ N ≤ 10), silently drops out-of-range or non-integer values, and is a no-op when `retry-failed` isn't also set.
+- **Regression gate:** `tests/batch-max-retries.test.mjs` — 7 cases covering present / out-of-range upper / out-of-range lower / non-integer / without `retry=1` / no-param / combined-with-all-other-flags.
 
 ### 3.F — Russian portals (`hh.ru` + Habr Career)
 

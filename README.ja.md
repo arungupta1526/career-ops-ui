@@ -16,7 +16,7 @@
 
 ## career-ops について
 
-[career-ops](https://career-ops.org) は、任意の AI コーディング CLI(Claude Code、Codex、Cursor、Gemini CLI、GitHub Copilot CLI)上でスラッシュコマンドとして動作する、オープンソースの求職システムです。モデル非依存に設計されており、各求人を CV と照合して 6 次元 0.0–5.0 のルーブリックで評価し、求人に合わせて調整した PDF レジュメを生成し、すべての応募をローカルで追跡します。クラウドアカウントもテレメトリも自動送信も一切ありません。
+[career-ops](https://career-ops.org) は、任意の AI コーディング CLI(Claude Code、Codex、OpenCode、Qwen CLI — 同じスラッシュコマンド・サーフェスで他の Claude 互換 CLI も動作します)上でスラッシュコマンドとして動作する、オープンソースの求職システムです。モデル非依存に設計されており、各求人を CV と照合して 6 次元 0.0–5.0 のルーブリックで評価し、求人に合わせて調整した PDF レジュメを生成し、すべての応募をローカルで追跡します。クラウドアカウントもテレメトリも自動送信も一切ありません。
 
 **本リポジトリ (career-ops-ui)** は、その上に載せる洗練された Web インターフェースです。フォーム入力(Playwright MCP 経由)とスラッシュコマンドモードは引き続き CLI 側が担い、SPA は同じ `cv.md` / `data/applications.md` / `reports/` ファイル群に対して CRM ライクなブラウザ画面を提供します。両者は同じデータを共有します。
 

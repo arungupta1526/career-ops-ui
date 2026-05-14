@@ -100,6 +100,16 @@ export function registerBatchRoutes(app) {
     if (req.query.parallel) args.push('--parallel', String(parseInt(req.query.parallel, 10) || 1));
     if (req.query.minScore) args.push('--min-score', String(req.query.minScore));
     if (req.query.retry === '1') args.push('--retry-failed');
+    // v1.28.0 — canonical batch-runner.sh flag (default 2). Only meaningful
+    // when --retry-failed is also set; we silently drop out-of-range values
+    // (1..10) rather than 400ing so the UI's number-input "max=10" is the
+    // hard contract and the server is just defense-in-depth.
+    if (req.query.retry === '1' && req.query.maxRetries) {
+      const n = parseInt(req.query.maxRetries, 10);
+      if (Number.isInteger(n) && n >= 1 && n <= 10) {
+        args.push('--max-retries', String(n));
+      }
+    }
 
     send('start', { script: 'batch-runner.sh', args });
     // v1.22.0 (L-2) — --noprofile --norc skips ~/.bashrc / ~/.bash_profile

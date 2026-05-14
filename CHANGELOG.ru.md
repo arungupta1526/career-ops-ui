@@ -8,6 +8,16 @@
 
 ---
 
+## [1.28.0] — 2026-05-14
+
+**Выравнивание документации + контрол `--max-retries N` на `#/batch`.** Закрывает два открытых issue, поднятых в `qa/QA-PROMPT-docs-vs-app.md`.
+
+- **Issue #2** — на `#/batch` появился числовой input «Max retries» (1–10), активный только когда отмечен «Retry failed». Сервер парсит через `parseInt` и валидирует 1≤N≤10; значения вне диапазона тихо отбрасываются, без `--retry-failed` флаг не пробрасывается вовсе. 7 кейсов в `tests/batch-max-retries.test.mjs`. 2 новых i18n-ключа × 8 локалей.
+- **Issue #1** — список AI-CLI в 8 help-bundle и 8 README выровнен под канон career-ops.org/docs (Claude Code · Codex · OpenCode · Qwen CLI), с локализованной строкой: *«другие Claude-совместимые CLI работают через тот же интерфейс slash-команд»*. Бюллет «Multi-CLI» в README про shim-файлы web-ui сохранён без изменений (это другая поверхность). 2 новых канария в `tests/canonical-docs-coverage.test.mjs`.
+- **506 → 515** unit + acceptance (+ 9 новых). Playwright 32/32 без изменений. Полные подробности в [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.27.0] — 2026-05-14
 
 **Косметика + a11y: устранён дубль `#/dashboard` в сайдбаре.**

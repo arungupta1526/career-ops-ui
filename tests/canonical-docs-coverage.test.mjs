@@ -87,6 +87,43 @@ test('#/reports view source contains the score-thresholds card scaffold', () => 
   }
 });
 
+test('v1.28.0 — every help-bundle + README lists OpenCode + Qwen CLI (canonical upstream)', () => {
+  // v1.28.0 (Issue #1) — career-ops.org/docs Quick Start canonical AI-assistant
+  // list is Claude Code / Codex / OpenCode / Qwen CLI. Pre-v1.28 we drifted to
+  // Claude Code / Codex / Cursor / Gemini CLI / GitHub Copilot CLI. This canary
+  // keeps the alignment from regressing.
+  for (const lang of HELP_BUNDLES) {
+    const text = readFileSync(resolve(ROOT, 'docs', 'help', `${lang}.md`), 'utf8');
+    assert.ok(text.includes('OpenCode'), `docs/help/${lang}.md missing "OpenCode" — AI-list drift`);
+    assert.ok(text.includes('Qwen CLI'), `docs/help/${lang}.md missing "Qwen CLI" — AI-list drift`);
+  }
+  for (const name of README_FILES) {
+    const text = readFileSync(resolve(ROOT, name), 'utf8');
+    assert.ok(text.includes('OpenCode'), `${name} missing "OpenCode" — AI-list drift`);
+    assert.ok(text.includes('Qwen CLI'), `${name} missing "Qwen CLI" — AI-list drift`);
+  }
+});
+
+test('v1.28.0 — no help-bundle or README still names the pre-v1.28 broader list in the intro', () => {
+  // The exact pre-v1.28 phrase was "Cursor, Gemini CLI, GitHub Copilot CLI"
+  // (Latin/Cyrillic delimiter) or "Cursor、Gemini CLI、GitHub Copilot CLI" (CJK).
+  // README's "Multi-CLI" feature bullet still legitimately names Cursor +
+  // Gemini CLI (as web-ui shim targets, not as career-ops CLI surface), so we
+  // assert on the exact 3-CLI tail that ONLY appeared in the deprecated intro.
+  const STALE_LATIN = /Cursor,\s*Gemini CLI,\s*GitHub Copilot CLI/;
+  const STALE_CJK   = /Cursor、\s*Gemini CLI、\s*GitHub Copilot CLI/;
+  for (const lang of HELP_BUNDLES) {
+    const text = readFileSync(resolve(ROOT, 'docs', 'help', `${lang}.md`), 'utf8');
+    assert.doesNotMatch(text, STALE_LATIN, `docs/help/${lang}.md still has stale Latin AI-list`);
+    assert.doesNotMatch(text, STALE_CJK, `docs/help/${lang}.md still has stale CJK AI-list`);
+  }
+  for (const name of README_FILES) {
+    const text = readFileSync(resolve(ROOT, name), 'utf8');
+    assert.doesNotMatch(text, STALE_LATIN, `${name} still has stale Latin AI-list`);
+    assert.doesNotMatch(text, STALE_CJK, `${name} still has stale CJK AI-list`);
+  }
+});
+
 test('i18n bundle includes every new key from v1.11.x with all 8 locales', () => {
   // v1.23.0 (N-1) — DICT moved to i18n-dict.js. Read both and grep the
   // combined source so this canary keeps catching missing-locale drift

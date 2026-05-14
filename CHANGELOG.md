@@ -6,6 +6,62 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.28.0] — 2026-05-14
+
+**Docs alignment + `#/batch` `--max-retries N` UI surface.** Closes two open backlog items raised by `qa/QA-PROMPT-docs-vs-app.md`.
+
+### ✨ Features
+
+- **`feat(batch): surface --max-retries N control on #/batch`** ([Issue #2](https://github.com/Fighter90/career-ops-ui/issues/2)) — the canonical [batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers) guide documents `--max-retries N` (default 2) but pre-v1.28 the SPA had no way to set it; users were stuck on the runner default.
+  - [`public/js/views/batch.js`](public/js/views/batch.js) — new numeric input (1..10), disabled by default, enables only when "Retry failed" is checked. Clears its value when retry is unchecked so an orphaned value can't leak into the next run.
+  - [`server/lib/routes/batch.mjs`](server/lib/routes/batch.mjs) — `GET /api/stream/batch?retry=1&maxRetries=N`: parses via `parseInt`, range-validates `1 ≤ N ≤ 10`, silently drops out-of-range/non-integer values (UI is the hard contract; server is defense-in-depth). No-op without `--retry-failed`.
+  - i18n: 2 new keys × 8 locales (`batch.maxRetriesLbl`, `batch.maxRetriesAria`) in [`public/js/lib/i18n-dict.js`](public/js/lib/i18n-dict.js).
+
+### 📝 Documentation
+
+- **`docs: align AI-assistant list to career-ops.org/docs canonical`** ([Issue #1](https://github.com/Fighter90/career-ops-ui/issues/1)) — the upstream Quick Start lists Claude Code / Codex / OpenCode / Qwen CLI. Pre-v1.28 we drifted to Claude Code / Codex / Cursor / Gemini CLI / GitHub Copilot CLI, identically across all 8 locales. Resolution: aligned downstream.
+  - 8 help-bundles ([`docs/help/<locale>.md`](docs/help/)) — intro paragraph + comparison-table row both now match upstream canonical. One-liner appended: *"other Claude-compatible CLIs work too via the same slash-command surface"*, localized per locale.
+  - 8 READMEs ([`README*.md`](README.md)) — intro paragraph aligned with the same one-liner. The "Multi-CLI" feature bullet (about web-ui's own `CLAUDE.md`/`AGENTS.md`/`GEMINI.md` shim files, not about career-ops upstream) deliberately retains its wider list (Cursor / Aider / Gemini CLI) since those CLIs do drive our shims.
+
+### 🧪 Tests
+
+- **`test(canonical-docs): AI-list regression canaries`** — 2 new canaries in [`tests/canonical-docs-coverage.test.mjs`](tests/canonical-docs-coverage.test.mjs):
+  - Every help-bundle + README must contain "OpenCode" and "Qwen CLI".
+  - No help-bundle or README may contain the pre-v1.28 stale phrase "Cursor, Gemini CLI, GitHub Copilot CLI" (Latin or CJK delimiter).
+- **`test(batch): tests/batch-max-retries.test.mjs`** — 7 cases covering: present (`maxRetries=3` → flag appended), out-of-range upper (`=11` → dropped), out-of-range lower (`=0` → dropped), non-integer (`=abc` → dropped), without `retry=1` (always dropped), no-param (runner default 2 wins), combined-with-all-other-flags.
+- **506 → 515** unit + acceptance tests (+ 7 max-retries + 2 AI-list canaries). Playwright 32/32 unchanged.
+
+### 📒 Deferred (unchanged)
+
+- **G-005** A-G → A-F report-block realignment — still requires a coordinated commit on the parent [`santifer/career-ops`](https://github.com/santifer/career-ops) `modes/oferta.md`. Tracked in `qa/REGRESSION-v1.27.md §11`.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 515 / 515
+# ✓ no .also( leftovers in views/
+# ✓ CHANGELOG parity: all 8 locales at v1.28.0
+
+# Manual smoke:
+$ curl -sS http://127.0.0.1:4317/api/health | jq '.version'
+"1.28.0"
+
+# AI-list canaries — every help-bundle + README mentions OpenCode + Qwen CLI:
+$ for f in docs/help/*.md README*.md; do
+    grep -L 'OpenCode' "$f" && echo "  FAIL: $f"
+  done
+# (silent — all 16 files green)
+
+# max-retries flag pass-through:
+$ curl -sS http://127.0.0.1:4317/api/stream/batch?retry=1&maxRetries=3 | head -3
+# event: error                                      (runner missing in stand)
+# data: {"message":"batch/batch-runner.sh not found..."}
+# (the path is exercised by tests/batch-max-retries.test.mjs against a stub runner)
+```
+
+---
+
 ## [1.27.0] — 2026-05-14
 
 **Cosmetic + a11y polish: deduplicate sidebar `#/dashboard` entry.**

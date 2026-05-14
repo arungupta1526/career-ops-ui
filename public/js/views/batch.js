@@ -70,6 +70,24 @@ Router.register('batch', async () => {
   });
   const dryRun = c('input', { type: 'checkbox', id: 'batch-dry-run' });
   const retry = c('input', { type: 'checkbox', id: 'batch-retry' });
+  // v1.28.0 — surface --max-retries N (canonical docs flag, default 2).
+  // Meaningful only when retry-failed is on; the runner ignores it
+  // otherwise. Bounds 1..10 are arbitrary safety caps — server validates.
+  const maxRetriesIn = c('input', {
+    id: 'batch-max-retries',
+    type: 'number',
+    min: '1',
+    max: '10',
+    'aria-label': t('batch.maxRetriesAria', 'Maximum retry attempts per failed offer (1-10)'),
+    className: 'input',
+    placeholder: '(default 2)',
+    style: { maxWidth: '110px' },
+    disabled: true,
+  });
+  retry.addEventListener('change', () => {
+    maxRetriesIn.disabled = !retry.checked;
+    if (!retry.checked) maxRetriesIn.value = '';
+  });
 
   const consoleEl = c('pre', { className: 'console', style: { maxHeight: '480px', overflow: 'auto' } });
 
@@ -79,6 +97,7 @@ Router.register('batch', async () => {
     if (parallelSel.value && parallelSel.value !== '1') params.set('parallel', parallelSel.value);
     if (minScoreIn.value.trim()) params.set('minScore', minScoreIn.value.trim());
     if (retry.checked) params.set('retry', '1');
+    if (retry.checked && maxRetriesIn.value.trim()) params.set('maxRetries', maxRetriesIn.value.trim());
     consoleEl.textContent = '';
     UI.toast(t('batch.running', 'Running batch evaluator…'));
     API.stream('/api/stream/batch?' + params.toString(), async (event, data) => {
@@ -201,6 +220,10 @@ Router.register('batch', async () => {
         ]),
         c('label', { className: 'flex', style: { gap: '8px', userSelect: 'none' } }, [
           retry, c('span', null, t('batch.retry', 'Retry failed')),
+        ]),
+        c('div', { className: 'field', style: { marginBottom: 0 } }, [
+          c('label', { htmlFor: 'batch-max-retries' }, t('batch.maxRetriesLbl', 'Max retries')),
+          maxRetriesIn,
         ]),
         c('button', { className: 'btn btn-primary', onClick: runRunner },
           '▶ ' + t('batch.runBtn', 'Run batch')),
