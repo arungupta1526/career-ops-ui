@@ -2,29 +2,33 @@
 
 Tracks regressions, fix-prompts, and live evidence across releases.
 
-## CURRENT (v1.26.0)
+## CURRENT (v1.27.0)
 
 | File | Purpose |
 |---|---|
-| **[`REGRESSION-v1.26.md`](./REGRESSION-v1.26.md)** | Canonical full-project regression spec. Run this on every release. 11 sections × ~210 sub-checks. |
-| **[`FIX-PROMPT-v26.1.md`](./FIX-PROMPT-v26.1.md)** | **▶ Hand to dev.** Current open findings packaged as 1 hot-fix PR + 3 next-release PRs. |
-| [`v26-regression/2026-05-14-REGRESSION.md`](./v26-regression/2026-05-14-REGRESSION.md) | Latest live run: 209/210 PASS, one WCAG 2.5.5 button-height regression filed. |
-| [`v24-regression/01-LIVE-8-LOCALES-WORKFLOWS.md`](./v24-regression/01-LIVE-8-LOCALES-WORKFLOWS.md) | Previous live evidence (8 locales × 5 docs workflows × every button/filter). Historical context for the v1.24.0 → v1.26.0 transition. |
-| [`v24-regression/G-015-config-also-not-function.md`](./v24-regression/G-015-config-also-not-function.md) | Standalone fix doc for G-015. Closed in v1.24.1 — kept for traceability. |
-| [`v24-regression/00-v24-REGRESSION.md`](./v24-regression/00-v24-REGRESSION.md) | Source-level audit at v1.24.0. Historical. |
+| **[`REGRESSION-v1.27.md`](./REGRESSION-v1.27.md)** | Canonical full-project regression spec. Run this on every release. 12 sections × ~220 sub-checks. |
+| [`REGRESSION-v1.26.md`](./REGRESSION-v1.26.md) | Prior regression spec (v1.26.x). Kept for diff-only re-runs against shipped findings. |
+| [`FIX-PROMPT-v26.1.md`](./FIX-PROMPT-v26.1.md) | Historical fix-prompt — every actionable item shipped in v1.26.1 / v1.27.0. Only G-005 remains, now tracked in `REGRESSION-v1.27.md §11`. |
+| [`v26-regression/2026-05-14-REGRESSION.md`](./v26-regression/2026-05-14-REGRESSION.md) | Live run on the v1.26.0 stand: 209/210 PASS, identified WCAG 2.5.5 hot-fix landed in v1.26.1. |
+| [`v24-regression/01-LIVE-8-LOCALES-WORKFLOWS.md`](./v24-regression/01-LIVE-8-LOCALES-WORKFLOWS.md) | Earlier live evidence (8 locales × 5 docs workflows × every button/filter). Historical context for v1.24.x. |
 
-## Open findings at v1.26.0
+## Open findings at v1.27.0
 
 | ID | Severity | Title | Target |
 |---|---|---|---|
-| **F-1 / WCAG-2.5.5-btn-height** | **HIGH** | 5 header `.btn:not(.btn-sm)` at 39-41 px (WCAG 2.5.5 violation) | **v1.26.1** hot-fix |
-| G-005 | Minor (docs) | Report blocks A-G vs canonical A-F | v1.27.0 |
-| G-003 | Minor (cosmetic) | `README.cn.md` → `README.zh-CN.md` | v1.27.0 |
-| sidebar `#/dashboard` × 2 | Trivial | brand logo + nav item both link `#/dashboard` | nice-to-have |
+| G-005 | Minor (docs / cross-repo) | Report blocks A-G vs canonical career-ops.org A-F | Future release — needs coordinated parent commit |
 
-Everything actionable is in `FIX-PROMPT-v26.1.md`.
+That is **the only** remaining backlog item. Full detail in `REGRESSION-v1.27.md §11`.
 
-## Closed (consolidated, see `archive/` for details)
+## Closed since v1.26.0
+
+| ID | Closed in | Verification |
+|---|---|---|
+| WCAG-2.5.5-btn-height (5 header `.btn` at 39-41 px) | v1.26.1 | `tests/wcag-target-size.test.mjs` (4 canaries) + live Playwright measurement on 13 routes |
+| Sidebar dup `#/dashboard` × 2 | v1.27.0 | Static HTML has exactly one `href="#/dashboard"`; brand block is `<div class="logo">` |
+| G-003 `README.cn.md` → `README.zh-CN.md` | already shipped (verified during v1.26.1 cycle) | `ls README*.md` → 8 files at canonical names |
+
+## Closed earlier (consolidated, see `archive/` for details)
 
 **24 of 26 prior findings closed across v1.15 → v1.26:**
 
@@ -37,17 +41,20 @@ Everything actionable is in `FIX-PROMPT-v26.1.md`.
 - v1.22.0 — M/L/N backlog clearout (entity-aware XSS strip, redundant glyphs, etc.)
 - v1.23.0 — i18n.js split, connection-banner recovery
 - v1.24.0 — help-bundle content depth × 8 locales
-- **v1.24.1 — G-015 `/#/config` hot-fix** (verified live after cache-bust)
-- **v1.25.0 — G-014 auto-pipeline manual + G-012 CHANGELOG parity + cosmetic ✨**
-- **v1.26.0 — test pyramid (TESTING.md, tests/acceptance/, CI gates)**
+- v1.24.1 — G-015 `/#/config` hot-fix (verified live after cache-bust)
+- v1.25.0 — G-014 auto-pipeline manual + G-012 CHANGELOG parity + cosmetic ✨
+- v1.26.0 — test pyramid (TESTING.md, tests/acceptance/, CI gates)
+- v1.26.1 — WCAG 2.5.5 header `.btn` 44 px floor restored
+- v1.27.0 — sidebar `#/dashboard` dedupe (brand block now `<div>`)
 
 ## Folder layout
 
-```
+```text
 qa/
 ├── README.md                        ← you are here
-├── REGRESSION-v1.26.md              ← canonical regression spec (run on every release)
-├── FIX-PROMPT-v26.1.md              ← current open backlog (1 HIGH + 2 Minor + 1 trivial)
+├── REGRESSION-v1.27.md              ← canonical regression spec (run on every release)
+├── REGRESSION-v1.26.md              ← prior spec, kept for diff re-runs
+├── FIX-PROMPT-v26.1.md              ← historical fix-prompt (all but G-005 shipped)
 ├── v26-regression/                  ← live run reports for v1.26.x
 │   └── 2026-05-14-REGRESSION.md
 ├── v24-regression/                  ← live run reports for v1.24.x (kept for transition context)
@@ -65,20 +72,17 @@ qa/
 
 **For developers picking up the next sprint:**
 
-1. Read `FIX-PROMPT-v26.1.md` end to end.
-2. Ship **PR-A** as **v1.26.1 hot-fix** today (CSS-only, ~10 lines, zero behavioural risk; restores WCAG 2.5.5 button heights).
-3. Bundle PR-B (A-F realignment, coordinated parent commit) + PR-C (README rename) into v1.27.0.
-4. PR-D (sidebar `#/dashboard` dedup) is nice-to-have, no urgency.
-5. After each merge run `npm test && npm run test:ci && npm run test:e2e:full`.
+1. Skim `REGRESSION-v1.27.md §11` — only G-005 is open, and it needs a coordinated parent-project commit.
+2. After every code change, re-run `npm test && npm run test:ci`. The 2 CI gates (`check-no-also-leftovers` + `check-changelog-parity`) catch the two most common shipping regressions automatically.
+3. Use `REGRESSION-v1.27.md` as the contract: any new behaviour goes into the appropriate per-page or per-API block; any new release adds a row in §8.
 
 **For QA running the next regression:**
 
-1. Open `REGRESSION-v1.26.md`.
-2. Pre-flight check: `curl -fsS http://127.0.0.1:4317/api/health` returns `ok:true, version:1.26.x`.
+1. Open `REGRESSION-v1.27.md`.
+2. Pre-flight check: `curl -fsS http://127.0.0.1:4317/api/health` returns `ok:true, version:1.27.x` and the static HTML has exactly one `href="#/dashboard"`.
 3. Walk sections 1 → 11. Most sub-checks have either a curl probe or a JS snippet ready to paste.
-4. Save the run report under `qa/v26-regression/<run-date>-REGRESSION.md`, mirroring today's report shape.
+4. Save the run report under `qa/v27-regression/<run-date>-REGRESSION.md`, mirroring the v1.26 report shape.
 
 **For anyone reading the history:**
 
-Everything in `archive/` is closed. Do not file new tickets for those IDs without first checking the source tree against the v1.26.0 implementation notes.
-
+Everything in `archive/` is closed. Do not file new tickets for those IDs without first checking the source tree against the v1.27.0 implementation notes.
