@@ -16,11 +16,11 @@
 | 400 – 800 lines | Add `// TODO: split by concern` at top; split at next opportunity. |
 | > 800 lines | Split before merging the PR. |
 
-Current outliers:
+Current outliers (as of v1.30.0):
 
-- `server/index.mjs` (~130 LOC after **P-2 phase 2** in v1.9.0). Pure orchestrator now — middleware + register-route calls + SPA catch-all. New routes go into `server/lib/routes/<topic>.mjs` exporting `register<Topic>Routes(app)`.
-- `public/js/views/scan.js` (~461 LOC) — past the 400-LOC soft target. Flagged for split next time it is touched (extract Active Companies card → `views/scan/active-companies.js`).
-- `public/css/app.css` (~700 LOC) — borderline; split if a dedicated `views/<name>.css` would tighten the boundary.
+- `server/index.mjs` (~174 LOC after **P-2 phase 2** in v1.9.0). Pure orchestrator — middleware + `register*Routes(app)` calls + SPA catch-all. New routes go into `server/lib/routes/<topic>.mjs` exporting `register<Topic>Routes(app)`. Currently 14 route modules: `activity`, `auto-pipeline`, `batch`, `config`, `content`, `health`, `help`, `jds`, `llm`, `pipeline`, `reports`, `runners`, `scan`, `tracker`.
+- `public/js/views/scan.js` (~670 LOC after v1.29.0 dynamic-dropdown + v1.30.0 paginator). Past the 400-LOC soft target. Flagged for split: extract Active Companies card → `views/scan/active-companies.js`, source-filter logic → `views/scan/source-filter.js`. Touch with caution; this is the most user-facing view.
+- `public/css/app.css` (~958 LOC). Past 800-LOC hard target — split before the next CSS-heavy feature lands. Candidate split: paginator styles → `views/paginator.css`, sidebar styles → `views/sidebar.css`.
 
 ## Naming
 
@@ -44,17 +44,19 @@ Current outliers:
 
 ## Sanitizers — single-source rules
 
-These functions live in `server/index.mjs` (or its eventual splits). DO NOT duplicate. Route every relevant ingress through them:
+These functions live in `server/lib/security.mjs` (after v1.21.0 H-4 consolidation — pre-v1.21 they were scattered across `server/index.mjs` and individual route files). DO NOT duplicate. Route every relevant ingress through them:
 
-| Concern | Function |
-|---|---|
-| Job URL → SSRF guard | `isValidJobUrl(url)` |
-| CV / markdown → XSS strip | `stripDangerousMarkdown(md)` |
-| JD text → length / char strip | `sanitizeJobDescription(jd)` |
-| User-supplied slug → filesystem-safe | `slugify(s)` |
-| Filename param → safe | `replace(/[^\w\-.]/g, '')` |
-| Env-config writes | `validateConfig(body)` then `updateEnvFile(...)` |
-| Activity log redaction | handled by `activityMiddleware` |
+| Concern | Function | Module |
+|---|---|---|
+| Job URL → SSRF guard | `isValidJobUrl(url)` | `server/lib/security.mjs` |
+| Outbound HTTP with DNS-pinned redirect-revalidation | `safeGet(url, opts)` | `server/lib/safe-fetch.mjs` (v1.21 B-1) |
+| CV / markdown → XSS strip (entity-aware) | `stripDangerousMarkdown(md)` | `server/lib/security.mjs` (v1.22 M-4) |
+| JD text → length / char strip | `sanitizeJobDescription(jd)` | `server/lib/security.mjs` |
+| User-supplied slug → filesystem-safe | `sanitizePathName(s)` | `server/lib/security.mjs` (v1.21 H-4) |
+| File-lock concurrency control | `withFileLock(path, fn)` | `server/lib/file-lock.mjs` (v1.21 H-6) |
+| LLM rate limiting | `llmRateLimit` middleware | `server/lib/rate-limit.mjs` (v1.21 H-5) |
+| Env-config writes | `validateConfig(body)` then `updateEnvFile(...)` | `server/lib/env-config.mjs` |
+| Activity log redaction | handled by `activityMiddleware` | `server/lib/activity.mjs` |
 
 Route reviewers (`web-ui-route-reviewer` agent) flag every miss.
 
@@ -63,14 +65,20 @@ Route reviewers (`web-ui-route-reviewer` agent) flag every miss.
 - **Event handlers via `addEventListener`.** Never `onclick=`. CSP enforces this.
 - **Markdown rendering** for CV / reports / interview-prep goes through the project markdown renderer (sanitizes `<script>`, `javascript:` URLs, `onerror=` attributes). Never bypass.
 - **API calls** through `window.API.{get,post,put,delete}`. Never raw `fetch` from a view.
-- **Navigation** via `Router.go('/path')`. Never set `window.location.hash` directly outside `router.js`.
+- **SSE consumers** via `API.stream(path, onEvent)`. Auto-closes the `EventSource` on `done` (single-phase) or on the final `done` with `data.final !== false` (multi-phase, see v1.29.2 invariant M-13 in `qa/REGRESSION-v1.29.2.md`).
+- **Navigation** via `Router.go('/path')`. Never set `window.location.hash` directly outside `router.js`. The router strips `?query` from the route-name lookup (v1.28.1 fix); views parse query params from `window.location.hash.split('?')[1]` themselves via `URLSearchParams`.
+- **Paginator** via `UI.paginate({ pageSize, onChange })`. Used by `#/tracker` / `#/reports` / `#/activity` / `#/scan` (v1.30.0). Filter inputs MUST call `pager.reset()` so a deep-page user lands on page 1 when their search narrows the result set.
+- **Source-list lookups** (`#/scan` filter dropdown, regional scanner dispatch) read from `server/lib/sources/registry.mjs` via `GET /api/scan/sources`. Adding a 12th adapter = one entry in the registry; never hardcode a source list in a view or the dispatcher.
 
 ## i18n
 
 - Static strings: `<element data-i18n="key.path">English fallback</element>`.
 - Dynamic strings: `I18n.t('key.path', 'English fallback')`.
-- New key → add to all 8 locales (`en, es, pt-BR, ko-KR, ja, ru, zh-CN, zh-TW`). The English fallback must always be present in code; locale files override it.
-- `tests/i18n-coverage.test.mjs` enforces parity. If you add a key and forget a locale, that test fails.
+- New key → add to all 8 locales (`en, es, pt-BR, ko, ja, ru, zh-CN, zh-TW` — note `ko` in the dict but `ko-KR.md` for help / README files). The English fallback must always be present in code; locale files override it.
+- The DICT was split in v1.23.0: `public/js/lib/i18n-dict.js` carries the data (~580 LOC), `public/js/lib/i18n.js` carries the logic (~86 LOC). `<script>` order in `public/index.html` must load `i18n-dict.js` BEFORE `i18n.js` — `tests/i18n-script-order.test.mjs` enforces this.
+- Help-bundle markdown lives in `docs/help/<locale>.md` (8 files). CI invariant: **17 H2 sections** (`tests/canonical-docs-coverage.test.mjs::17-H2 parity`).
+- `tests/i18n-coverage.test.mjs` enforces locale parity. If you add a key and forget a locale, that test fails.
+- CHANGELOG parity: all 8 `CHANGELOG*.md` files must reference the same `## [vX.Y.Z]` top — `scripts/check-changelog-parity.mjs` is the gate (part of `npm run test:ci`).
 
 ## Error handling
 
@@ -85,11 +93,15 @@ Route reviewers (`web-ui-route-reviewer` agent) flag every miss.
 
 ## Testing
 
-- `node --test tests/*.test.mjs`. In-process via `createApp()`. Bind to ephemeral port (`server.listen(0)`).
-- Fixtures: tests bootstrap any parent layout they need under `mkdtemp`. No reliance on `../cv.md` etc.
-- Coverage floor: 80 % line / 75 % branch on non-trivial logic. Exempt: pure data mappers, getters, generated code.
+- `npm test` runs `node --test tests/*.test.mjs tests/acceptance/*.test.mjs` (the acceptance dir was added in v1.26.0 — see [`docs/architecture/TESTING.md`](../architecture/TESTING.md) for the 4-tier pyramid).
+- In-process via `createApp()`. Bind to ephemeral port (`server.listen(0)`).
+- Fixtures: tests bootstrap any parent layout they need under `mkdtemp`. No reliance on `../cv.md` etc. — `tests/test-isolation-reviewer` enforces this on every new test diff.
+- Coverage floor: 80 % line / 75 % branch on non-trivial logic. Current baseline ~93 % line / ~83 % branch — keep at or above. Exempt: pure data mappers, getters, generated code.
 - TDD when adding behavior. Pure refactors with full coverage may skip TDD.
-- Long-running tests (E2E): keep them under `tests/e2e*.mjs`, not in the default `npm test` matcher.
+- Real network is **forbidden** in tests (CI-isolation contract). Source adapters take a `fetchImpl` opt that defaults to `globalThis.fetch`; tests inject a mock that returns canned responses. Safe-fetch supports the same via `_setTransport()`.
+- Long-running tests (E2E): keep them under `tests/e2e*.mjs` / `tests/playwright-*.mjs`, not in the default `npm test` matcher. `npm run test:e2e:browser` drives them.
+- CI gates (run via `npm run test:ci`): unit + acceptance + `scripts/check-no-also-leftovers.mjs` (no `.also(` patterns leaking into views) + `scripts/check-changelog-parity.mjs` (all 8 locales at the same version).
+- Current count as of v1.30.0: **567** unit + acceptance tests, **32** Playwright. Run `npm run test:coverage` for the V8 coverage report.
 
 ## Commits
 
