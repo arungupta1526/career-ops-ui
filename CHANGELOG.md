@@ -6,6 +6,44 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.24.1] — 2026-05-14
+
+**Hot-fix: `#/config` crash on all 8 locales (G-015).**
+
+### 🚑 Critical hot-fix
+
+- **`fix(config): G-015 — replace removed Element.prototype.also call in config.js`** ([`public/js/views/config.js:371`](public/js/views/config.js#L371)) — v1.22.0 N-2 dropped the `Element.prototype.also` global monkey-patch and migrated `cv.js` to a free-statement pattern, but **missed `config.js`**. The result: `#/config` crashed at first invocation on every locale with `c(...).also is not a function`. v1.24.1 applies the same migration pattern from `cv.js:188-201` — extract the tree to a `const root = c(...)`, run the activation block on its own, then `return root;`.
+
+### 🛡️ CI gate
+
+- **`feat(ci): scripts/check-no-also-leftovers.mjs sweep`** — walks every file under `public/js/views/` and fails the build on any `.also(` call site (commented references allowed). Wired into the new `npm run test:ci` script. Future revert of the monkey-patch removal can't re-introduce the same regression silently.
+
+### 🧪 Tests
+
+- **`test: tests/config-view-syntax.test.mjs`** — three guards:
+  - parse `config.js` via `node:vm.Script` (catches syntax-level regressions without needing Playwright)
+  - assert no `.also(` survives outside comments
+  - assert the `const root = c(...)` / `return root;` migration anchors are present
+- **474 → 477** unit (+3) + 32/32 Playwright unchanged.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 477 / 477
+# ✓ no .also( leftovers in views/
+
+# Browser smoke:
+$ open http://127.0.0.1:4317/#/config
+# → renders normally, no "is not a function" card. Every locale equivalent.
+```
+
+### Out of scope (deferred to v1.25)
+
+- G-014, G-012, G-005, G-003 — see v1.25.0 entry below for the bundle.
+
+---
+
 ## [1.24.0] — 2026-05-14
 
 **Help-bundle content-depth refresh + live execution of QA scenario 31 + RU CHANGELOG end-to-end.** Closes both items the v1.23.0 "Out of scope" table deferred to v1.24: the full content-depth refresh of all 8 help bundles from the 5 canonical career-ops.org/docs URLs (was URL-coverage-only since v1.11.x), and the live execution of QA scenario 31 against a running server (was "needs browser agent + LLM credentials" — turned out 6/6 sub-tests are reachable via curl + grep, only the visual sub-tests need a browser).

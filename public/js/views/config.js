@@ -350,7 +350,7 @@ Router.register('config', async () => {
     return apiLabel;
   }
 
-  return c('div', null, [
+  const root = c('div', null, [
     c('header', { className: 'page-header' }, [
       c('div', null, [
         c('h1', { className: 'page-title' }, t('config.title', 'App settings')),
@@ -368,12 +368,20 @@ Router.register('config', async () => {
 
     tabsHost,
     panelHost,
-  ]).also((root) => {
-    // Default to the API-keys tab unless the hash deep-links elsewhere.
+  ]);
+
+  // v1.24.1 (G-015) — was `.also((root) => …)` via Element.prototype.also,
+  // dropped by v1.22.0 N-2 without migrating this view (cv.js was migrated
+  // at the time; config.js was missed and crashed `#/config` on all 8
+  // locales with "c(...).also is not a function"). Default to the
+  // API-keys tab unless the hash deep-links to Profile or Modes.
+  {
     const want = tabFromHash();
     const panel = want === modesLabel ? modesPanel
                 : want === profileLabel ? profilePanel
                 : apiPanel;
     activate(want, panel);
-  });
+  }
+
+  return root;
 });
