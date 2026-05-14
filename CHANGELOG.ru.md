@@ -8,6 +8,202 @@
 
 ---
 
+## [1.25.0] — 2026-05-14
+
+**Короткое замыкание ручного режима авто-пайплайна + косметика дашборда + добивка паритета CHANGELOG.** Релиз закрывает G-014 (авто-пайплайн игнорировал `mode: 'manual'`), G-012 (рассинхрон CHANGELOG — 6 локалей отставали на два релиза) и косметический баг с двойным глифом `✨ ✨` на дашборде. G-003 (переименование `README.cn.md`) де-факто уже закрыт — в репозитории присутствует только `README.zh-CN.md`. G-005 (перестройка блоков отчётов A-G → A-F) требует согласованного коммита в родительском проекте и переносится дальше.
+
+### 🛡️ G-014 — короткое замыкание `mode: 'manual'` в авто-пайплайне
+
+- **`fix(auto-pipeline): G-014 — honour mode:'manual' short-circuit`** ([`server/lib/routes/auto-pipeline.mjs:158-195`](server/lib/routes/auto-pipeline.mjs#L158-L195)) — до v1.25 маршрут всегда обращался к LLM. Передача `mode: 'manual'` (по аналогии с `/api/evaluate` начиная с v1.10.2) тихо игнорировалась, запрос висел 1–3 минуты на Anthropic. Теперь обработчик:
+  - Принимает `mode` И `evalMode` ради обратной совместимости. Любое из значений `'manual'` запускает короткое замыкание.
+  - Эмитит все 5 этапов SSE со `status: 'done'` / `status: 'skipped'`. Без fetch. Без вызова LLM. Без $0.05 за запрос.
+  - Полезная нагрузка `done` несёт `{ mode: 'manual', prompt: <buildEvaluationPrompt scaffold>, message }` — SPA может отрендерить её так же, как уже существующую карточку ручного промпта `/api/evaluate`.
+- **Закрывает риск DoS** на `HOST=0.0.0.0`: ранее, даже когда `llmRateLimit` ограничивал 10 запросов в 60 с с IP, 10 атакующих × 10 запросов = $50/мин расхода Anthropic. Короткое замыкание срабатывает до того, как декремент лимита запросов учтётся для реального вызова.
+- **Тесты** — [`tests/auto-pipeline-manual-mode.test.mjs`](tests/auto-pipeline-manual-mode.test.mjs): 3 теста подтверждают (1) `mode: 'manual'` возвращает ответ менее чем за 2 с со всеми 5 ключами этапов, (2) даже при заданном `ANTHROPIC_API_KEY` короткое замыкание всё равно срабатывает (исходный симптом), (3) старые вызовы с `evalMode: 'manual'` продолжают работать.
+
+### 📝 G-012 — добивка паритета CHANGELOG (6 локалей × 2 пропущенных релиза)
+
+- **`docs(changelog): backfill v1.23.0, v1.24.0, v1.24.1, v1.25.0 in 6 lagging locales`** — до v1.25 только EN содержал v1.23–v1.24; RU отставал на один релиз, остальные 6 — на два. v1.25 запускает параллельных переводческих агентов (по образцу цикла v1.23), которые добавляют все четыре записи в `CHANGELOG.{es,pt-BR,ko-KR,ja,zh-CN,zh-TW}.md`. RU получает v1.24.0 + v1.24.1 + v1.25.0 (v1.23.0 уже присутствовал с цикла v1.23).
+- **`feat(ci): scripts/check-changelog-parity.mjs gate`** — падает сборка, если самая свежая запись CHANGELOG любой локали старше канонического EN. Подключено в `npm run test:ci`. Текущий рассинхрон G-012 поймал бы себя сам в момент пересечения границы EN.
+
+### ✨ Косметика — устранение двойного глифа на дашборде
+
+- **`fix(dashboard): dedup ✨ glyph in auto-pipeline button label`** ([`public/js/lib/i18n-dict.js:219`](public/js/lib/i18n-dict.js#L219)) — `dash.autoPipeline` нёс ведущий `✨` в строке каждой локали, И `public/js/views/dashboard.js:58` добавлял ещё один `✨` во вьюхе. Результат: кнопка рендерилась как `✨ ✨ Auto-pipeline …`. v1.25 убирает ведущий глиф из значения DICT каждой локали; префикс вьюхи остаётся единственным источником. Тот же проход аудита прошёлся по остальному i18n-бандлу — других случаев двойного глифа не обнаружено.
+
+### 🚫 Перенесено на следующий релиз
+
+- **G-005 — перестройка блоков отчёта A-G → A-F согласно каноническому career-ops.org/docs** — требует согласованного коммита в родительском проекте `santifer/career-ops` (переписать `modes/oferta.md` так, чтобы он эмитил A=Role, B=CV-match, C=Strategy, D=Comp, E=Personalization, F=STAR — отказаться от C-Risks/G-Legitimacy как отдельных блоков). v1.25.0 поставляет сторону web-ui, готовую к новой схеме (`reports.js` принимает произвольные буквы блоков с v1.13). Закладывается в следующее релизное окно, когда родитель и потомок смогут выйти вместе.
+- **G-003 — переименование `README.cn.md` → `README.zh-CN.md`** — проверено при подготовке v1.25: в репозитории уже присутствует `README.zh-CN.md` (никакого осиротевшего `README.cn.md` нигде в worktree). Находка G-003 устарела.
+
+### 🧪 Тесты
+
+- **477 → 480** unit (+3 из PR-B `auto-pipeline-manual-mode.test.mjs`).
+- 32/32 Playwright без изменений.
+- `npm run test:ci` теперь прогоняет `npm test` + `check-no-also-leftovers.mjs` + `check-changelog-parity.mjs`.
+
+### Верификация
+
+```bash
+$ npm run test:ci
+# 480 / 480
+# ✓ no .also( leftovers in views/
+# ✓ CHANGELOG parity: all 8 locales at v1.25.0
+
+# G-014 — manual mode returns < 2 s even with ANTHROPIC_API_KEY set:
+$ ANTHROPIC_API_KEY=sk-ant-test PORT=4317 npm start &
+$ sleep 3
+$ time curl -sS -X POST -H 'Content-Type: application/json' \
+    -d '{"url":"https://job-boards.greenhouse.io/anthropic/jobs/x","mode":"manual"}' \
+    http://127.0.0.1:4317/api/auto-pipeline | head -20
+# real  0m0.1xx s  (was 1-3 min)
+# event: start … event: step (×5) … event: done {"mode":"manual","prompt":"…"}
+
+# G-012 — every locale CHANGELOG carries the v1.25.0 entry:
+$ grep -c '^## \[1.25.0\]' CHANGELOG*.md
+# 8 files, each → 1
+
+# Cosmetic — dashboard glyph:
+$ grep "dash.autoPipeline" public/js/lib/i18n-dict.js
+# No leading ✨ in any locale value (view supplies the single glyph)
+```
+
+### Несовместимые изменения
+
+Нет. `mode: 'manual'` подключается опционально; старые вызовы с `evalMode: 'manual'` продолжают работать без изменений.
+
+### Вне рамок (v1.26+)
+
+| Пункт | Примечания |
+|---|---|
+| G-005 — перестройка блоков отчёта A-F | Требует согласованного коммита в родительском проекте (`santifer/career-ops` переписывает `modes/oferta.md`). |
+| Живое выполнение **визуальных** подтестов QA-сценария 31 | Требуют браузерного агента (Claude Cowork). Частично покрыты Playwright smoke. |
+| Превышение `i18n-dict.js` целевого лимита в 400 LOC | Фикстура переводов — освобождена политикой. Разделение добавило бы HTTP-запросов без сборщика. |
+
+---
+
+## [1.24.1] — 2026-05-14
+
+**Hot-fix: падение `#/config` во всех 8 локалях (G-015).**
+
+### 🚑 Критический hot-fix
+
+- **`fix(config): G-015 — replace removed Element.prototype.also call in config.js`** ([`public/js/views/config.js:371`](public/js/views/config.js#L371)) — v1.22.0 N-2 удалил глобальный monkey-patch `Element.prototype.also` и перевёл `cv.js` на шаблон со свободными выражениями, но **пропустил `config.js`**. В итоге `#/config` падал при первом обращении в каждой локали с ошибкой `c(...).also is not a function`. v1.24.1 применяет тот же шаблон миграции, что и в `cv.js:188-201` — вынести дерево в `const root = c(...)`, выполнить блок активации отдельно и затем `return root;`.
+
+### 🛡️ Шлюз CI
+
+- **`feat(ci): scripts/check-no-also-leftovers.mjs sweep`** — обходит каждый файл под `public/js/views/` и валит сборку на любом вызове `.also(` (ссылки в комментариях допустимы). Подключено в новый скрипт `npm run test:ci`. Будущий откат удаления monkey-patch не сможет тихо вернуть ту же регрессию.
+
+### 🧪 Тесты
+
+- **`test: tests/config-view-syntax.test.mjs`** — три страховки:
+  - парсинг `config.js` через `node:vm.Script` (ловит регрессии уровня синтаксиса без Playwright)
+  - проверка, что `.also(` не выживает вне комментариев
+  - проверка, что якоря миграции `const root = c(...)` / `return root;` на месте
+- **474 → 477** unit (+3) + 32/32 Playwright без изменений.
+
+### Верификация
+
+```bash
+$ npm run test:ci
+# 477 / 477
+# ✓ no .also( leftovers in views/
+
+# Browser smoke:
+$ open http://127.0.0.1:4317/#/config
+# → renders normally, no "is not a function" card. Every locale equivalent.
+```
+
+### Вне рамок (перенесено на v1.25)
+
+- G-014, G-012, G-005, G-003 — см. запись v1.25.0 ниже единым пакетом.
+
+---
+
+## [1.24.0] — 2026-05-14
+
+**Обновление глубины содержимого справочного бандла + живое выполнение QA-сценария 31 + сквозной перевод RU CHANGELOG.** Релиз закрывает оба пункта, перенесённых таблицей «Out of scope» из v1.23.0 на v1.24: полное обновление глубины содержимого всех 8 справочных бандлов из 5 канонических URL career-ops.org/docs (с v1.11.x присутствовало только покрытие URL) и живое выполнение QA-сценария 31 на запущенном сервере (числилось как «требует браузерного агента + LLM-учётных данных» — оказалось, что 6/6 подтестов достижимы через curl + grep, и только визуальные подтесты требуют браузера).
+
+### 📖 Обновление глубины содержимого справочного бандла
+
+- **`docs(help): refresh en.md from 5 canonical career-ops.org/docs URLs`** ([`docs/help/en.md`](docs/help/en.md)) — до v1.24 EN-бандл содержал 1113 строк и перечислял 5 канонических URL во front-matter, но не раскрывал их в теле. v1.24 загружает все 5 URL через WebFetch и углубляет соответствующие H2-разделы:
+  - **About career-ops (front-matter)** — добавлены принципы (суверенитет данных, AI-agnostic, контроль со стороны человека), блок «What career-ops is NOT», расширена инвентаризация концепций с 6 до 10 строк (добавлены Proof points, JD store, Interview-prep, Batch additions).
+  - **§5 Portals** — добавлен канонический bootstrap `cp templates/portals.example.yml portals.yml`, уточнены обязательные и опциональные поля каждой записи `tracked_companies`.
+  - **§7 Scan** — добавлено примечание «no AI tokens consumed» для варианта A, перечень последующих команд (`apply` / `contacto` / `deep` / `tracker`).
+  - **§14 Apply checklist** — разделён на режим SPA-чеклиста, режим Manual-vs-Playwright-assisted и полный CLI-сценарий (канонические 8 пронумерованных шагов от `/career-ops apply <company>` до `Submitted.` с авто-переходом `Evaluated → Applied`); подсекция batch evaluate получила таблицу схемы TSV + документацию всех 4 флагов + `merge-tracker.mjs --dry-run`; подсекция Playwright Setup перечисляет команды установки, регистрацию MCP, альтернативу `.claude/settings.local.json`, примечание о headless-режиме по умолчанию.
+- **Сохранён паритет 16 H2-разделов** (CI-тест `help-ui.test.mjs::section-parity` утверждает ровно 16 H2-разделов во всех 8 локалях).
+- **Каждый из 5 канонических URL встречается ≥ 2 раз** в бандле (CI-тест `canonical-docs-coverage.test.mjs` это обеспечивает). Счётчики на URL после v1.24: `what-is-career-ops` × 4, `scan-job-portals` × 5, `apply-for-a-job` × 3, `batch-evaluate-offers` × 5, `set-up-playwright` × 3.
+- **`docs(help): translate the v1.24 deepening to 7 non-EN locales`** — запущены 7 параллельных переводческих агентов. Каждая целевая локаль (es / pt-BR / ko-KR / ja / ru / zh-CN / zh-TW) получает обновлённый бандл, который зеркалит структуру EN раздел в раздел, сохраняет дословно блоки кода, URL, пути к файлам и метки кнопок (📁 Upload CV / 🌐 Scan now / ▶ Evaluate / 📄 Generate PDF / 💾 Save), а также английские аббревиатуры (CSP, SSRF, TOCTOU, WCAG, ATS, JD, SSE, REST, API), и переводит углубление на нативный технический стиль публикационного уровня на целевом языке.
+
+### 🧪 QA-сценарий 31 — живое выполнение (6/6 PASS)
+
+- **`docs(qa): append last-verified live-execution log to qa/claude-cowork-browser-test-prompt.md`** — до v1.24 сценарий 31 был задокументирован, но ни разу не прогонялся на живом сервере (был отложен как «требует браузерного агента + LLM-учётных данных»). v1.24 прогнал все 6 подтестов на `http://127.0.0.1:4317`:
+
+  | Sub | Описание | Статус |
+  |---|---|---|
+  | 31.1 | Пороги баллов в справочных бандлах | ✅ PASS (4.5 × 3, 4.0 × 9, 3.5 × 6 упоминаний в `docs/help/en.md`) |
+  | 31.2 | Эндпоинты сценария сканирования | ✅ PASS (`/api/stream/scan-{en,ru}` + `/api/scan-ru/config` → 404; `/api/scan/regional/config` → 200) |
+  | 31.3 | Чеклист `/api/apply-helper` | ✅ PASS (тело содержит `career-ops apply` + предупреждение `auto-submit`) |
+  | 31.4 | Эндпоинт `/api/batch` | ✅ PASS (ключи `[exists, runnerExists, raw, rows, additions]`) |
+  | 31.5 | Доступность Playwright | ✅ PASS (`/api/health` сообщает `Playwright (parent node_modules) ok: true, value: installed`) |
+  | 31.6 | Покрытие URL справочного бандла (5 URL × 8 локалей) | ✅ PASS (**40 / 40 ✓**) |
+
+  Чисто визуальные подтесты (требуют браузер) помечены отдельно в QA-промпте — они остаются выполнимыми через Claude Cowork или `npm run test:e2e:browser`.
+
+### 🌐 RU CHANGELOG end-to-end (продолжение M-9)
+
+- **`docs(translate): CHANGELOG.ru.md retry agent — full body translation`** ([`CHANGELOG.ru.md`](CHANGELOG.ru.md)) — релиз v1.23.0 вышел с переводческим агентом для RU CHANGELOG ещё в работе (он один раз упал с ошибкой сокета и был перезапущен). v1.24 подхватывает 1542-строчный полный перевод агента: каждая запись от v1.23.0 до v1.6.0 получает русское тело публикационного уровня, больше никаких EN-телесных заглушек. Стилевая дисциплина соответствует обновлению качества README в v1.22.0: «функциональность» / «возможности» / «поведение» вместо неуклюжего «функционал»; «через» / «с помощью» вместо «при помощи»; активный залог над пассивным; «эндпоинт», «лимит запросов», «состояние гонки», «санитайзинг» как канонические термины; английские аббревиатуры (TOCTOU, CSP, SSRF, WCAG, ATS, JD, SSE, REST, API) сохранены.
+
+### 🧪 Тесты
+
+- **474 / 474** unit + 20 / 20 smoke E2E + 32 / 32 Playwright. Нулевые поведенческие дельты тестов; каждая CI-проверка справочного бандла (16 H2-разделов × 8 локалей, 5 URL × ≥ 2 упоминания, минимум по содержанию) по-прежнему зелёная.
+
+### Верификация
+
+```bash
+$ npm test                            # 474 / 474
+
+# Help-bundle deepening:
+$ wc -l docs/help/en.md
+# ~1270 lines (was 1113 — deepened, not bloated)
+
+$ for url in what-is-career-ops scan-job-portals apply-for-a-job \
+             batch-evaluate-offers set-up-playwright; do
+    echo -n "$url: "
+    grep -c "$url" docs/help/en.md
+  done
+# what-is-career-ops: 4
+# scan-job-portals: 5
+# apply-for-a-job: 3
+# batch-evaluate-offers: 5
+# set-up-playwright: 3
+
+# Scenario 31.6 — 40/40 URL coverage:
+$ for lang in en es pt-BR ko ja ru zh-CN zh-TW; do
+    echo -n "$lang: "
+    for url in what-is-career-ops scan-job-portals apply-for-a-job \
+               batch-evaluate-offers set-up-playwright; do
+      curl -sS "http://127.0.0.1:4317/api/help/$lang" \
+        | python3 -c "import sys,json; print(json.load(sys.stdin).get('markdown',''))" \
+        | grep -q "$url" && echo -n "✓ " || echo -n "✗ "
+    done
+    echo
+  done
+```
+
+### Несовместимые изменения
+
+Нет.
+
+### Вне рамок (v1.25+)
+
+| Пункт | Примечания |
+|---|---|
+| Живое выполнение **визуальных** подтестов сценария 31 | Требуют браузерного агента (Claude Cowork или `npm run test:e2e:browser`). Вне рамок выполнения только через curl; покрыты существующим Playwright smoke. |
+| Перевод тел RU CHANGELOG **для более старых записей** (v1.5.x и ниже) | Перезапущенный агент покрыл только v1.6.0 и далее. Записи до v1.6 (`v1.5.x` и т. п.) — если они когда-либо существовали — остаются ранее существовавшим содержимым. |
+| Визуальная регрессия скриншотов дашборда после будущих изменений SPA | `scripts/capture-dashboard-screenshots.mjs` перегенерирует PNG по локалям; автоматического diff сейчас нет. |
+
+---
+
 ## [1.23.0] — 2026-05-14
 
 **Разделение i18n + исправление CI для баннера соединения + локализованные скриншоты дашборда + закрытие всех заглушек бэклога.** Релиз закрывает три пункта, отмеченные в таблице «Out of scope» версии v1.22.0 для v1.23 (M-9 — переводы тел локальных CHANGELOG, N-1 — разделение `i18n.js` по LOC, аудит содержимого справочного бандла), и добавляет hot-fix для smoke E2E, который после v1.22.0 окрашивал CI на ветке main в красный.

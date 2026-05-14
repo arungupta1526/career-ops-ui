@@ -8,6 +8,272 @@
 
 ---
 
+## [1.25.0] — 2026-05-14
+
+**자동 파이프라인 수동 단락 처리 + 대시보드 외관 수정 + CHANGELOG 패리티 백필.** G-014 (auto-pipeline 이 `mode: 'manual'` 을 무시) 와 G-012 (CHANGELOG 패리티 드리프트 — 6개 로케일이 릴리스 2개 뒤처짐), 그리고 대시보드의 `✨ ✨` 이중 글리프 외관 문제를 마무리합니다. G-003 (`README.cn.md` 이름 변경) 은 사실상 이미 종료되어 있었습니다 — 저장소에는 `README.zh-CN.md` 만 존재합니다. G-005 (A-G → A-F 보고서 블록 재정렬) 은 부모 프로젝트와 조율된 커밋이 필요하여 계속 연기합니다.
+
+### 🛡️ G-014 — 자동 파이프라인 `mode: 'manual'` 단락 처리
+
+- **`fix(auto-pipeline): G-014 — honour mode:'manual' short-circuit`** ([`server/lib/routes/auto-pipeline.mjs:158-195`](server/lib/routes/auto-pipeline.mjs#L158-L195)) — v1.25 이전에는 라우트가 언제나 LLM 을 호출했습니다. `mode: 'manual'` 을 전달해도 (v1.10.2 이후 `/api/evaluate` 와 동일한 의미) 조용히 무시되어 요청이 Anthropic 에서 1~3분간 멈췄습니다. 이제 핸들러는:
+  - 하위 호환을 위해 `mode` 와 `evalMode` 를 모두 수용합니다. 두 값 중 어느 쪽이든 `'manual'` 이면 단락 처리가 트리거됩니다.
+  - 5개의 SSE 단계를 모두 `status: 'done'` / `status: 'skipped'` 로 방출합니다. fetch 없음. LLM 호출 없음. 요청당 $0.05 의 비용도 없음.
+  - `done` 페이로드는 `{ mode: 'manual', prompt: <buildEvaluationPrompt scaffold>, message }` 를 운반합니다 — SPA 는 기존 `/api/evaluate` 수동 프롬프트 카드와 동일한 방식으로 렌더링할 수 있습니다.
+- **`HOST=0.0.0.0` 환경에서의 DoS 위험 해소**: 기존에는 `llmRateLimit` 이 분당 IP 당 10 요청으로 제한해도 공격자 10명 × 10 요청 = 분당 $50 의 Anthropic 비용 소진이 가능했습니다. 단락 처리는 레이트 리밋의 카운터가 실제 호출을 향해 감소하기 전에 발사됩니다.
+- **테스트** — [`tests/auto-pipeline-manual-mode.test.mjs`](tests/auto-pipeline-manual-mode.test.mjs): 3개의 테스트가 (1) `mode: 'manual'` 이 2초 이내에 5개 step 키 전부와 함께 반환되는지, (2) `ANTHROPIC_API_KEY` 가 설정된 상태에서도 단락 처리가 여전히 발사되는지 (원래의 증상), (3) 레거시 `evalMode: 'manual'` 호출자가 계속 동작하는지를 확인합니다.
+
+### 📝 G-012 — CHANGELOG 패리티 백필 (6 로케일 × 누락 릴리스 2건)
+
+- **`docs(changelog): backfill v1.23.0, v1.24.0, v1.24.1, v1.25.0 in 6 lagging locales`** — v1.25 이전에는 EN 만 v1.23-v1.24 를 보유하고 있었으며, RU 는 릴리스 1개 뒤처져 있었고 나머지 6개는 릴리스 2개씩 뒤처져 있었습니다. v1.25 는 병렬 번역 에이전트를 디스패치 (v1.23 패턴을 재현) 하여 네 개의 항목을 모두 `CHANGELOG.{es,pt-BR,ko-KR,ja,zh-CN,zh-TW}.md` 에 안착시킵니다. RU 는 v1.24.0 + v1.24.1 + v1.25.0 을 받습니다 (v1.23 사이클에서 이미 v1.23.0 을 받았기 때문입니다).
+- **`feat(ci): scripts/check-changelog-parity.mjs gate`** — 어떤 로케일 CHANGELOG 의 최신 항목이 EN 정본보다 오래되면 빌드를 실패시킵니다. `npm run test:ci` 에 연결되었습니다. 사전에 존재했던 G-012 드리프트는 EN 경계를 넘는 순간 스스로 탐지되었을 것입니다.
+
+### ✨ 외관 — 대시보드 이중 글리프 제거
+
+- **`fix(dashboard): dedup ✨ glyph in auto-pipeline button label`** ([`public/js/lib/i18n-dict.js:219`](public/js/lib/i18n-dict.js#L219)) — `dash.autoPipeline` 이 모든 로케일 문자열에 선두 `✨` 를 포함하고 있었고, `public/js/views/dashboard.js:58` 의 뷰가 또 다른 `✨` 를 앞에 붙였습니다. 결과적으로 버튼이 `✨ ✨ Auto-pipeline …` 로 렌더링되었습니다. v1.25 는 모든 로케일의 DICT 항목에서 선두 글리프를 제거합니다; 뷰의 접두사가 단일 소스가 됩니다. 동일한 감사 패스로 나머지 i18n 번들도 훑었습니다 — 다른 이중 글리프 패턴은 발견되지 않았습니다.
+
+### 🚫 향후 릴리스로 연기
+
+- **G-005 — 정규 career-ops.org/docs 에 맞춘 A-G → A-F 보고서 블록 재정렬** — 부모 `santifer/career-ops` 프로젝트와 조율된 커밋이 필요합니다 (`modes/oferta.md` 를 재작성하여 A=Role, B=CV-match, C=Strategy, D=Comp, E=Personalization, F=STAR 를 방출 — C-Risks/G-Legitimacy 는 별도 블록에서 제거). v1.25.0 은 새 스키마에 대비한 web-ui 측을 출하합니다 (`reports.js` 는 v1.13 이후 임의 블록 문자를 이미 수용합니다). 부모와 자식이 함께 안착할 수 있는 다음 릴리스 윈도우에서 추적합니다.
+- **G-003 — `README.cn.md` → `README.zh-CN.md` 이름 변경** — v1.25 준비 중 검증: 저장소에 이미 `README.zh-CN.md` 가 존재합니다 (워크트리 어디에도 고아 `README.cn.md` 가 없음). G-003 결과는 낡은 발견이었습니다.
+
+### 🧪 테스트
+
+- **477 → 480** 유닛 (PR-B `auto-pipeline-manual-mode.test.mjs` 에서 +3).
+- 32/32 Playwright 동일.
+- `npm run test:ci` 가 이제 `npm test` + `check-no-also-leftovers.mjs` + `check-changelog-parity.mjs` 를 실행합니다.
+
+### 검증
+
+```bash
+$ npm run test:ci
+# 480 / 480
+# ✓ no .also( leftovers in views/
+# ✓ CHANGELOG parity: all 8 locales at v1.25.0
+
+# G-014 — manual mode returns < 2 s even with ANTHROPIC_API_KEY set:
+$ ANTHROPIC_API_KEY=sk-ant-test PORT=4317 npm start &
+$ sleep 3
+$ time curl -sS -X POST -H 'Content-Type: application/json' \
+    -d '{"url":"https://job-boards.greenhouse.io/anthropic/jobs/x","mode":"manual"}' \
+    http://127.0.0.1:4317/api/auto-pipeline | head -20
+# real  0m0.1xx s  (was 1-3 min)
+# event: start … event: step (×5) … event: done {"mode":"manual","prompt":"…"}
+
+# G-012 — every locale CHANGELOG carries the v1.25.0 entry:
+$ grep -c '^## \[1.25.0\]' CHANGELOG*.md
+# 8 files, each → 1
+
+# Cosmetic — dashboard glyph:
+$ grep "dash.autoPipeline" public/js/lib/i18n-dict.js
+# No leading ✨ in any locale value (view supplies the single glyph)
+```
+
+### 비호환 변경
+
+없습니다. `mode: 'manual'` 은 옵트인이며, 레거시 `evalMode: 'manual'` 호출자는 변경 없이 계속 동작합니다.
+
+### 범위 외 (v1.26+)
+
+| 항목 | 비고 |
+|---|---|
+| G-005 — A-F 보고서 블록 재정렬 | 부모와 조율된 커밋이 필요합니다 (`santifer/career-ops` 가 `modes/oferta.md` 를 재작성). |
+| QA 시나리오 31 **시각적** 서브 테스트의 라이브 실행 | 브라우저 기반 에이전트가 필요합니다 (Claude Cowork). Playwright 스모크가 부분적으로 커버합니다. |
+| `i18n-dict.js` 의 400 LOC 목표 초과 | 번역 fixture 이며 정책상 면제됩니다. 번들러 없는 분할은 HTTP 요청만 증가시킵니다. |
+
+---
+
+## [1.24.1] — 2026-05-14
+
+**핫픽스: 8개 로케일 모두에서 `#/config` 충돌 (G-015).**
+
+### 🚑 치명적 핫픽스
+
+- **`fix(config): G-015 — replace removed Element.prototype.also call in config.js`** ([`public/js/views/config.js:371`](public/js/views/config.js#L371)) — v1.22.0 N-2 에서 `Element.prototype.also` 전역 멍키 패치를 제거하고 `cv.js` 를 자유 구문 (free-statement) 패턴으로 마이그레이션했으나 **`config.js` 를 누락했습니다**. 결과적으로 `#/config` 는 모든 로케일에서 첫 호출 시 `c(...).also is not a function` 으로 충돌했습니다. v1.24.1 은 `cv.js:188-201` 의 동일한 마이그레이션 패턴을 적용합니다 — 트리를 `const root = c(...)` 로 추출하고, 활성화 블록을 독립적으로 실행한 뒤 `return root;` 로 반환합니다.
+
+### 🛡️ CI 게이트
+
+- **`feat(ci): scripts/check-no-also-leftovers.mjs sweep`** — `public/js/views/` 아래 모든 파일을 순회하며 `.also(` 호출 지점이 있으면 빌드를 실패시킵니다 (주석 처리된 참조는 허용). 신규 `npm run test:ci` 스크립트에 연결되었습니다. 향후 멍키 패치 제거의 되돌림이 동일한 회귀를 조용히 재도입할 수 없습니다.
+
+### 🧪 테스트
+
+- **`test: tests/config-view-syntax.test.mjs`** — 세 개의 가드:
+  - `node:vm.Script` 로 `config.js` 를 파싱 (Playwright 없이 구문 수준의 회귀 포착)
+  - 주석 밖에서 `.also(` 가 살아남지 않는지 단언
+  - `const root = c(...)` / `return root;` 마이그레이션 앵커가 존재하는지 단언
+- **474 → 477** 유닛 (+3) + 32/32 Playwright 동일.
+
+### 검증
+
+```bash
+$ npm run test:ci
+# 477 / 477
+# ✓ no .also( leftovers in views/
+
+# Browser smoke:
+$ open http://127.0.0.1:4317/#/config
+# → renders normally, no "is not a function" card. Every locale equivalent.
+```
+
+### 범위 외 (v1.25 로 연기)
+
+- G-014, G-012, G-005, G-003 — 묶음 처리에 대해서는 아래 v1.25.0 항목을 참조하십시오.
+
+---
+
+## [1.24.0] — 2026-05-14
+
+**Help-bundle 콘텐츠 깊이 갱신 + QA 시나리오 31 라이브 실행 + RU CHANGELOG 전체 마무리.** v1.23.0 의 "Out of scope" 표에서 v1.24 로 연기되었던 두 항목을 모두 마무리합니다: 5개의 정규 career-ops.org/docs URL 에서 출발한 8개 help bundle 전체의 콘텐츠 깊이 갱신 (v1.11.x 이후 URL 커버리지만 보장되어 있었음) 과, 실행 중인 서버에 대한 QA 시나리오 31 의 라이브 실행 ("브라우저 에이전트 + LLM 자격 증명 필요" 로 분류되어 있었으나 6/6 서브 테스트 중 시각적 서브 테스트만 브라우저가 필요하고 나머지는 curl + grep 으로 도달 가능함이 밝혀짐).
+
+### 📖 Help-bundle 콘텐츠 깊이 갱신
+
+- **`docs(help): refresh en.md from 5 canonical career-ops.org/docs URLs`** ([`docs/help/en.md`](docs/help/en.md)) — v1.24 이전의 EN 번들은 1113 라인이었고 front-matter 에 5개의 정규 URL 을 나열했지만 본문에서 확장하지는 않았습니다. v1.24 는 5개 URL 을 WebFetch 로 가져와 대응되는 H2 섹션을 심화합니다:
+  - **career-ops 소개 (front-matter)** — 원칙 (데이터 주권, AI 비종속, 사람 통제), "career-ops 가 아닌 것" 블록을 추가했고 개념 인벤토리를 6행에서 10행으로 확장했습니다 (Proof points, JD store, Interview-prep, Batch additions 추가).
+  - **§5 Portals** — 정규 부트스트랩 `cp templates/portals.example.yml portals.yml` 을 추가했고, `tracked_companies` 항목별 필수 vs 선택 필드를 명확히 했습니다.
+  - **§7 Scan** — Option A 에 "AI 토큰 소비 없음" 노트와 후속 명령 목록 (`apply` / `contacto` / `deep` / `tracker`) 을 추가했습니다.
+  - **§14 지원 체크리스트** — SPA 체크리스트 모드 vs 수동-vs-Playwright 보조 vs 전체 CLI 흐름으로 분리했습니다 (`/career-ops apply <company>` 부터 `Evaluated → Applied` 자동 전이를 포함한 `Submitted.` 까지 정규 8단계 번호 매기기); batch evaluate 하위 섹션은 이제 TSV 스키마 테이블 + 4개 플래그 전체의 문서화 + `merge-tracker.mjs --dry-run` 을 포함합니다; Playwright 설정 하위 섹션은 설치 명령, MCP 등록, 대체 `.claude/settings.local.json`, 기본 헤드리스 노트를 나열합니다.
+- **16개 H2 섹션 패리티 유지** (CI 테스트 `help-ui.test.mjs::section-parity` 가 8개 로케일 전체에서 정확히 16개의 H2 섹션을 단언합니다).
+- **5개 정규 URL 각각이 번들에 ≥ 2회 등장** (CI 테스트 `canonical-docs-coverage.test.mjs` 가 강제합니다). v1.24 이후 URL 별 등장 횟수: `what-is-career-ops` × 4, `scan-job-portals` × 5, `apply-for-a-job` × 3, `batch-evaluate-offers` × 5, `set-up-playwright` × 3.
+- **`docs(help): translate the v1.24 deepening to 7 non-EN locales`** — 7개의 병렬 번역 에이전트를 디스패치했습니다. 각 대상 로케일 (es / pt-BR / ko-KR / ja / ru / zh-CN / zh-TW) 은 EN 구조를 섹션 단위로 미러링하고, 코드 블록 / URL / 파일 경로 / 버튼 레이블 (📁 Upload CV / 🌐 Scan now / ▶ Evaluate / 📄 Generate PDF / 💾 Save) 과 영어 약어 (CSP, SSRF, TOCTOU, WCAG, ATS, JD, SSE, REST, API) 를 그대로 보존하며, 심화 부분을 대상 언어로 출판 등급 기술 문서 스타일로 번역한 새 번들을 받습니다.
+
+### 🧪 QA 시나리오 31 — 라이브 실행 (6/6 PASS)
+
+- **`docs(qa): append last-verified live-execution log to qa/claude-cowork-browser-test-prompt.md`** — v1.24 이전의 시나리오 31 은 문서화되어 있었으나 실제 서버에 대해 실행된 적이 없었습니다 ("브라우저 에이전트 + LLM 자격 증명 필요" 로 연기). v1.24 는 6개의 서브 테스트를 모두 `http://127.0.0.1:4317` 에 대해 실행했습니다:
+
+  | 서브 | 설명 | 상태 |
+  |---|---|---|
+  | 31.1 | help bundle 의 점수 임계값 | ✅ PASS (`docs/help/en.md` 에서 4.5 × 3, 4.0 × 9, 3.5 × 6 회 언급) |
+  | 31.2 | 스캔 워크플로 엔드포인트 | ✅ PASS (`/api/stream/scan-{en,ru}` + `/api/scan-ru/config` → 404; `/api/scan/regional/config` → 200) |
+  | 31.3 | `/api/apply-helper` 체크리스트 | ✅ PASS (본문에 `career-ops apply` + `auto-submit` 경고 포함) |
+  | 31.4 | `/api/batch` 엔드포인트 | ✅ PASS (키: `[exists, runnerExists, raw, rows, additions]`) |
+  | 31.5 | Playwright 가용성 | ✅ PASS (`/api/health` 가 `Playwright (parent node_modules) ok: true, value: installed` 보고) |
+  | 31.6 | help bundle URL 커버리지 (5 URLs × 8 로케일) | ✅ PASS (**40 / 40 ✓**) |
+
+  시각 전용 서브 테스트 (브라우저 필요) 는 QA 프롬프트에 별도 플래그로 표시되었습니다 — Claude Cowork 또는 `npm run test:e2e:browser` 로 여전히 실행 가능합니다.
+
+### 🌐 RU CHANGELOG 전체 마무리 (M-9 후속)
+
+- **`docs(translate): CHANGELOG.ru.md retry agent — full body translation`** ([`CHANGELOG.ru.md`](CHANGELOG.ru.md)) — v1.23.0 릴리스는 RU CHANGELOG 재시도 에이전트가 아직 진행 중인 상태에서 출하되었습니다 (소켓 오류로 한 번 충돌한 뒤 재디스패치됨). v1.24 는 에이전트의 1542 라인 전체 번역을 수령합니다: v1.23.0 → v1.6.0 의 모든 항목이 출판 등급의 러시아어 본문을 갖게 되었고, 영어 본문 임시 대체는 더 이상 존재하지 않습니다. 스타일 규율은 v1.22.0 의 README 품질 갱신과 일치합니다: "функциональность" / "возможности" / "поведение" 가 어색한 "функционал" 을 대체했으며, "через" / "с помощью" 가 "при помощи" 를 대체했고, 능동태가 수동태보다 선호되며, "эндпоинт", "лимит запросов", "состояние гонки", "санитайзинг" 이 정규 용어이고, 영어 약어 (TOCTOU, CSP, SSRF, WCAG, ATS, JD, SSE, REST, API) 는 보존되었습니다.
+
+### 🧪 테스트
+
+- **474 / 474** 유닛 + 20 / 20 스모크 E2E + 32 / 32 Playwright. 동작상 테스트 변경 0건; 모든 help bundle CI 단언 (16개 H2 섹션 × 8개 로케일, 5개 URL × ≥ 2회 등장, 콘텐츠 하한선) 이 여전히 통과합니다.
+
+### 검증
+
+```bash
+$ npm test                            # 474 / 474
+
+# Help-bundle deepening:
+$ wc -l docs/help/en.md
+# ~1270 lines (was 1113 — deepened, not bloated)
+
+$ for url in what-is-career-ops scan-job-portals apply-for-a-job \
+             batch-evaluate-offers set-up-playwright; do
+    echo -n "$url: "
+    grep -c "$url" docs/help/en.md
+  done
+# what-is-career-ops: 4
+# scan-job-portals: 5
+# apply-for-a-job: 3
+# batch-evaluate-offers: 5
+# set-up-playwright: 3
+
+# Scenario 31.6 — 40/40 URL coverage:
+$ for lang in en es pt-BR ko ja ru zh-CN zh-TW; do
+    echo -n "$lang: "
+    for url in what-is-career-ops scan-job-portals apply-for-a-job \
+               batch-evaluate-offers set-up-playwright; do
+      curl -sS "http://127.0.0.1:4317/api/help/$lang" \
+        | python3 -c "import sys,json; print(json.load(sys.stdin).get('markdown',''))" \
+        | grep -q "$url" && echo -n "✓ " || echo -n "✗ "
+    done
+    echo
+  done
+```
+
+### 비호환 변경
+
+없습니다.
+
+### 범위 외 (v1.25+)
+
+| 항목 | 비고 |
+|---|---|
+| 시나리오 31 **시각적** 서브 테스트의 라이브 실행 | 브라우저 기반 에이전트가 필요합니다 (Claude Cowork 또는 `npm run test:e2e:browser`). curl 만으로는 범위 밖이며 기존 Playwright 스모크가 커버합니다. |
+| RU CHANGELOG **구버전 항목 (v1.5.x 이하) 의 본문 번역** | 재시도 에이전트는 v1.6.0 이상만 다뤘습니다. v1.6 이전 항목 (`v1.5.x` 등) — 만약 존재한 적이 있다면 — 은 사전 콘텐츠로 남습니다. |
+| 향후 SPA 변경 후 대시보드 스크린샷의 시각적 회귀 | `scripts/capture-dashboard-screenshots.mjs` 가 로케일별 PNG 를 재생성합니다; 현재 자동 diff 는 없습니다. |
+
+---
+
+## [1.23.0] — 2026-05-14
+
+**i18n 분할 + 연결 배너 CI 수정 + 로케일별 대시보드 스크린샷 + 모든 백로그 임시 대체 마무리.** v1.22.0 의 "Out of scope" 표에서 v1.23 으로 표시되었던 세 항목 (M-9 로케일 CHANGELOG 본문, N-1 `i18n.js` LOC 분할, help bundle 콘텐츠 감사) 과, v1.22.0 이후 메인 브랜치 CI 를 적색으로 바꾼 스모크 E2E 테스트의 핫픽스를 함께 출하합니다.
+
+### 🚑 CI 핫픽스 — 연결 배너 복구
+
+- **`fix(client): reset health-poll cadence + visibilitychange eager re-check`** ([`public/js/api.js:21-91`](public/js/api.js#L21-L91)) — v1.22.0 의 M-6 지수 백오프 (3초 → 6초 → 12초 → 캡 15초, 원래 캡 60초에서 감소) 는 올바른 방향이었으나, 진행 중인 `setTimeout` 이 이전에 설정된 어떤 지연 값에 고정되어 있었습니다. t=0.1 에 죽은 서버에 대해 t=3 에서 첫 핑이 실패하면 지연이 6초로 두 배가 되고, 다음 복구 프로브는 t=9 까지 발사되지 않았습니다. 스모크 E2E 의 "Flow 2a: 서버 다운 시 연결 배너 표시, 복구 시 숨김" 은 4초만 대기했고 `main` 에서 적색이 되었습니다.
+
+    v1.23.0 은 폴링 루프를 재구성합니다:
+
+    - `_healthHandle` 을 추적하여 `setConnectionState(lost=true)` 가 `clearTimeout` 하고 `_HEALTH_MIN` 으로 재스케줄할 수 있습니다. 다운 후 첫 복구 프로브가 이전에 큐에 있던 지연과 무관하게 3초 이내에 발사됩니다.
+    - `_HEALTH_MAX` 가 60초에서 15초로 낮아졌습니다. 죽은 서버에 대해 백그라운드 탭이 되어 있어도 사용자가 돌아왔을 때 한 번의 폴링 사이클 내에서 복구되며, 대역폭 절감은 여전히 상당합니다.
+    - `document.addEventListener('visibilitychange')` 가 탭이 포커스를 되찾고 `connectionLost === true` 일 때 즉시 재확인합니다 — Cmd-Tab 복귀가 다음 백오프 틱을 기다리지 않습니다.
+
+### 🧹 N-1 — i18n.js 분할 (400 LOC 목표 초과)
+
+- **`refactor(client): split DICT into i18n-dict.js (data) + i18n.js (logic)`** — v1.23 이전의 `public/js/lib/i18n.js` 는 639 LOC 였습니다. 대부분 (23-586 라인) 이 `DICT` 번역 테이블 — 순수 구조화 데이터였습니다. v1.23.0 은 이를 [`public/js/lib/i18n-dict.js`](public/js/lib/i18n-dict.js) (578 LOC, CLAUDE.md 의 "Exempt from these limits: generated files, migrations, test fixtures, lock files, vendored code" 에 따라 LOC 규칙 면제 — 번역 테이블은 fixture 로 분류) 로 추출하고, [`public/js/lib/i18n.js`](public/js/lib/i18n.js) 는 순수 모듈 로직 86 LOC (400 LOC 목표를 한참 밑돔) 로 남깁니다.
+- **로더 계약:** `i18n-dict.js` 가 `window.__I18N_DICT = { … }` 를 채우고, `i18n.js` 가 기존 IIFE 내부에서 이를 읽습니다. [`public/index.html`](public/index.html) 이 순서대로 로드합니다 — `i18n.js` 이전에 `i18n-dict.js` 가 — 그래서 IIFE 가 생성 시점에 완전히 채워진 DICT 를 봅니다. 누락된 dict 폴백: 모든 `t()` 호출은 인라인 폴백 또는 키 자체를 반환하므로 SPA 가 충돌하지 않고 잘못된 설정을 큰 소리로 드러냅니다.
+- **테스트 배선 갱신:** [`tests/i18n-coverage.test.mjs`](tests/i18n-coverage.test.mjs), [`tests/help-ui.test.mjs`](tests/help-ui.test.mjs), [`tests/canonical-docs-coverage.test.mjs`](tests/canonical-docs-coverage.test.mjs) 가 이제 두 파일을 테스트 VM 컨텍스트에서 모두 실행하거나 (정규표현식 스윕을 위해) 소스를 연결하여 모든 기존 단언을 보존합니다.
+
+### 🌐 M-9 — 로케일 CHANGELOG 본문 번역
+
+- **`docs(translate): 7 non-EN CHANGELOG files end-to-end`** — v1.23 이전의 `CHANGELOG.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md` 는 v1.13.0 이후의 모든 항목에 영어 본문 임시 대체 노트를 담고 있었고, EN 정본을 가리키는 푸터를 가지고 있었습니다. v1.23.0 은 로케일당 1개씩 7개의 병렬 번역 에이전트를 디스패치하여 모든 본문을 대상 언어의 출판 등급 기술 문체로 다시 씁니다. 임시 대체 노트가 제거되었습니다. 모든 로케일에서 코드 블록, 파일 경로, URL, 커밋 메시지 스타일 문자열 (`fix(security): B-1 — …`), 환경 변수, 링크 레이블은 그대로 보존됩니다.
+
+### 🖼️ 모든 README 의 로케일별 대시보드 스크린샷
+
+- **`docs(readme): wire each locale README at its locale-specific PNG`** — v1.23 이전에는 `README.pt-BR.md` 만 `dashboard-pt-BR.png` 를 참조했고, 나머지 6개 비영어 README 는 여전히 `dashboard-en.png` 를 가리켰습니다. 스크린샷 자체는 v1.22.0 사이클에서 [`scripts/capture-dashboard-screenshots.mjs`](scripts/capture-dashboard-screenshots.mjs) 로 이미 캡처되어 `images/` 에 있었지만 사용되지 않았습니다. v1.23.0 은 모든 `README.{es,ja,ko-KR,ru,zh-CN,zh-TW}.md` 의 14번 라인을 자체 `dashboard-<locale>.png` 로 갱신합니다.
+
+### 🧪 테스트
+
+- v1.22.0 과 동일한 474 / 474 유닛 + 32 / 32 Playwright. **스모크 E2E 가 이제 20 / 20** (v1.22.0 이후 `main` 에서는 배너 복구 회귀로 19 / 1 실패였음; v1.23.0 의 재스케줄 수정이 이를 마무리합니다).
+- 3개의 기존 테스트가 i18n 분할을 처리하도록 재배선되었습니다. 신규 테스트 파일 0건; 삭제된 단언 0건.
+
+### 검증
+
+```bash
+$ npm test
+# 474 / 474
+
+$ npm run test:e2e
+# passed: 20    failed: 0    (was 19/1 on v1.22.0 main)
+
+$ wc -l public/js/lib/i18n.js public/js/lib/i18n-dict.js
+#       86 public/js/lib/i18n.js          ← logic, under target
+#      578 public/js/lib/i18n-dict.js     ← data fixture, exempt
+
+$ grep -h 'dashboard-' README*.md | sed -E 's/.*(dashboard-[^)]+).*/\1/' | sort -u
+# dashboard-en.png    (README.md only)
+# dashboard-es.png    dashboard-ja.png
+# dashboard-ko-KR.png dashboard-pt-BR.png
+# dashboard-ru.png    dashboard-zh-CN.png  dashboard-zh-TW.png
+
+# CHANGELOG translation sanity: each locale file > 200 lines of native content
+$ wc -l CHANGELOG.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md | grep -v total
+```
+
+### 비호환 변경
+
+없습니다. `public/index.html` 이 이전에는 한 개를 로드하던 곳에서 이제 두 개의 스크립트를 로드합니다 — CDN 에서 SPA 를 서빙하는 사용자는 `i18n-dict.js` 도 함께 가져가야 합니다; 스크립트 로드 순서는 `index.html` 의 `<script src>` 태그 순서로 강제됩니다. 런타임 폴백 (빈 DICT → `t()` 가 인라인 EN 폴백을 반환) 이 새 파일 누락 시 하드 크래시를 방지합니다.
+
+### 범위 외 (v1.24+)
+
+| 항목 | 비고 |
+|---|---|
+| career-ops.org/docs 로부터의 Help-bundle 콘텐츠 깊이 갱신 (URL 커버리지 대비) | 5개의 정규 URL 은 v1.11.x 이후 모든 로케일의 help bundle 에 이미 등장하며 QA 프롬프트의 시나리오 31.6 이 커버리지를 검증합니다. 콘텐츠 본문 깊이 갱신은 v1.24+ 후보입니다. |
+| 실행 중인 서버에 대한 QA 시나리오 31 의 라이브 실행 | 브라우저 에이전트 + 라이브 LLM 자격 증명이 필요합니다. v1.24 후보. |
+| 신규 mode-page 힌트 단락에 대한 컴포넌트별 터치 타깃 스윕 | v1.22.0 M-1 이 추가한 `<p class="field-hint">` 요소가 8개 로케일 전체에서 WCAG 2.5.5 최소 높이에 대해 검증되지 않았습니다. |
+
+---
+
 ## [1.22.0] — 2026-05-14
 
 **M/L/N 백로그 일괄 처리 + 문서 정합성 + 번역 품질 패스.** `v1.20.1-BACKLOG.md` 의 medium 이하 등급 전체를 한 릴리스로 정리했습니다. M 항목 9개, L 항목 5개, 자잘한 nit 2개. 더하여 5개의 정규 [career-ops.org/docs](https://career-ops.org/docs) 가이드에 대한 문서 정합성 감사, `.claude/` 및 `.github/` 하위 시스템 프롬프트 갱신, 7개 비영어 로케일 README 품질 재정비를 포함합니다.

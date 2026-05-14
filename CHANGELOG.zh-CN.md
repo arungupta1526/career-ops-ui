@@ -8,6 +8,272 @@
 
 ---
 
+## [1.25.0] — 2026-05-14
+
+**自动管线手动短路 + 仪表盘修饰 + CHANGELOG 同步补齐。** 修复 G-014(自动管线忽略 `mode: 'manual'`)、G-012(CHANGELOG 同步滞后 — 6 个语言版本落后 2 个发布)以及仪表盘 `✨ ✨` 双字形修饰问题。G-003(`README.cn.md` 重命名)经核实已闭环 — 仓库内仅存在 `README.zh-CN.md`。G-005(A-G → A-F 报告区块对齐)需要父项目协同提交,继续推迟。
+
+### 🛡️ G-014 — 自动管线 `mode: 'manual'` 短路
+
+- **`fix(auto-pipeline): G-014 — honour mode:'manual' short-circuit`** ([`server/lib/routes/auto-pipeline.mjs:158-195`](server/lib/routes/auto-pipeline.mjs#L158-L195)) — v1.25 之前,该路由总是调用一次 LLM。传入 `mode: 'manual'`(自 v1.10.2 起对齐 `/api/evaluate` 的约定)会被静默忽略,请求会在 Anthropic 端口阻塞 1–3 分钟。新版处理器:
+  - 同时接受 `mode` 与 `evalMode` 字段以保持向后兼容,任一字段取值为 `'manual'` 均触发短路。
+  - 发送全部 5 个 SSE 阶段事件,携带 `status: 'done'` / `status: 'skipped'`。不发起 fetch,不调用 LLM,不再产生每次请求 $0.05 的费用。
+  - `done` 事件载荷为 `{ mode: 'manual', prompt: <buildEvaluationPrompt scaffold>, message }` — SPA 可像已有的 `/api/evaluate` 手动提示卡片一样渲染。
+- **闭环 `HOST=0.0.0.0` 下的 DoS 风险**:此前即便 `llmRateLimit` 限制为 10 req/60s/IP,10 名攻击者 × 10 请求依然会在 Anthropic 端消耗 $50/分钟。短路在速率限制计数前生效,确保真正的 LLM 调用永不发生。
+- **测试** — [`tests/auto-pipeline-manual-mode.test.mjs`](tests/auto-pipeline-manual-mode.test.mjs) 中 3 个用例分别验证:(1) `mode: 'manual'` 在 2 s 内返回并完整下发 5 个 step 键;(2) 即便设置了 `ANTHROPIC_API_KEY`(原始症状),短路仍会触发;(3) 旧版 `evalMode: 'manual'` 调用方继续正常工作。
+
+### 📝 G-012 — CHANGELOG 同步补齐(6 个语言版本 × 2 个缺失发布)
+
+- **`docs(changelog): backfill v1.23.0, v1.24.0, v1.24.1, v1.25.0 in 6 lagging locales`** — v1.25 之前仅 EN 含有 v1.23–v1.24 条目;RU 落后 1 个发布,其余 6 个语言版本落后 2 个发布。v1.25 沿用 v1.23 的并行翻译代理策略,将四个版本条目一次性落地至 `CHANGELOG.{es,pt-BR,ko-KR,ja,zh-CN,zh-TW}.md`。RU 补齐 v1.24.0 + v1.24.1 + v1.25.0(其在 v1.23 周期中已包含 v1.23.0)。
+- **`feat(ci): scripts/check-changelog-parity.mjs gate`** — 任一语言版本 CHANGELOG 的最新条目若早于 EN 规范版,构建即失败。已纳入 `npm run test:ci`。一旦再次出现类似 G-012 的同步漂移,在跨越 EN 边界的瞬间即会被拦截。
+
+### ✨ 修饰 — 仪表盘双字形去重
+
+- **`fix(dashboard): dedup ✨ glyph in auto-pipeline button label`** ([`public/js/lib/i18n-dict.js:219`](public/js/lib/i18n-dict.js#L219)) — `dash.autoPipeline` 在每种语言的字符串中均以 `✨` 起头,而 `public/js/views/dashboard.js:58` 又在视图层再次前置一个 `✨`,导致按钮渲染为 `✨ ✨ Auto-pipeline …`。v1.25 在每种语言的 DICT 条目中去除前导字形,视图层的前缀成为唯一来源。同一次审计扫了整套 i18n 资源包,未发现其他双字形模式。
+
+### 🚫 推迟至后续发布
+
+- **G-005 — 报告区块 A-G → A-F 对齐 career-ops.org/docs 规范** — 需要在父项目 `santifer/career-ops` 中协同提交(重写 `modes/oferta.md` 以输出 A=Role、B=CV-match、C=Strategy、D=Comp、E=Personalization、F=STAR — 去除 C-Risks 与 G-Legitimacy 作为独立区块)。v1.25.0 在 web-ui 侧已就绪可消费新 schema(自 v1.13 起 `reports.js` 即支持任意区块字母)。等待父子两端可同步交付的窗口期。
+- **G-003 — `README.cn.md` → `README.zh-CN.md` 重命名** — v1.25 准备期间核实:仓库内已存在 `README.zh-CN.md`(整个工作树下无残留的 `README.cn.md`)。G-003 工单为过期信息。
+
+### 🧪 测试
+
+- **477 → 480** 单元测试(PR-B `auto-pipeline-manual-mode.test.mjs` 新增 +3)。
+- Playwright 32/32 保持不变。
+- `npm run test:ci` 现在串行执行 `npm test` + `check-no-also-leftovers.mjs` + `check-changelog-parity.mjs`。
+
+### 验证
+
+```bash
+$ npm run test:ci
+# 480 / 480
+# ✓ no .also( leftovers in views/
+# ✓ CHANGELOG parity: all 8 locales at v1.25.0
+
+# G-014 — 即便设置了 ANTHROPIC_API_KEY,手动模式仍在 2 s 内返回:
+$ ANTHROPIC_API_KEY=sk-ant-test PORT=4317 npm start &
+$ sleep 3
+$ time curl -sS -X POST -H 'Content-Type: application/json' \
+    -d '{"url":"https://job-boards.greenhouse.io/anthropic/jobs/x","mode":"manual"}' \
+    http://127.0.0.1:4317/api/auto-pipeline | head -20
+# real  0m0.1xx s  (此前为 1-3 min)
+# event: start … event: step (×5) … event: done {"mode":"manual","prompt":"…"}
+
+# G-012 — 每个语言版本 CHANGELOG 均含 v1.25.0 条目:
+$ grep -c '^## \[1.25.0\]' CHANGELOG*.md
+# 8 个文件,各 → 1
+
+# 修饰 — 仪表盘字形:
+$ grep "dash.autoPipeline" public/js/lib/i18n-dict.js
+# 任一语言版本均不再含前导 ✨(由视图层提供唯一字形)
+```
+
+### 破坏性变更
+
+无。`mode: 'manual'` 为可选启用项;旧版 `evalMode: 'manual'` 调用方继续正常工作。
+
+### 范围之外(v1.26+)
+
+| 项目 | 备注 |
+|---|---|
+| G-005 — A-F 报告区块对齐 | 需协同父项目提交(`santifer/career-ops` 重写 `modes/oferta.md`)。 |
+| QA 场景 31 **可视化** 子测试的线上执行 | 需浏览器驱动代理(Claude Cowork)。Playwright 烟囱测试已部分覆盖。 |
+| `i18n-dict.js` 超过 400 行目标 | 翻译资源固件 — 按策略豁免。拆分会在无打包器情况下增加 HTTP 请求数。 |
+
+---
+
+## [1.24.1] — 2026-05-14
+
+**热修复:`#/config` 在 8 个语言版本下均崩溃(G-015)。**
+
+### 🚑 关键热修复
+
+- **`fix(config): G-015 — replace removed Element.prototype.also call in config.js`** ([`public/js/views/config.js:371`](public/js/views/config.js#L371)) — v1.22.0 N-2 移除了 `Element.prototype.also` 全局猴子补丁,并将 `cv.js` 迁移为自由语句模式,**但漏掉了 `config.js`**。结果是任一语言版本下 `#/config` 首次调用即崩溃并抛出 `c(...).also is not a function`。v1.24.1 沿用 `cv.js:188-201` 的同款迁移模式 — 将树根抽取为 `const root = c(...)`,在其后独立执行激活语句块,最后 `return root;`。
+
+### 🛡️ CI 守卫
+
+- **`feat(ci): scripts/check-no-also-leftovers.mjs sweep`** — 遍历 `public/js/views/` 下每一个文件,任一处 `.also(` 调用即构建失败(注释中的引用不计)。已纳入新增的 `npm run test:ci` 脚本。日后即便有人回滚猴子补丁的移除,也无法静默引入同一回归。
+
+### 🧪 测试
+
+- **`test: tests/config-view-syntax.test.mjs`** — 三道守卫:
+  - 通过 `node:vm.Script` 解析 `config.js`(无需 Playwright 即可捕获语法层回归);
+  - 断言除注释外不再残留任何 `.also(`;
+  - 断言 `const root = c(...)` / `return root;` 迁移锚点已就位。
+- **474 → 477** 单元测试(+3),Playwright 32/32 保持不变。
+
+### 验证
+
+```bash
+$ npm run test:ci
+# 477 / 477
+# ✓ no .also( leftovers in views/
+
+# 浏览器烟囱测试:
+$ open http://127.0.0.1:4317/#/config
+# → 正常渲染,不再出现 "is not a function" 卡片。每个语言版本均同。
+```
+
+### 范围之外(推迟至 v1.25)
+
+- G-014、G-012、G-005、G-003 — 见下文 v1.25.0 条目的整体说明。
+
+---
+
+## [1.24.0] — 2026-05-14
+
+**帮助资源包内容深度刷新 + QA 场景 31 线上执行 + RU CHANGELOG 端到端译文落地。** 闭环 v1.23.0 "范围之外" 表中两项推迟至 v1.24 的事项:其一,从 5 个 career-ops.org/docs 规范 URL 出发,对全部 8 个帮助资源包做内容深度刷新(自 v1.11.x 起仅完成 URL 覆盖);其二,QA 场景 31 在运行中服务器上的线上执行(此前被标注为 "需浏览器代理 + LLM 凭据" — 实测 6/6 子测试中可经 curl + grep 触达,仅可视化子测试需浏览器)。
+
+### 📖 帮助资源包内容深度刷新
+
+- **`docs(help): refresh en.md from 5 canonical career-ops.org/docs URLs`** ([`docs/help/en.md`](docs/help/en.md)) — v1.24 之前 EN 资源包为 1113 行,虽在 front-matter 中列出 5 个规范 URL,但正文未做展开。v1.24 经 WebFetch 抓取全部 5 个 URL,并对对应的 H2 区段加深内容:
+  - **About career-ops(front-matter)** — 新增原则段(数据主权、AI 无关、用户主导)、"What career-ops is NOT" 段;概念清单由 6 行扩至 10 行(新增 Proof points、JD store、Interview-prep、Batch additions)。
+  - **§5 Portals** — 新增规范引导命令 `cp templates/portals.example.yml portals.yml`,并按 `tracked_companies` 条目梳理必填与可选字段。
+  - **§7 Scan** — 选项 A 段补充 "no AI tokens consumed" 提示,并列出后续命令清单(`apply` / `contacto` / `deep` / `tracker`)。
+  - **§14 Apply checklist** — 拆分为 SPA 清单模式、Manual / Playwright 辅助模式、完整 CLI 流程(规范 8 步,从 `/career-ops apply <company>` 到 `Submitted.` 并自动完成 `Evaluated → Applied` 状态转移);批量评估子段新增 TSV schema 表 + 全部 4 个开关说明 + `merge-tracker.mjs --dry-run`;Playwright Setup 子段列出安装命令、MCP 注册、`.claude/settings.local.json` 备选方案,并标注 headless-by-default。
+- **保持 16 个 H2 区段同构**(CI 测试 `help-ui.test.mjs::section-parity` 断言全部 8 个语言版本恰好包含 16 个 H2 区段)。
+- **5 个规范 URL 每一个在资源包中至少出现 2 次**(由 CI 测试 `canonical-docs-coverage.test.mjs` 强制约束)。v1.24 后逐 URL 出现次数:`what-is-career-ops` × 4、`scan-job-portals` × 5、`apply-for-a-job` × 3、`batch-evaluate-offers` × 5、`set-up-playwright` × 3。
+- **`docs(help): translate the v1.24 deepening to 7 non-EN locales`** — 调度 7 个并行翻译代理。每个目标语言(es / pt-BR / ko-KR / ja / ru / zh-CN / zh-TW)收到一份与 EN 结构逐节对应的刷新版资源包,代码块、URL、文件路径、按钮文案(📁 Upload CV / 🌐 Scan now / ▶ Evaluate / 📄 Generate PDF / 💾 Save)以及英文缩写(CSP、SSRF、TOCTOU、WCAG、ATS、JD、SSE、REST、API)按原文保留,新增内容以目标语言的出版级技术风格落地。
+
+### 🧪 QA 场景 31 — 线上执行(6/6 PASS)
+
+- **`docs(qa): append last-verified live-execution log to qa/claude-cowork-browser-test-prompt.md`** — v1.24 之前场景 31 仅文档化但从未在运行中的服务器上跑过(原记为 "需浏览器代理 + LLM 凭据")。v1.24 将 6 个子测试一次性跑通,目标 `http://127.0.0.1:4317`:
+
+  | 子项 | 描述 | 状态 |
+  |---|---|---|
+  | 31.1 | 帮助资源包中的分数阈值 | ✅ PASS(`docs/help/en.md` 中 4.5 × 3、4.0 × 9、3.5 × 6 次提及) |
+  | 31.2 | 扫描工作流端点 | ✅ PASS(`/api/stream/scan-{en,ru}` + `/api/scan-ru/config` → 404;`/api/scan/regional/config` → 200) |
+  | 31.3 | `/api/apply-helper` 清单 | ✅ PASS(响应正文包含 `career-ops apply` 与 `auto-submit` 警示) |
+  | 31.4 | `/api/batch` 端点 | ✅ PASS(响应键为 `[exists, runnerExists, raw, rows, additions]`) |
+  | 31.5 | Playwright 可用性 | ✅ PASS(`/api/health` 上报 `Playwright (parent node_modules) ok: true, value: installed`) |
+  | 31.6 | 帮助资源包 URL 覆盖(5 个 URL × 8 个语言版本) | ✅ PASS(**40 / 40 ✓**) |
+
+  仅可视化的子测试(需浏览器)在 QA prompt 中单独标注 — 可经 Claude Cowork 或 `npm run test:e2e:browser` 触达。
+
+### 🌐 RU CHANGELOG 端到端译文(M-9 后续)
+
+- **`docs(translate): CHANGELOG.ru.md retry agent — full body translation`** ([`CHANGELOG.ru.md`](CHANGELOG.ru.md)) — v1.23.0 交付时 RU CHANGELOG 重试代理仍在执行(首次曾因 socket 错误失败,经重新调度)。v1.24 接收该代理 1542 行的完整译文:从 v1.23.0 到 v1.6.0 的每一条目均落地为出版级俄语正文,EN 原文性质的占位说明全部清除。文体纪律对齐 v1.22.0 README 质量复核:以 "функциональность" / "возможности" / "поведение" 替换生硬的 "функционал";以 "через" / "с помощью" 替换 "при помощи";主动语态优先;"эндпоинт"、"лимит запросов"、"состояние гонки"、"санитайзинг" 为规范术语;英文缩写(TOCTOU、CSP、SSRF、WCAG、ATS、JD、SSE、REST、API)按原文保留。
+
+### 🧪 测试
+
+- **474 / 474** 单元 + 20 / 20 烟囱 E2E + 32 / 32 Playwright。零行为差异;帮助资源包的全部 CI 断言(16 H2 区段 × 8 个语言版本、5 URL × ≥ 2 次提及、内容底线)继续通过。
+
+### 验证
+
+```bash
+$ npm test                            # 474 / 474
+
+# 帮助资源包深化:
+$ wc -l docs/help/en.md
+# ~1270 行(此前为 1113 — 加深而非膨胀)
+
+$ for url in what-is-career-ops scan-job-portals apply-for-a-job \
+             batch-evaluate-offers set-up-playwright; do
+    echo -n "$url: "
+    grep -c "$url" docs/help/en.md
+  done
+# what-is-career-ops: 4
+# scan-job-portals: 5
+# apply-for-a-job: 3
+# batch-evaluate-offers: 5
+# set-up-playwright: 3
+
+# 场景 31.6 — 40/40 URL 覆盖:
+$ for lang in en es pt-BR ko ja ru zh-CN zh-TW; do
+    echo -n "$lang: "
+    for url in what-is-career-ops scan-job-portals apply-for-a-job \
+               batch-evaluate-offers set-up-playwright; do
+      curl -sS "http://127.0.0.1:4317/api/help/$lang" \
+        | python3 -c "import sys,json; print(json.load(sys.stdin).get('markdown',''))" \
+        | grep -q "$url" && echo -n "✓ " || echo -n "✗ "
+    done
+    echo
+  done
+```
+
+### 破坏性变更
+
+无。
+
+### 范围之外(v1.25+)
+
+| 项目 | 备注 |
+|---|---|
+| 场景 31 **可视化** 子测试的线上执行 | 需浏览器驱动代理(Claude Cowork 或 `npm run test:e2e:browser`)。仅 curl 执行无法覆盖;已由 Playwright 烟囱测试补足。 |
+| RU CHANGELOG **更早条目**(v1.5.x 及以下)的正文翻译 | 重试代理仅覆盖 v1.6.0 起的条目。v1.6 之前的条目(若曾存在)仍为既有内容。 |
+| 后续 SPA 变更后仪表盘截图的可视回归 | `scripts/capture-dashboard-screenshots.mjs` 可重新生成各语言 PNG;目前尚无自动化 diff。 |
+
+---
+
+## [1.23.0] — 2026-05-14
+
+**i18n 拆分 + 连接横幅 CI 修复 + 本地化仪表盘截图 + 全部既有遗留项闭环。** 一次性交付 v1.22.0 "范围之外" 表标注给 v1.23 的三项工作(M-9 各语言 CHANGELOG 正文翻译、N-1 `i18n.js` 行数拆分、帮助资源包内容审计),并附带一项让 v1.22.0 主干 CI 转红的烟囱 E2E 热修复。
+
+### 🚑 CI 热修复 — 连接横幅恢复
+
+- **`fix(client): reset health-poll cadence + visibilitychange eager re-check`** ([`public/js/api.js:21-91`](public/js/api.js#L21-L91)) — v1.22.0 的 M-6 指数退避方向正确(3 s → 6 s → 12 s → cap 15 s,自原 60 s 上限下调),但在飞中的 `setTimeout` 仍锁定了上一次设置的延迟。若服务器在 t=0.1 被杀且首次 ping 落在 t=3,该次会失败,延迟翻倍到 6,下一次恢复探测要拖到 t=9 才发出。烟囱 E2E 中 "Flow 2a:服务器宕机时连接横幅出现、恢复后隐藏" 仅等 4 s,因此在 `main` 上转红。
+
+    v1.23.0 重塑轮询循环:
+
+    - 跟踪 `_healthHandle`,使 `setConnectionState(lost=true)` 能调用 `clearTimeout` 并以 `_HEALTH_MIN` 重新调度。首次恢复探测在宕机后 3 s 内一定发出,不再受先前排队延迟影响。
+    - `_HEALTH_MAX` 由 60 s 下调至 15 s。即便标签页在后台、服务器仍处于死掉状态,用户回到标签页时也能在一个轮询周期内恢复;带宽节省仍然显著。
+    - `document.addEventListener('visibilitychange')` 在标签页重获焦点且 `connectionLost === true` 时立即重检 — Cmd-Tab 切回不再等待下一次退避节拍。
+
+### 🧹 N-1 — i18n.js 拆分(此前超过 400 行目标)
+
+- **`refactor(client): split DICT into i18n-dict.js (data) + i18n.js (logic)`** — v1.23 之前 `public/js/lib/i18n.js` 共 639 行。其中绝大部分(23–586 行)是 `DICT` 翻译表 — 纯结构化数据。v1.23.0 将其抽出为 [`public/js/lib/i18n-dict.js`](public/js/lib/i18n-dict.js)(578 行,按 CLAUDE.md "Exempt from these limits: generated files, migrations, test fixtures, lock files, vendored code" 条款豁免行数约束 — 翻译表归入 fixtures),余下 [`public/js/lib/i18n.js`](public/js/lib/i18n.js) 缩至 86 行的纯模块逻辑(远低于 400 行目标)。
+- **加载契约:**`i18n-dict.js` 向 `window.__I18N_DICT = { … }` 写入数据,随后 `i18n.js` 在既有 IIFE 中读取。[`public/index.html`](public/index.html) 按顺序加载二者 — `i18n-dict.js` 先于 `i18n.js` — 确保 IIFE 构造时 DICT 已完全填充。缺失字典的兜底:任一 `t()` 调用回退至内联 fallback 或原始 key,将配置异常显式暴露而不导致 SPA 崩溃。
+- **测试管道同步更新:**[`tests/i18n-coverage.test.mjs`](tests/i18n-coverage.test.mjs)、[`tests/help-ui.test.mjs`](tests/help-ui.test.mjs)、[`tests/canonical-docs-coverage.test.mjs`](tests/canonical-docs-coverage.test.mjs) 现在将两份文件一同载入测试 VM 上下文(或拼接源文本供正则扫描),保留全部既有断言。
+
+### 🌐 M-9 — 各语言 CHANGELOG 正文翻译
+
+- **`docs(translate): 7 non-EN CHANGELOG files end-to-end`** — v1.23 之前 `CHANGELOG.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md` 自 v1.13.0 起每个条目都仅有 EN 正文性质的占位说明,并在末尾提示读者参考 EN 规范版。v1.23.0 调度 7 个并行翻译代理(每语言一个),将每条正文以目标语言的出版级技术风格重写。占位说明清除。代码块、文件路径、URL、提交信息字符串(`fix(security): B-1 — …`)、环境变量与链接文案在所有语言版本中按原文保留。
+
+### 🖼️ 各语言 README 中的本地化仪表盘截图
+
+- **`docs(readme): wire each locale README at its locale-specific PNG`** — v1.23 之前仅 `README.pt-BR.md` 引用了 `dashboard-pt-BR.png`,其余 6 个非英文 README 仍指向 `dashboard-en.png`。截图已由 v1.22.0 周期中的 [`scripts/capture-dashboard-screenshots.mjs`](scripts/capture-dashboard-screenshots.mjs) 生成并落于 `images/`,但未投入使用。v1.23.0 将每份 `README.{es,ja,ko-KR,ru,zh-CN,zh-TW}.md` 第 14 行指向其本地化 `dashboard-<locale>.png`。
+
+### 🧪 测试
+
+- 单元 474 / 474、Playwright 32 / 32 与 v1.22.0 持平。**烟囱 E2E 恢复至 20 / 20**(v1.22.0 主干因横幅恢复回归曾报 19/1 fail;v1.23.0 的重排调度修复将其闭环)。
+- 三个既有测试已为 i18n 拆分调通配线。零新增测试文件,零既有断言删除。
+
+### 验证
+
+```bash
+$ npm test
+# 474 / 474
+
+$ npm run test:e2e
+# passed: 20    failed: 0    (v1.22.0 main 曾为 19/1)
+
+$ wc -l public/js/lib/i18n.js public/js/lib/i18n-dict.js
+#       86 public/js/lib/i18n.js          ← 逻辑,低于目标
+#      578 public/js/lib/i18n-dict.js     ← 数据 fixture,豁免
+
+$ grep -h 'dashboard-' README*.md | sed -E 's/.*(dashboard-[^)]+).*/\1/' | sort -u
+# dashboard-en.png    (仅 README.md)
+# dashboard-es.png    dashboard-ja.png
+# dashboard-ko-KR.png dashboard-pt-BR.png
+# dashboard-ru.png    dashboard-zh-CN.png  dashboard-zh-TW.png
+
+# CHANGELOG 翻译完整性核验:每个语言文件正文行数 > 200
+$ wc -l CHANGELOG.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md | grep -v total
+```
+
+### 破坏性变更
+
+无。`public/index.html` 现在加载两个脚本(原为一个) — 任何通过 CDN 分发 SPA 的部署都需要补上 `i18n-dict.js`;脚本加载顺序由 `index.html` 中 `<script src>` 标签的顺序保证。运行期兜底(DICT 为空 → `t()` 返回内联 EN fallback)可避免新文件缺失时硬崩溃。
+
+### 范围之外(v1.24+)
+
+| 项目 | 备注 |
+|---|---|
+| 基于 career-ops.org/docs 的帮助资源包内容深度刷新(对应 URL 覆盖) | 5 个规范 URL 自 v1.11.x 起已出现在每个语言版本的帮助资源包中,QA prompt 中场景 31.6 验证覆盖。正文深度刷新为 v1.24+ 候选项。 |
+| QA 场景 31 在运行中服务器上的线上执行 | 需浏览器代理 + 线上 LLM 凭据。v1.24 候选。 |
+| 新增 mode-page 提示段在所有语言下的逐组件 touch-target 复查 | v1.22.0 M-1 新增的 `<p class="field-hint">` 元素尚未在全部 8 个语言版本下针对 WCAG 2.5.5 最小高度做核验。 |
+
+---
+
 ## [1.22.0] — 2026-05-14
 
 **清理 M/L/N 优先级遗留项 + 文档对齐 + 翻译质量复核。** `v1.20.1-BACKLOG.md` 中所有中等及以下优先级条目在单次发布中一次性解决:9 个 M 项、5 个 L 项、2 个细节项。此外完成了一次与 [career-ops.org/docs](https://career-ops.org/docs) 五份官方指南的文档对齐审计,刷新了 `.claude/` 与 `.github/` 下的系统提示,并对全部 7 个非英文 README 进行了出版级质量重译。

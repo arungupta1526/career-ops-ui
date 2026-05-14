@@ -8,6 +8,272 @@
 
 ---
 
+## [1.25.0] — 2026-05-14
+
+**自動パイプラインの手動ショートサーキット + ダッシュボードのコスメティック修正 + CHANGELOG パリティのバックフィル。** G-014 (自動パイプラインが `mode: 'manual'` を無視していた問題)、G-012 (CHANGELOG パリティのドリフト — 6 ロケールが 2 リリース遅れていた)、およびダッシュボードの `✨ ✨` 二重グリフのコスメティック問題をクローズします。G-003 (`README.cn.md` のリネーム) は実質的に既にクローズ済み — リポジトリには `README.zh-CN.md` しか存在しません。G-005 (A-G → A-F レポートブロックの再整列) は親プロジェクトとの協調コミットが必要で、引き続き延期となります。
+
+### 🛡️ G-014 — 自動パイプライン `mode: 'manual'` ショートサーキット
+
+- **`fix(auto-pipeline): G-014 — honour mode:'manual' short-circuit`** ([`server/lib/routes/auto-pipeline.mjs:158-195`](server/lib/routes/auto-pipeline.mjs#L158-L195)) — v1.25 以前は、このルートは常に LLM を呼び出していました。`mode: 'manual'` を渡す (v1.10.2 以降の `/api/evaluate` のミラー) は黙って無視され、リクエストは Anthropic で 1〜3 分ハングしていました。新ハンドラの動作は以下の通りです:
+  - 後方互換のため `mode` と `evalMode` の両方を受け付けます。いずれかが `'manual'` であればショートサーキットが発動します。
+  - 5 ステージ全ての SSE を `status: 'done'` / `status: 'skipped'` で送出します。fetch なし、LLM 呼び出しなし、リクエストあたり $0.05 のコストなし。
+  - `done` ペイロードは `{ mode: 'manual', prompt: <buildEvaluationPrompt scaffold>, message }` を含み、SPA は既存の `/api/evaluate` 手動プロンプトカードと同様にレンダリングできます。
+- **`HOST=0.0.0.0` における DoS リスクをクローズ**: 以前は `llmRateLimit` が 10 req/60s/IP で上限を設けていたとしても、攻撃者 10 名 × 各 10 リクエスト = 1 分あたり $50 の Anthropic 課金が発生していました。ショートサーキットは実呼び出しのレート制限カウントが減る前に発火します。
+- **テスト** — [`tests/auto-pipeline-manual-mode.test.mjs`](tests/auto-pipeline-manual-mode.test.mjs): 3 件のテストで以下を確認します — (1) `mode: 'manual'` が 5 ステップキー全てを伴って 2 秒以内に返ること、(2) `ANTHROPIC_API_KEY` がセットされていてもショートサーキットが発火すること (元の症状)、(3) レガシーな `evalMode: 'manual'` 呼び出し元が引き続き動作すること。
+
+### 📝 G-012 — CHANGELOG パリティのバックフィル (6 ロケール × 欠落 2 リリース)
+
+- **`docs(changelog): backfill v1.23.0, v1.24.0, v1.24.1, v1.25.0 in 6 lagging locales`** — v1.25 以前は EN のみが v1.23-v1.24 を持ち、RU は 1 リリース遅れ、その他 6 ロケールは 2 リリース遅れでした。v1.25 では並列翻訳エージェント (v1.23 と同じパターン) をディスパッチし、4 エントリ全てを `CHANGELOG.{es,pt-BR,ko-KR,ja,zh-CN,zh-TW}.md` に投入します。RU は v1.24.0 + v1.24.1 + v1.25.0 を受け取ります (v1.23.0 は v1.23 サイクルで既に翻訳済み)。
+- **`feat(ci): scripts/check-changelog-parity.mjs gate`** — いずれかのロケール CHANGELOG の最新エントリが EN 正本より古い場合、ビルドを失敗させます。`npm run test:ci` に組み込み済み。既存の G-012 ドリフトは、EN の境界を越えた瞬間に自身を検出できていたはずです。
+
+### ✨ コスメティック — ダッシュボードの二重グリフ重複排除
+
+- **`fix(dashboard): dedup ✨ glyph in auto-pipeline button label`** ([`public/js/lib/i18n-dict.js:219`](public/js/lib/i18n-dict.js#L219)) — `dash.autoPipeline` は全ロケール文字列の先頭に `✨` を含んでおり、加えて `public/js/views/dashboard.js:58` がビュー側でさらに `✨` を前置していました。結果、ボタンは `✨ ✨ Auto-pipeline …` とレンダリングされていました。v1.25 では各ロケール DICT エントリの先頭グリフを削除し、ビューの前置を唯一のソースとします。同じ監査パスで残りの i18n バンドルもスイープしましたが、他に二重グリフのパターンは見つかりませんでした。
+
+### 🚫 将来のリリースへ延期
+
+- **G-005 — 正規 career-ops.org/docs に従ったレポートブロック A-G → A-F** — 親プロジェクト `santifer/career-ops` の協調コミットが必要 (`modes/oferta.md` を書き換えて A=Role、B=CV-match、C=Strategy、D=Comp、E=Personalization、F=STAR を出力し、C-Risks / G-Legitimacy を独立ブロックから外す)。v1.25.0 は web-ui 側を新スキーマ受け入れ可能な状態で出荷します (`reports.js` は v1.13 以降、任意のブロック文字を受け付けます)。親と子を一緒に着地できる次のリリースウィンドウまでトラックします。
+- **G-003 — `README.cn.md` → `README.zh-CN.md` リネーム** — v1.25 準備時に検証済み: リポジトリには既に `README.zh-CN.md` のみが存在し (worktree 配下に孤児の `README.cn.md` は皆無)。G-003 の指摘は陳腐化していました。
+
+### 🧪 テスト
+
+- **477 → 480** ユニットテスト (+3 は PR-B の `auto-pipeline-manual-mode.test.mjs` より)。
+- 32/32 Playwright は変更なし。
+- `npm run test:ci` は `npm test` + `check-no-also-leftovers.mjs` + `check-changelog-parity.mjs` を実行するようになりました。
+
+### 検証
+
+```bash
+$ npm run test:ci
+# 480 / 480
+# ✓ no .also( leftovers in views/
+# ✓ CHANGELOG parity: all 8 locales at v1.25.0
+
+# G-014 — manual mode returns < 2 s even with ANTHROPIC_API_KEY set:
+$ ANTHROPIC_API_KEY=sk-ant-test PORT=4317 npm start &
+$ sleep 3
+$ time curl -sS -X POST -H 'Content-Type: application/json' \
+    -d '{"url":"https://job-boards.greenhouse.io/anthropic/jobs/x","mode":"manual"}' \
+    http://127.0.0.1:4317/api/auto-pipeline | head -20
+# real  0m0.1xx s  (was 1-3 min)
+# event: start … event: step (×5) … event: done {"mode":"manual","prompt":"…"}
+
+# G-012 — every locale CHANGELOG carries the v1.25.0 entry:
+$ grep -c '^## \[1.25.0\]' CHANGELOG*.md
+# 8 files, each → 1
+
+# Cosmetic — dashboard glyph:
+$ grep "dash.autoPipeline" public/js/lib/i18n-dict.js
+# No leading ✨ in any locale value (view supplies the single glyph)
+```
+
+### 破壊的変更
+
+なし。`mode: 'manual'` はオプトインで、レガシーな `evalMode: 'manual'` 呼び出し元は変更なしで引き続き動作します。
+
+### スコープ外 (v1.26+)
+
+| 項目 | 備考 |
+|---|---|
+| G-005 — A-F レポートブロックの再整列 | 親プロジェクトの協調コミットが必要 (`santifer/career-ops` が `modes/oferta.md` を書き換え)。 |
+| QA シナリオ 31 の **ビジュアル** サブテストのライブ実行 | ブラウザ駆動エージェント (Claude Cowork) が必要。Playwright スモークで部分的にカバー。 |
+| `i18n-dict.js` の 400-LOC 目標超過 | 翻訳フィクスチャ — ポリシーにより除外。バンドラを使わずに分割すると HTTP リクエストが増えるため不採用。 |
+
+---
+
+## [1.24.1] — 2026-05-14
+
+**ホットフィックス: 8 ロケール全てで `#/config` がクラッシュ (G-015)。**
+
+### 🚑 重大ホットフィックス
+
+- **`fix(config): G-015 — replace removed Element.prototype.also call in config.js`** ([`public/js/views/config.js:371`](public/js/views/config.js#L371)) — v1.22.0 の N-2 で `Element.prototype.also` のグローバルモンキーパッチを撤去し、`cv.js` をフリーステートメントパターンへ移行しましたが、**`config.js` の移行が漏れていました**。結果、`#/config` は全ロケールで初回呼び出し時に `c(...).also is not a function` を伴ってクラッシュしていました。v1.24.1 では `cv.js:188-201` と同じ移行パターンを適用 — ツリーを `const root = c(...)` に抽出し、起動ブロックを単体で実行した後 `return root;` を返します。
+
+### 🛡️ CI ゲート
+
+- **`feat(ci): scripts/check-no-also-leftovers.mjs sweep`** — `public/js/views/` 配下の全ファイルを走査し、いずれかの `.also(` 呼び出しサイト (コメント内参照は許可) があればビルドを失敗させます。新しい `npm run test:ci` スクリプトに組み込み済み。将来モンキーパッチ撤去がリバートされても、同じリグレッションが黙って再導入されることはありません。
+
+### 🧪 テスト
+
+- **`test: tests/config-view-syntax.test.mjs`** — 3 つのガード:
+  - `node:vm.Script` で `config.js` をパース (Playwright なしでも構文レベルのリグレッションを捕捉)
+  - コメント外に `.also(` が残っていないことを表明
+  - `const root = c(...)` / `return root;` の移行アンカーが存在することを表明
+- **474 → 477** ユニットテスト (+3) + 32/32 Playwright は変更なし。
+
+### 検証
+
+```bash
+$ npm run test:ci
+# 477 / 477
+# ✓ no .also( leftovers in views/
+
+# Browser smoke:
+$ open http://127.0.0.1:4317/#/config
+# → renders normally, no "is not a function" card. Every locale equivalent.
+```
+
+### スコープ外 (v1.25 に延期)
+
+- G-014, G-012, G-005, G-003 — バンドルは下方の v1.25.0 エントリを参照してください。
+
+---
+
+## [1.24.0] — 2026-05-14
+
+**ヘルプバンドルのコンテンツ深度リフレッシュ + QA シナリオ 31 のライブ実行 + RU CHANGELOG のエンドツーエンド翻訳。** v1.23.0 の「スコープ外」テーブルで v1.24 に延期された 2 項目を両方クローズします: 5 本の正規 career-ops.org/docs URL から 8 言語ヘルプバンドル全ての本文を深度リフレッシュ (v1.11.x 以降は URL カバレッジのみだった)、および稼働中サーバに対する QA シナリオ 31 のライブ実行 ("ブラウザエージェント + LLM 認証情報が必要" としていたが、6/6 サブテストのうち curl + grep で到達可能で、ビジュアルサブテストのみブラウザが必要と判明)。
+
+### 📖 ヘルプバンドルのコンテンツ深度リフレッシュ
+
+- **`docs(help): refresh en.md from 5 canonical career-ops.org/docs URLs`** ([`docs/help/en.md`](docs/help/en.md)) — v1.24 以前は EN バンドルは 1113 行で、フロントマターに 5 本の正規 URL を列挙していましたが、本文では展開していませんでした。v1.24 では WebFetch で 5 URL 全てを取得し、対応する H2 セクションを深堀りします:
+  - **About career-ops (フロントマター)** — 原則 (データ主権、AI 非依存、人間が制御) を追加、"What career-ops is NOT" ブロック追加、コンセプト一覧を 6 → 10 行に拡張 (Proof points、JD store、Interview-prep、Batch additions を追加)。
+  - **§5 Portals** — 正規ブートストラップ `cp templates/portals.example.yml portals.yml` を追加、`tracked_companies` エントリ毎の必須/任意フィールドを明確化。
+  - **§7 Scan** — Option A に「AI トークンを消費しない」注記を追加、後続コマンドリスト (`apply` / `contacto` / `deep` / `tracker`) を追加。
+  - **§14 Apply checklist** — SPA チェックリストモード vs Manual-vs-Playwright-assisted vs Full CLI フロー (`/career-ops apply <company>` から `Submitted.` までの正規 8 番号ステップ、`Evaluated → Applied` 自動遷移付き) に分割; バッチ評価サブセクションに TSV スキーマテーブル + 4 フラグ全ての記載 + `merge-tracker.mjs --dry-run` を追加; Playwright Setup サブセクションにインストールコマンド、MCP 登録、代替 `.claude/settings.local.json`、デフォルトでのヘッドレス注記を列挙。
+- **16-H2 セクションパリティを維持** (CI テスト `help-ui.test.mjs::section-parity` が全 8 ロケールで H2 セクションが厳密に 16 個であることを表明)。
+- **5 本の正規 URL がそれぞれバンドル内に 2 回以上出現** (CI テスト `canonical-docs-coverage.test.mjs` が強制)。v1.24 後の URL 毎の出現回数: `what-is-career-ops` × 4、`scan-job-portals` × 5、`apply-for-a-job` × 3、`batch-evaluate-offers` × 5、`set-up-playwright` × 3。
+- **`docs(help): translate the v1.24 deepening to 7 non-EN locales`** — 7 つの並列翻訳エージェントをディスパッチ。各ターゲットロケール (es / pt-BR / ko-KR / ja / ru / zh-CN / zh-TW) は EN 構造をセクション毎に反映したリフレッシュバンドルを受け取り、コードブロック / URL / ファイルパス / ボタンラベル (📁 Upload CV / 🌐 Scan now / ▶ Evaluate / 📄 Generate PDF / 💾 Save) と英語略語 (CSP, SSRF, TOCTOU, WCAG, ATS, JD, SSE, REST, API) は原文のまま保持し、深化部分はターゲット言語のパブリケーション品質のネイティブ技術スタイルに翻訳します。
+
+### 🧪 QA シナリオ 31 — ライブ実行 (6/6 PASS)
+
+- **`docs(qa): append last-verified live-execution log to qa/claude-cowork-browser-test-prompt.md`** — v1.24 以前のシナリオ 31 はドキュメント化されていたものの、稼働中サーバに対して未実行 ("ブラウザエージェント + LLM 認証情報が必要" として延期)。v1.24 では 6 つのサブテスト全てを `http://127.0.0.1:4317` に対して実行しました:
+
+  | Sub | 説明 | ステータス |
+  |---|---|---|
+  | 31.1 | ヘルプバンドル内のスコア閾値 | ✅ PASS (`docs/help/en.md` 内で 4.5 × 3、4.0 × 9、3.5 × 6 言及) |
+  | 31.2 | スキャンワークフローのエンドポイント | ✅ PASS (`/api/stream/scan-{en,ru}` + `/api/scan-ru/config` → 404; `/api/scan/regional/config` → 200) |
+  | 31.3 | `/api/apply-helper` チェックリスト | ✅ PASS (本文に `career-ops apply` + `auto-submit` 警告を含む) |
+  | 31.4 | `/api/batch` エンドポイント | ✅ PASS (キー `[exists, runnerExists, raw, rows, additions]`) |
+  | 31.5 | Playwright の可用性 | ✅ PASS (`/api/health` が `Playwright (parent node_modules) ok: true, value: installed` を報告) |
+  | 31.6 | ヘルプバンドル URL カバレッジ (5 URL × 8 ロケール) | ✅ PASS (**40 / 40 ✓**) |
+
+  ビジュアル専用サブテスト (ブラウザを必要とする) は QA プロンプトで個別にフラグ — 引き続き Claude Cowork または `npm run test:e2e:browser` で実行可能。
+
+### 🌐 RU CHANGELOG エンドツーエンド (M-9 フォローアップ)
+
+- **`docs(translate): CHANGELOG.ru.md retry agent — full body translation`** ([`CHANGELOG.ru.md`](CHANGELOG.ru.md)) — v1.23.0 リリースは RU CHANGELOG リトライエージェントが進行中のまま出荷されました (一度ソケットエラーでクラッシュし、再ディスパッチされていた)。v1.24 ではエージェントの 1542 行に及ぶフル翻訳を取り込みます: v1.23.0 → v1.6.0 までの全エントリがパブリケーション品質のロシア語本文を持ち、EN 本文の応急処置は撲滅されました。スタイル規律は v1.22.0 README 品質リフレッシュと同等: 不格好な "функционал" は "функциональность" / "возможности" / "поведение" に置換; "при помощи" は "через" / "с помощью" に置換; 受動態より能動態優先; "эндпоинт"、"レート制限"、"競合状態"、"サニタイズ" を正規用語として採用; 英語略語 (TOCTOU, CSP, SSRF, WCAG, ATS, JD, SSE, REST, API) は原文保持。
+
+### 🧪 テスト
+
+- **474 / 474** ユニット + 20 / 20 スモーク E2E + 32 / 32 Playwright。挙動テストのデルタはゼロ; ヘルプバンドルの CI 表明 (16 H2 セクション × 8 ロケール、5 URL × ≥ 2 言及、コンテンツフロア) は全てグリーンを維持。
+
+### 検証
+
+```bash
+$ npm test                            # 474 / 474
+
+# Help-bundle deepening:
+$ wc -l docs/help/en.md
+# ~1270 lines (was 1113 — deepened, not bloated)
+
+$ for url in what-is-career-ops scan-job-portals apply-for-a-job \
+             batch-evaluate-offers set-up-playwright; do
+    echo -n "$url: "
+    grep -c "$url" docs/help/en.md
+  done
+# what-is-career-ops: 4
+# scan-job-portals: 5
+# apply-for-a-job: 3
+# batch-evaluate-offers: 5
+# set-up-playwright: 3
+
+# Scenario 31.6 — 40/40 URL coverage:
+$ for lang in en es pt-BR ko ja ru zh-CN zh-TW; do
+    echo -n "$lang: "
+    for url in what-is-career-ops scan-job-portals apply-for-a-job \
+               batch-evaluate-offers set-up-playwright; do
+      curl -sS "http://127.0.0.1:4317/api/help/$lang" \
+        | python3 -c "import sys,json; print(json.load(sys.stdin).get('markdown',''))" \
+        | grep -q "$url" && echo -n "✓ " || echo -n "✗ "
+    done
+    echo
+  done
+```
+
+### 破壊的変更
+
+なし。
+
+### スコープ外 (v1.25+)
+
+| 項目 | 備考 |
+|---|---|
+| シナリオ 31 の **ビジュアル** サブテストのライブ実行 | ブラウザ駆動エージェント (Claude Cowork または `npm run test:e2e:browser`) が必要。curl のみの実行ではスコープ外で、既存の Playwright スモークでカバー。 |
+| 旧エントリ (v1.5.x 以下) の RU CHANGELOG 本文翻訳 | リトライエージェントは v1.6.0 以降のみカバー。v1.6 より前のエントリ (`v1.5.x` 等) — 仮に存在していたとしても — 既存コンテンツのまま。 |
+| 今後の SPA 変更後のダッシュボードスクリーンショットのビジュアルリグレッション | `scripts/capture-dashboard-screenshots.mjs` がロケール毎の PNG を再生成; 現状自動 diff なし。 |
+
+---
+
+## [1.23.0] — 2026-05-14
+
+**i18n 分割 + 接続バナー CI 修正 + ロケール別ダッシュボードスクリーンショット + 全バックログの応急処置クローズ。** v1.22.0 の「スコープ外」テーブルで v1.23 にフラグされた 3 項目 (M-9 ロケール CHANGELOG 本文、N-1 `i18n.js` LOC 分割、ヘルプバンドルコンテンツ監査) に加え、v1.22.0 後の main ブランチ CI をレッドにしたスモーク E2E テストへのホットフィックスを出荷します。
+
+### 🚑 CI ホットフィックス — 接続バナーリカバリ
+
+- **`fix(client): reset health-poll cadence + visibilitychange eager re-check`** ([`public/js/api.js:21-91`](public/js/api.js#L21-L91)) — v1.22.0 の M-6 指数バックオフは正しい設計 (3 秒 → 6 秒 → 12 秒 → 上限 15 秒、元の上限 60 秒から低下) でしたが、進行中の `setTimeout` は直前に設定された delay にロックされていました。t=0.1 でサーバが kill され、最初の ping が t=3 で失敗すると delay は 6 へ倍化し、次の復旧プローブは t=9 まで発火しません。スモーク E2E の「Flow 2a: connection banner appears on server down, hides on recovery」は 4 秒しか待たず、`main` でレッドに転じました。
+
+    v1.23.0 はポーリングループを再構築します:
+
+    - `_healthHandle` を追跡することで `setConnectionState(lost=true)` が `clearTimeout` を呼び、`_HEALTH_MIN` で再スケジュールできるようにしました。最初の復旧プローブは、キューに積まれた delay に関係なくダウンから 3 秒以内に発火します。
+    - `_HEALTH_MAX` を 60 秒から 15 秒に低下。デッドサーバに対してバックグラウンドのタブはユーザが戻ったとき 1 ポーリングサイクル内で復旧し、帯域節約も維持されます。
+    - `document.addEventListener('visibilitychange')` でタブがフォーカスを取り戻し `connectionLost === true` のときに即時再チェック — Cmd-Tab で戻る際に次のバックオフティックを待ちません。
+
+### 🧹 N-1 — i18n.js 分割 (400-LOC 目標超過)
+
+- **`refactor(client): split DICT into i18n-dict.js (data) + i18n.js (logic)`** — v1.23 以前は `public/js/lib/i18n.js` が 639 LOC。大部分 (23-586 行) は `DICT` 翻訳テーブル — 純粋な構造化データでした。v1.23.0 ではこれを [`public/js/lib/i18n-dict.js`](public/js/lib/i18n-dict.js) に抽出 (578 LOC、CLAUDE.md の「これらの制限から除外: 生成ファイル、マイグレーション、テストフィクスチャ、ロックファイル、ベンダーコード」により LOC ルールから除外 — 翻訳テーブルはフィクスチャに該当)、[`public/js/lib/i18n.js`](public/js/lib/i18n.js) はピュアなモジュールロジック 86 LOC (400-LOC 目標を十分下回る) に。
+- **ローダー契約:** `i18n-dict.js` が `window.__I18N_DICT = { … }` を投入し、続いて `i18n.js` が既存の IIFE 内でそれを読み取ります。[`public/index.html`](public/index.html) は `i18n-dict.js` を `i18n.js` より先に読み込むため、IIFE は構築時に完全に投入された DICT を見ます。Missing-dict フォールバック: 各 `t()` 呼び出しはインラインフォールバックまたは素のキーを返し、SPA をクラッシュさせずに誤設定を明示的に表面化します。
+- **テスト配管の更新:** [`tests/i18n-coverage.test.mjs`](tests/i18n-coverage.test.mjs)、[`tests/help-ui.test.mjs`](tests/help-ui.test.mjs)、[`tests/canonical-docs-coverage.test.mjs`](tests/canonical-docs-coverage.test.mjs) は両ファイルをテスト VM コンテキストで実行 (または regex スイープ用にソースを連結) するようになり、既存の全表明を維持します。
+
+### 🌐 M-9 — ロケール CHANGELOG 本文翻訳
+
+- **`docs(translate): 7 non-EN CHANGELOG files end-to-end`** — v1.23 以前は `CHANGELOG.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md` は v1.13.0 以降の各エントリで EN 本文の応急処置注記を保持し、フッタは読者を EN 正本に誘導していました。v1.23.0 では 7 並列翻訳エージェント (ロケール毎 1 つ) をディスパッチし、全ての本文をターゲット言語のパブリケーション品質の技術スタイルで書き直します。応急処置注記は撤去。コードブロック、ファイルパス、URL、コミットメッセージスタイル文字列 (`fix(security): B-1 — …`)、環境変数、リンクラベルは全ロケールで原文のまま保持します。
+
+### 🖼️ 全 README にロケール別ダッシュボードスクリーンショット
+
+- **`docs(readme): wire each locale README at its locale-specific PNG`** — v1.23 以前は `README.pt-BR.md` のみが `dashboard-pt-BR.png` を参照し、その他 6 つの非英語 README は依然として `dashboard-en.png` を指していました。スクリーンショット (v1.22.0 サイクルで [`scripts/capture-dashboard-screenshots.mjs`](scripts/capture-dashboard-screenshots.mjs) によって既に撮影済み) は `images/` 配下に存在しましたが未使用でした。v1.23.0 では各 `README.{es,ja,ko-KR,ru,zh-CN,zh-TW}.md` の 14 行目を自身の `dashboard-<locale>.png` に更新します。
+
+### 🧪 テスト
+
+- v1.22.0 と同じ 474 / 474 ユニット + 32 / 32 Playwright。**スモーク E2E は 20 / 20** (v1.22.0 後の `main` ではバナーリカバリのリグレッションで 19 / 1 失敗していたが、v1.23.0 の再スケジュール修正で解消)。
+- 既存テスト 3 件を i18n 分割に対応すべく再配線。新規テストファイルゼロ、削除した表明ゼロ。
+
+### 検証
+
+```bash
+$ npm test
+# 474 / 474
+
+$ npm run test:e2e
+# passed: 20    failed: 0    (was 19/1 on v1.22.0 main)
+
+$ wc -l public/js/lib/i18n.js public/js/lib/i18n-dict.js
+#       86 public/js/lib/i18n.js          ← logic, under target
+#      578 public/js/lib/i18n-dict.js     ← data fixture, exempt
+
+$ grep -h 'dashboard-' README*.md | sed -E 's/.*(dashboard-[^)]+).*/\1/' | sort -u
+# dashboard-en.png    (README.md only)
+# dashboard-es.png    dashboard-ja.png
+# dashboard-ko-KR.png dashboard-pt-BR.png
+# dashboard-ru.png    dashboard-zh-CN.png  dashboard-zh-TW.png
+
+# CHANGELOG translation sanity: each locale file > 200 lines of native content
+$ wc -l CHANGELOG.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md | grep -v total
+```
+
+### 破壊的変更
+
+なし。`public/index.html` は従来 1 つだったところで 2 つのスクリプトを読み込むようになりました — CDN から SPA を配信する場合は `i18n-dict.js` を取り込む必要があります; スクリプト読み込み順序は `index.html` 内の `<script src>` タグの順序で強制されます。新ファイル欠落時のランタイムフォールバック (空 DICT → `t()` がインライン EN フォールバックを返却) でハードクラッシュを防止します。
+
+### スコープ外 (v1.24+)
+
+| 項目 | 備考 |
+|---|---|
+| career-ops.org/docs に対するヘルプバンドル CONTENT 深度リフレッシュ (URL カバレッジ vs) | 5 本の正規 URL は v1.11.x 以降全ロケールのヘルプバンドルに既に出現しており、QA プロンプトのシナリオ 31.6 がカバレッジを検証。コンテンツ本文の深度リフレッシュは v1.24+ の候補。 |
+| 稼働中サーバに対する QA シナリオ 31 のライブ実行 | ブラウザエージェント + ライブ LLM 認証情報が必要。v1.24 候補。 |
+| 新規モードページのヒント段落に対する部品単位のタッチターゲットスイープ | v1.22.0 M-1 で追加された `<p class="field-hint">` 要素は全 8 ロケールで WCAG 2.5.5 最小高さに対する検証が未実施。 |
+
+---
+
 ## [1.22.0] — 2026-05-14
 
 **M/L/N バックログの一括解消 + ドキュメント整合性 + 翻訳品質向上パス。** `v1.20.1-BACKLOG.md` の medium 以下の項目を 1 リリースで全てシップしました: M 項目 9 件、L 項目 5 件、nit 2 件。加えて 5 本の正規ガイド [career-ops.org/docs](https://career-ops.org/docs) に対するドキュメント整合性監査、`.claude/` と `.github/` 配下のシステムプロンプト刷新、英語以外 7 ロケール全ての README 品質リフレッシュ。

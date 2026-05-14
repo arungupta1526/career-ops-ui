@@ -8,6 +8,272 @@
 
 ---
 
+## [1.25.0] — 2026-05-14
+
+**Auto-pipeline 手動模式短路 + 儀表板外觀微修 + CHANGELOG 對齊回填。** 一次解決 G-014(auto-pipeline 忽略 `mode: 'manual'`)、G-012(CHANGELOG 對齊漂移 — 6 個 locale 落後兩個版本),以及儀表板 `✨ ✨` 雙字符外觀問題。G-003(`README.cn.md` 重新命名)其實已自然關閉 — 此版本庫只存在 `README.zh-CN.md`。G-005(A-G → A-F 報表區塊重排)需要父專案協同提交,本版本持續延後。
+
+### 🛡️ G-014 — Auto-pipeline `mode: 'manual'` 短路
+
+- **`fix(auto-pipeline): G-014 — honour mode:'manual' short-circuit`** ([`server/lib/routes/auto-pipeline.mjs:158-195`](server/lib/routes/auto-pipeline.mjs#L158-L195)) — v1.25 之前,該路由不論如何都會呼叫 LLM。傳入 `mode: 'manual'`(自 v1.10.2 起 `/api/evaluate` 已支援的旗標)被靜默忽略,請求會在 Anthropic 端卡住 1–3 分鐘。新版 handler:
+  - 同時接受 `mode` 與 `evalMode` 以維持向後相容。任一參數值為 `'manual'` 即觸發短路。
+  - 仍會發出全部 5 個 SSE 階段,但 `status` 為 `'done'` 或 `'skipped'`。不發 fetch、不呼叫 LLM、每次請求 0.05 美元的開銷也省下。
+  - `done` 事件 payload 攜帶 `{ mode: 'manual', prompt: <buildEvaluationPrompt scaffold>, message }` — SPA 可比照既有 `/api/evaluate` 的手動提示卡片渲染。
+- **同步關閉 `HOST=0.0.0.0` 下的 DoS 風險**:過去即使有 `llmRateLimit` 限制每 IP 每 60 秒 10 次,10 名攻擊者 × 10 次 = 每分鐘 50 美元的 Anthropic 燒帳。短路在進入速率限制計數之前就先生效。
+- **測試** — [`tests/auto-pipeline-manual-mode.test.mjs`](tests/auto-pipeline-manual-mode.test.mjs):3 個測試確認(1)`mode: 'manual'` 在 2 秒內回傳並包含全部 5 個 step key、(2)即使設定了 `ANTHROPIC_API_KEY` 短路依然生效(這正是原始症狀)、(3)傳統 `evalMode: 'manual'` 呼叫端持續運作。
+
+### 📝 G-012 — CHANGELOG 對齊回填(6 個 locale × 2 個遺漏版本)
+
+- **`docs(changelog): backfill v1.23.0, v1.24.0, v1.24.1, v1.25.0 in 6 lagging locales`** — v1.25 之前只有 EN 包含 v1.23–v1.24;RU 落後 1 個版本,其餘 6 個 locale 落後 2 個版本。v1.25 派發平行翻譯 agent(沿用 v1.23 的模式)將四個條目同時落入 `CHANGELOG.{es,pt-BR,ko-KR,ja,zh-CN,zh-TW}.md`。RU 補上 v1.24.0 + v1.24.1 + v1.25.0(它在 v1.23 週期已取得 v1.23.0)。
+- **`feat(ci): scripts/check-changelog-parity.mjs gate`** — 若任何 locale CHANGELOG 的最新條目舊於 EN 規範版,即視為建置失敗。已串接至 `npm run test:ci`。此前的 G-012 漂移在跨越 EN 邊界的當下就會自我攔截。
+
+### ✨ 外觀微修 — 儀表板雙字符去重
+
+- **`fix(dashboard): dedup ✨ glyph in auto-pipeline button label`** ([`public/js/lib/i18n-dict.js:219`](public/js/lib/i18n-dict.js#L219)) — `dash.autoPipeline` 在每個 locale 字串裡都帶了開頭的 `✨`,而 `public/js/views/dashboard.js:58` 又額外加了一個 `✨`。結果:按鈕渲染成 `✨ ✨ Auto-pipeline …`。v1.25 移除每個 locale DICT entry 的開頭字符;view 端的前綴成為唯一來源。同次稽核掃過剩餘的 i18n 資料,未發現其他雙字符模式。
+
+### 🚫 延後至未來版本
+
+- **G-005 — 報表區塊 A-G → A-F 對齊規範 career-ops.org/docs** — 需要在父專案 `santifer/career-ops` 協同提交(改寫 `modes/oferta.md`,輸出 A=Role、B=CV-match、C=Strategy、D=Comp、E=Personalization、F=STAR — 將 C-Risks/G-Legitimacy 從獨立區塊移除)。v1.25.0 已讓 web-ui 端準備好接收新 schema(`reports.js` 自 v1.13 起即接受任意區塊字母)。等待父專案 + 子專案能同步出貨的下個發版視窗。
+- **G-003 — `README.cn.md` → `README.zh-CN.md` 重新命名** — v1.25 整備期已驗證:此版本庫實際只有 `README.zh-CN.md`(worktree 任何位置都不存在孤兒 `README.cn.md`)。G-003 的觀察已過時。
+
+### 🧪 測試
+
+- **477 → 480** 個單元測試(+3 來自 PR-B 的 `auto-pipeline-manual-mode.test.mjs`)。
+- 32/32 Playwright 不變。
+- `npm run test:ci` 現在執行 `npm test` + `check-no-also-leftovers.mjs` + `check-changelog-parity.mjs`。
+
+### 驗證
+
+```bash
+$ npm run test:ci
+# 480 / 480
+# ✓ no .also( leftovers in views/
+# ✓ CHANGELOG parity: all 8 locales at v1.25.0
+
+# G-014 — 即使設定 ANTHROPIC_API_KEY,manual 模式仍於 2 秒內回傳:
+$ ANTHROPIC_API_KEY=sk-ant-test PORT=4317 npm start &
+$ sleep 3
+$ time curl -sS -X POST -H 'Content-Type: application/json' \
+    -d '{"url":"https://job-boards.greenhouse.io/anthropic/jobs/x","mode":"manual"}' \
+    http://127.0.0.1:4317/api/auto-pipeline | head -20
+# real  0m0.1xx s  (此前為 1-3 分鐘)
+# event: start … event: step (×5) … event: done {"mode":"manual","prompt":"…"}
+
+# G-012 — 每個 locale 的 CHANGELOG 都帶有 v1.25.0 條目:
+$ grep -c '^## \[1.25.0\]' CHANGELOG*.md
+# 8 個檔案,每個 → 1
+
+# 外觀微修 — 儀表板字符:
+$ grep "dash.autoPipeline" public/js/lib/i18n-dict.js
+# 任何 locale 的值皆已無開頭 ✨(view 提供唯一字符)
+```
+
+### 破壞性變更
+
+無。`mode: 'manual'` 為 opt-in;傳統 `evalMode: 'manual'` 呼叫端維持原狀運作。
+
+### 範圍外(v1.26+)
+
+| 項目 | 備註 |
+|---|---|
+| G-005 — A-F 報表區塊重排 | 需父專案協同提交(`santifer/career-ops` 改寫 `modes/oferta.md`)。 |
+| QA 場景 31 **視覺** 子測試的實機執行 | 需瀏覽器驅動 agent(Claude Cowork)。Playwright smoke 已部分涵蓋。 |
+| `i18n-dict.js` 超過 400-LOC 目標 | 屬翻譯 fixture — 依政策豁免。在無 bundler 的情境下拆分只會新增 HTTP 請求。 |
+
+---
+
+## [1.24.1] — 2026-05-14
+
+**Hot-fix:8 個 locale 的 `#/config` 全數崩潰(G-015)。**
+
+### 🚑 緊急 hot-fix
+
+- **`fix(config): G-015 — replace removed Element.prototype.also call in config.js`** ([`public/js/views/config.js:371`](public/js/views/config.js#L371)) — v1.22.0 的 N-2 移除了 `Element.prototype.also` 全域 monkey-patch 並將 `cv.js` 改為 free-statement 寫法,但**漏掉了 `config.js`**。後果:每個 locale 首次進入 `#/config` 時都會以 `c(...).also is not a function` 崩潰。v1.24.1 套用與 `cv.js:188-201` 相同的遷移模式 — 將樹根抽至 `const root = c(...)`,獨立執行 activation 區塊,最後 `return root;`。
+
+### 🛡️ CI 守門
+
+- **`feat(ci): scripts/check-no-also-leftovers.mjs sweep`** — 走訪 `public/js/views/` 下的每個檔案,只要還存在 `.also(` 呼叫點(允許註解中的引用),即視為建置失敗。已串接至新增的 `npm run test:ci` script。日後若有人意外撤回 monkey-patch 移除動作,也無法靜默重現同一個迴歸。
+
+### 🧪 測試
+
+- **`test: tests/config-view-syntax.test.mjs`** — 三道防線:
+  - 透過 `node:vm.Script` 解析 `config.js`(不需 Playwright 即可捕捉語法層級迴歸)
+  - 斷言註解之外無 `.also(` 殘留
+  - 斷言 `const root = c(...)` / `return root;` 的遷移錨點存在
+- **474 → 477** 個單元測試(+3)+ 32/32 Playwright 不變。
+
+### 驗證
+
+```bash
+$ npm run test:ci
+# 477 / 477
+# ✓ no .also( leftovers in views/
+
+# 瀏覽器 smoke:
+$ open http://127.0.0.1:4317/#/config
+# → 正常渲染,無 "is not a function" 卡片。每個 locale 等同。
+```
+
+### 範圍外(延至 v1.25)
+
+- G-014、G-012、G-005、G-003 — 詳見下方 v1.25.0 條目的批次處理。
+
+---
+
+## [1.24.0] — 2026-05-14
+
+**Help-bundle 內容深度刷新 + QA 場景 31 實機執行 + RU CHANGELOG 全文翻譯。** 一次關閉 v1.23.0「範圍外」表格延後至 v1.24 的兩項:依 5 個規範 career-ops.org/docs URL 對全部 8 個 help bundle 做完整內容深度刷新(自 v1.11.x 以來只覆蓋了 URL 出現位置),以及在實機伺服器上執行 QA 場景 31(原列為「需瀏覽器 agent + LLM 憑證」 — 實測發現 6/6 子測試可用 curl + grep 達成,只有視覺類子測試需要瀏覽器)。
+
+### 📖 Help-bundle 內容深度刷新
+
+- **`docs(help): refresh en.md from 5 canonical career-ops.org/docs URLs`** ([`docs/help/en.md`](docs/help/en.md)) — v1.24 之前 EN bundle 共 1113 行,在 front-matter 列出 5 個規範 URL,卻未於主文展開。v1.24 透過 WebFetch 取得全部 5 個 URL,並深化對應的 H2 區段:
+  - **About career-ops(front-matter)** — 補上原則(data sovereignty、AI-agnostic、human-controlled)、「What career-ops is NOT」區塊;概念清單從 6 列擴增至 10 列(新增 Proof points、JD store、Interview-prep、Batch additions)。
+  - **§5 Portals** — 補入規範 bootstrap `cp templates/portals.example.yml portals.yml`,釐清 `tracked_companies` 各筆的必填 vs 選填欄位。
+  - **§7 Scan** — 為 Option A 加上「無 AI token 消耗」標註,後續指令清單(`apply` / `contacto` / `deep` / `tracker`)。
+  - **§14 Apply checklist** — 拆分為 SPA checklist 模式 vs Manual-vs-Playwright-assisted vs Full CLI flow(規範的 8 步驟,從 `/career-ops apply <company>` 到 `Submitted.` 並含 `Evaluated → Applied` 自動轉移);batch evaluate 子節新增 TSV schema 表格 + 4 個旗標完整說明 + `merge-tracker.mjs --dry-run`;Playwright Setup 子節列出安裝指令、MCP 註冊、替代 `.claude/settings.local.json`、預設 headless 註記。
+- **保留 16-H2 區段對等**(CI 測試 `help-ui.test.mjs::section-parity` 斷言全部 8 個 locale 皆精確有 16 個 H2 區段)。
+- **5 個規範 URL 各自至少出現 2 次**(由 CI 測試 `canonical-docs-coverage.test.mjs` 強制執行)。v1.24 後逐 URL 計數:`what-is-career-ops` × 4、`scan-job-portals` × 5、`apply-for-a-job` × 3、`batch-evaluate-offers` × 5、`set-up-playwright` × 3。
+- **`docs(help): translate the v1.24 deepening to 7 non-EN locales`** — 派發 7 個平行翻譯 agent。每個目標 locale(es / pt-BR / ko-KR / ja / ru / zh-CN / zh-TW)取得與 EN 逐節對齊的刷新版 bundle,逐字保留程式碼區塊 / URL / 檔案路徑 / 按鈕標籤(📁 Upload CV / 🌐 Scan now / ▶ Evaluate / 📄 Generate PDF / 💾 Save)與英文縮寫(CSP、SSRF、TOCTOU、WCAG、ATS、JD、SSE、REST、API),並以目標語言的出版品級技術風格翻譯深化內容。
+
+### 🧪 QA 場景 31 — 實機執行(6/6 PASS)
+
+- **`docs(qa): append last-verified live-execution log to qa/claude-cowork-browser-test-prompt.md`** — v1.24 之前,場景 31 已寫成文件但從未對實機伺服器跑過(列為「需瀏覽器 agent + LLM 憑證」)。v1.24 對 `http://127.0.0.1:4317` 執行全部 6 個子測試:
+
+  | 子測試 | 描述 | 狀態 |
+  |---|---|---|
+  | 31.1 | help bundle 中的 score thresholds | ✅ PASS(`docs/help/en.md` 中 4.5 × 3、4.0 × 9、3.5 × 6 次) |
+  | 31.2 | Scan workflow 端點 | ✅ PASS(`/api/stream/scan-{en,ru}` + `/api/scan-ru/config` → 404;`/api/scan/regional/config` → 200) |
+  | 31.3 | `/api/apply-helper` checklist | ✅ PASS(回應含 `career-ops apply` + `auto-submit` 警示) |
+  | 31.4 | `/api/batch` 端點 | ✅ PASS(keys 為 `[exists, runnerExists, raw, rows, additions]`) |
+  | 31.5 | Playwright 可用性 | ✅ PASS(`/api/health` 回報 `Playwright (parent node_modules) ok: true, value: installed`) |
+  | 31.6 | help bundle URL 覆蓋率(5 個 URL × 8 個 locale) | ✅ PASS(**40 / 40 ✓**) |
+
+  視覺類子測試(需瀏覽器)在 QA prompt 中另行標註 — 仍可透過 Claude Cowork 或 `npm run test:e2e:browser` 執行。
+
+### 🌐 RU CHANGELOG 全文翻譯(M-9 後續)
+
+- **`docs(translate): CHANGELOG.ru.md retry agent — full body translation`** ([`CHANGELOG.ru.md`](CHANGELOG.ru.md)) — v1.23.0 出貨時,RU CHANGELOG 的重試 agent 仍在進行中(它曾因 socket 錯誤崩潰一次並被重新派發)。v1.24 收下 agent 產出的 1542 行全文翻譯:每個條目 v1.23.0 → v1.6.0 皆有出版品級的俄文正文,不再保留 EN 過渡填補。風格規範比照 v1.22.0 README 品質刷新:以 "функциональность" / "возможности" / "поведение" 取代生硬的 "функционал";以 "через" / "с помощью" 取代 "при помощи";主動語態優於被動;以 "эндпоинт"、"лимит запросов"、"состояние гонки"、"санитайзинг" 作為規範用詞;英文縮寫(TOCTOU、CSP、SSRF、WCAG、ATS、JD、SSE、REST、API)保留原文。
+
+### 🧪 測試
+
+- **474 / 474** 單元 + 20 / 20 smoke E2E + 32 / 32 Playwright。零行為差異;每一項 help-bundle 的 CI 斷言(16 個 H2 區段 × 8 個 locale、5 個 URL × ≥ 2 次提及、內容下限)持續綠燈。
+
+### 驗證
+
+```bash
+$ npm test                            # 474 / 474
+
+# Help-bundle 深化:
+$ wc -l docs/help/en.md
+# ~1270 行(原 1113 — 深化,不膨脹)
+
+$ for url in what-is-career-ops scan-job-portals apply-for-a-job \
+             batch-evaluate-offers set-up-playwright; do
+    echo -n "$url: "
+    grep -c "$url" docs/help/en.md
+  done
+# what-is-career-ops: 4
+# scan-job-portals: 5
+# apply-for-a-job: 3
+# batch-evaluate-offers: 5
+# set-up-playwright: 3
+
+# 場景 31.6 — 40/40 URL 覆蓋率:
+$ for lang in en es pt-BR ko ja ru zh-CN zh-TW; do
+    echo -n "$lang: "
+    for url in what-is-career-ops scan-job-portals apply-for-a-job \
+               batch-evaluate-offers set-up-playwright; do
+      curl -sS "http://127.0.0.1:4317/api/help/$lang" \
+        | python3 -c "import sys,json; print(json.load(sys.stdin).get('markdown',''))" \
+        | grep -q "$url" && echo -n "✓ " || echo -n "✗ "
+    done
+    echo
+  done
+```
+
+### 破壞性變更
+
+無。
+
+### 範圍外(v1.25+)
+
+| 項目 | 備註 |
+|---|---|
+| 場景 31 **視覺** 子測試的實機執行 | 需瀏覽器驅動 agent(Claude Cowork 或 `npm run test:e2e:browser`)。curl 單一執行模式不在範圍內;Playwright smoke 已涵蓋。 |
+| RU CHANGELOG **舊條目**(v1.5.x 及之前)的正文翻譯 | 重試 agent 僅覆蓋 v1.6.0 起。pre-v1.6 條目(`v1.5.x` 等)— 若曾經存在 — 仍維持既有內容。 |
+| 未來 SPA 變更後對儀表板截圖的視覺迴歸 | `scripts/capture-dashboard-screenshots.mjs` 可重新產生各 locale 的 PNG;目前尚未有自動 diff。 |
+
+---
+
+## [1.23.0] — 2026-05-14
+
+**i18n 拆分 + 連線橫幅 CI hot-fix + 各 locale 儀表板截圖 + 既有 backlog 完整收尾。** 出貨 v1.22.0「範圍外」表格列為 v1.23 的三項(M-9 各 locale CHANGELOG 正文、N-1 `i18n.js` LOC 拆分、help-bundle 內容稽核),並包含修補 v1.22.0 之後讓 main 分支 CI 變紅的 smoke E2E hot-fix。
+
+### 🚑 CI hot-fix — 連線橫幅恢復
+
+- **`fix(client): reset health-poll cadence + visibilitychange eager re-check`** ([`public/js/api.js:21-91`](public/js/api.js#L21-L91)) — v1.22.0 的 M-6 指數退避方向正確(3 秒 → 6 秒 → 12 秒 → 上限 15 秒,原始上限為 60 秒),但飛行中的 `setTimeout` 被鎖定在上一次設定的 delay。當伺服器於 t=0.1 被殺、第一次 ping 在 t=3 失敗,delay 會加倍為 6,下一次恢復探測要等到 t=9 才會發出。smoke E2E 的「Flow 2a: connection banner appears on server down, hides on recovery」只等 4 秒,於 `main` 上轉紅。
+
+    v1.23.0 重塑輪詢迴圈:
+
+    - 追蹤 `_healthHandle`,讓 `setConnectionState(lost=true)` 能 `clearTimeout` 並以 `_HEALTH_MIN` 重新排程。第一次恢復探測現在保證在離線 3 秒內發出,不受先前排入的 delay 影響。
+    - `_HEALTH_MAX` 從 60 秒降至 15 秒。後臺分頁面對已死伺服器,使用者切回時仍可在一個輪詢週期內恢復;頻寬節省依然顯著。
+    - `document.addEventListener('visibilitychange')` 於分頁重獲焦點且 `connectionLost === true` 時積極重檢 — Cmd-Tab 回來不必等下個退避 tick。
+
+### 🧹 N-1 — i18n.js 拆分(超過 400-LOC 目標)
+
+- **`refactor(client): split DICT into i18n-dict.js (data) + i18n.js (logic)`** — v1.23 之前 `public/js/lib/i18n.js` 共 639 LOC。大宗(23-586 行)是 `DICT` 翻譯表 — 純結構化資料。v1.23.0 將其抽至 [`public/js/lib/i18n-dict.js`](public/js/lib/i18n-dict.js)(578 LOC,依 CLAUDE.md「豁免於上述限制:generated files、migrations、test fixtures、lock files、vendored code」— 翻譯表屬 fixture 性質,符合豁免),留下 [`public/js/lib/i18n.js`](public/js/lib/i18n.js) 為 86 LOC 的純模組邏輯(遠低於 400-LOC 目標)。
+- **載入契約:**`i18n-dict.js` 寫入 `window.__I18N_DICT = { … }`,接著 `i18n.js` 在既有 IIFE 內讀取。[`public/index.html`](public/index.html) 依序載入 — 先 `i18n-dict.js` 再 `i18n.js` — 確保 IIFE 在建構時即看到填妥的 DICT。Missing-dict fallback:每一次 `t()` 呼叫都會回傳 inline fallback 或裸 key,讓設定錯誤大聲浮現但不至於讓 SPA 崩潰。
+- **測試管線更新:**[`tests/i18n-coverage.test.mjs`](tests/i18n-coverage.test.mjs)、[`tests/help-ui.test.mjs`](tests/help-ui.test.mjs)、[`tests/canonical-docs-coverage.test.mjs`](tests/canonical-docs-coverage.test.mjs) 現皆於測試 VM context 中執行兩個檔案(或在正則掃描時串接兩者原始碼),保留所有既有斷言。
+
+### 🌐 M-9 — 各 locale CHANGELOG 正文翻譯
+
+- **`docs(translate): 7 non-EN CHANGELOG files end-to-end`** — v1.23 之前,`CHANGELOG.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md` 自 v1.13.0 起的每個條目都帶著 EN 正文的過渡填補與引導讀者去看 EN 規範版的 footer。v1.23.0 派發 7 個平行翻譯 agent — 每個 locale 一個 — 將每個正文改寫為目標語言的出版品級技術風格。移除過渡填補。各 locale 一律逐字保留程式碼區塊、檔案路徑、URL、commit-message 字串(`fix(security): B-1 — …`)、環境變數與連結標籤。
+
+### 🖼️ 各 locale README 對接專屬儀表板截圖
+
+- **`docs(readme): wire each locale README at its locale-specific PNG`** — v1.23 之前只有 `README.pt-BR.md` 指向 `dashboard-pt-BR.png`,其餘 6 個非 EN README 仍指向 `dashboard-en.png`。v1.22.0 週期由 [`scripts/capture-dashboard-screenshots.mjs`](scripts/capture-dashboard-screenshots.mjs) 產出的截圖已置於 `images/` 但未被引用。v1.23.0 將每個 `README.{es,ja,ko-KR,ru,zh-CN,zh-TW}.md` 第 14 行更新為對應的 `dashboard-<locale>.png`。
+
+### 🧪 測試
+
+- 與 v1.22.0 同為 474 / 474 單元 + 32 / 32 Playwright。**Smoke E2E 現為 20 / 20**(v1.22.0 後在 `main` 上曾因橫幅恢復迴歸成 19/1 fail;v1.23.0 的重排程修復收尾)。
+- 為了 i18n 拆分重接三個既有測試。零新增測試檔案;零刪除斷言。
+
+### 驗證
+
+```bash
+$ npm test
+# 474 / 474
+
+$ npm run test:e2e
+# passed: 20    failed: 0    (v1.22.0 main 時為 19/1)
+
+$ wc -l public/js/lib/i18n.js public/js/lib/i18n-dict.js
+#       86 public/js/lib/i18n.js          ← 邏輯,低於目標
+#      578 public/js/lib/i18n-dict.js     ← 資料 fixture,豁免
+
+$ grep -h 'dashboard-' README*.md | sed -E 's/.*(dashboard-[^)]+).*/\1/' | sort -u
+# dashboard-en.png    (僅 README.md)
+# dashboard-es.png    dashboard-ja.png
+# dashboard-ko-KR.png dashboard-pt-BR.png
+# dashboard-ru.png    dashboard-zh-CN.png  dashboard-zh-TW.png
+
+# CHANGELOG 翻譯 sanity check:每個 locale 檔案均 > 200 行原生語言內容
+$ wc -l CHANGELOG.{es,pt-BR,ko-KR,ja,ru,zh-CN,zh-TW}.md | grep -v total
+```
+
+### 破壞性變更
+
+無。`public/index.html` 現在載入兩個 script(原本一個)— 任何透過 CDN 提供 SPA 的部署需同步取得 `i18n-dict.js`;載入順序由 `index.html` 的 `<script src>` 標籤順序強制。執行階段 fallback(空 DICT → `t()` 回傳 inline EN fallback)可避免新檔案缺失時硬崩潰。
+
+### 範圍外(v1.24+)
+
+| 項目 | 備註 |
+|---|---|
+| 依 career-ops.org/docs 對 help-bundle 做內容深度刷新(相對於僅 URL 覆蓋) | 5 個規範 URL 自 v1.11.x 起已在每個 locale 的 help bundle 中出現,QA prompt 場景 31.6 驗證了覆蓋率。內容深度刷新為 v1.24+ 候選。 |
+| 對實機伺服器執行 QA 場景 31 | 需瀏覽器 agent + 實機 LLM 憑證。v1.24 候選。 |
+| 新增 mode-page hint 段落的逐元件觸控目標掃描 | v1.22.0 M-1 新增的 `<p class="field-hint">` 元素尚未在全部 8 個 locale 對 WCAG 2.5.5 最小高度做驗證。 |
+
+---
+
 ## [1.22.0] — 2026-05-14
 
 **M / L / N 級待辦清空 + 文件對齊 + 翻譯品質 pass。** 整個 v1.20.1-BACKLOG.md 中的 medium 及以下層級全部於一次發布中交付:九項 M、五項 L、兩項 nits。另對五份規範 [career-ops.org/docs](https://career-ops.org/docs) 指南進行了文件對齊稽核,刷新 `.claude/` 與 `.github/` 下的系統提示,並對 7 個非英文 locale 的 README 進行了品質刷新。

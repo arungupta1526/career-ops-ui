@@ -6,6 +6,79 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.25.0] — 2026-05-14
+
+**Auto-pipeline manual short-circuit + dashboard cosmetic + CHANGELOG parity backfill.** Closes G-014 (auto-pipeline ignored `mode: 'manual'`), G-012 (CHANGELOG parity drift — 6 locales were 2 releases behind), and the dashboard `✨ ✨` double-glyph cosmetic. G-003 (`README.cn.md` rename) was de-facto already closed — repo only has `README.zh-CN.md`. G-005 (A-G → A-F report block realignment) requires a coordinated parent-project commit and stays deferred.
+
+### 🛡️ G-014 — Auto-pipeline `mode: 'manual'` short-circuit
+
+- **`fix(auto-pipeline): G-014 — honour mode:'manual' short-circuit`** ([`server/lib/routes/auto-pipeline.mjs:158-195`](server/lib/routes/auto-pipeline.mjs#L158-L195)) — pre-v1.25 the route always called an LLM. Passing `mode: 'manual'` (mirroring `/api/evaluate` since v1.10.2) was silently ignored, the request hung 1-3 min on Anthropic. Now the handler:
+  - Accepts `mode` AND `evalMode` for back-compat. Either value of `'manual'` triggers the short-circuit.
+  - Emits all 5 SSE stages with `status: 'done'` / `status: 'skipped'`. No fetch. No LLM call. No $0.05 per request.
+  - `done` payload carries `{ mode: 'manual', prompt: <buildEvaluationPrompt scaffold>, message }` — the SPA can render it like the existing `/api/evaluate` manual-prompt card.
+- **Closes DoS-risk** on `HOST=0.0.0.0`: previously, even with `llmRateLimit` capping 10 req/60s/IP, 10 attackers × 10 reqs = $50/min in Anthropic burn. Short-circuit fires before the rate-limit decrement counts toward a real call.
+- **Tests** — [`tests/auto-pipeline-manual-mode.test.mjs`](tests/auto-pipeline-manual-mode.test.mjs): 3 tests confirm (1) `mode: 'manual'` returns < 2 s with all 5 step keys, (2) even with `ANTHROPIC_API_KEY` set the short-circuit still fires (the original symptom), (3) legacy `evalMode: 'manual'` callers keep working.
+
+### 📝 G-012 — CHANGELOG parity backfill (6 locales × 2 missing releases)
+
+- **`docs(changelog): backfill v1.23.0, v1.24.0, v1.24.1, v1.25.0 in 6 lagging locales`** — pre-v1.25 only EN had v1.23-v1.24; RU was 1 release behind, the other 6 were 2 releases behind. v1.25 dispatches parallel translation agents (mirrors the v1.23 pattern) to land all four entries in `CHANGELOG.{es,pt-BR,ko-KR,ja,zh-CN,zh-TW}.md`. RU gets v1.24.0 + v1.24.1 + v1.25.0 (it already had v1.23.0 from the v1.23 cycle).
+- **`feat(ci): scripts/check-changelog-parity.mjs gate`** — fails the build if any locale CHANGELOG's newest entry is older than the EN canonical. Wired into `npm run test:ci`. Pre-existing G-012 drift would have caught itself the moment it crossed the EN boundary.
+
+### ✨ Cosmetic — dashboard double-glyph dedup
+
+- **`fix(dashboard): dedup ✨ glyph in auto-pipeline button label`** ([`public/js/lib/i18n-dict.js:219`](public/js/lib/i18n-dict.js#L219)) — `dash.autoPipeline` carried a leading `✨` in every locale string AND `public/js/views/dashboard.js:58` prepended another `✨` in the view. Result: button rendered `✨ ✨ Auto-pipeline …`. v1.25 drops the leading glyph from every locale's DICT entry; the view's prefix is the single source. Same audit pass swept the rest of the i18n bundle — no other double-glyph patterns found.
+
+### 🚫 Deferred to a future release
+
+- **G-005 — Report block A-G → A-F per canonical career-ops.org/docs** — requires a coordinated commit in the parent `santifer/career-ops` project (rewrite `modes/oferta.md` to emit A=Role, B=CV-match, C=Strategy, D=Comp, E=Personalization, F=STAR — drop C-Risks/G-Legitimacy as separate blocks). v1.25.0 ships the web-ui side ready for the new schema (`reports.js` already accepts arbitrary block letters since v1.13). Tracked for the next release window when parent + child can land together.
+- **G-003 — `README.cn.md` → `README.zh-CN.md` rename** — verified during v1.25 prep: repo already has `README.zh-CN.md` (no orphan `README.cn.md` anywhere under the worktree). The G-003 finding was stale.
+
+### 🧪 Tests
+
+- **477 → 480** unit (+3 from PR-B `auto-pipeline-manual-mode.test.mjs`).
+- 32/32 Playwright unchanged.
+- `npm run test:ci` now runs `npm test` + `check-no-also-leftovers.mjs` + `check-changelog-parity.mjs`.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 480 / 480
+# ✓ no .also( leftovers in views/
+# ✓ CHANGELOG parity: all 8 locales at v1.25.0
+
+# G-014 — manual mode returns < 2 s even with ANTHROPIC_API_KEY set:
+$ ANTHROPIC_API_KEY=sk-ant-test PORT=4317 npm start &
+$ sleep 3
+$ time curl -sS -X POST -H 'Content-Type: application/json' \
+    -d '{"url":"https://job-boards.greenhouse.io/anthropic/jobs/x","mode":"manual"}' \
+    http://127.0.0.1:4317/api/auto-pipeline | head -20
+# real  0m0.1xx s  (was 1-3 min)
+# event: start … event: step (×5) … event: done {"mode":"manual","prompt":"…"}
+
+# G-012 — every locale CHANGELOG carries the v1.25.0 entry:
+$ grep -c '^## \[1.25.0\]' CHANGELOG*.md
+# 8 files, each → 1
+
+# Cosmetic — dashboard glyph:
+$ grep "dash.autoPipeline" public/js/lib/i18n-dict.js
+# No leading ✨ in any locale value (view supplies the single glyph)
+```
+
+### Breaking changes
+
+None. `mode: 'manual'` is opt-in; legacy `evalMode: 'manual'` callers keep working unchanged.
+
+### Out of scope (v1.26+)
+
+| Item | Notes |
+|---|---|
+| G-005 — A-F report block realignment | Needs coordinated parent commit (`santifer/career-ops` rewrites `modes/oferta.md`). |
+| Live execution of QA scenario 31 **visual** sub-tests | Require browser-driven agent (Claude Cowork). Covered partially by Playwright smoke. |
+| `i18n-dict.js` over 400-LOC target | Translation fixture — exempt by policy. Split would add HTTP requests without a bundler. |
+
+---
+
 ## [1.24.1] — 2026-05-14
 
 **Hot-fix: `#/config` crash on all 8 locales (G-015).**

@@ -158,7 +158,12 @@ export function registerAutoPipelineRoutes(app) {
   app.post('/api/auto-pipeline', llmRateLimit, async (req, res) => {
     const url = (req.body && req.body.url || '').toString();
     const lang = (req.body && req.body.lang) || 'en';
-    const lockEvalMode = req.body && req.body.evalMode; // optional override: 'anthropic' / 'gemini' / 'manual'
+    // v1.25.0 (G-014) — accept `mode: 'manual'` (mirrors /api/evaluate
+    // contract from v1.10.2) as well as the legacy `evalMode` override.
+    const requestedMode = (req.body && (req.body.mode || req.body.evalMode)) || null;
+    const lockEvalMode = (requestedMode === 'anthropic' || requestedMode === 'gemini' || requestedMode === 'manual')
+      ? requestedMode
+      : null;
 
     const send = openSse(res);
     const ctrl = new AbortController();
@@ -183,6 +188,28 @@ export function registerAutoPipelineRoutes(app) {
       return fail(0, 'isValidJobUrl rejected');
     }
     step(0, 'done');
+
+    // v1.25.0 (G-014) — manual-mode short-circuit. When the caller
+    // explicitly asks for `mode: 'manual'` (mirrors /api/evaluate's
+    // contract from v1.10.2), emit the orchestrator shape with all
+    // downstream steps marked skipped and the buildEvaluationPrompt
+    // string in the `done` payload. No fetch, no LLM call, no $0.05
+    // per request. Used by CI / preview flows and by users who want
+    // a copy-pasteable prompt for Claude Code rather than a live run.
+    if (lockEvalMode === 'manual') {
+      step(1, 'done', 'skipped (manual mode)');
+      const promptText = buildEvaluationPrompt('', lang);
+      step(2, 'done', 'manual-prompt');
+      step(3, 'done', 'skipped (manual mode)');
+      step(4, 'done', 'skipped (manual mode)');
+      send('done', {
+        mode: 'manual',
+        url,
+        prompt: promptText,
+        message: 'Manual mode — copy the prompt below into Claude Code / Anthropic / Gemini. No live LLM call was made.',
+      });
+      return res.end();
+    }
 
     // Step 2 — fetch JD
     step(1, 'running');
