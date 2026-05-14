@@ -6,6 +6,40 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.27.0] — 2026-05-14
+
+**Cosmetic + a11y polish: deduplicate sidebar `#/dashboard` entry.**
+
+### 🩹 Cosmetic / a11y
+
+- **`fix(sidebar): dedupe #/dashboard entry`** ([`public/index.html:25-32`](public/index.html#L25-L32)) — the brand logo block (`<a class="logo" href="#/dashboard">`) and the first nav item (`<a class="nav-item" href="#/dashboard">`) both targeted the same route. Screen readers announced "Dashboard" twice in a row when entering the sidebar, and keyboard users had a useless extra tab stop on a control with no distinct purpose. The brand block now renders as a plain `<div class="logo">`. The Dashboard nav item remains the sole link.
+
+### 📒 Deferred (parent-coordinated)
+
+- **G-005 / PR-B** (A-G → A-F report block realignment) — still requires a coordinated commit on the parent [`santifer/career-ops`](https://github.com/santifer/career-ops) `modes/oferta.md`. Tracked in `qa/REGRESSION-v1.27.md §Deferred`.
+
+### 🧪 Tests
+
+- **506 / 506** unit + **32 / 32** Playwright — unchanged. No new test required (cosmetic-only).
+- CHANGELOG parity gate: ✓ all 8 locales at v1.27.0.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 506 / 506
+# ✓ no .also( leftovers in views/
+# ✓ CHANGELOG parity: all 8 locales at v1.27.0
+
+# Manual smoke (after restart):
+$ curl -sS http://127.0.0.1:4317/api/health | jq '.version'
+"1.27.0"
+$ curl -sS http://127.0.0.1:4317/ | grep -c 'href="#/dashboard"'
+1   # was 2 on v1.26.1
+```
+
+---
+
 ## [1.26.1] — 2026-05-14
 
 **Hot-fix: WCAG 2.5.5 — header `.btn` height restored to 44 px floor.**

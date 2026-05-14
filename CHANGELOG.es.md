@@ -10,6 +10,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.27.0] — 2026-05-14
+
+**Pulido cosmético + a11y: deduplicar la entrada de barra lateral `#/dashboard`.**
+
+En la barra lateral, el logo de marca (`<a class="logo" href="#/dashboard">`) y el primer ítem de navegación apuntaban a la misma ruta. Los lectores de pantalla anunciaban «Dashboard» dos veces y los usuarios de teclado tenían un tab-stop redundante. El bloque de marca ahora es un `<div class="logo">` plano; el ítem de navegación sigue siendo el único enlace a `#/dashboard`. **506 / 506** unit + **32 / 32** Playwright — sin cambios. Detalles completos en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.26.1] — 2026-05-14
 
 **Hot-fix WCAG 2.5.5 — altura mínima 44 px de `.btn` restaurada.**

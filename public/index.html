@@ -22,10 +22,14 @@
          content. Visually hidden via .skip-link until it receives focus. -->
     <a href="#content" class="skip-link" data-i18n="a11y.skipToContent">Skip to main content</a>
     <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
-      <a class="logo" href="#/dashboard">
+      <!-- v1.27.0 PR-D: brand is a plain title, not a link.
+           The nav item below links to #/dashboard; making the brand a
+           second `<a href="#/dashboard">` produced a duplicate
+           announcement on screen readers and a useless tab stop. -->
+      <div class="logo">
         <span class="logo-mark">co</span>
         <span class="logo-text">career-ops</span>
-      </a>
+      </div>
 
       <nav class="nav">
         <a class="nav-item" href="#/dashboard" data-route="dashboard">
