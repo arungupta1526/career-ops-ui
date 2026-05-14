@@ -1,15 +1,17 @@
-# Production Readiness — career-ops-ui v1.9.1
+# Production Readiness — career-ops-ui v1.30.0
 
-> Honest assessment, dated 2026-05-08. Updated each minor / patch release. Use this as the gate before deploying.
+> Honest assessment, dated 2026-05-14. Updated each minor / patch release. Use this as the gate before deploying.
 
 ## TL;DR
 
-`career-ops-ui` v1.9.1 is **ready for single-tenant production use** on a trusted machine (developer's laptop / personal VPS bound to loopback). Multi-tenant deployments and LAN-exposed instances require the v2.0.x P-12 auth gate first.
+`career-ops-ui` v1.30.0 is **ready for single-tenant production use** on a trusted machine (developer's laptop / personal VPS bound to loopback). Multi-tenant deployments and LAN-exposed instances require the v2.0.x P-12 auth gate first.
+
+Since v1.9.1 (the original baseline of this doc) the codebase shipped 14 minor/patch releases — see `qa/REGRESSION-v1.29.2.md §12` for the 14 master invariants now in force (security envelope, multi-phase SSE contract, registry-driven source dispatch, paginator across list views, etc.) and `CHANGELOG.md` for per-release detail.
 
 | Dimension | Status | Notes |
 |---|---|---|
-| Architecture | ✅ ready | Orchestrator-only `index.mjs` (130 LOC); 12 focused route modules. |
-| Tests | ✅ ready | 284 unit + 12 Playwright smoke. ~93% line / ~83% branch coverage. |
+| Architecture | ✅ ready | Orchestrator-only `index.mjs` (~174 LOC); 14 focused route modules under `lib/routes/`. v1.29.0 added `server/lib/sources/registry.mjs` as the single source of truth for 11 adapters (6 EN ATS + 5 RU). |
+| Tests | ✅ ready | **567** unit + acceptance + **32** Playwright (as of v1.30.0). ~93 % line / ~83 % branch coverage. `npm run test:ci` gates: tests + `check-no-also-leftovers` + 8-locale CHANGELOG parity. |
 | Security (single-tenant loopback) | ✅ ready | CSP, SSRF guard, XSS strip, secret masking, log redaction. |
 | Security (LAN exposure) | ⚠️ partial | No auth gate. **Do not** bind `HOST=0.0.0.0` on untrusted networks until P-12. |
 | Operational | ⚠️ partial | Log rotation deferred to P-13; activity.jsonl + scan-history.tsv grow without bound. |

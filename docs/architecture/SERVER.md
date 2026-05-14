@@ -71,16 +71,17 @@ Spawns Node scripts in the parent project.
 - `runNodeScript(script, args, opts)` — buffered, returns `{ code, stdout, stderr, killed }`. `opts.timeoutMs` defaults to 60 s.
 - `streamNodeScript(res, script, args)` — SSE. Writes `event: start/log/done/error` frames. Kills child on `res.close`.
 
-### `ru-scanner.mjs` (280 LOC)
+### `ru-scanner.mjs` (~340 LOC)
 
-In-process scanner for hh.ru + Habr Career.
+In-process scanner for 5 RU portals (since v1.29.0): hh.ru, Habr Career, Trudvsem, GetMatch, GeekJob.
 
-- `loadConfig()` — reads `russian_portals:` block from `portals.yml`.
-- `runRuScan({ writeFiles, onLog })` — fetches both APIs, normalizes to `{ company, role, url, source, area, salary }`, writes `data/scan-history.tsv` (append) and `data/last-scan.json` (replace) when `writeFiles`. Calls `onLog('stdout'|'stderr', line)` per progress event.
+- `loadConfig()` — reads `russian_portals:` block from `portals.yml`. Default `sources` (when the array is unset) pulls from `registry.mjs::RU_CONFIG_KEYS` → all 5 adapters.
+- `RU_DISPATCH` — table mapping each `russian_portals.sources` key to its adapter (`search` fn + `label` for log lines). Adding a 6th source = one row here + one adapter file + one registry entry.
+- `runRuScan({ writeFiles, onLog })` — iterates `cfg.sources` and runs each adapter via the dispatch table. Normalizes to the common job shape, dedup-filters via title-filter + scan-history, writes `data/scan-history.tsv` (append) and `data/last-scan.json` (replace) when `writeFiles`. Per-source failures are caught and reported in `errors[]` without aborting the rest of the sweep. Calls `onLog('stdout'|'stderr', line)` per progress event.
 
 ### `en-scanner.mjs` (230 LOC)
 
-Same shape but for Greenhouse / Ashby / Lever via `lib/sources/*.mjs`.
+Same shape but for the 6 EN ATS via `lib/sources/*.mjs` (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday).
 
 - `runEnScan({ writeFiles, companyName?, onLog })` — `companyName` filters the company list to one entry.
 - Reads `tracked_companies:` from `portals.yml` (career-ops v1.7+) and falls back to legacy `companies:`. Only entries with `enabled !== false` are scanned.

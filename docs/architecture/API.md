@@ -238,10 +238,14 @@ Run in this Node process — do not spawn `scan.mjs`. Same SSE event shape as st
 Consolidated SSE entrypoint (v1.18.0 — the legacy `/api/stream/scan-{en,ru}` aliases were retired after their Sunset window expired).
 
 - `source=ats` — Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday (v1.14+).
-- `source=regional` — hh.ru + Habr Career, driven by `russian_portals:` in `portals.yml`.
-- `source=both` (default) — ATS phase first, then regional, in one SSE connection. The server emits multiple `start` / `done` events so the UI knows which phase is firing.
+- `source=regional` — 5 RU adapters since v1.29.0: hh.ru + Habr Career + Trudvsem + GetMatch + GeekJob. Driven by `russian_portals:` in `portals.yml` (`sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob"]` — default if unset).
+- `source=both` (default) — ATS phase first, then regional, in one SSE connection. The server emits one `done` per phase. **v1.29.2 multi-phase contract:** the first `done` carries `final: false` and the second `final: true`. SSE consumers (`API.stream` in `public/js/api.js`) close the EventSource only when `data.final !== false`. Pre-v1.29.2 the client closed on the first `done` and silently dropped the regional phase — guarded by `tests/scan-stream-multi-phase.test.mjs`.
 
 Queries: `dryRun=1` (skip writes to `data/scan-history.tsv` + `data/last-scan.json`), `company=<slug>` (ATS-only narrow). Honors `AbortSignal` from client disconnect; in-flight upstream fetches abort instead of running to completion (REVIEW-B3).
+
+### `GET /api/scan/sources` → `{ sources: [{ value, label, region, configKey? }, ...] }` *(v1.29.0)*
+
+Canonical source registry, served from `server/lib/sources/registry.mjs`. Returns 11 entries (6 EN ATS + 5 RU). The `#/scan` source-filter dropdown fetches this on mount and rebuilds its `<option>` list dynamically — adding a 12th adapter = one entry in the registry, dropdown updates automatically. `Cache-Control: max-age=60`.
 
 ### `GET /api/scan/regional/config` → `{ sources, area, per_page, only_remote, queries }`
 
