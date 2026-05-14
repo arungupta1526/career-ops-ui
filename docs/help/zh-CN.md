@@ -1,57 +1,110 @@
 # 帮助 — career-ops-ui
 
-从首次启动到面试准备的每个页面的完整指南。每个 `##` 对应侧边栏条目或
-工作流的一个阶段。首次运行从上往下阅读;之后通过帮助侧边栏中的 TOC
-跳转到所需部分。
+从启动应用到拿到面试机会,本指南完整覆盖每一个页面。每个 `##` 标题对
+应侧边栏条目或工作流的一个阶段。首次运行请自上而下通读;之后通过帮
+助侧边栏的目录跳转到具体小节。
 
-> **适用对象:** 刚把这个 UI 放到 `career-ops` checkout 中并运行了
-> `bash bin/start.sh` 的人。不假设你了解 career-ops。
-
+> **适用对象:** 任何刚把这套 UI 放进 `career-ops` checkout 目录、运
+> 行了 `bash bin/start.sh` 的人。不假设你已了解 career-ops。
 
 ### 关于 career-ops
 
-[career-ops](https://career-ops.org) 是一个开源求职系统,作为 slash 命令运行在任何 AI 编码 CLI(Claude Code、Codex、Cursor、Gemini CLI、GitHub Copilot CLI)内。模型无关。用 6 维 0.0–5.0 评分体系将每个职位与你的 CV 匹配,生成定制 PDF 简历,并在本地追踪每次申请。
+[career-ops](https://career-ops.org) 是一个开源求职系统,以 slash 命
+令的形式在任意 AI 编码 CLI(Claude Code、Codex、Cursor、Gemini CLI、
+GitHub Copilot CLI)中运行。它与具体模型无关。系统按六维 0.0–5.0 评
+分体系将每个职位与你的 CV 匹配,生成定制化的 PDF 简历,并在本地机器
+上追踪每一次申请记录。
 
-**原则** (来自 [career-ops.org/docs](https://career-ops.org/docs)):
+**权威参考文档(首次安装请按顺序阅读):**
 
-- **开源,认真的** — MIT 协议,无付费层级,无等待名单,无遥测,无账号。
-- **数据主权** — `cv.md`、`config/profile.yml`、`data/`、`reports/`、`interview-prep/` 不会离开你的机器,除非你显式推送。
-- **人工提交** — career-ops 起草答案并打开表单,但 **由你点击 Submit**。绝不自动申请。
-- **结构化搜索** — 为主动、有意识的求职而设,不是推荐引擎。
+- [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+  — 系统总览、核心原则、概念清单。
+- [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+  — 发现职位空缺;填充 Pipeline。
+- [Apply for a job](https://career-ops.org/docs/introduction/guides/apply-for-a-job)
+  — 完整的申请提交流程,含 Playwright 表单读取。
+- [Batch-evaluate offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+  — 通过 `batch-runner.sh` 一次性评分 10 个以上 JD。
+- [Set up Playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright)
+  — 安装 Chromium 并注册用于 PDF 与表单填写的 MCP。
 
-**核心概念**
+**核心原则**(摘自
+[career-ops.org/docs/introduction/what-is-career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)):
+
+- **认真的开源** — MIT 协议,无付费层级,无候补名单,无遥测,无账
+  号体系。系统不依赖任何付费层级、账号或遥测运行。代码贡献需经社区
+  审查后才能发布。
+- **数据主权** — `cv.md`、`config/profile.yml`、`data/`、`reports/`、
+  `interview-prep/` 这些文件绝不会离开你的笔记本电脑,除非你显式地
+  推送它们。你在本地机器上运行整个系统,保留对数据的完全主权。
+- **AI 无关架构** — career-ops **不**捆绑任何模型。它是嵌在已有 AI
+  编码 CLI 中的一组命令。在 Anthropic ↔ Gemini ↔ OpenAI 之间切换提
+  供商,你的评估历史依然保持一致。
+- **由人控制的提交** — career-ops 起草答案、打开表单,但 **由你点
+  击 Submit 按钮**。系统绝不会自动申请。系统负责提供结构与评估,人
+  类保留最终提交权。
+- **结构化求职** — 为多次投递的主动、有意识的求职而设计;不是一次
+  性投递工具,也不是推荐引擎。安装大约耗时 15 分钟,假设你熟悉终端
+  操作。
+
+**career-ops 不是什么**(明确的非目标):
+
+- 不是自动投递器。它不会替你提交表单。
+- 不是简历重写器。它针对每个 JD 做微调,但不会捏造经历。
+- 不是 LinkedIn 优化器。你的个人主页归你自己管理。
+- 不是一个躲在 SaaS UI 后面的电子表格替代品。所有数据都是文件系统
+  上的纯 markdown。
+
+**关键概念**(完整清单 — career-ops 涉及的所有产物):
 
 | 概念 | 含义 |
 |---|---|
-| **Mode** | `modes/<slug>.md` 下的提示模板。内置: `oferta`、`deep`、`apply`、`pipeline`、`batch`、`contacto`、`followup`、`interview-prep`、`patterns`、`project`、`training`。 |
-| **Archetype** | `config/profile.yml` 中的目标角色画像。评分体系会按活动 archetype 加权技能匹配 — **最重要的字段**。 |
-| **Pipeline** | `data/pipeline.md` — 等待评估的 JD URL inbox。 |
-| **Tracker** | `data/applications.md` — 所有评估和申请状态的 GFM markdown 表。 |
-| **Report** | `reports/<NNN>-<company>-<DATE>.md` — 每个 JD 的完整 A–G 评估 + score + 合法性。 |
+| **Mode** | `modes/<slug>.md` 下的提示模板。内置: `oferta`、`deep`、`apply`、`pipeline`、`batch`、`contacto`、`followup`、`interview-prep`、`patterns`、`project`、`training`、`ofertas`、`auto-pipeline`、`pdf`、`latex`、`scan`、`tracker`。 |
+| **Archetype** | `config/profile.yml` 中的目标角色画像。评分体系按当前 archetype 加权技能匹配 — **最重要的单一字段**。 |
+| **Pipeline** | `data/pipeline.md` — 等待评估的 JD URL 收件箱。 |
+| **Tracker** | `data/applications.md` — 历史 GFM 表格,记录每次评估与申请状态。 |
+| **Report** | `reports/<NNN>-<company>-<DATE>.md` — 每个 JD 的完整 A–F 评估,头部含 score 与合法性。 |
 | **Scan history** | `data/scan-history.tsv` — 仅追加日志,跨扫描去重。 |
+| **Proof points** | 从 `cv.md` 提取的 STAR+R 证据块,在评估、apply 答题、面试准备之间复用。 |
+| **JD store** | `jds/jd-<date>-<ts>.txt` — 评估期间保存的原始职位描述,用于审计跟踪。 |
+| **Interview-prep** | `interview-prep/<company>-<role>.md` — 深度调研简报与轮次单页。 |
+| **Batch additions** | `batch/tracker-additions/*.tsv` — `batch-runner.sh` 排队等待并入 tracker 的行。 |
 
-### career-ops vs career-ops-ui
+### career-ops 与 career-ops-ui(本应用)的关系
 
-| | career-ops (CLI) | career-ops-ui (本应用) |
+| | career-ops(CLI) | career-ops-ui(本应用) |
 |---|---|---|
-| 运行位置 | Claude Code / Codex / Cursor / Gemini CLI 内 | 浏览器中的 `http://127.0.0.1:4317` |
-| 界面 | `/career-ops <mode>` slash 命令 | 侧边栏,每个工作流一页 |
-| 表单填写 | 有,经 Playwright MCP | 无 — 生成清单,在 CLI 中完成 |
-| PDF | `generate-pdf.mjs` | `📄 Generate PDF` (`#/cv`、`#/reports/:slug`、`#/evaluate`、`#/deep`、`#/interview-prep`) |
+| 运行位置 | Claude Code / Codex / Cursor / Gemini CLI 内部 | 浏览器中的 `http://127.0.0.1:4317` |
+| 界面形式 | `/career-ops <mode>` slash 命令 | 侧边栏,每个工作流对应一页 |
+| 表单填写 | 支持,通过 Playwright MCP | 不支持 — 生成清单,你在 CLI 中完成填写 |
+| PDF | `generate-pdf.mjs` | `📄 Generate PDF` 按钮位于 `#/cv`、`#/reports/:slug`、`#/evaluate`、`#/deep`、`#/interview-prep` |
 | 数据文件 | 与 career-ops-ui 共享 | 与 career-ops 共享 |
 
-### 按 Score 的行动阈值
+career-ops-ui 是 **纯增量** 项目。`career-ops/` 内部的任何文件都不会
+被修改。两套界面共享同一份 `cv.md`、`config/profile.yml`、
+`portals.yml`、`data/`、`reports/`、`interview-prep/`、`modes/`。
+
+### 按 score 划分的行动阈值
+
+一旦某个 JD 有了评估,score 决定下一步动作(摘自
+[career-ops.org/docs/introduction/what-is-career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+的权威表):
 
 | Score | 下一步 |
 |---|---|
-| **≥ 4.5** | `/career-ops apply` — 高匹配,立即申请。 |
-| **4.0 – 4.4** | 申请,或 `/career-ops contacto` 先 warm intro。 |
-| **3.5 – 3.9** | `/career-ops deep` — 先研究公司/角色再决定。 |
-| **< 3.5** | 除非有特定理由,跳过。 |
+| **≥ 4.5** | 运行 `/career-ops apply` — 高匹配,立即推进。 |
+| **4.0 – 4.4** | 申请,或先用 `/career-ops contacto` 做温和推荐接触。 |
+| **3.5 – 3.9** | 运行 `/career-ops deep` — 先调研公司/角色再决定。 |
+| **< 3.5** | 除非有具体的个人理由,否则跳过。 |
+
+career-ops-ui 的 `#/dashboard` 与 `#/tracker` 会高亮每一条 ≥ 4.0 的
+记录,无需重新运行任何命令即可挑选行动对象。
 
 ### 外部文档
 
-career-ops 引擎的完整参考(扫描、评分体系、batch、apply、Playwright)在 [career-ops.org/docs](https://career-ops.org/docs):
+底层 career-ops 引擎(扫描、评估体系、批量处理、申请流程、Playwright
+配置)的完整参考位于
+[career-ops.org/docs](https://career-ops.org/docs):
 
 - [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
 - [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
@@ -61,168 +114,291 @@ career-ops 引擎的完整参考(扫描、评分体系、batch、apply、Playwri
 
 ---
 
-## 1. 快速入门 — 从「创建 CV」到「申请 + 发送消息」的逐步指南
+## 1. 快速上手 — 从「创建 CV」到「投递并联系」的完整步骤
 
-按钮级官方流程。第一次请按顺序进行。
+这是按钮级的权威操作手册。首次使用请按顺序执行。每一步都明确指出
+路由名、按钮名以及成功时你将看到什么。2–16 节会深入展开各阶段细节。
 
-**A. 设置 (一次性,~5 分钟)**
+### A. 一次性安装(只需做一次,约 5 分钟)
 
-1. 打开 `http://127.0.0.1:4317` (或在根目录 `bash bin/start.sh`)。
-2. 侧栏 **❤ Health** → 所有必需检查为绿色。
-3. 侧栏 **⚒ App settings** → *API keys & runtime* 标签 → 粘贴
-   `ANTHROPIC_API_KEY` 和/或 `GEMINI_API_KEY` → **💾 Save** →
-   **▶ Test Anthropic / Gemini**。
-4. 同一页 → *Profile* 标签 → 编辑 `candidate.full_name`、`email`、
-   `target.roles`、`target.comp_total_min_usd`、`target.archetypes`
-   → **💾 Save**。
+**第 1 步 — 在 `http://127.0.0.1:4317` 打开应用。** 如果尚未启动,
+在仓库根目录的终端执行 `bash bin/start.sh`。Dashboard
+(`#/dashboard`)会加载出来。
 
-**B. CV (一次性,~10 分钟)**
+**第 2 步 — 在左侧边栏点击 `❤ Health`。** 所有必需检查项必须为绿色:
 
-5. 侧栏 **✎ CV** — 打开编辑器。
-6. **📁 Upload CV** 上传 `.docx/.doc/.odt/.rtf/.pdf/.html/.txt/.md`
-   (服务器转换 + 净化),或直接粘贴 markdown。
-7. **💾 Save** (右上角) — 提示「Saved」。
-8. (可选) **📄 Generate PDF** — 完成时最新 PDF 自动下载。
+- `cv.md`、`config/profile.yml`、`portals.yml` 存在
+- 已设置 API key(至少有一个 `ANTHROPIC_API_KEY` / `GEMINI_API_KEY`)
+- Playwright 已安装(仅在你使用 Generate PDF 时必需)
 
-**C. 找职位 (每次扫描 ~2 分钟)**
+如有红色项,页面会精确指出需要修复的文件或环境变量。在 Health 全绿
+之前不要继续后续步骤。
 
-9. 侧栏 **🌐 Scan** → **🌐 Scan now** → 实时 SSE 日志。
-10. 点击公司标签筛选; ↗ 在新标签打开招聘页。
+**第 3 步 — 在侧边栏点击 `⚒ App settings`。** 进入
+**API keys & runtime** 选项卡。
+- 粘贴 `ANTHROPIC_API_KEY`(首选 — 长文本评分质量更高)
+  和/或 `GEMINI_API_KEY`。从
+  <https://console.anthropic.com/settings/keys> 或
+  <https://aistudio.google.com/apikey> 获取 key。
+- 点击 **💾 Save**。然后点击 **▶ Test Anthropic**(或 Gemini)— 一次
+  小往返调用确认 key 配置正确。
 
-**D. 评分 (每个 JD ~30 秒)**
+**第 4 步 — 切换到同一页的 `Profile` 选项卡。** 这是
+`config/profile.yml` 的直接 YAML 编辑器。至少修改以下字段:
+- `candidate.full_name` — 把任何占位符("Jane Smith")替换为你的真
+  实姓名
+- `candidate.email`、`linkedin`、`github` — 用于求职信
+- `target.roles` — 你打算申请的职位头衔
+- `target.comp_total_min_usd` — 最低总薪;低于此值的 offer 会在每份
+  评估的 D 节被标红
+- `target.archetypes` — 你接受的职业模式(影响最大的单一字段)
 
-11. 侧栏 **Pipeline** — 点击条目预览 JD。
-12. JD 旁的 **▶ Evaluate** → 模型 0–5 评分 →
-    `reports/<日期>-<slug>.md`。
-13. 侧栏 **Reports** — 检查报告; pursue = 候选清单。
+点击 **💾 Save**。服务器验证 YAML 并写入权威头部
+`# Career-Ops Profile Configuration`。
 
-**E. 决策 + 深入研究 (~3 分钟)**
+### B. CV(只需做一次,约 10 分钟)
 
-14. 侧栏 **Deep research** → 公司 + 职位 → 7 节简报 →
-    `interview-prep/<公司>-<职位>.md`。
+**第 5 步 — 在侧边栏点击 `✎ CV`。** 两栏布局:左侧编辑器,右侧实时
+预览。
 
-**F. 申请 (每次申请 ~5 分钟)**
+**第 6 步 — 选择一条路径填充编辑器:**
+- **上传已有简历** — 点击 **📁 Upload CV**,选择任一格式:
+  `.docx / .doc / .odt / .rtf / .pdf / .html / .txt / .md`。服务器
+  会通过 pandoc 或 pdftotext 转换为 markdown,净化 XSS 内容,并将结
+  果放入编辑器。**请检查转换结果** — 尤其是 PDF,可能丢失版面信息。
+- **直接粘贴 markdown** — 文本框就是 markdown 编辑器;右侧面板呈现
+  的是 LLM(以及未来的招聘者)看到的内容。
+- **行文建议:** 一个 bullet = 一项可量化的成绩。控制在 1500 字以
+  内。章节顺序: Summary、Experience、Projects、Education、Skills。
 
-15. 侧栏 **Apply checklist** → URL + JD → 清单 (cover letter、
-    关键词、附件、**绝不自动提交**)。
-16. 在新标签打开招聘页 → 手动提交 (附上第 8 步的 PDF)。
-17. 侧栏 **Outreach** (`#/contacto`) → 基于第 14 步简报的
-    LinkedIn / 邮件 → 个性化后发送。
+**第 7 步 — 点击 `💾 Save`(CV 页右上角)。** 服务器执行净化(剥离
+`<script>` / `javascript:` / 内联事件处理器)后写入 `cv.md`。Toast
+提示: *"Saved"*。
 
-**G. 跟踪 + 跟进 (持续)**
+**第 8 步(可选)— 点击 `📄 Generate PDF`。** 在父项目运行
+`generate-pdf.mjs`(需要 Playwright),完成后 **新 PDF 会自动下载**
+到浏览器。页面底部列表会保留所有历史生成文件。
 
-18. 侧栏 **Tracker** → 添加行: 公司、职位、得分、状态 `Applied`、
-    报告链接、简报链接。
-19. 一周后: **Follow-up** 模式 → check-in → 状态 `Followed up`。
-20. 收到面试邀请: **Interview prep** 模式 → 系统设计 / 行为面 /
-    编码的针对性准备。
-21. 拿到 offer: 把 Tracker 改为 `Offer` + 重看报告 comp 节。
+### C. 发现职位空缺(每次扫描约 2 分钟)
 
-**TL;DR — 侧栏顺序就是工作流顺序:**
-Health → App settings → Profile → CV → Scan → Pipeline → Evaluate
+**第 9 步 — 在侧边栏点击 `🌐 Scan`。** 确认 `portals.yml` 列出了你
+关心的招聘版面(详见本帮助第 5 节)。按下 **🌐 Scan now** 按钮。实
+时 SSE 日志会流式输出,扫描器会遍历 Greenhouse / Ashby / Lever /
+Workable / SmartRecruiters / Workday(英文版面)以及启用情况下的
+hh.ru / Habr Career(俄罗斯版面)。
+
+**第 10 步 — 扫描完成后查看结果。** 点击公司标签可过滤;点击 ↗
+图标在新标签页打开公司招聘主页。所有通过标题过滤器的空缺都会进入
+Pipeline 队列。
+
+### D. 给 offer 打分(每个 JD 约 30 秒)
+
+**第 11 步 — 在侧边栏点击 `Pipeline`。** 你会看到扫描器排队的所有
+URL。点击任一条目可在右侧预览 JD。
+
+**第 12 步 — 点击任一 JD 旁的 `▶ Evaluate`。** 跳转到 `#/evaluate`。
+如果配置了 API key,会实时运行;否则会得到可粘贴到自己 LLM 中的手工
+提示。实时模式针对你的 CV 在 A–G 各节(Role / Company / Compensation
+/ Risk / Stretch / Cultural fit / Verdict)产出 **0–5 分**。保存路径
+为 `reports/<date>-<slug>.md`。
+
+**第 13 步 — 在侧边栏点击 `Reports`** 查阅最新评估。任何低于
+`comp_total_min_usd` 的项会在 D 节标红。任何 `Verdict: pursue` 的项
+就是你的入围短名单。
+
+### E. 决策并对入围公司做深度调研(约 3 分钟)
+
+**第 14 步 — 选择一个值得追的职位,点击侧边栏 `Deep research`。**
+输入公司名和角色。模型会产出包含 7 节的公司简报(使命、近期新闻、
+技术栈、招聘信号、薪酬基准、风险、建议切入角度)。保存路径为
+`interview-prep/<company>-<role>.md`。
+
+### F. 投递申请(每份申请约 5 分钟)
+
+**第 15 步 — 在侧边栏点击 `Apply checklist`。** 粘贴职位 URL + JD。
+助手会生成逐步提交清单:
+- 定制的求职信草稿(使用你的 `cv.md` + `profile.yml`)
+- 需要从 JD 镜像的具体关键词
+- 需附上的文件(CV PDF — 见第 8 步)
+- 投递地点(公司权威招聘 URL,而非聚合站的重定向)
+- 提醒: **绝不自动提交** — 最终审查与提交始终是手工操作。
+
+**第 16 步 — 在新标签页打开招聘页面。** 把 Apply 清单当作待办列表。
+通过公司的真实表单提交。附上你在第 8 步生成的 PDF。
+
+**第 17 步 — 联系真实的人类。** 打开 **Outreach** 模式
+(侧边栏的 `#/contacto`)。模型基于第 14 步的公司简报起草一条简短的
+LinkedIn / 邮件消息。把开场白个性化(嵌入一条来自深度调研的具体细节)。
+发送出去。
+
+### G. 跟踪与跟进(持续进行)
+
+**第 18 步 — 在侧边栏点击 `Tracker`** 为这次申请添加一行: 公司、
+角色、score、状态 `Applied`、报告链接、深度调研简报链接。日期自动
+填充。
+
+**第 19 步 — 一周后:打开 `Follow-up` 模式**(`#/followup`)。它会起
+草一封礼貌的跟进邮件,引用原申请。发送后,把 tracker 状态更新为
+`Followed up`。
+
+**第 20 步 — 收到面试邀请后,运行 `Interview prep` 模式**
+(`#/interview-prep`)。会为具体公司 + 轮次(系统设计 / 行为面 / 编
+码面)生成针对性准备材料。自动从深度调研简报中拉取信息。
+
+**第 21 步 — 拿到 offer 后:把 Tracker 状态更新为 `Offer`**,并回看
+评估报告的薪酬章节 — 你的最低接受数字就在那里。
+
+### TL;DR — 侧边栏顺序即工作流顺序
+
+`Health → App settings → Profile → CV → Scan → Pipeline → Evaluate
 → Reports → Deep research → Apply checklist → Outreach → Tracker
-→ Follow-up → Interview prep → Activity log。
+→ Follow-up → Interview prep → Activity log`
+
+就是这样。21 步,按钮接按钮,从零到 offer。
 
 ---
 
-## 2. 应用设置和 API 密钥 (`#/config`)
+## 2. App settings 与 API keys(`#/config`)
 
-两个标签页:**API keys & runtime** 从浏览器编辑父项目的 `.env`(与
-career-ops Node 脚本启动时读取的同一文件);**Profile** 是
-`config/profile.yml` 的直接 YAML 编辑器,自动添加规范文件头
-`# Career-Ops Profile Configuration` 并验证 `candidate` 键存在。
-任一标签页的保存都立即生效——无需重启。
+两个选项卡:
 
-### 识别的密钥
+1. **API keys & runtime** — 在浏览器中编辑父项目的 `.env` 文件(career-ops
+   Node 脚本启动时读取的同一文件)。
+2. **Profile** — `config/profile.yml` 的直接 YAML 编辑器。保存时会
+   写入权威头部 `# Career-Ops Profile Configuration`。
 
-| 密钥 | 作用 | 获取地址 |
+两个选项卡的任意保存都会立即生效 — 无需重启服务器。
+
+### Profile 选项卡
+
+- 文本框原样显示当前的 `config/profile.yml`。
+- 编辑后点击 **💾 Save**。服务器验证 YAML(必须是 mapping,必须包含
+  `candidate`)并写入文件。
+- 若缺失,会自动添加 `# Career-Ops Profile Configuration` 头部。
+- `#/profile` 上的只读摘要是其可视化对照视图。
+
+### 识别的键
+
+| Key | 用途 | 获取地址 |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | 启用 Anthropic SDK 实时调用。两个密钥都设置时优先。 | <https://console.anthropic.com/settings/keys> |
-| `ANTHROPIC_MODEL` | 覆盖默认 `claude-sonnet-4-6`。 | — |
-| `GEMINI_API_KEY` | 没有 Anthropic 时的回退。`gemini-eval.mjs` 用于 `oferta` mode。 | <https://aistudio.google.com/apikey> |
-| `GEMINI_MODEL` | 覆盖 Gemini 模型。 | — |
-| `(server uses default UA)` | 在俄罗斯外扫描 `hh.ru` 时需要。 | dev.hh.ru |
-| `PORT` | Express 端口。默认 4317。 | — |
-| `HOST` | 绑定。`0.0.0.0` 暴露到 LAN — **尚无 auth gate**。 | — |
+| `ANTHROPIC_API_KEY` | 启用实时 Anthropic SDK 调用。在 Anthropic + Gemini 同时配置时优先 — 对 JD 评分与深度调研的长文本结构化输出更好。 | <https://console.anthropic.com/settings/keys> |
+| `ANTHROPIC_MODEL` | 覆盖默认的 `claude-sonnet-4-6`。复杂推理可尝试 `claude-opus-4-7`,廉价高速可用 `claude-haiku-4-5-20251001`。 | — |
+| `GEMINI_API_KEY` | 没有 Anthropic key 时的后备。`oferta` 模式由 `gemini-eval.mjs` 调用。免费层适合小批量。 | <https://aistudio.google.com/apikey> |
+| `GEMINI_MODEL` | 覆盖默认 Gemini 模型。 | — |
+| `(server uses default UA)` | 在俄罗斯境外扫描 `hh.ru` 时必需(默认 UA 会返回 403)。在 <https://dev.hh.ru/admin> 注册一个应用并使用其 UA 字符串。 | dev.hh.ru |
+| `PORT` | Express 绑定端口。默认 4317。 | — |
+| `HOST` | 绑定地址。默认 `127.0.0.1`。设为 `0.0.0.0` 会把 UI 暴露到局域网 — **目前没有鉴权门**,参见 Production-readiness 文档。 | — |
 
 ### 行为
 
-- **读取** (`GET /api/config`) — 秘密密钥**遮罩**
-  (`sk-ant•••••a1b2`)。
-- **保存** (`POST /api/config`) — 验证 → 写入 `.env` → 立即应用到
-  `process.env`。无需重启。
-- **空值删除**密钥。
+- **读取**(`GET /api/config`)返回所有识别到的键。秘密 key
+  (`ANTHROPIC_API_KEY`、`GEMINI_API_KEY`)会被 **掩码** — 你只会看
+  到 `sk-ant•••••••a1b2`,绝不会暴露完整值。
+- **保存**(`POST /api/config`)逐项验证,写入 `<parent>/.env`,并
+  立即应用到运行中的进程。无需重启。
+- **空值即删除该键**。在你想不再使用某个配置时很有用。
 
-### Smoke-test 按钮
+### 烟雾测试按钮
 
-保存后点击 **▶ Test Anthropic** / **▶ Test Gemini** — 两者都发送
-微小的 prompt (≤256 tokens) 确认密钥工作。返回 ~200 字符样本。
-
----
-
-## 3. Profile (`#/profile` — 也可通过 `#/settings` 访问)
-
-`config/profile.yml` 的只读视图。直接在磁盘上编辑;页面在 reload 时
-重新解析。
-
-关键字段:
-
-- `candidate.full_name` — 在每个 prompt 中使用。**在任何真实扫描
-  之前替换 `Jane Smith`**。
-- `candidate.email`、`linkedin`、`github` — 在 cover letter 和
-  apply checklist 中引用。
-- `target.roles` — 接受的职位。
-- `target.comp_total_min_usd` — 最低总薪酬。每次评估的 D 节标记低于
-  此值的 offer。
-- `target.archetypes` — *最重要的字段*。每个 JD 都对其匹配,最佳
-  archetype 进入报告头部。
-
-`full_name` 仍是已知 placeholder 时,Health 标记 **Profile
-customized**。
+保存后点击 **▶ Test Anthropic** 或 **▶ Test Gemini** — 两者都会触发
+一个极小的提示(输出 ≤256 tokens),花费几乎为零,但能确认 key 是否
+连通。成功时返回约 200 字符的样本。
 
 ---
 
-## 4. CV (`#/cv`)
+## 3. Profile(`#/profile` — 也可以通过 `#/settings` 访问)
 
-每次评估、deep research 和 cover letter 的真实来源。位于父根的
+`config/profile.yml` 的只读摘要卡片视图。**要编辑** 请前往
+**App settings → Profile 选项卡**(`#/config` → Profile)。保存写入
+的是同一文件;本页在刷新时会重新解析。
+
+最重要的字段:
+
+- `candidate.full_name` — 每个提示都会用到。**在正式扫描前必须替换
+  模板中的 `Jane Smith`**,否则生成的求职信会以占位符姓名发送出去。
+- `candidate.email`、`linkedin`、`github` — 求职信生成与 apply 清单
+  中会引用。
+- `target.roles` — 接受的职位头衔。扫描器的正向过滤器会隐式使用
+  (通过 `portals.yml::title_filter`)。
+- `target.comp_total_min_usd` — 最低总薪。每份评估的 D 节会把低于此
+  值的 offer 标出。
+- `target.archetypes` — *最重要字段*。这些是你接受的职业模式(例如
+  `Tech-Lead-Backend`、`Founding-Engineer`、`Data-Platform`)。每个
+  JD 都会针对它们做匹配,最佳 archetype 会进入报告头部。
+
+Health 页面会暴露一项 **Profile customized** 检查,只要
+`full_name` 还是已知占位名,这一项就不通过。
+
+---
+
+## 4. CV(`#/cv`)
+
+每次评估、深度调研与求职信的唯一真相来源。文件位于父项目根目录的
 `cv.md`。
 
-### 编辑选项
+### 编辑方式
 
-- **直接粘贴** — 左侧 textarea 是 markdown 编辑器。
-- **📁 Upload CV** — `.md/.markdown/.txt/.html/.htm`(文本)、
-  `.docx/.doc/.odt/.rtf`(经 pandoc — `brew install pandoc`)、
-  `.pdf`(经 pdftotext — `brew install poppler`)。服务器转为
-  markdown 并清理后载入编辑器,**💾 Save** 持久化。上限 10 MB。
-- **从 LinkedIn** — 在父项目中打开 Claude Code,运行 `/career-ops`,
-  粘贴 LinkedIn URL,要求 `extract my CV from this and write it to
-  cv.md`。
+- **直接粘贴** — 左侧文本框就是 markdown 编辑器。右侧面板镜像 LLM
+  (以及你未来的招聘者)看到的内容。
+- **📁 Upload CV** — 选择任一以下格式的本地文件,服务器会为你转换
+  成 markdown:
+  - **文本格式** — `.md`、`.markdown`、`.txt`、`.html`、`.htm` 直
+    通(HTML 经 pandoc → GFM markdown)。
+  - **Office 格式** — `.docx`、`.doc`、`.odt`、`.rtf` 经 **pandoc**
+    转换(macOS 用 `brew install pandoc`,Linux 用
+    `apt install pandoc`)。
+  - **PDF** — `.pdf` 经 Poppler 的 **pdftotext** 提取
+    (`brew install poppler` / `apt install poppler-utils`)。
+  - 转换后的 markdown 落入编辑器;点击 **💾 Save** 持久化。结果会被
+    净化(与粘贴同样的 XSS 剥离)。
+  - 硬上限: 每次上传 **10 MB**。更大的文件返回 413。
+- **从 LinkedIn 导入** — 最简路径: 在父项目打开 Claude Code,运行
+  `/career-ops`,粘贴你的 LinkedIn URL,并要求
+  `extract my CV from this and write it to cv.md`。
 
-### 净化
+### 净化的范围
 
-`stripDangerousMarkdown` 删除 `<script>`、`<iframe>`、`<object>`、
-`<embed>`、`<svg>`、`<style>`、`<form>`、内联处理器 (`onclick=`)、
-URI `javascript:`/`vbscript:`/`data:text/html`。被删除时响应包含
-`sanitized: true`。最大 1 MB。
+服务器端,每个对 `/api/cv` 的 PUT 都会经过 `stripDangerousMarkdown`:
+
+- `<script>`、`<iframe>`、`<object>`、`<embed>`、`<svg>`、`<style>`、
+  `<form>` 标签 — 完全移除。
+- 内联事件处理器(`onclick=`、`onerror=` 等)— 剥离。
+- `javascript:`、`vbscript:`、`data:text/html` URI 协议 — 失效化。
+
+只要发生了上述任一净化,响应都会包含 `sanitized: true`,以便你知道
+源文件曾包含可疑内容。
+
+最大请求体: 1 MB。超过则返回 413。
 
 ### 其他按钮
 
-- **sync-check** — `cv-sync-check.mjs`。
-- **📄 Generate PDF** — `generate-pdf.mjs` → `output/*.pdf`。需要
-  Playwright。
+- **sync-check** — 在父项目运行 `cv-sync-check.mjs`。标出不一致:
+  例如 CV 中列出的项目未出现在 `data/applications.md` 的 archetype
+  里等。
+- **📄 Generate PDF** — 流式运行 `generate-pdf.mjs`。输出落到
+  `output/*.pdf`。需要 Playwright(Health 页面会显示是否已安装在父
+  项目的 `node_modules` 中)。生成完毕后,**最新** PDF 会自动下载到
+  你的默认下载文件夹;页面上的列表保留所有历史生成文件。
 
-### 格式提示
+### 行文与格式建议
 
-- 一个 bullet = 一个带指标的成就。
-- 节顺序: **Summary**、**Experience**、**Projects**、**Education**、
-  **Skills**。
-- 保持在 1500 字以内。
+- 一个 bullet = 一项带量化指标的成绩。每条评估体系下,
+  *"Reduced p99 latency by 38%"* 都比 *"improved performance"* 得分
+  更高。
+- 章节顺序: **Summary**(3–5 行)、**Experience**(倒序时间线)、
+  **Projects**(最多 5 项)、**Education**、**Skills**(去重,不要
+  关键词堆砌)。
+- 控制在 1500 字以内。评分体系使用密度高的信息;CV 越冗长越容易因
+  噪声被扣分。
 
 ---
 
-## 5. 门户和源 (`portals.yml`)
+## 5. 招聘版面与来源(`portals.yml`)
 
-扫描器配置。三节重要:
+扫描器配置位于父项目根目录的 `portals.yml`。下面三个章节最为重要。
+SPA 的三个章节与
+[scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+中 career-ops.org 的权威 schema 一一对应。
 
 ### `title_filter`
 
@@ -233,11 +409,16 @@ title_filter:
   seniority_boost: [Senior, Staff, Lead, Principal]
 ```
 
-vacancy 在其 title 包含**至少一个 positive** 且 **没有任何
-negative** 时通过。
+当一个被扫描到的职位标题包含 **至少一个 positive** 关键词且
+**不包含任何 negative** 关键词时才通过。两边都要调优。关键词为大小
+写不敏感的子串匹配。
 
+`seniority_boost` 是 title-filter 的第三个键。这里列出的关键词不会
+过滤掉任何内容 — 只是把匹配的职位在结果中往上推,让
+"Senior Backend Engineer" 排在 "Engineer" 前面。默认值:
+`["Senior", "Staff", "Lead"]`。根据你的目标角色头衔调整。
 
-`seniority_boost` 是 title-filter 的第三个键。这里列出的关键字不过滤任何东西 — 它们把匹配的职位推到结果上方,这样 "Senior Backend Engineer" 排在 "Engineer" 上面。默认:`["Senior", "Staff", "Lead"]`。根据你的目标角色如何命名进行调整。
+刚开始时先用 3–5 个 positive 关键词以保持清晰;之后再扩大。
 
 ### `search_queries`
 
@@ -251,443 +432,753 @@ search_queries:
     enabled: false
 ```
 
-`search_queries` 驱动 AI 驱动的 Option B 扫描(Claude Code / Codex 内的 `/career-ops scan`)。in-process `npm run scan` (只命中公共 boards API) **不**会执行它们。当你想发现 `tracked_companies` 中还没有的公司的角色时使用。设置 `enabled: false` 保留条目而不执行。
+`search_queries` 驱动 AI 加持的 Option B 扫描(在 Claude Code /
+Codex 中运行 `/career-ops scan`)。它们 **不会** 被进程内的
+`npm run scan` 执行(后者只调用公共招聘 API)。当你想在还没列入
+`tracked_companies` 的公司里发现职位时使用。设置 `enabled: false`
+可保留条目而不运行。
 
 ### `tracked_companies`
 
 ```yaml
 tracked_companies:
-  - { name: Stripe,    enabled: true, careers_url: https://job-boards.greenhouse.io/stripe }
-  - { name: Linear,    enabled: true, careers_url: https://jobs.ashbyhq.com/linear }
-  - { name: JetBrains, enabled: true, careers_url: https://jobs.lever.co/jetbrains }
+  - { name: Stripe,     enabled: true, careers_url: https://job-boards.greenhouse.io/stripe }
+  - { name: Linear,     enabled: true, careers_url: https://jobs.ashbyhq.com/linear }
+  - { name: JetBrains,  enabled: true, careers_url: https://jobs.lever.co/jetbrains }
 ```
 
-EN 扫描器从 URL 模式检测 ATS,直接调用 boards-api。
+每条记录必需字段: `name` 与 `careers_url`。可选字段:`api`(显式指
+定 Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday
+端点)、`enabled: true|false`(包含或排除而不删除条目)。ATS 扫描器
+会从 URL 模式自动检测 ATS(`job-boards.greenhouse.io/<slug>` →
+Greenhouse 等)并直接调用每家公司的公共 boards-api。没有可识别 ATS
+的公司会被跳过(`/#/scan` 上的 **Active Companies** 卡片会用
+`○` 灰色显示)。
 
 ### `russian_portals`
 
 ```yaml
 russian_portals:
-  sources: [hh, habr]
-  area: 113                 # 113=俄罗斯,1001=远程
+  sources: [hh, habr]      # 或只填其中一个
+  area: 113                 # 1=莫斯科,2=圣彼得堡,113=俄罗斯,1001=远程
   per_page: 50
   only_remote: false
   queries:
     - "Senior PHP"
     - "Senior Go"
+    - "Тимлид PHP"
 ```
 
-注意 `queries` 与 negative 列表的重叠 — 控制台会警告冲突。
+`queries` 是对 hh.ru 与 Habr Career 职位标题的大小写不敏感子串匹配。
+**注意与 negative 列表的冲突** — 如果 `queries` 中有 `"Senior PHP"`
+而 `title_filter.negative` 里出现了 `"php"`,扫描会返回零结果,控制
+台会发出冲突警告。
 
-### Bootstrap
+### CLI 引导流程([scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
 
-首次启动时,如果缺少 `russian_portals:` 块,服务器会追加文档化的
-默认值 (idempotent)。
-
----
-
-
-### CLI 流程 ([career-ops.org/docs/.../scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
-
-career-ops 标准 setup(在父目录运行一次):
+career-ops 的权威安装步骤(在父项目根目录运行一次):
 
 ```bash
 cp templates/portals.example.yml portals.yml
 $EDITOR portals.yml
 ```
 
-`portals.yml` 有三个部分;career-ops.org 规范 schema 与上述 SPA 三部分 1:1 对应:
+这就是全部引导动作。编辑三个章节(`title_filter`、
+`tracked_companies`、`search_queries`,可选 `russian_portals`),保
+存,即可扫描。
 
-- **title_filter** — `positive`、`negative`、`seniority_boost` 关键字列表(case-insensitive)。岗位需要 ≥ 1 个 `positive` 匹配且 0 个 `negative` 匹配。`seniority_boost` 仅升排名不过滤。
-- **tracked_companies** — 每条记录必须有 `name` 和 `careers_url`。可选: `api`(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday 端点)、`enabled: true|false`。
-- **search_queries** — 预构建的更广泛网络搜索。默认对大多数用户够用。
+### SPA 引导行为
+
+首次运行时,如果 `portals.yml` 缺少 `russian_portals:` 块,服务器会
+附加一段带文档说明的块(幂等 — 第二次启动是空操作,因为字面量
+`russian_portals:` 已经存在)。英文章节 **不会** 自动注入;它们来自
+你按照上述权威引导流程复制的 `templates/portals.example.yml`。
 
 ---
 
-## 6. Health (`#/health`)
+## 6. Health(`#/health`)
 
-每个 setup gate 在 OK / OPTIONAL / FAIL 徽章中。
+每一项安装环境检查,标注为 OK / OPTIONAL / FAIL。在提交任何
+"不工作" 工单之前先看这里。
 
-### 必需 (没有这些系统无法工作)
+### 必需检查(系统无法在缺失时运行)
 
-`Node version` ≥ 18、`Project root`、`cv.md`、`config/profile.yml`、
-`portals.yml`、`data/applications.md`、`data/pipeline.md`、
-`modes/oferta.md`。
+- `Node version` ≥ 18 — 服务器使用原生 `fetch` 与 `node:test`。
+- `Project root` — `CAREER_OPS_ROOT`(环境变量或自动检测)指向存在
+  的目录。
+- `cv.md`、`config/profile.yml`、`portals.yml`、
+  `data/applications.md`、`data/pipeline.md`、`modes/oferta.md`。
 
-### 可选 (仅警告)
+### 可选检查(仅作为警告)
 
-`Profile customized`、`GEMINI_API_KEY`、`ANTHROPIC_API_KEY`、
-`(server uses default UA)`、Playwright、父项目 deps、目录。
+- `Profile customized` — `candidate.full_name` 不是模板占位符。
+- `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` — 已在 `.env` 中设置。
+- `(server uses default UA)` — 只在你从俄罗斯境外扫描 hh.ru 时才有
+  意义。
+- `Playwright (parent node_modules)` — PDF 生成与
+  `check-liveness.mjs` 必需。安装命令:
+  `cd $CAREER_OPS_ROOT && npm install && npx playwright install chromium`。
+- `Parent project dependencies` — 缺失时执行
+  `cd $CAREER_OPS_ROOT && npm install`。
+- `data/`、`reports/`、`output/`、`jds/` 目录 — 首次写入时自动创建。
 
-`HOST=0.0.0.0` 时,绝对路径和准确的 Node 版本被隐藏。
+当服务器暴露在 loopback 之外(`HOST=0.0.0.0`)时,响应中的绝对路径
+和精确 Node 版本会被替换为 `"hidden"`,以免好奇的邻居能对你的安装做
+指纹识别。
 
 ### 运行按钮
 
-- **▶ Doctor** — `node doctor.mjs`。
-- **▶ Verify pipeline** — `node verify-pipeline.mjs`。
+- **▶ Doctor** 运行 `node doctor.mjs` 并在模态框里显示输出。
+- **▶ Verify pipeline** 运行 `node verify-pipeline.mjs`。
 
 ---
 
-## 7. Scan (`#/scan`)
+## 7. Scan(`#/scan`)
 
-扫描器爬取启用的 boards,对历史去重,把命中写入
-`data/last-scan.json` 和 `data/pipeline.md`。
+扫描器爬取所有启用的版面,与历史记录去重,把命中写入
+`data/last-scan.json` 与 `data/pipeline.md`。
 
-### 一键扫描
+### 一键扫描(SPA)
 
-**🌐 Scan** 一次性运行每个源。实时 SSE 日志在右侧。**Stop** 或离开
-中止。
+**🌐 Scan** 一次性运行所有启用的来源:
 
-### 结果过滤
+- Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday
+  (ATS 全量扫描)针对 `tracked_companies` 中每家有可识别 ATS URL 的
+  公司。
+- hh.ru API + Habr Career HTML,针对 `russian_portals` 中的每个查询。
 
-- 自由文本。
-- Source 下拉。
-- Remote / Hybrid / Onsite。
-- Stack chips (PHP、Go、Backend、Senior) — 自动检测。
-- 动态 chips: 标题最频繁的 capitalized 标记 top-25。
+实时 SSE 日志会在扫描期间流向右侧面板。点击 **Stop**(或直接离开页
+面)即可中止 — 服务器会通过 `AbortController` 取消进行中的 HTTPS
+请求。
 
-### Active Companies
+### 过滤结果
 
-可折叠卡片:
+日志下方,结果表渲染 `data/last-scan.json` 中的行。
 
-- ✓ 绿 — 直接 API 支持。
-- ○ 灰 — web 搜索回退。
+过滤器:
 
-**点击名称** → 填充上方结果过滤器。**点击 ↗** → 在新标签打开
-`careers_url`。
+- **自由文本** — 对 title / company 做子串匹配。
+- **Source** 下拉 — Greenhouse / Ashby / Lever / Workable /
+  SmartRecruiters / Workday / hh.ru / Habr。
+- **Remote / Hybrid / Onsite** 下拉。
+- **技术栈标签**(PHP / Go / Backend / Senior / …)— 每行由
+  `Skills.detectTech` 与 `Skills.detectLevel` 自动检测。多选交集 —
+  选中 `PHP + Senior` 显示同时具有这两个标签的行。
+- **动态标签** 位于静态栈标签下方 — 来自标题中出现频次最高的前 25
+  个首字母大写 token,UI 会自适应你实际扫描到的角色(市场、设计、
+  金融……)而不再被锁死在后端工程师的词汇上。
 
----
+### Active Companies 卡片
 
+可折叠卡片,列出 `portals.yml` 中每家公司的扫描状态:
 
-### CLI 扫描流程 ([career-ops.org/docs/.../scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
+- ✓ 绿色标签 — 直接 API 支持(Greenhouse / Ashby / Lever /
+  Workable / SmartRecruiters / Workday)。
+- ○ 灰色标签 — 回落到网络搜索提示(无 API 匹配)。
 
-从 CLI 扫描的两种方式(都写入 SPA 读取的同一个 `data/pipeline.md`):
+**点击公司名** → 自动把该名称填入上方结果过滤器。**点击 ↗ 图标**
+→ 在新标签页打开该公司的 `careers_url`。
 
-**Option A — 直接脚本(~30 秒,零 AI 令牌):**
+### CLI 扫描流程([scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
+
+从 CLI 端有两种扫描方式(两者都把 URL 落入同一份
+`data/pipeline.md`,SPA 会读取):
+
+**Option A — 直接脚本(约 30 秒,零 AI tokens):**
 
 ```bash
-npm run scan
-npm run scan -- --dry-run
-npm run scan -- --company Anthropic
+npm run scan                          # 所有 Greenhouse/Ashby/Lever 版面
+npm run scan -- --dry-run             # 预览但不持久化
+npm run scan -- --company Anthropic   # 收窄到一家被追踪公司
 ```
 
-仅适用于 Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday(可识别 ATS URL)。
+只对 Greenhouse / Ashby / Lever / Workable / SmartRecruiters /
+Workday(可识别的 ATS URL)生效。不消耗 AI tokens — 直接调用公共
+boards API。
 
-**Option B — AI 浏览器扫描:** 在 Claude Code / Codex / Cursor / Gemini CLI 中 `/career-ops scan`。使用模型令牌。直接访问每个 `tracked_companies` 页面,可发现非 API 板。
+**Option B — AI 加持的浏览器扫描:**
 
-**Output(两者)** — 新 JD URL 追加到 `data/pipeline.md`,每个访问的 URL 记录到 `data/scan-history.tsv`(跨所有未来扫描去重)。
+```
+/career-ops scan
+```
 
-**按 Score 的行动阈值:**
+在 Claude Code / Codex / Cursor / Gemini CLI 内运行。会消耗模型
+tokens。直接访问每个 `tracked_companies` 页面,可发现没有 API 的版
+面(职业页面、自研 ATS、地区性招聘门户)。速度较慢但覆盖更广。当
+ATS 全量扫描对你已知正在招聘的目标返回空时很有用。
 
-| Score | 下一步 |
+**输出(两条路径相同)** — 新 JD URL 追加到 `data/pipeline.md`,所
+有访问过的 URL 记录到 `data/scan-history.tsv`(在未来所有扫描中去
+重),并打印摘要: 扫描的公司数 · 找到的职位 · 按标题过滤数 · 跳过
+的重复 · 新增的 offer 数。
+
+**按 score 划分的行动阈值**(在 `/career-ops pipeline` 给新 URL 批
+量评分后应用):
+
+| Score | 推荐下一步 |
 |---|---|
-| **≥ 4.5** | `/career-ops apply` — 高匹配 |
-| **4.0 – 4.4** | 申请或 `/career-ops contacto` |
+| **≥ 4.5** | `/career-ops apply` — 高匹配,立即推进 |
+| **4.0 – 4.4** | 申请,或 `/career-ops contacto` 做温和推荐接触 |
 | **3.5 – 3.9** | `/career-ops deep` — 先调研 |
-| **< 3.5** | 除非有特定理由,跳过 |
+| **< 3.5** | 除非有具体的个人理由,否则跳过 |
+
+SPA 的 `#/dashboard` 与 `#/tracker` 会高亮所有 ≥ 4.0 的行,无需重新
+运行即可选择行动对象。
+
+### 后续命令
+
+评分之后,典型的后续命令:
+
+- `/career-ops apply` — 使用定制答案填写申请
+- `/career-ops contacto` — 起草 LinkedIn / 邮件外联
+- `/career-ops deep` — 深度调研公司 / 角色
+- `/career-ops tracker` — 查看 pipeline 状态
 
 ---
 
-## 8. Pipeline (`#/pipeline`)
+## 8. Pipeline(`#/pipeline`)
 
-等待评估的 URL inbox。位于 `data/pipeline.md`。
+等待评估的 URL 收件箱。文件位于 `data/pipeline.md`。
 
 ### 添加 URL
 
 三种方式:
 
-- 输入或粘贴 + **+ Add**。
-- **Ctrl+K** / **Cmd+K** → 全局搜索 → 粘贴 URL → Enter。
-- 运行 Scan — 新命中自动加入 pipeline。
+- 在输入框输入/粘贴 URL,然后点击 **+ Add**。
+- 按 **Ctrl+K**(或 **Cmd+K**)聚焦到全局搜索,粘贴任意
+  `http(s)://…` 链接,按 **Enter** — URL 会立即进入 pipeline。
+- 运行一次 Scan(见上文)— 新命中会自动进入 pipeline。
 
-每个 URL 经过服务端的 `isValidJobUrl()`。Loopback、`file://`、
-`javascript:`、IP 字面值、模板字符 — 都 400。
+每个 URL 都会在服务器端经过 `isValidJobUrl()`。Loopback
+(`localhost`、`127.0.0.1`)、`file://`、`javascript:`、IP 字面量,
+以及包含模板字符(`<`、`>`、`"`)的字符串都会返回 400。
 
-### 服务端预览
+### 服务器端预览面板
 
-点击行加载右侧预览。服务器代理,删除 scripts/styles/标签,返回最多
-8 KB 纯文本。
+点击任一 pipeline 行,在右侧加载预览。大多数 ATS 版面不返回 CORS
+头,浏览器无法直接抓取;服务器代理请求,剥离 `<script>` / `<style>` /
+HTML 标签,返回最多 8 KB 纯文本。
 
-预览代理**逐跳 SSRF 验证**手动行走重定向。3 跳上限,15 秒超时。
+预览代理手工处理重定向,并对 **每一跳做 SSRF 校验** — 每个
+`Location` 头都会再次经过 `isValidJobUrl()`,使恶意版面无法把你弹
+到 loopback / 私网 IP / `file://`。最多 3 跳,15 秒超时。
 
 ### 行操作
 
-- **▶** — 跳转 `#/evaluate?url=…`。
-- **✕** — 从 pipeline 删除。
+- **▶** — 跳转到 `#/evaluate?url=…`,URL 预填好。
+- **✕** — 把 URL 从 `data/pipeline.md` 中移除。
 
-### 顶部按钮
+### 右上角按钮
 
-- **⚡ Evaluate first** — 在 Evaluate 中打开第一个 URL。
-- **Scan** — 回到扫描器。
+- **⚡ Evaluate first** — 把第一个排队 URL 直接在 Evaluate 页面打
+  开,准备评分。
+- **Scan** — 想要更多 URL 时,返回扫描器。
 
 ---
 
-## 9. Evaluate (`#/evaluate`)
+## 9. Evaluate(`#/evaluate`)
 
-针对 `cv.md` 和 `config/profile.yml` 给 JD 评分。返回 `modes/oferta.md`
-的 A–G 评估和 0–5 分。
+将单个 Job Description 对照 `cv.md` 与 `config/profile.yml` 评分。按
+`modes/oferta.md` 返回结构化的 A–G 评估,以及 0–5 分。
 
 ### 输入
 
-把 JD 粘贴到 textarea,或从 `#/pipeline` 用 `?url=…` 到达。
+把 JD 粘贴到文本框,或者带 `?url=<href>` 从 `#/pipeline` 跳过来 —
+页面会通过与 pipeline 预览相同的 SSRF 安全代理抓取 URL 并预填文本
+框。
 
-**💾 Save JD** 持久化到 `jds/jd-<date>-<ts>.txt`。
+点击 **💾 Save JD** 将 JD 持久化到 `jds/jd-<date>-<ts>.txt` 作为审
+计线索(也可在 API 调用里传 `save: true`,效果一样)。
 
 ### 回退链
 
-1. **Anthropic** — 设置了 `ANTHROPIC_API_KEY` 时优先。
-   `bundleProjectContext` 把 cv + profile + `_shared.md` +
-   `oferta.md` 内联到 `<project_context>` 块。每文件 16 KB cap,
-   prompt soft-cap 200 KB。
-2. **Gemini** — 仅 `GEMINI_API_KEY` 时。spawn `gemini-eval.mjs`。
-3. **Manual** — 无密钥。页面返回可粘贴 prompt。
+1. **Anthropic** — 当 `ANTHROPIC_API_KEY` 已设置时首选。服务器在
+   提示之前会把 `cv.md`、`config/profile.yml`、`modes/_shared.md`
+   和 `modes/oferta.md` 打包进 `<project_context>` 块(每个文件硬上
+   限 16 KB,整份提示软上限 200 KB)。返回的接地 markdown 直接落入
+   页面。
+2. **Gemini** — 当只设置了 `GEMINI_API_KEY` 时。服务器生成
+   `gemini-eval.mjs` 子进程,把 JD 作为临时文件传入。免费层模型
+   (`gemini-2.0-flash`)足以应付常规评分。
+3. **手工** — 未设置 key 时。页面返回一个完整提示,你可以粘贴到
+   Claude Code、ChatGPT 或其他 LLM。
 
-### 输出
+### 输出章节(权威 career-ops.org A–F)
 
-A. Role Summary · B. CV Match · C. Strategy · D. Compensation · E.
-Personalization · F. STAR stories(score 和 legitimacy 移到报告
-头部)。**v1.15.0 起规范 A–F** — pre-v1.15 的 A–G 报告
-(C=Risks, F=Verdict, G=Legitimacy)继续按原样渲染。
+> **v1.15.0 对齐变更。** 块字母现在与
+> [权威 career-ops.org schema](https://career-ops.org/docs)
+> 一致。v1.15 前的报告使用 A–G(其中 `C=Risks`、`F=Verdict`、
+> `G=Legitimacy`);为兼容性我们仍按原样渲染,但新报告输出 A–F 并采
+> 用下列权威语义。Score 与 Legitimacy 现在位于报告头部
+> (`score: 4.2/5`、`legitimacy: High|Medium|Low`)。
 
-**💾 Save report** 把 markdown 持久化到
-`reports/<date>-<company>-<role>.md`。
+A. **Role Summary** — 3 条要点摘要(行内列出风险)。
+B. **CV Match** — 命中的 3 项技能 + 缺失的 3 项。
+C. **Strategy** — 建议: 立刻申请 / 先 contacto / 先 deep / 跳过。
+v1.15 之前为 `Risks`。
+D. **Compensation** — 相对你的 `target.comp_total_min_usd`(旧)或
+`compensation.target_range`(权威)。
+E. **Personalization** — 切入角度,按 archetype 的行文框架,在求职
+信 / 外联中应提到的钩子。v1.15 之前为 `Application Strategy`。
+F. **STAR stories** — 1–3 条针对该角色定制、可直接粘贴的 S-T-A-R
+块。v1.15 之前为 `Verdict`(原始分);分数现在出现在报告头部,与
+`legitimacy` 并列。
+
+### 保存报告
+
+点击 **💾 Save report**(或在 API 调用里使用 save 开关)将 markdown
+持久化到 `reports/<date>-<company>-<role>.md`。报告解析后的头部
+(Score / Legitimacy / URL)会出现在 **Reports** 页与 **Dashboard**
+上。
+
+### 当你有 10 个以上 JD 时:批量评估
+
+单个 JD 用本 `#/evaluate` 页是正确选择。当 pipeline 里排着 10 个以上
+URL 时,逐条点击就不现实了 — 跳转到第 14 节的 **Batch evaluate** 小
+节(在父项目运行 `./batch/batch-runner.sh`),让它过夜跑完,然后回
+到 `#/reports` / `#/tracker` 查看结果。完整流程:
+[batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)。
 
 ---
 
-## 10. Reports (`#/reports`)
+## 10. Reports(`#/reports`)
 
-浏览每个保存的评估。卡片显示标题、日期、legitimacy 标志、分数
-(绿 ≥ 4.0,黄 ≥ 3.0,红更低)。每页 12 个。
+浏览所有已保存的评估。卡片显示标题、日期、合法性标志,以及 score
+(色彩编码: 绿色 ≥ 4.0,黄色 ≥ 3.0,红色低于此)。
 
-单个报告视图: **← All reports**、**🔗 Open JD**。
+点击卡片查看完整 markdown。分页: 每页 12 条;控件在底部。
+
+单报告视图还提供:
+
+- **← All reports** — 返回网格。
+- **🔗 Open JD** — 在新标签页打开原始职位发布页。
 
 ---
 
-## 11. Tracker (`#/tracker`)
+## 11. Tracker(`#/tracker`)
 
-CRM。一行 = 一次申请。位于 `data/applications.md` 的 GFM 表格。
+CRM。每次申请一行;以 GitHub-Flavored Markdown 表的形式存于
+`data/applications.md`。
 
-### 状态流
+### 状态流转
 
 `Evaluated` → `Applied` → `Responded` → `Interview` → `Offer` /
-`Rejected` / `Discarded` / `SKIP`。白名单服务端强制。
+`Rejected` / `Discarded` / `SKIP`。
 
-### 列
+状态白名单由服务器端强制;在 `POST /api/tracker` 中发送其他值都会回
+退到 `Evaluated`。在 `/career-ops apply` 末尾确认 `Submitted.` 时,
+权威的 `Evaluated → Applied` 转换会自动发生(参见第 14 节)。
 
-| 列 | 内容 |
+### 列布局
+
+| 列 | 含义 |
 |---|---|
-| `#` | 自动编号。 |
-| `Date` | ISO。 |
-| `Company` | 自由文本。**管道符和换行符自动转义。** |
+| `#` | 自动编号,补零(`001`、`002`、…)。 |
+| `Date` | ISO 日期(`YYYY-MM-DD`)。默认今天。 |
+| `Company` | 自由文本。**竖线(`\|`)与换行会被自动转义。** |
 | `Role` | 同上。 |
-| `Score` | `N/5`。 |
-| `Status` | 白名单。 |
-| `PDF` | 成功后 ✅。 |
-| `Report` | `reports/*.md` 链接。 |
-| `Notes` | 自由文本,最多 200 字符。 |
+| `Score` | `N/5` 格式(例如 `4.2/5`)。 |
+| `Status` | 白名单枚举。 |
+| `PDF` | `generate-pdf.mjs` 对该行成功执行后显示 ✅。 |
+| `Report` | 指向对应 `reports/*.md` 的 markdown 链接。 |
+| `Notes` | 自由文本,上限 200 字符。 |
 
-### 过滤
+### 过滤器
 
-Status、Score (`≥ 4.0`/`≥ 3.0`/`< 3.0`)、Search。每页 25 行。
+- **Status** 下拉。
+- **Score** 下拉 — `≥ 4.0`(高)、`≥ 3.0`(中)、`< 3.0`(低)。
+- **Search** — 跨 company + role 的子串匹配。
 
-### 维护
+每个过滤器会把分页器重置到第 1 页。每页 25 行。
 
-- **▶ Normalize** / **▶ Dedup** / **▶ Merge**。
+### 维护按钮
+
+- **▶ Normalize** 运行 `normalize-statuses.mjs` — 重新规范化状态拼
+  写(`applied` → `Applied`、`interview` → `Interview`)。
+- **▶ Dedup** 运行 `dedup-tracker.mjs` — 按 `(company, role)` 大小
+  写不敏感地删除重复行。
+- **▶ Merge** 运行 `merge-tracker.mjs` — 从 `batch/tracker-additions/*.tsv`
+  拉入待并入的记录(父项目批处理流程会把通过 Apply 助手提交的申请
+  落到那里)。去重后,把已处理文件归档到
+  `batch/tracker-additions/merged/`。上游批处理流程参考
+  [batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)。
+
+### 添加行
+
+`POST /api/tracker` — body `{ company, role, score?, status?, url?,
+reportSlug?, notes?, date? }`。按 `(company, role)` 大小写不敏感地
+去重。UI 中,Evaluate 页在成功评分后会提供 "Add to tracker" 按钮。
 
 ---
 
-## 12. Deep research (`#/deep`)
+## 12. Deep research(`#/deep`)
 
-生成结构化公司简报: snapshot、工程文化、近期新闻、Glassdoor 情绪、
-面试流程、谈判杠杆点、对招聘者提的三个聪明问题。
+生成结构化公司简报: 快照、工程文化、近期新闻、Glassdoor 口碑、面试
+流程、谈判筹码、提给招聘者的三个聪明问题。
 
 ### 输入
 
-公司 + (可选) 角色。`modes/deep.md` 模板决定结构。
+两个字段 — 公司名与(可选)角色。模式模板(`modes/deep.md`)决定输
+出结构。
 
 ### 输出路径
 
 与 Evaluate 相同的回退链:
 
-1. **Anthropic 实时** (优先) — `bundleProjectContext` 内联 cv +
-   profile + `_shared.md` + `deep.md`。10–30 KB grounded markdown
-   保存到 `interview-prep/<company>-<role>.md`。
-2. **Gemini 实时** — `gemini-eval.mjs`。
-3. **Manual prompt** — 给 Claude Code 用的 prompt (用 WebFetch +
-   WebSearch 做真正的研究)。
+1. **Anthropic 实时**(首选)— `bundleProjectContext` 内联 cv +
+   profile + `_shared.md` + `deep.md`。输出: 10–30 KB 的接地
+   markdown,保存到 `interview-prep/<company>-<role>.md`。
+2. **Gemini 实时** — `gemini-eval.mjs` 调用。保存目标相同。
+3. **手工提示** — 页面提供一份可直接交给 Claude Code 的提示(后者
+   具备 WebFetch + WebSearch,可做真实研究)。
 
 ### 提示
 
-- Anthropic `claude-sonnet-4-6` 通常 1–3 分钟返回 ~13 KB。
-- Anthropic SDK 没有内置 web search。新闻新鲜度需要时,把 manual
-  prompt 粘到 Claude Code。
-- 实时调用收费;一次 Sonnet 4.6 deep-research 约 $0.30–0.50。
+- 在 `claude-sonnet-4-6` 上,Anthropic 通常每次调用 1–3 分钟内返回
+  约 13 KB 的有用文本。
+- Anthropic SDK 没有内置 web search。如果你需要实时新闻 +
+  Glassdoor 口碑,把手工提示粘贴到 Claude Code,让它使用 WebFetch
+  工具。
+- 实时调用会计费;一次 Sonnet 4.6 的 deep-research 调用大约
+  $0.30–0.50。
 
 ---
 
-## 13. Mode prompts (七个 `/#/<mode>` 页面)
+## 13. Mode 提示(七个 `/#/<mode>` 页面)
 
-七个 prompt builder: **Project** 想法、**Training** 计划、
-**Follow-up** 邮件、**Batch** 评估、**Outreach** 给招聘者、
-**Interview prep** one-pager、**Patterns** 回顾。每个包装一个
+七个提示构建器: **Project** 想法、**Training** 计划、**Follow-up**
+邮件、**Batch** 评估、**Outreach** 给招聘者、**Interview prep** 单
+页、以及 **Patterns** 回顾。每个都包裹了一个具体的
 `modes/<slug>.md` 模板:
 
 | 页面 | Slug | 用途 |
 |---|---|---|
-| `#/project` | `project` | 为目标角色定制 portfolio 项目。 |
-| `#/training` | `training` | 技能差距分析 → 课程。 |
+| `#/project` | `project` | 为目标角色定制作品集项目。 |
+| `#/training` | `training` | 技能差距分析 → 课程计划。 |
 | `#/followup` | `followup` | 面试后邮件草稿。 |
-| `#/batch` | `batch` | 多 JD 批量评估 prompt。 |
-| `#/contacto` | `contacto` | 给招聘者 / 推荐人的 outreach 消息。 |
-| `#/interview-prep` | `interview-prep` | 特定轮次的 one-pager。 |
-| `#/patterns` | `patterns` | "什么模式让我成功?" |
+| `#/batch` | `batch` | 多 JD 批量评估提示。 |
+| `#/contacto` | `contacto` | 给招聘者 / 内推人的外联消息。 |
+| `#/interview-prep` | `interview-prep` | 针对具体面试轮次的单页准备。 |
+| `#/patterns` | `patterns` | "是什么模式让我成功?" 自省式分析。 |
 
 ### 共同形态
 
-每个页面: 小表单 + **▶ Generate prompt** (manual) + **⚡ Run live**
-(有密钥时为 primary)。
+每页有一个小表单(字段因模式而异)、一个 **▶ Generate prompt**
+(手工)按钮,以及在已设置 Anthropic 或 Gemini key 时,提升为主操
+作的 **⚡ Run live** 按钮。
 
-**▶ Generate prompt** → 返回组装的 prompt,把表单值 JSON 化在
-`User-supplied context:` 块中。
+点击 **▶ Generate prompt** 返回组装好的提示: 表单值 JSON 序列化进
+`User-supplied context:` 块,后接原样的 `modes/<slug>.md` 模板。复
+制后粘贴到你选用的 LLM。
 
-**⚡ Run live** → 把同一 prompt 发给 Anthropic (或 Gemini),cv +
-profile + `_shared.md` 通过 `bundleProjectContext` 内联。结果在页面
-渲染、可复制、可下载为 `.md`。
+点击 **⚡ Run live** 把同一份提示发给 Anthropic(或 Gemini),通过
+`bundleProjectContext` 内联 `cv.md` + `profile.yml` +
+`_shared.md`。结果在页面上渲染,可复制,也可作为 `.md` 下载。
 
----
-
-## 14. Apply checklist (`#/apply`)
-
-决定申请后,Apply helper 页面生成提交清单。**不会**自动填表 — 那个
-流程留在 Claude Code 的 `/career-ops apply` (用父的 Playwright)。
-
-清单覆盖:
-
-0. 在 Claude Code 运行 `/career-ops apply <url>`。
-1. 验证 posting 仍在线 (`check-liveness.mjs`)。
-2. 确认 CV 是最新 (`cv-sync-check.mjs`,score ≥ 4.0 时 PDF)。
-3. 用 `cv.md` 的 STAR+R proof point 定制 cover letter / "Why us?"。
-4. 诚实回答 EEO / 担保 / 起始日期问题。
-5. 提交前把答案保存到 `interview-prep/{company}-{role}.md`。
-6. **绝不自动提交** — 你 (人类) 点击最终按钮。
-7. 提交后: 在 `data/applications.md` 加行。
+这七个页面是一份显式允许列表 — 有专属路由的模式(`oferta` →
+Evaluate、`deep` → Deep research)以及父项目仅在 Claude Code 内支
+持的模式(`apply`、`scan`、`pipeline`、`tracker`、`pdf`、`latex`、
+`ofertas`、`auto-pipeline`)有意不出现在此 UI 中。
 
 ---
 
+## 14. Apply checklist(`#/apply`)
 
-### 完整 CLI apply 流程 ([career-ops.org/docs/.../apply-for-a-job](https://career-ops.org/docs/introduction/guides/apply-for-a-job))
+确定要申请之后,本 Apply 助手页面会为实际申请步骤生成一份提交清
+单。它 **不会** 自动填表 — 那一流程留在 Claude Code 里的
+`/career-ops apply` 中,后者使用父项目的 Playwright。
 
-前置条件: 先 `/career-ops pipeline`(JD 需要 evaluation report);推荐安装 Playwright(`npx playwright install chromium`);否则回退到 WebFetch。
+### SPA 清单模式(`#/apply`)
 
-编号流程:
+SPA 清单适合不想调用 Playwright、希望手工填表的用户。覆盖:
 
-1. **运行** `/career-ops apply <company>`(例: `/career-ops apply Anthropic`)。无参数时下一轮提供截图/文本/URL。
-2. **Playwright 自动打开浏览器**并读取表单。你不需自己打开浏览器。
-3. **草稿答案**按表单字段顺序以编号列表返回,来自 report 的 proof points 与 STAR stories。
-4. **标记的项目** — salary anchor、缺失 CV 字段、可选问题等需人工审查。
-5. **你审核每个答案**、填写表单、**自己点击 Submit**。career-ops 绝不点击 Submit。
-6. **确认提交**在聊天中: `Submitted.`
-7. **自动更新** — `data/applications.md` 中状态由 `Evaluated → Applied`。
-8. **交接到 tracker:** `/career-ops tracker`。
+0. 在 Claude Code 中运行 `/career-ops apply <url>`,让 Playwright 读
+   取表单(如果手工填,跳过此步)。
+1. 用 `check-liveness.mjs` 确认职位仍在线。
+2. 用 `cv-sync-check.mjs` 确认 CV 是最新版,然后(分数 ≥ 4.0 时)
+   生成 PDF。
+3. 用 `cv.md` 中的 STAR+R 证据点定制求职信 / "为什么是我们?" 答案。
+4. 如实回答 EEO / 担保 / 入职时间问题。
+5. 提交前把填好的答案保存到
+   `interview-prep/{company}-{role}.md`。
+6. **绝不自动提交** — 由你(人类)点击最终按钮。
+7. 提交后: 给 `data/applications.md` 添加一行(或把 TSV 写入
+   `batch/tracker-additions/`)。
 
-### Batch evaluate ([career-ops.org/docs/.../batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers))
+### 手工填写 vs Playwright 辅助
 
-10+ JD 一次评估时(SPA 的逐一 `#/evaluate` 不适合此规模):
+实际提交有两条路径:
 
-1. 编辑 `batch/batch-input.tsv`,Tab 分隔列 `id | url | source | notes`。
-2. Dry-run: `./batch/batch-runner.sh --dry-run`。
-3. 运行:
+- **手工** — 在普通浏览器中打开招聘页面,按上述 SPA 清单逐项操作,
+  复制粘贴答案。无需 Playwright。适用于表单短或未安装 Chromium 的
+  场景。
+- **Playwright 辅助** — 在 Claude Code(父项目)中运行
+  `/career-ops apply <company>`。Playwright 打开自己的浏览器,读取
+  每个表单字段,返回编号的答案草稿。你仍然亲手点击 Submit。适用于
+  表单长、动态,或你想要"哪些问题对应哪些答案"的审计线索时。
 
-   ```bash
-   ./batch/batch-runner.sh
-   ./batch/batch-runner.sh --parallel 2
-   ./batch/batch-runner.sh --parallel 3 --min-score 4.0
+### 完整 CLI apply 流程([apply-for-a-job](https://career-ops.org/docs/introduction/guides/apply-for-a-job))
+
+**前置条件:**
+
+1. 先运行 `/career-ops pipeline`,使 JD 在 `reports/` 下有评估报
+   告。apply 命令依赖一份已存在的评估;没有时,先运行 pipeline。
+2. 报告与 profile 已加载。
+3. **推荐:** 安装 Playwright
+   (`npx playwright install chromium` — 见下文 Playwright Setup)。
+   缺失时会回退到 WebFetch(只能预览表单文本,无法点击填写)。
+
+**编号流程**(权威 8 步):
+
+1. **运行命令** 并附公司名:
+
+   ```
+   /career-ops apply <company>
    ```
 
-4. 重试: `./batch/batch-runner.sh --retry-failed --max-retries 3`。
-5. **Reports** 落在 `reports/`(格式 `NNN-company-YYYY-MM-DD.md`);摘要在 `batch/tracker-additions/`。
-6. 合并: `node merge-tracker.mjs`(或 `--dry-run`)。
+   示例: `/career-ops apply Anthropic`。无参数运行时,在下一轮交互
+   中提供表单截图、粘贴的表单文本或申请 URL。
 
-SPA 在 `#/reports` 显示结果报告,`#/tracker` 显示追踪行。
+2. **定位报告。** 系统在 `reports/` 中找到匹配的评估(由
+   `/career-ops pipeline` 或 `#/evaluate` 先前创建的那份)。
 
-### Playwright 设置 ([career-ops.org/docs/.../set-up-playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright))
+3. **打开表单。** Playwright **自动** 启动一个浏览器窗口 — 你 **无
+   需** 自己打开。
+
+4. **读取字段。** 系统读取并解析每一个表单字段(label、type、是否
+   必填、selects 的选项)。
+
+5. **生成答案。** career-ops 基于你的 profile、proof points 与角色
+   为每个字段创建定制答案。
+
+6. **返回编号列表。** 你收到按表单布局排序的答案 — 简单字段(姓
+   名、邮箱)在前,自由文本字段(求职信、"为什么是我们?")在后。
+   被标记的项指向需要人类关注的内容 — 薪资锚点、缺失的简历细节、
+   选填问题。
+
+7. **手工填写。** 你将每个答案复制粘贴到对应字段。这一步是手工的、
+   非自动化的。你先审阅每个答案。
+
+8. **由你提交。** 由你亲手点击 Submit。career-ops **绝不** 点击
+   Submit。在 chat 中输入以下内容确认完成:
+
+   ```
+   Submitted.
+   ```
+
+**`Submitted.` 触发的自动更新:**
+
+- `data/applications.md` 中状态从 `Evaluated` 翻转到 `Applied`。
+- 填写的答案持久化到报告的 Section G 以便日后参考。
+
+**交接到 tracker:**
+
+```
+/career-ops tracker
+```
+
+无论角色分数如何,监控整个 pipeline 状态。
+
+### Batch evaluate([batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers))
+
+当你一次性要给 10 个以上 JD 评分时(SPA 的逐条 `#/evaluate` 对此规
+模不实际),使用 CLI 端的批量运行器。
+
+**输入文件 — `batch/batch-input.tsv`**(制表符分隔):
+
+| 列 | 用途 |
+|---|---|
+| `id` | 唯一的递增编号 |
+| `url` | 职位发布完整链接 |
+| `source` | 来源平台(LinkedIn、Greenhouse 等) |
+| `notes` | 可选的上下文说明 |
+
+行示例:
+
+```
+1<TAB>https://jobs.example.com/senior<TAB>LinkedIn<TAB>
+```
+
+**`./batch/batch-runner.sh` 标志:**
+
+- `--dry-run` — 预览待评估的 offer 而不实际评估。请先用它验证 TSV
+  是否正确。
+- `--parallel N` — 同时运行 N 个 worker(建议 1、2 或 3)。
+- `--min-score X.X` — 跳过持久化分数低于阈值的 offer。只想保留高匹
+  配角色报告时很有用。
+- `--retry-failed` — 仅重新处理上一次出错的 offer(网络错误、速率
+  限制等)。
+- `--max-retries N` — 失败的 offer 最多尝试 N 次(默认 2)。
+
+**标准操作序列:**
+
+1. **编辑** `batch/batch-input.tsv` — 每行一个 JD。
+
+2. **Dry-run**(推荐先做):
+
+   ```bash
+   ./batch/batch-runner.sh --dry-run
+   ```
+
+3. **运行** — 顺序或并行:
+
+   ```bash
+   ./batch/batch-runner.sh                       # 逐个执行
+   ./batch/batch-runner.sh --parallel 2          # 两路并发
+   ./batch/batch-runner.sh --parallel 3          # 三路并发
+   ./batch/batch-runner.sh --parallel 2 --min-score 4.0  # 仅持久化高匹配
+   ```
+
+4. **重试失败项**(网络 / 速率限制):
+
+   ```bash
+   ./batch/batch-runner.sh --retry-failed --max-retries 3
+   ```
+
+5. **报告** 落到 `reports/`,文件名为
+   `{id}-{company}-{YYYY-MM-DD}.md`。摘要行追加到
+   `batch/tracker-additions/`。
+
+6. **并入 tracker:**
+
+   ```bash
+   node merge-tracker.mjs                 # 应用批量增量
+   node merge-tracker.mjs --dry-run       # 预览合并结果
+   ```
+
+   合并命令会去重,并把已处理文件归档到
+   `batch/tracker-additions/merged/`。
+
+SPA 会在 `#/reports`(分页,score 色彩标识)与 `#/tracker` 中暴露
+生成的报告与 tracker 行 — 效果就像你逐条通过 `#/evaluate` 添加一
+样。如果你不想下到 CLI,可以搭配 `#/tracker` 上的 **▶ Merge** 维护
+按钮。
+
+### Playwright 安装([set-up-playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright))
+
+career-ops 的两个特性需要 Playwright:
+
+- **表单填写**: `/career-ops apply` 第 3 步(Playwright 打开浏览
+  器、读取字段标签、建议答案)。
+- **PDF 生成**: 通过 `/career-ops pdf` 与 SPA 的 **📄 Generate PDF**
+  按钮(位于 `#/cv` / `#/reports/:slug` / `#/evaluate` / `#/deep` /
+  `#/interview-prep`)。
+
+**缺失 Playwright 时的回退:** apply 流程回落到 WebFetch(仅文本预
+览,无法点击填写)。PDF 生成则直接报错。
+
+**核心安装(在 career-ops 父项目根目录运行):**
 
 ```bash
+# 为 Playwright 安装 Chromium
 npm install
 npx playwright install chromium
+
+# 注册 Playwright MCP 让 Claude Code 能驱动表单
 claude mcp add playwright npx @playwright/mcp@latest
+
+# 验证三个组件(Chromium、Playwright 库、MCP)
 npm run doctor
 ```
 
-替代 MCP 注册通过 `.claude/settings.local.json`:
+**另一种 MCP 注册方式** — 加入
+`.claude/settings.local.json`:
 
 ```json
-{ "mcpServers": { "playwright": { "command": "npx", "args": ["-y", "@playwright/mcp@latest"] } } }
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    }
+  }
+}
 ```
+
+**行为说明:**
+
+- **默认 headless。** Playwright 默默运行。若想看到浏览器实操,告
+  诉 Claude `open up with playwright the browser and fill out the
+  entire form.`
+- **一份包,三个角色** — Playwright 的 npm 安装同时提供浏览器自动
+  化库、`/career-ops pdf` 的 PDF 渲染引擎,以及(通过 MCP)Claude
+  Code 内部的表单填写工作流。
+- **依赖之前先验证** — `npm run doctor` 确认三者均可用。SPA 的
+  Health 页暴露一项 `Playwright (parent node_modules)` 检查,缺失
+  时会快速失败。
 
 ---
 
 ## 15. 面试准备
 
-post-research、pre-interview 阶段。这个应用的三件物品汇集:
+这是调研之后、面试之前的阶段。本应用中有三类产物在这里交汇:
 
-1. **保存的 deep-research 文件** — `interview-prep/`,每个 company-
-   role 对一个。从 Deep research 浏览。
-2. **Patterns mode** (`#/patterns`) — "在我最近 N 次面试 / offer /
-   拒绝中什么模式持续?" 累积 5+ tracker 行后有用。
-3. **Interview-prep mode** (`#/interview-prep`) — 为特定即将到来的
-   轮次 (behavioral、technical、system design) 预填充 one-pager。
+1. **已保存的深度调研文件** 位于 `interview-prep/`,每对
+   company-role 一份。可从 **Deep research** 页面浏览,也可经由
+   `/api/interview-prep` 直接访问。
+2. **Patterns 模式**(`#/patterns`)— 生成一个自省式提示: "在我最
+   近 N 次面试 / offer / 拒信中,存在哪些规律?" 在累积 5 条以上
+   tracker 记录后很有用。
+3. **Interview-prep 模式**(`#/interview-prep`)— 为某场即将到来的
+   特定轮次(行为面、技术面、系统设计)预填一份单页。输出落在同一
+   `interview-prep/` 文件夹。
 
 ### 推荐工作流
 
-每次面试:
+对每一场已排期的面试:
 
-1. 前一天**重新运行 Deep** (或打开保存的文件)。
-2. **`#/interview-prep`** — 为特定轮次生成 one-pager。
-3. **System design / coding 轮次** — 打开 `#/training`,要求 30
-   分钟针对性 refresher。
-4. **Compensation 轮次** — 打开 deep-research 文件,跳到
-   "Negotiation leverage points"。带 2–3 个数据点 (Glassdoor 范围、
-   最近融资、其他公司可比 offer)。
-5. **Behavioral 轮次** — 从 `cv.md` 拉出 STAR+R 故事,落入原始
-   Evaluate 报告的 B 节。
+1. **重跑一次 Deep**(或打开已保存文件),最好在前一天。
+2. **`#/interview-prep`** — 为本轮生成一份单页。粘到笔记里。
+3. **系统设计 / 编码轮** — 打开 `#/training`,要求针对 JD 强调的具
+   体子系统做一次 30 分钟的针对性复习。
+4. **谈薪轮** — 打开 deep-research 文件,直接看 "Negotiation
+   leverage points"。准备 2–3 个具体数据点(Glassdoor 区间、近期融
+   资、另一家公司的可比 offer)。
+5. **行为面** — 从你 `cv.md` 中拉出落在原始 Evaluate 报告 B 节的
+   STAR+R 故事。
 
-面试后立即:
+面试结束后立刻:
 
-1. 更新 tracker 行: status → `Responded` (然后 `Interview`、
-   `Offer` 等)。
+1. 更新 tracker 行: 状态 → `Responded`(然后 `Interview`、`Offer`
+   等)。
 2. 运行 `#/followup` 起草感谢邮件。
-3. 如有新情报 (薪酬范围、团队构成、tech stack 意外),用
-   `## Post-round notes` 编辑保存的
-   `interview-prep/<company>-<role>.md`。
+3. 如果你获得了新情报(薪资范围、团队构成、技术栈意外发现),编辑
+   已保存的 `interview-prep/<company>-<role>.md`,加上
+   `## Post-round notes`,这样未来的你就有据可查。
 
 ---
 
-## 16. Activity 日志 + 故障排除
+## 16. Activity log + 故障排查
 
-### Activity 日志 (`#/activity`)
+### Activity log(`#/activity`)
 
-到达服务器的每个状态更改请求的审计日志。秘密
-(`ANTHROPIC_API_KEY`、`GEMINI_API_KEY`) 在写入时被编辑 —
-你永远不会在 `data/activity.jsonl` 中看到真实密钥值。
+服务器收到的每一次状态变更请求的审计线索。记录: pipeline 添加、
+tracker 写入、CV 保存、JD 保存、evaluate 运行、deep-research 运
+行、scan 运行、配置变更、mode 运行。
 
-按操作前缀过滤 (`pipeline.`、`cv.`、`evaluate`、`scan.`)。每页 25
-行;服务器最多返回 500 个最近事件。
+秘密(`ANTHROPIC_API_KEY`、`GEMINI_API_KEY`)在写入时被脱敏;你在
+`data/activity.jsonl` 中绝不会看到真实 key 值。
 
-### 故障排除
+按动作前缀过滤(`pipeline.`、`cv.`、`evaluate`、`scan.` 等)。每
+页 25 行;服务器最多返回最近 500 条事件。
 
-| 症状 | 可能原因 | 解决 |
+### 故障排查
+
+| 现象 | 可能原因 | 修复 |
 |---|---|---|
-| Health 在 `cv.md` 红色 | 首次运行,文件不存在 | `touch $CAREER_OPS_ROOT/cv.md`,刷新。 |
-| Health 在 `Profile customized` 红色 | `full_name` 仍是 `Jane Smith` | 编辑 `config/profile.yml`。 |
-| `hh.ru: HTTP 403` | 非俄罗斯 IP,无 `(server uses default UA)` | 在 `dev.hh.ru/admin` 注册,设置 `(server uses default UA)`。 |
-| `gemini-eval.mjs: ERR_MODULE_NOT_FOUND` | 父 deps 未安装 | `cd $CAREER_OPS_ROOT && npm install`。 |
-| Generate PDF 错误 | Playwright 未安装 | `npx playwright install chromium`。 |
-| 服务器 `EADDRINUSE: 4317` | 旧实例运行 | `pkill -f 'node server/index.mjs'`。 |
-| 实时 LLM 调用 > 2 分钟挂起 | prompt 巨大或 Anthropic 慢 | soft-cap 200 KB → 413。 |
-| Pipeline 预览 `(unsafe redirect)` | posting 重定向到私有 IP / loopback | 安全特性 (REVIEW-B1)。 |
-| Tracker 行破坏表格 | v1.9.1 之前的管道 | 升级到 v1.9.1+ (BF-1)。 |
-| `npm test` 在新克隆失败 | 测试假设父布局 | `CAREER_OPS_ROOT=$(mktemp -d)`。 |
+| Health 页面 `cv.md` 红色 | 首次运行,文件还不存在 | `touch $CAREER_OPS_ROOT/cv.md` 后刷新。 |
+| Health 上 `Profile customized` 红色 | `candidate.full_name` 仍是 `Jane Smith` | 编辑 `config/profile.yml`。 |
+| scan 日志中 `hh.ru: HTTP 403` | 非俄罗斯 IP,且未配置 `(server uses default UA)` | 到 `dev.hh.ru/admin` 注册,设置俄罗斯 IP / VPN。 |
+| `gemini-eval.mjs: ERR_MODULE_NOT_FOUND` | 父项目依赖未安装 | `cd $CAREER_OPS_ROOT && npm install`。 |
+| Generate PDF 报错 | 父项目未安装 Playwright | `cd $CAREER_OPS_ROOT && npx playwright install chromium`。 |
+| `/career-ops apply` 报 "no report found" | 该 JD 还从未被 pipeline 评分 | 先运行 `/career-ops pipeline`(或 `#/evaluate`);见第 14 节前置条件。 |
+| `batch-runner.sh: no such file` | 在错误目录下运行 | 调用 `./batch/batch-runner.sh` 之前先 `cd $CAREER_OPS_ROOT`。 |
+| 服务器报 `EADDRINUSE: 4317` | 老实例仍在运行 | `pkill -f 'node server/index.mjs'` 后重启。 |
+| 实时 LLM 调用挂起超过 2 分钟 | 提示过大或 Anthropic 缓慢 | 检查 `/api/health` 的 Anthropic 标志;服务器对提示软上限 200 KB,超出返回 413。 |
+| Pipeline 预览显示 `(unsafe redirect)` | 职位重定向到私网 IP / loopback | 这是一项安全机制(REVIEW-B1)。重定向目标被拒绝,原始 URL 不受影响。 |
+| Tracker 行文本撑破表格 | v1.9.1 之前公司名中的竖线 | 升级到 v1.9.1+ — 竖线已端到端转义(BF-1)。 |
+| 全新 clone 上 `npm test` 失败 | 测试假设父项目布局 | 使用 `CAREER_OPS_ROOT=$(mktemp -d)` 并 bootstrap fixtures。 |
 
-深度诊断: 在 Health 上运行 **▶ Doctor**,复制输出,在
-<https://github.com/Fighter90/career-ops-ui/issues> 搜索 issue。
+更深入的诊断:在 Health 页运行 **▶ Doctor**,复制输出,在
+<https://github.com/Fighter90/career-ops-ui/issues> 的 issue tracker
+中搜索。

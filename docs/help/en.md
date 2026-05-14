@@ -19,29 +19,66 @@ evaluates each posting against your CV with a six-dimension 0.0–5.0
 rubric, generates tailored PDF résumés, and tracks every application
 locally on your machine.
 
-**Defining principles** (from [career-ops.org/docs](https://career-ops.org/docs)):
+**Canonical reference (read these in order on first install):**
+
+- [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+  — the system, principles, and concepts inventory.
+- [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+  — discover vacancies; populate the Pipeline.
+- [Apply for a job](https://career-ops.org/docs/introduction/guides/apply-for-a-job)
+  — full submission flow with Playwright form-read.
+- [Batch-evaluate offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+  — score 10+ JDs at once via `batch-runner.sh`.
+- [Set up Playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright)
+  — install Chromium + register the MCP for PDF and form-fill.
+
+**Defining principles** (from
+[career-ops.org/docs/introduction/what-is-career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)):
 
 - **Open source, seriously** — MIT, no paid tier, no waitlist, no
-  telemetry, no accounts.
+  telemetry, no accounts. The system operates without paid tiers,
+  accounts, or telemetry. Code contributions undergo community review
+  before release.
 - **Data sovereignty** — `cv.md`, `config/profile.yml`, `data/`,
   `reports/`, `interview-prep/` never leave your laptop unless you
-  explicitly push them.
+  explicitly push them. You run it locally on your machine, retaining
+  full data sovereignty.
+- **AI-agnostic architecture** — career-ops does NOT bundle a model.
+  It functions as commands inside existing AI coding CLIs. Switch
+  providers (Anthropic ↔ Gemini ↔ OpenAI) and your evaluation history
+  stays consistent.
 - **Human-controlled submissions** — career-ops drafts answers and
   opens the form, but **you click Submit**. The system never
-  auto-applies.
-- **Structured search** — built for an active, deliberate job hunt;
-  not a recommendation engine.
+  auto-applies. The system provides structure and evaluation; humans
+  retain final submission authority.
+- **Structured search** — built for an active, deliberate job hunt
+  with many applications; not a single-submission tool, not a
+  recommendation engine. Setup takes ~15 minutes and assumes terminal
+  comfort.
 
-**Key concepts**
+**What career-ops is NOT** (explicit non-goals):
+
+- Not an auto-applier. It will not submit forms for you.
+- Not a résumé rebuilder. It tailors per-JD; it does not invent
+  experience.
+- Not a LinkedIn optimizer. Your profile is your business.
+- Not a spreadsheet replacement that hides behind a SaaS UI. The data
+  is plain markdown on your filesystem.
+
+**Key concepts** (full inventory — every artifact career-ops touches):
 
 | Concept | What it is |
 |---|---|
-| **Mode** | A prompt template under `modes/<slug>.md`. Built-in: `oferta`, `deep`, `apply`, `pipeline`, `batch`, `contacto`, `followup`, `interview-prep`, `patterns`, `project`, `training`. |
+| **Mode** | A prompt template under `modes/<slug>.md`. Built-in: `oferta`, `deep`, `apply`, `pipeline`, `batch`, `contacto`, `followup`, `interview-prep`, `patterns`, `project`, `training`, `ofertas`, `auto-pipeline`, `pdf`, `latex`, `scan`, `tracker`. |
 | **Archetype** | A target-role profile in `config/profile.yml`. The rubric weights skill matches against the active archetype — **the single most important field**. |
 | **Pipeline** | `data/pipeline.md` — inbox of JD URLs waiting to be evaluated. |
 | **Tracker** | `data/applications.md` — historical GFM table of every evaluation + application status. |
-| **Report** | `reports/<NNN>-<company>-<DATE>.md` — full A–G evaluation per JD, with score + legitimacy. |
+| **Report** | `reports/<NNN>-<company>-<DATE>.md` — full A–F evaluation per JD, with score + legitimacy in the header. |
 | **Scan history** | `data/scan-history.tsv` — append-only log; prevents duplicates across scans. |
+| **Proof points** | STAR+R evidence blocks extracted from `cv.md`, reused across evaluation, apply answers, interview prep. |
+| **JD store** | `jds/jd-<date>-<ts>.txt` — verbatim job descriptions saved during evaluation for the audit trail. |
+| **Interview-prep** | `interview-prep/<company>-<role>.md` — deep-research briefs and round one-pagers. |
+| **Batch additions** | `batch/tracker-additions/*.tsv` — pending rows queued by `batch-runner.sh` for merge into the tracker. |
 
 ### career-ops vs career-ops-ui (this app)
 
@@ -59,7 +96,9 @@ changes. Both surfaces share the same `cv.md`, `config/profile.yml`,
 
 ### Action thresholds by score
 
-Once a JD has an evaluation, the score determines what to do next:
+Once a JD has an evaluation, the score determines what to do next
+(canonical table from
+[career-ops.org/docs/introduction/what-is-career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)):
 
 | Score | Next step |
 |---|---|
@@ -391,7 +430,10 @@ Max body size: 1 MB. Anything larger returns 413.
 ## 5. Portals & sources (`portals.yml`)
 
 The scanner config lives in `portals.yml` at the parent root. Three
-sections matter:
+sections matter. The SPA's three sections (below) match the canonical
+career-ops.org schema from
+[scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+1:1.
 
 ### `title_filter`
 
@@ -404,12 +446,15 @@ title_filter:
 
 A scanned vacancy passes when its title contains **at least one
 positive** keyword AND **none of the negative** keywords. Tune both.
+Keywords are case-insensitive substrings.
 
 `seniority_boost` is the third title-filter key. Keywords listed
 here don't filter anything out — they push matching jobs higher in
 the results so a "Senior Backend Engineer" lands above an "Engineer".
 Default: `["Senior", "Staff", "Lead"]`. Tune to match how your
 target roles are titled.
+
+Start with 3–5 positive keywords for clarity; broaden later.
 
 ### `search_queries`
 
@@ -439,7 +484,10 @@ tracked_companies:
   - { name: JetBrains,  enabled: true, careers_url: https://jobs.lever.co/jetbrains }
 ```
 
-The ATS scanner detects the ATS from the URL pattern
+Required fields per entry: `name` and `careers_url`. Optional:
+`api` (explicit Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday
+endpoint), `enabled: true|false` to include/exclude without deleting
+the entry. The ATS scanner detects the ATS from the URL pattern
 (`job-boards.greenhouse.io/<slug>` → Greenhouse, etc.) and fetches each
 company's public boards-api directly. Companies without a recognizable
 ATS are skipped (the **Active Companies** card on `/#/scan` shows them
@@ -465,7 +513,7 @@ list** — if `"Senior PHP"` is in `queries` but `"php"` ends up in
 `title_filter.negative`, the scan will return zero results and the
 console will warn you about the conflict.
 
-### CLI flow ([career-ops.org/docs/.../scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
+### CLI bootstrap flow ([scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
 
 The canonical career-ops setup (run from the parent root once):
 
@@ -474,25 +522,18 @@ cp templates/portals.example.yml portals.yml
 $EDITOR portals.yml
 ```
 
-`portals.yml` has three sections; the canonical career-ops.org schema
-matches the SPA's three sections above 1:1:
+That's the entire bootstrap. Edit the three sections (`title_filter`,
+`tracked_companies`, `search_queries`, optional `russian_portals`),
+save, and you're ready to scan.
 
-- **title_filter** — `positive`, `negative`, `seniority_boost` keyword
-  lists (case-insensitive). A vacancy needs ≥ 1 `positive` match and
-  zero `negative` matches to pass. `seniority_boost` ranks higher
-  without filtering. Start with 3–5 positive keywords for clarity.
-- **tracked_companies** — every entry MUST have `name` and
-  `careers_url`. Optional: `api` (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday
-  endpoint), `enabled: true|false` to include/exclude without
-  deleting the entry.
-- **search_queries** — pre-built broader web searches (LinkedIn /
-  Indeed-style). Defaults work for most users.
-
-### Bootstrap
+### SPA bootstrap behavior
 
 On first run the server appends a documented `russian_portals:` block
 to `portals.yml` if it's missing — idempotent (second boot is a no-op
-because the literal `russian_portals:` line is now there).
+because the literal `russian_portals:` line is now there). The English
+sections are NOT auto-injected; they come from the
+`templates/portals.example.yml` you copied per the canonical bootstrap
+above.
 
 ---
 
@@ -541,7 +582,7 @@ The scanner crawls every enabled board, deduplicates against your
 history, and writes hits into `data/last-scan.json` and
 `data/pipeline.md`.
 
-### One-click scan
+### One-click scan (SPA)
 
 **🌐 Scan** runs every enabled source in a single sweep:
 
@@ -582,7 +623,7 @@ scan status:
 name. **Click the ↗ icon** → opens the company's `careers_url` in a
 new tab.
 
-### CLI scan flow ([career-ops.org/docs/.../scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
+### CLI scan flow ([scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
 
 Two ways to scan from the CLI side (both deposit URLs to the same
 `data/pipeline.md` that the SPA reads):
@@ -596,6 +637,7 @@ npm run scan -- --company Anthropic   # narrow to one tracked company
 ```
 
 Works only for Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday (recognizable ATS URLs).
+No AI tokens consumed — it hits the public boards APIs directly.
 
 **Option B — AI-powered browser scan:**
 
@@ -606,7 +648,8 @@ Works only for Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday
 Inside Claude Code / Codex / Cursor / Gemini CLI. Uses model tokens.
 Visits each `tracked_companies` page directly and can discover non-API
 boards (career pages, custom ATS, regional portals). Slower but
-broader.
+broader. Useful when an ATS sweep returns nothing for a target you
+know is hiring.
 
 **Output (both paths)** — new JD URLs appended to `data/pipeline.md`,
 every visited URL logged to `data/scan-history.tsv` (dedup across all
@@ -625,6 +668,15 @@ batch-scores the new URLs):
 
 The SPA's `#/dashboard` and `#/tracker` highlight every row at or
 above 4.0 so you can pick action without re-running anything.
+
+### Follow-up commands
+
+After scoring, the canonical follow-ups are:
+
+- `/career-ops apply` — Fill application with tailored answers
+- `/career-ops contacto` — Draft LinkedIn / email outreach
+- `/career-ops deep` — Research company / role deeply
+- `/career-ops tracker` — View pipeline status
 
 ---
 
@@ -732,6 +784,16 @@ persist the markdown to `reports/<date>-<company>-<role>.md`. The
 report's parsed header (Score / Legitimacy / URL) appears on the
 **Reports** page and the **Dashboard**.
 
+### Batch-evaluate when you have 10+ JDs
+
+For a single JD this `#/evaluate` page is the right tool. For 10+
+URLs queued in the pipeline, the per-JD click-through is impractical
+— jump to §14's **Batch evaluate** subsection (running
+`./batch/batch-runner.sh` from the parent), let it churn through
+overnight, then come back to `#/reports` / `#/tracker` for the
+results. Full flow:
+[batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers).
+
 ---
 
 ## 10. Reports (`#/reports`)
@@ -760,7 +822,9 @@ GitHub-Flavored Markdown table.
 `Rejected` / `Discarded` / `SKIP`.
 
 The status whitelist is enforced server-side; sending anything else in
-a `POST /api/tracker` defaults to `Evaluated`.
+a `POST /api/tracker` defaults to `Evaluated`. The canonical
+`Evaluated → Applied` transition is automatic when you confirm
+`Submitted.` at the end of `/career-ops apply` (see §14).
 
 ### Column layout
 
@@ -792,7 +856,10 @@ Every filter resets the paginator to page 1. 25 rows per page.
   duplicates by `(company, role)`.
 - **▶ Merge** runs `merge-tracker.mjs` — pulls in pending entries from
   `batch/tracker-additions/*.tsv` (where the parent's batch flow drops
-  applications submitted via the Apply helper).
+  applications submitted via the Apply helper). Deduplicates and
+  archives processed files to `batch/tracker-additions/merged/`. See
+  [batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+  for the upstream batch flow.
 
 ### Adding rows
 
@@ -886,10 +953,13 @@ submission checklist for the actual application step. It does **NOT** auto-fill
 forms — that flow stays in `/career-ops apply` inside Claude Code,
 which uses Playwright in the parent project.
 
-The checklist covers:
+### SPA checklist mode (`#/apply`)
+
+The SPA's checklist is for users who prefer to fill the form by hand
+without invoking Playwright. It covers:
 
 0. Run `/career-ops apply <url>` in Claude Code to read the form via
-   Playwright.
+   Playwright (skip this step if you're filling by hand).
 1. Verify the posting is still live (`check-liveness.mjs`).
 2. Confirm CV is the latest (`cv-sync-check.mjs`, then PDF if score ≥ 4.0).
 3. Tailor the cover letter / "Why us?" answer using STAR+R proof
@@ -901,16 +971,33 @@ The checklist covers:
 7. After submit: add row to `data/applications.md` (or write TSV to
    `batch/tracker-additions/`).
 
-### Full CLI apply flow ([career-ops.org/docs/.../apply-for-a-job](https://career-ops.org/docs/introduction/guides/apply-for-a-job))
+### Manual fill vs Playwright-assisted
 
-Prerequisites:
+Two routes for the actual submission:
 
-1. Run `/career-ops pipeline` first so the JD has an evaluation report.
+- **Manual** — open the careers page in a normal browser tab, follow
+  the SPA checklist above, copy/paste answers. No Playwright needed.
+  Use when the form is short or you don't have Chromium installed.
+- **Playwright-assisted** — run `/career-ops apply <company>` in
+  Claude Code (parent project). Playwright opens its own browser,
+  reads every form field, returns numbered draft answers. You still
+  click Submit. Use when the form is long, dynamic, or you want the
+  audit trail of which questions had which answers.
+
+### Full CLI apply flow ([apply-for-a-job](https://career-ops.org/docs/introduction/guides/apply-for-a-job))
+
+**Prerequisites:**
+
+1. Run `/career-ops pipeline` first so the JD has an evaluation report
+   under `reports/`. The apply command depends on an existing
+   evaluation; without one, run the pipeline initially.
 2. Have the report and profile loaded.
-3. **Recommended:** Playwright installed (`npx playwright install
-   chromium`). Falls back to WebFetch (text-only) when missing.
+3. **Recommended:** Playwright installed
+   (`npx playwright install chromium` — see Playwright Setup below).
+   Falls back to WebFetch (text-only form preview, no click-fill) when
+   missing.
 
-Numbered flow:
+**Numbered flow** (canonical 8 steps):
 
 1. **Run the command** with the company name:
 
@@ -922,47 +1009,86 @@ Numbered flow:
    a screenshot of the form, the form text pasted, or the application
    URL on the next turn.
 
-2. **Playwright opens the browser** automatically and reads the form.
-   You do NOT open the browser yourself.
+2. **Locate the report.** The system finds the matching evaluation in
+   `reports/` (the one created by `/career-ops pipeline` or
+   `#/evaluate` earlier).
 
-3. **Draft answers come back** as a numbered list matching the form's
-   field order, sourced from the report's proof points and STAR
-   stories.
+3. **Open the form.** Playwright launches a browser window
+   **automatically** — you do NOT open it yourself.
 
-4. **Flagged items** point at things needing human attention — salary
-   anchor, missing résumé details, optional questions.
+4. **Read the fields.** The system reads and parses every form field
+   (label, type, required, options for selects).
 
-5. **You review every answer**, fill the form, and click **Submit**
-   yourself. career-ops never clicks Submit.
+5. **Generate answers.** career-ops creates tailored responses for each
+   field based on your profile, proof points, and the role.
 
-6. **Confirm submission** in chat:
+6. **Return numbered list.** You receive answers ordered to match the
+   form layout — simple fields (name, email) first, free-text fields
+   (cover letter, "Why us?") last. Flagged items point at things
+   needing human attention — salary anchor, missing résumé details,
+   optional questions.
+
+7. **Manual filling.** You copy and paste each answer into the
+   corresponding field. This step is manual, not automated. You
+   review every answer first.
+
+8. **User submits.** You click Submit yourself. career-ops **never**
+   clicks Submit. Confirm completion by typing in chat:
 
    ```
    Submitted.
    ```
 
-7. **Automatic updates** — status flips `Evaluated → Applied` in
-   `data/applications.md`; the filled answers persist in the report's
-   Section G.
+**Automatic updates on `Submitted.`:**
 
-8. **Handoff to tracker**:
+- Status flips `Evaluated → Applied` in `data/applications.md`.
+- The filled answers persist in Section G of the report for future
+  reference.
 
-   ```
-   /career-ops tracker
-   ```
+**Handoff to tracker:**
 
-### Batch evaluate ([career-ops.org/docs/.../batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers))
+```
+/career-ops tracker
+```
+
+Monitor your entire pipeline's status, regardless of role score.
+
+### Batch evaluate ([batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers))
 
 When you've got 10+ JDs to score at once (the SPA's one-at-a-time
 `#/evaluate` is impractical for that volume), use the batch runner
-from the CLI:
+from the CLI.
 
-1. **Edit** `batch/batch-input.tsv` with tab-separated columns
-   `id | url | source | notes`. One row per JD. Example row:
+**Input file — `batch/batch-input.tsv`** (tab-separated):
 
-   ```
-   1<TAB>https://jobs.example.com/senior<TAB>LinkedIn<TAB>
-   ```
+| Column | Purpose |
+|---|---|
+| `id` | Unique sequential number |
+| `url` | Full job posting link |
+| `source` | Origin platform (LinkedIn, Greenhouse, etc.) |
+| `notes` | Optional contextual detail |
+
+Example row:
+
+```
+1<TAB>https://jobs.example.com/senior<TAB>LinkedIn<TAB>
+```
+
+**`./batch/batch-runner.sh` flags:**
+
+- `--dry-run` — Preview pending offers without evaluation. Always run
+  this first to validate the TSV.
+- `--parallel N` — Run N workers simultaneously (1, 2, or 3
+  recommended).
+- `--min-score X.X` — Skip persisting offers scoring below the
+  threshold. Useful to only keep reports for high-fit roles.
+- `--retry-failed` — Reprocess only the offers that errored on the
+  previous run (network failures, rate limits).
+- `--max-retries N` — Attempt failed offers up to N times (default: 2).
+
+**Standard sequence:**
+
+1. **Edit** `batch/batch-input.tsv` — one row per JD.
 
 2. **Dry-run** (recommended first):
 
@@ -985,41 +1111,56 @@ from the CLI:
    ./batch/batch-runner.sh --retry-failed --max-retries 3
    ```
 
-5. **Reports** land in `reports/` (format
-   `NNN-company-YYYY-MM-DD.md`). Summary rows append to
+5. **Reports** land in `reports/` as
+   `{id}-{company}-{YYYY-MM-DD}.md`. Summary rows append to
    `batch/tracker-additions/`.
 
-6. **Merge into tracker**:
+6. **Merge into tracker:**
 
    ```bash
    node merge-tracker.mjs                 # apply the batch additions
    node merge-tracker.mjs --dry-run       # preview the merge
    ```
 
+   The merge command deduplicates entries and archives processed files
+   to `batch/tracker-additions/merged/`.
+
 The SPA surfaces the resulting reports under `#/reports` (paginated,
 score-pill colored) and the tracker rows under `#/tracker` — exactly
-as if you'd added each one through `#/evaluate`.
+as if you'd added each one through `#/evaluate`. Pair with the
+**▶ Merge** maintenance button on `#/tracker` if you prefer not to
+drop to the CLI.
 
-### Playwright setup ([career-ops.org/docs/.../set-up-playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright))
+### Playwright setup ([set-up-playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright))
 
-Required for the form-fill step above (and for `📄 Generate PDF` on
-`#/cv` / `#/reports/:slug` / `#/evaluate` / `#/deep` /
-`#/interview-prep` in this SPA). Without it the apply flow falls back
-to WebFetch (text-only form preview, no click-fill).
+Required for two career-ops features:
+
+- **Form-fill** in `/career-ops apply` (step 3 above — Playwright
+  opens the browser, reads field labels, suggests answers).
+- **PDF generation** via `/career-ops pdf` and the SPA's
+  **📄 Generate PDF** button on `#/cv` / `#/reports/:slug` /
+  `#/evaluate` / `#/deep` / `#/interview-prep`.
+
+**Fallback when Playwright is missing:** the apply flow falls back to
+WebFetch (text-only form preview, no click-fill). PDF generation
+simply errors.
+
+**Core setup (run from the career-ops parent root):**
 
 ```bash
-# from the career-ops root
+# Install Chromium for Playwright
 npm install
 npx playwright install chromium
 
 # Register the Playwright MCP so Claude Code can drive forms
 claude mcp add playwright npx @playwright/mcp@latest
 
-# Verify
+# Verify all three components (Chromium, Playwright lib, MCP)
 npm run doctor
 ```
 
-Alternative MCP registration via `.claude/settings.local.json`:
+**Alternative MCP registration** — add to
+`.claude/settings.local.json`:
 
 ```json
 {
@@ -1031,6 +1172,19 @@ Alternative MCP registration via `.claude/settings.local.json`:
   }
 }
 ```
+
+**Behavior notes:**
+
+- **Headless by default.** Playwright operates silently. To watch the
+  browser in action, tell Claude `open up with playwright the browser
+  and fill out the entire form.`
+- **Three roles in one package** — the Playwright npm install gives
+  you the browser-automation library, the PDF rendering engine for
+  `/career-ops pdf`, and (via the MCP) the form-fill workflow inside
+  Claude Code.
+- **Verify before relying on it** — `npm run doctor` confirms all
+  three are operational. The SPA's Health page surfaces a
+  `Playwright (parent node_modules)` check that fails fast if missing.
 
 ---
 
@@ -1102,6 +1256,8 @@ events.
 | `hh.ru: HTTP 403` in scan log | Non-Russian IP, no `(server uses default UA)` | Register at `dev.hh.ru/admin`, set a Russian IP / VPN. |
 | `gemini-eval.mjs: ERR_MODULE_NOT_FOUND` | Parent project deps not installed | `cd $CAREER_OPS_ROOT && npm install`. |
 | Generate PDF errors | Playwright not installed in parent | `cd $CAREER_OPS_ROOT && npx playwright install chromium`. |
+| `/career-ops apply` says "no report found" | Pipeline never scored this JD | Run `/career-ops pipeline` (or `#/evaluate`) first; see §14 prerequisites. |
+| `batch-runner.sh: no such file` | Running from wrong directory | `cd $CAREER_OPS_ROOT` before invoking `./batch/batch-runner.sh`. |
 | Server reports `EADDRINUSE: 4317` | Old instance still running | `pkill -f 'node server/index.mjs'` then restart. |
 | Live LLM call hangs > 2 min | Prompt huge or Anthropic slow | Check `/api/health` Anthropic flag; the server soft-caps prompts at 200 KB and returns 413. |
 | Pipeline preview shows `(unsafe redirect)` | Posting redirected to a private IP / loopback | This is a security feature (REVIEW-B1). The redirect target is rejected and the original URL is unchanged. |

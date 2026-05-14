@@ -1,58 +1,121 @@
 # 도움말 — career-ops-ui
 
-첫 실행부터 인터뷰 준비까지 각 페이지에 대한 완전한 가이드. 각 `##`는
-사이드바 항목 또는 워크플로의 한 단계에 해당합니다. 처음에는 위에서
-아래로 읽고, 나중에는 도움말 사이드바의 TOC를 통해 원하는 섹션으로
-바로 이동하세요.
+앱을 실행한 순간부터 인터뷰를 따낼 때까지, 모든 페이지를 단계별로
+안내합니다. 아래 각 `##` 헤딩은 사이드바 항목 또는 워크플로의 한
+단계에 대응합니다. 처음 실행 시에는 위에서 아래로 읽고, 이후에는
+도움말 사이드바의 목차로 특정 섹션에 바로 이동하십시오.
 
-> **대상:** 이 UI를 `career-ops` 체크아웃 안에 두고 `bash bin/start.sh`를
-> 실행한 분. career-ops에 대한 사전 지식은 가정하지 않습니다.
-
+> **대상 독자:** 이 UI를 `career-ops` 체크아웃 안에 두고 방금
+> `bash bin/start.sh`를 실행한 분. career-ops에 대한 사전 지식은
+> 가정하지 않습니다.
 
 ### career-ops 소개
 
-[career-ops](https://career-ops.org)는 모든 AI 코딩 CLI(Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot CLI) 안에서 슬래시 명령으로 실행되는 오픈소스 구직 시스템입니다. 모델 무관. 각 공고를 6차원 0.0–5.0 루브릭으로 CV와 매칭하고, 맞춤형 PDF 이력서를 생성하며, 모든 지원을 로컬에서 추적합니다.
+[career-ops](https://career-ops.org)는 모든 AI 코딩 CLI(Claude
+Code, Codex, Cursor, Gemini CLI, GitHub Copilot CLI) 안에서
+슬래시 명령으로 동작하는 오픈소스 구직 시스템입니다. 모델
+무관(model-agnostic). 각 채용 공고를 여러분의 CV에 대해 6차원
+0.0–5.0 루브릭으로 평가하고, 맞춤형 PDF 이력서를 생성하며, 모든
+지원을 로컬 머신에서 추적합니다.
 
-**원칙** ([career-ops.org/docs](https://career-ops.org/docs)):
+**정식 레퍼런스 (최초 설치 시 이 순서대로 읽으십시오):**
 
-- **오픈소스, 진짜로** — MIT, 유료 티어 없음, 대기자 없음, 텔레메트리 없음, 계정 없음.
-- **데이터 주권** — `cv.md`, `config/profile.yml`, `data/`, `reports/`, `interview-prep/`은 명시적으로 푸시하지 않는 한 머신을 벗어나지 않습니다.
-- **사람이 제출** — career-ops가 답변을 작성하고 폼을 열지만, **Submit은 당신이 클릭**합니다. 자동 지원 없음.
-- **구조적 검색** — 능동적이고 의도적인 구직을 위해 설계됨; 추천 엔진이 아닙니다.
+- [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+  — 시스템, 원칙, 개념 목록.
+- [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+  — 채용 공고 발견과 Pipeline 채우기.
+- [Apply for a job](https://career-ops.org/docs/introduction/guides/apply-for-a-job)
+  — Playwright 폼 읽기를 포함한 전체 제출 흐름.
+- [Batch-evaluate offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+  — `batch-runner.sh`로 10개 이상 JD를 한 번에 채점.
+- [Set up Playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright)
+  — Chromium 설치 및 PDF·폼 채우기를 위한 MCP 등록.
 
-**핵심 개념**
+**핵심 원칙**
+([career-ops.org/docs/introduction/what-is-career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+출처):
+
+- **오픈소스, 진심으로** — MIT 라이선스, 유료 티어 없음, 대기열
+  없음, 텔레메트리 없음, 계정 없음. 시스템은 유료 티어, 계정,
+  텔레메트리 없이 동작합니다. 코드 기여는 릴리스 전에 커뮤니티
+  리뷰를 거칩니다.
+- **데이터 주권** — `cv.md`, `config/profile.yml`, `data/`,
+  `reports/`, `interview-prep/`는 명시적으로 푸시하지 않는 한
+  여러분의 노트북을 절대 떠나지 않습니다. 로컬 머신에서
+  실행하므로 데이터 주권을 온전히 유지합니다.
+- **AI-비종속 아키텍처** — career-ops는 모델을 번들로 제공하지
+  **않습니다**. 기존 AI 코딩 CLI 내부에서 명령으로 동작합니다.
+  제공자(Anthropic ↔ Gemini ↔ OpenAI)를 바꿔도 평가 이력은
+  일관되게 유지됩니다.
+- **사람이 통제하는 제출** — career-ops가 답변을 작성하고 폼을
+  열어주지만, **Submit은 여러분이 클릭**합니다. 시스템은 절대로
+  자동 지원하지 않습니다. 시스템은 구조와 평가를 제공하고, 최종
+  제출 권한은 사람에게 있습니다.
+- **구조적 검색** — 능동적이고 의도적인 다수 지원 구직을 위해
+  설계되었습니다. 단발 제출 도구나 추천 엔진이 아닙니다. 설정에
+  약 15분이 걸리며 터미널 사용에 익숙하다고 가정합니다.
+
+**career-ops가 아닌 것** (명시적 비목표):
+
+- 자동 지원 도구가 아닙니다. 폼을 대신 제출하지 않습니다.
+- 이력서 재작성 도구가 아닙니다. JD별로 맞춤화할 뿐, 경험을
+  지어내지 않습니다.
+- LinkedIn 최적화 도구가 아닙니다. 프로필 관리는 여러분의
+  영역입니다.
+- SaaS UI 뒤에 숨은 스프레드시트 대체재가 아닙니다. 데이터는
+  여러분의 파일 시스템에 있는 일반 마크다운입니다.
+
+**핵심 개념** (career-ops가 다루는 모든 산출물의 전수 목록):
 
 | 개념 | 설명 |
 |---|---|
-| **Mode** | `modes/<slug>.md`의 프롬프트 템플릿. 내장: `oferta`, `deep`, `apply`, `pipeline`, `batch`, `contacto`, `followup`, `interview-prep`, `patterns`, `project`, `training`. |
-| **Archetype** | `config/profile.yml`의 타깃 롤 프로필. 루브릭이 활성 archetype 대비 스킬 매칭에 가중치 부여 — **가장 중요한 필드**. |
-| **Pipeline** | `data/pipeline.md` — 평가 대기 JD URL의 inbox. |
-| **Tracker** | `data/applications.md` — 모든 평가/지원 상태의 GFM 마크다운 테이블. |
-| **Report** | `reports/<NNN>-<company>-<DATE>.md` — JD별 전체 A–G 평가 + score + legitimacy. |
-| **Scan history** | `data/scan-history.tsv` — append-only 로그, 스캔 간 중복 제거. |
+| **Mode** | `modes/<slug>.md`에 있는 프롬프트 템플릿. 내장: `oferta`, `deep`, `apply`, `pipeline`, `batch`, `contacto`, `followup`, `interview-prep`, `patterns`, `project`, `training`, `ofertas`, `auto-pipeline`, `pdf`, `latex`, `scan`, `tracker`. |
+| **Archetype** | `config/profile.yml`에 있는 타깃 롤 프로필. 루브릭은 활성 archetype에 대한 스킬 매칭에 가중치를 부여 — **가장 중요한 단일 필드**. |
+| **Pipeline** | `data/pipeline.md` — 평가 대기 중인 JD URL의 inbox. |
+| **Tracker** | `data/applications.md` — 모든 평가와 지원 상태의 이력 GFM 테이블. |
+| **Report** | `reports/<NNN>-<company>-<DATE>.md` — JD별 전체 A–F 평가, 헤더에 score와 legitimacy 포함. |
+| **Scan history** | `data/scan-history.tsv` — append-only 로그. 스캔 간 중복 방지. |
+| **Proof points** | `cv.md`에서 추출한 STAR+R 증거 블록. 평가·apply 답변·인터뷰 준비에 재사용. |
+| **JD store** | `jds/jd-<date>-<ts>.txt` — 평가 시 그대로 저장된 채용 공고 원문. 감사 추적용. |
+| **Interview-prep** | `interview-prep/<company>-<role>.md` — 심층 리서치 브리프와 라운드별 한 장 요약. |
+| **Batch additions** | `batch/tracker-additions/*.tsv` — `batch-runner.sh`가 큐잉한, tracker로 병합 대기 중인 행. |
 
-### career-ops vs career-ops-ui
+### career-ops vs career-ops-ui (이 앱)
 
 | | career-ops (CLI) | career-ops-ui (이 앱) |
 |---|---|---|
 | 실행 위치 | Claude Code / Codex / Cursor / Gemini CLI 내부 | 브라우저의 `http://127.0.0.1:4317` |
-| 표면 | `/career-ops <mode>` 슬래시 명령 | 사이드바, 워크플로우당 한 페이지 |
-| 폼 채우기 | 예, Playwright MCP 경유 | 아니오 — 체크리스트 생성, CLI에서 마무리 |
-| PDF | `generate-pdf.mjs` | `📄 Generate PDF` (`#/cv`, `#/reports/:slug`, `#/evaluate`, `#/deep`, `#/interview-prep`) |
+| 표면 | `/career-ops <mode>` 슬래시 명령 | 워크플로우당 한 페이지를 가진 사이드바 |
+| 폼 채우기 | 예, Playwright MCP 경유 | 아니오 — 체크리스트만 생성. CLI에서 마무리 |
+| PDF | `generate-pdf.mjs` | `#/cv`, `#/reports/:slug`, `#/evaluate`, `#/deep`, `#/interview-prep`의 `📄 Generate PDF` |
 | 데이터 파일 | career-ops-ui와 공유 | career-ops와 공유 |
 
-### Score 별 액션 임계값
+career-ops-ui는 **순수 추가물**입니다. `career-ops/` 내부의 무엇도
+변경되지 않습니다. 두 표면은 동일한 `cv.md`,
+`config/profile.yml`, `portals.yml`, `data/`, `reports/`,
+`interview-prep/`, `modes/`를 공유합니다.
+
+### Score별 액션 임계값
+
+JD가 평가되고 나면 점수가 다음에 무엇을 할지 결정합니다 (정식 표는
+[career-ops.org/docs/introduction/what-is-career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+에서 가져왔습니다):
 
 | Score | 다음 단계 |
 |---|---|
-| **≥ 4.5** | `/career-ops apply` — 높은 적합도, 즉시 지원. |
-| **4.0 – 4.4** | 지원 또는 `/career-ops contacto` (warm intro). |
-| **3.5 – 3.9** | `/career-ops deep` — 회사/롤 리서치 후 결정. |
-| **< 3.5** | 특별한 이유 없으면 건너뜀. |
+| **≥ 4.5** | `/career-ops apply` — 적합도 높음. 즉시 지원. |
+| **4.0 – 4.4** | 지원하거나 `/career-ops contacto`로 warm intro 먼저. |
+| **3.5 – 3.9** | `/career-ops deep` — 결정 전에 회사/롤 리서치. |
+| **< 3.5** | 개인적 사유가 명확하지 않은 한 건너뜀. |
+
+career-ops-ui의 `#/dashboard`와 `#/tracker`는 4.0 이상 모든 행을
+강조하므로 재실행 없이 바로 다음 액션을 선택할 수 있습니다.
 
 ### 외부 문서
 
-career-ops 엔진의 전체 레퍼런스(스캐닝, 루브릭, batch, apply, Playwright)는 [career-ops.org/docs](https://career-ops.org/docs):
+기반이 되는 career-ops 엔진의 전체 레퍼런스(스캐닝, 평가 루브릭,
+batch 처리, apply 흐름, Playwright 설정)는
+[career-ops.org/docs](https://career-ops.org/docs)에 있습니다:
 
 - [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
 - [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
@@ -62,170 +125,320 @@ career-ops 엔진의 전체 레퍼런스(스캐닝, 루브릭, batch, apply, Pla
 
 ---
 
-## 1. 빠른 시작 — "CV 만들기"부터 "지원 + 메시지 발송"까지 단계별 가이드
+## 1. 빠른 시작 — "CV 만들기"에서 "지원 및 메시지 발송"까지의 전체 단계
 
-버튼별 정식 플레이북. 처음 한 번은 순서대로 진행하세요.
+이것이 정식 버튼별 플레이북입니다. 처음에는 순서대로 따라
+하십시오. 각 단계는 정확한 경로, 정확한 버튼, 성공 시 보이는
+화면을 명시합니다. 아래 2–16절은 각 단계를 더 깊이 다룹니다.
 
-**A. 설정 (한 번, ~5분)**
+### A. 설정 (한 번만 수행, 약 5분)
 
-1. `http://127.0.0.1:4317` 열기 (또는 루트에서 `bash bin/start.sh`).
-2. 사이드바 **❤ Health** → 모든 필수 체크가 초록.
-3. 사이드바 **⚒ App settings** → *API keys & runtime* 탭 →
-   `ANTHROPIC_API_KEY` 및/또는 `GEMINI_API_KEY` 붙여넣기 →
-   **💾 Save** → **▶ Test Anthropic / Gemini**.
-4. 같은 페이지 → *Profile* 탭 → `candidate.full_name`,
-   `email`, `target.roles`, `target.comp_total_min_usd`,
-   `target.archetypes` 편집 → **💾 Save**.
+**1단계 — `http://127.0.0.1:4317`에서 앱을 엽니다.** 실행 중이
+아니라면 저장소 루트에서 터미널로 `bash bin/start.sh`를
+실행하십시오. Dashboard(`#/dashboard`)가 로드됩니다.
 
-**B. CV (한 번, ~10분)**
+**2단계 — 왼쪽 사이드바의 `❤ Health`를 클릭합니다.** 필수 체크는
+모두 초록이어야 합니다:
 
-5. 사이드바 **✎ CV** — 에디터 열기.
-6. **📁 Upload CV** → `.docx/.doc/.odt/.rtf/.pdf/.html/.txt/.md`
-   업로드 (서버가 변환·정화) 또는 markdown 직접 붙여넣기.
-7. **💾 Save** (오른쪽 상단) — 토스트 "Saved".
-8. (선택) **📄 Generate PDF** — 완료 시 가장 새 PDF가 자동 다운로드.
+- `cv.md`, `config/profile.yml`, `portals.yml` 존재
+- API 키 설정 (`ANTHROPIC_API_KEY` 또는 `GEMINI_API_KEY` 중 최소
+  하나)
+- Playwright 설치 (Generate PDF를 사용할 때만 필수)
 
-**C. 채용공고 찾기 (스캔당 ~2분)**
+빨간 항목이 있으면 페이지가 어떤 파일 또는 환경 변수를 고쳐야 하는지
+정확히 알려줍니다. Health가 초록이 되기 전에는 진행하지 마십시오.
 
-9. 사이드바 **🌐 Scan** → **🌐 Scan now** → 실시간 SSE 로그.
-10. 회사 태그 클릭으로 필터; ↗ 아이콘으로 채용 페이지 열기.
+**3단계 — 사이드바의 `⚒ App settings`를 클릭합니다.** **API keys
+& runtime** 탭이 열립니다.
+- `ANTHROPIC_API_KEY`(선호 — 장문 채점 품질이 더 좋습니다) 또는
+  `GEMINI_API_KEY`를 붙여넣으십시오. 키는
+  <https://console.anthropic.com/settings/keys> 또는
+  <https://aistudio.google.com/apikey>에서 발급받을 수 있습니다.
+- **💾 Save**를 클릭하십시오. 그 다음 **▶ Test Anthropic** (또는
+  Gemini)을 클릭하면 작은 왕복 호출이 키가 정상임을 확인합니다.
 
-**D. 점수화 (JD당 ~30초)**
+**4단계 — 같은 페이지의 `Profile` 탭으로 전환합니다.** 여기는
+`config/profile.yml`의 직접 YAML 에디터입니다. 최소한 다음을
+편집하십시오:
+- `candidate.full_name` — 자리표시자("Jane Smith")를 실제
+  이름으로 교체.
+- `candidate.email`, `linkedin`, `github` — 커버 레터에 사용.
+- `target.roles` — 지원할 직무 명칭.
+- `target.comp_total_min_usd` — 최소 총 보상. 이 값 이하 오퍼는
+  모든 평가의 D 섹션에서 빨강으로 표시됩니다.
+- `target.archetypes` — 수용 가능한 커리어 패턴 (가장 영향이
+  큰 단일 필드).
 
-11. 사이드바 **Pipeline** — 항목 클릭으로 JD 미리보기.
-12. JD 옆 **▶ Evaluate** → 모델이 0–5 점수 →
-    `reports/<날짜>-<slug>.md`.
-13. 사이드바 **Reports** — 보고서 검토; pursue = 쇼트리스트.
+**💾 Save**를 클릭하십시오. 서버가 YAML을 검증하고 정식 헤더
+`# Career-Ops Profile Configuration`를 찍어 넣습니다.
 
-**E. 결정 + 심층 조사 (~3분)**
+### B. CV (한 번만 수행, 약 10분)
 
-14. 사이드바 **Deep research** → 회사명 + 직무 → 7섹션 브리프 →
-    `interview-prep/<회사>-<직무>.md`.
+**5단계 — 사이드바 `✎ CV`를 클릭합니다.** 두 열: 왼쪽은 에디터,
+오른쪽은 라이브 미리보기.
 
-**F. 지원 (지원당 ~5분)**
+**6단계 — 에디터를 채우는 방법 하나를 선택합니다:**
+- **기존 이력서 업로드** — **📁 Upload CV**를 클릭하고
+  `.docx / .doc / .odt / .rtf / .pdf / .html / .txt / .md` 중
+  아무 파일이나 선택. 서버가 pandoc 또는 pdftotext로 마크다운으로
+  변환하고 XSS를 정화한 결과를 에디터에 채워줍니다. **변환
+  결과를 검토**하십시오 — 특히 PDF는 레이아웃이 손실되기 쉽습니다.
+- **마크다운 직접 붙여넣기** — 텍스트 영역이 마크다운 에디터이며,
+  오른쪽 패널이 LLM(과 미래의 리크루터)이 보게 될 모습입니다.
+- **톤 팁:** 한 불릿 = 지표가 있는 한 가지 성과. 1500단어 이내.
+  순서: Summary, Experience, Projects, Education, Skills.
 
-15. 사이드바 **Apply checklist** → URL + JD → 체크리스트 (커버레터,
-    키워드, 첨부파일, **자동 제출 절대 금지**).
-16. 채용 페이지를 새 탭에서 열고 직접 제출 (8단계 PDF 첨부).
-17. 사이드바 **Outreach** (`#/contacto`) → 14단계 브리프 기반의
-    LinkedIn / 이메일 메시지 → 개인화 후 발송.
+**7단계 — CV 페이지 오른쪽 상단의 `💾 Save`를 클릭합니다.**
+서버가 정화하고 (`<script>` / `javascript:` / 인라인 핸들러 제거)
+`cv.md`에 씁니다. 토스트: *"Saved"*.
 
-**G. 추적 + 팔로업 (지속)**
+**8단계 (선택) — `📄 Generate PDF`를 클릭합니다.** 부모에서
+`generate-pdf.mjs`를 실행합니다 (Playwright 필요). 완료되면 **새 PDF가
+브라우저에서 자동 다운로드**됩니다. 페이지 하단의 목록은 이전에
+생성한 모든 파일을 유지합니다.
 
-18. 사이드바 **Tracker** → 행 추가: 회사, 직무, 점수, 상태
-    `Applied`, 보고서·브리프 링크.
-19. 일주일 뒤: **Follow-up** 모드 → 정중한 체크인 →
-    Tracker `Followed up`.
-20. 인터뷰 초대: **Interview prep** 모드 → 시스템 디자인 /
-    행동 / 코딩 단계별 준비.
-21. 오퍼: Tracker를 `Offer`로 업데이트 + 보고서 comp 섹션 재확인.
+### C. 채용 공고 찾기 (스캔당 약 2분)
 
-**TL;DR — 사이드바 순서가 워크플로 순서:**
-Health → App settings → Profile → CV → Scan → Pipeline → Evaluate
-→ Reports → Deep research → Apply checklist → Outreach → Tracker
-→ Follow-up → Interview prep → Activity log.
+**9단계 — 사이드바 `🌐 Scan`을 클릭합니다.** `portals.yml`에
+원하는 보드가 등록되어 있는지 확인하십시오 (이 도움말의 5절).
+**🌐 Scan now** 버튼을 누르십시오. 스캐너가 Greenhouse / Ashby /
+Lever / Workable / SmartRecruiters / Workday(영문 보드)와 hh.ru /
+Habr Career(활성화된 경우의 러시아어 보드)를 순회하는 동안 SSE
+라이브 로그가 흐릅니다.
+
+**10단계 — 스캔이 끝나면 결과를 검토합니다.** 회사 태그를 클릭해
+필터링하고, ↗ 아이콘을 클릭해 회사 채용 페이지를 새 탭에서
+여십시오. 제목 필터를 통과한 모든 공고는 Pipeline에 큐잉됩니다.
+
+### D. 오퍼 채점 (JD당 약 30초)
+
+**11단계 — 사이드바 `Pipeline`을 클릭합니다.** 스캐너가 큐잉한
+모든 URL이 보입니다. 항목을 클릭하면 인라인으로 JD가
+미리보입니다.
+
+**12단계 — JD 옆의 `▶ Evaluate`를 클릭합니다.** `#/evaluate`로
+이동합니다. API 키가 설정되어 있으면 실시간 실행, 없으면 직접
+LLM에 붙여넣을 프롬프트가 제공됩니다. 실시간 모드는 CV 대비
+**0–5 점수**를 A–G 섹션(Role / Company / Compensation / Risk /
+Stretch / Cultural fit / Verdict)에 걸쳐 생성합니다. 저장본은
+`reports/<date>-<slug>.md`에 떨어집니다.
+
+**13단계 — 사이드바 `Reports`를 클릭**하고 최신 평가를
+검토하십시오. `comp_total_min_usd` 이하인 항목은 D 섹션에서
+빨강으로 표시됩니다. `Verdict: pursue`가 있는 항목이 여러분의
+쇼트리스트입니다.
+
+### E. 결정 및 쇼트리스트 회사 심층 리서치 (약 3분)
+
+**14단계 — 추진할 공고를 선택합니다. 사이드바 `Deep research`를
+클릭하십시오.** 회사 이름과 롤을 입력하십시오. 모델이 7개 섹션의
+회사 브리프(미션, 최근 뉴스, 기술 스택, 채용 신호, 보상 벤치마크,
+리스크, 권장 어프로치)를 생성합니다. 저장본은
+`interview-prep/<company>-<role>.md`에 떨어집니다.
+
+### F. 지원 (지원당 약 5분)
+
+**15단계 — 사이드바 `Apply checklist`를 클릭합니다.** 공고 URL과
+JD를 붙여넣으십시오. 헬퍼가 단계별 제출 체크리스트를 생성합니다:
+- 맞춤형 커버 레터 초안 (`cv.md` + `profile.yml` 사용).
+- JD에서 따라가야 할 구체적 키워드.
+- 첨부할 파일 (CV PDF — 8단계 참조).
+- 어디에 지원할지 (집계 사이트 리디렉트가 아닌 정식 채용 URL).
+- 알림: **절대 자동 제출 금지** — 최종 검토와 제출은 항상
+  수동입니다.
+
+**16단계 — 채용 페이지를 새 탭에서 엽니다.** apply 체크리스트를
+할 일 목록으로 사용하십시오. 회사의 실제 폼을 통해 제출하고,
+8단계에서 만든 PDF를 첨부하십시오.
+
+**17단계 — 실제 사람에게 메시지를 보냅니다.** 사이드바에서
+**Outreach** 모드 (`#/contacto`)를 여십시오. 모델이 14단계에서
+만든 회사 브리프에 맞춰 짧은 LinkedIn / 이메일 메시지를
+작성합니다. 오프닝(심층 리서치 브리프의 구체적인 디테일 하나)은
+직접 개인화하십시오. 전송합니다.
+
+### G. 추적 및 팔로업 (지속)
+
+**18단계 — 사이드바 `Tracker`를 클릭**하고 지원에 대한 행을
+추가하십시오: 회사, 롤, 점수, 상태 `Applied`, 보고서 링크, 심층
+리서치 브리프 링크. 날짜는 자동 입력됩니다.
+
+**19단계 — 일주일 후: `Follow-up` 모드(`#/followup`)를 엽니다.**
+원래 지원을 참조한 정중한 체크인 이메일을 초안으로 작성합니다.
+전송하고 tracker 상태를 `Followed up`으로 갱신하십시오.
+
+**20단계 — 인터뷰 초대를 받으면 `Interview prep` 모드
+(`#/interview-prep`)를 실행합니다.** 특정 회사와 단계(system
+design / behavioral / coding)에 맞는 타깃 준비물을 생성합니다.
+심층 리서치 브리프에서 자동으로 가져옵니다.
+
+**21단계 — 오퍼를 받았다면? Tracker 상태를 `Offer`로 갱신**하고
+평가 보고서의 comp 섹션을 다시 살펴보십시오 — 최소 수용 금액이
+거기에 있습니다.
+
+### 한 줄 요약 — 사이드바 순서가 곧 워크플로
+
+`Health → App settings → Profile → CV → Scan → Pipeline →
+Evaluate → Reports → Deep research → Apply checklist → Outreach
+→ Tracker → Follow-up → Interview prep → Activity log`
+
+이상입니다. 21단계, 버튼별, 0에서 오퍼까지.
 
 ---
 
-## 2. 앱 설정 & API 키 (`#/config`)
+## 2. App settings & API 키 (`#/config`)
 
-두 개의 탭: **API keys & runtime** 은 부모 프로젝트의 `.env` 를 편집
-(career-ops Node 스크립트가 부팅 시 읽는 동일 파일). **Profile** 은
-`config/profile.yml` 의 직접 YAML 편집기로, 정규 헤더
-`# Career-Ops Profile Configuration` 을 자동으로 추가하고 `candidate`
-키 존재를 검증합니다. 어느 탭에서 저장하든 재시작 없이 즉시 반영.
+두 탭:
+
+1. **API keys & runtime** — 부모 프로젝트의 `.env`를 브라우저에서
+   편집합니다 (career-ops Node 스크립트가 시작 시 읽는 동일 파일).
+2. **Profile** — `config/profile.yml`의 직접 YAML 에디터. 저장
+   시 정식 헤더 `# Career-Ops Profile Configuration`가 찍힙니다.
+
+어느 탭에서 저장하든 즉시 반영됩니다 — 서버 재시작 불필요.
+
+### Profile 탭
+
+- 텍스트 영역은 현재 `config/profile.yml`을 그대로 보여줍니다.
+- 편집 후 **💾 Save**를 클릭하십시오. 서버가 YAML을 검증하고
+  (매핑이어야 하고 `candidate`를 포함해야 함) 파일에 씁니다.
+- 누락된 경우 `# Career-Ops Profile Configuration` 헤더가
+  추가됩니다.
+- `#/profile`의 읽기 전용 요약이 시각적 동반자입니다.
 
 ### 인식되는 키
 
 | 키 | 역할 | 발급처 |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | Anthropic SDK 라이브 호출 활성화. 양쪽 키가 모두 있을 때 우선됨. | <https://console.anthropic.com/settings/keys> |
-| `ANTHROPIC_MODEL` | 기본값 `claude-sonnet-4-6` 재정의. | — |
-| `GEMINI_API_KEY` | Anthropic 없을 때 fallback. `gemini-eval.mjs`에서 사용. | <https://aistudio.google.com/apikey> |
-| `GEMINI_MODEL` | Gemini 모델 재정의. | — |
-| `(server uses default UA)` | 러시아 외 IP에서 `hh.ru` 스캔 시 필요. | dev.hh.ru |
-| `PORT` | Express 포트. 기본 4317. | — |
-| `HOST` | 바인드. 기본 `127.0.0.1`. `0.0.0.0`은 LAN 노출 — **auth gate 아직 없음**. | — |
+| `ANTHROPIC_API_KEY` | Anthropic SDK 실시간 호출 활성화. Anthropic + Gemini 모두 설정 시 선호 — JD 채점과 심층 리서치에서 장문 구조화 출력 품질이 더 우수합니다. | <https://console.anthropic.com/settings/keys> |
+| `ANTHROPIC_MODEL` | 기본 `claude-sonnet-4-6` 재정의. 어려운 추론에는 `claude-opus-4-7`, 저렴·빠르게는 `claude-haiku-4-5-20251001` 시도. | — |
+| `GEMINI_API_KEY` | Anthropic 키가 없을 때의 대안. `gemini-eval.mjs`가 `oferta` 모드에 사용. 저볼륨이면 무료 티어로 충분. | <https://aistudio.google.com/apikey> |
+| `GEMINI_MODEL` | 기본 Gemini 모델 재정의. | — |
+| `(서버가 기본 UA 사용)` | 러시아 외부에서 `hh.ru` 스캔 시 필요 (단순 User-Agent에는 API가 403 반환). <https://dev.hh.ru/admin>에서 앱 등록 후 그 UA 문자열 사용. | dev.hh.ru |
+| `PORT` | Express 바인드 포트. 기본 4317. | — |
+| `HOST` | 바인드 주소. 기본 `127.0.0.1`. `0.0.0.0` 설정 시 LAN에 UI 노출 — **아직 인증 게이트 없음**. Production-readiness 문서 참조. | — |
 
 ### 동작
 
-- **읽기** (`GET /api/config`) — 시크릿 키는 마스킹됨
-  (`sk-ant•••••a1b2`).
-- **저장** (`POST /api/config`) — 검증 → `.env` 기록 → 즉시
-  `process.env`에 적용. 재시작 불필요.
-- **빈 값은 키 삭제**.
+- **Read** (`GET /api/config`)는 인식되는 모든 키를 반환합니다.
+  비밀 키 (`ANTHROPIC_API_KEY`, `GEMINI_API_KEY`)는 **마스킹**됩니다 —
+  `sk-ant•••••••a1b2` 형태로만 보이고 원본은 노출되지 않습니다.
+- **Save** (`POST /api/config`)는 각 값을 검증하고
+  `<parent>/.env`에 쓴 다음 실행 중인 프로세스에 즉시 적용합니다.
+  재시작 불필요.
+- **빈 값은 키 삭제**입니다. 러시아 IP / VPN을 비활성화할 때
+  유용합니다.
 
-### Smoke-test 버튼
+### 스모크 테스트 버튼
 
-저장 후 **▶ Test Anthropic** / **▶ Test Gemini** — 작은 prompt
-(≤256 토큰)으로 키가 작동하는지 확인. ~200자 샘플 반환.
+저장 후 **▶ Test Anthropic** 또는 **▶ Test Gemini**를 클릭하면
+작은 프롬프트(출력 ≤256 토큰)를 호출합니다. 비용은 거의 없으며
+키가 정상 연결되었는지 확인합니다. 성공 시 약 200자 샘플을
+반환합니다.
 
 ---
 
 ## 3. Profile (`#/profile` — `#/settings`로도 접근 가능)
 
-`config/profile.yml`의 read-only 뷰. 디스크에서 직접 편집;
-페이지는 reload에 다시 파싱.
+`config/profile.yml`의 읽기 전용 카드 요약 뷰입니다. **편집은**
+**App settings → Profile 탭** (`#/config` → Profile)에서
+수행하십시오. 저장은 동일한 파일로 떨어지며, 이 페이지는 새로
+고칠 때 다시 파싱합니다.
 
-핵심 필드:
+가장 중요한 필드:
 
-- `candidate.full_name` — 모든 prompt에서 사용. **실제 스캔 전에
-  `Jane Smith`를 실제 이름으로 교체**.
-- `candidate.email`, `linkedin`, `github` — cover letter와 apply
-  checklist에서 참조.
-- `target.roles` — 받아들일 수 있는 직책.
-- `target.comp_total_min_usd` — 최소 보상. 각 평가의 D 섹션이 이
-  값보다 낮은 오퍼를 표시.
-- `target.archetypes` — *가장 중요한 필드*. 모든 JD가 이에 대해
-  매칭되고 가장 잘 맞는 아키타입이 리포트 헤더에 들어갑니다.
+- `candidate.full_name` — 모든 프롬프트에 사용됩니다. **실 운영
+  스캔 전에 템플릿 `Jane Smith`를 반드시 교체**하지 않으면 생성된
+  커버 레터가 자리표시자 이름으로 발송됩니다.
+- `candidate.email`, `linkedin`, `github` — 커버 레터 생성과
+  apply 체크리스트에서 참조.
+- `target.roles` — 수용 직무 명칭. 스캐너의 양성 필터가
+  (`portals.yml::title_filter`를 통해) 암묵적으로 사용합니다.
+- `target.comp_total_min_usd` — 최소 총 보상. 모든 평가의 D
+  섹션이 이 값 이하 오퍼를 표시합니다.
+- `target.archetypes` — *가장 중요한 필드*. 수용 가능한 커리어
+  패턴(예: `Tech-Lead-Backend`, `Founding-Engineer`,
+  `Data-Platform`). 모든 JD는 이들에 매칭되고 가장 잘 맞는
+  archetype이 보고서 헤더에 표시됩니다.
 
-Health는 `full_name`이 알려진 placeholder일 때 **Profile customized**
-체크를 표시합니다.
+Health 페이지는 `full_name`이 알려진 자리표시자 이름과 일치하는
+한 실패하는 **Profile customized** 체크를 노출합니다.
 
 ---
 
 ## 4. CV (`#/cv`)
 
-모든 평가, deep research, cover letter의 진실의 원천. 부모 루트의
-`cv.md`에 저장.
+모든 평가, 심층 리서치, 커버 레터의 단일 진실 공급원. 부모
+프로젝트 루트의 `cv.md`에 존재합니다.
 
 ### 편집 옵션
 
-- **직접 붙여넣기** — 왼쪽 textarea는 markdown 에디터.
-- **📁 Upload CV** — `.md/.markdown/.txt/.html/.htm` (텍스트),
-  `.docx/.doc/.odt/.rtf` (pandoc 경유 — `brew install pandoc`),
-  `.pdf` (pdftotext 경유 — `brew install poppler`). 서버가 markdown
-  으로 변환·정화 후 에디터에 로드합니다. **💾 Save** 로 저장.
-  업로드 한도: 10 MB.
-- **LinkedIn에서** — 부모에서 Claude Code 열고 `/career-ops` 실행,
-  LinkedIn URL 붙여넣고 `extract my CV from this and write it to
-  cv.md` 요청.
+- **직접 붙여넣기** — 왼쪽 텍스트 영역이 마크다운 에디터입니다.
+  오른쪽 패널은 LLM(과 미래의 리크루터)이 볼 모습을 미러링합니다.
+- **📁 Upload CV** — 다음 형식 중 로컬 파일을 선택하면 서버가
+  마크다운으로 변환합니다:
+  - **텍스트 형식** — `.md`, `.markdown`, `.txt`, `.html`,
+    `.htm`은 그대로 통과 (HTML은 pandoc → GFM markdown).
+  - **오피스 형식** — `.docx`, `.doc`, `.odt`, `.rtf`는
+    **pandoc**으로 변환 (macOS: `brew install pandoc`, Linux:
+    `apt install pandoc`).
+  - **PDF** — `.pdf`는 Poppler의 **pdftotext**로 추출
+    (`brew install poppler` / `apt install poppler-utils`).
+  - 변환된 마크다운이 에디터에 채워집니다. **💾 Save**로
+    영속화하십시오. 결과는 정화됩니다 (붙여넣기와 동일한 XSS
+    제거).
+  - 하드 캡: 업로드당 **10 MB**. 더 큰 파일 → 413.
+- **LinkedIn에서** — 가장 쉬운 경로: 부모 프로젝트에서 Claude
+  Code를 열고 `/career-ops`를 실행, LinkedIn URL을 붙여넣고
+  `extract my CV from this and write it to cv.md`라고
+  요청하십시오.
 
-### 새니타이즈
+### 정화되는 항목
 
-`stripDangerousMarkdown`이 `<script>`, `<iframe>`, `<object>`,
-`<embed>`, `<svg>`, `<style>`, `<form>`, 인라인 핸들러
-(`onclick=`), URI `javascript:`/`vbscript:`/`data:text/html`을
-제거. 응답은 무언가 제거된 경우 `sanitized: true`. 최대 1 MB.
+서버 측에서 `/api/cv`로의 모든 PUT은 `stripDangerousMarkdown`을
+통과합니다:
 
-### 다른 버튼
+- `<script>`, `<iframe>`, `<object>`, `<embed>`, `<svg>`,
+  `<style>`, `<form>` 태그 — 완전히 제거.
+- 인라인 이벤트 핸들러 (`onclick=`, `onerror=` 등) — 제거.
+- `javascript:`, `vbscript:`, `data:text/html` URI 스킴 — 무력화.
 
-- **sync-check** — `cv-sync-check.mjs`.
-- **📄 Generate PDF** — `generate-pdf.mjs` → `output/*.pdf`.
-  Playwright 필요.
+위 중 하나라도 제거되면 응답에 `sanitized: true`가 포함되므로
+원본에 위험한 내용이 있었는지 알 수 있습니다.
 
-### 형식 팁
+최대 바디 크기: 1 MB. 초과 시 413 반환.
 
-- 한 bullet = 메트릭이 있는 한 가지 성과.
-- 섹션 순서: **Summary**, **Experience**, **Projects**,
-  **Education**, **Skills**.
-- 1500단어 미만으로 유지.
+### 기타 버튼
+
+- **sync-check** — 부모 프로젝트에서 `cv-sync-check.mjs` 실행.
+  불일치 항목(CV에는 있지만 `data/applications.md` archetypes에는
+  없는 프로젝트 등)을 표시합니다.
+- **📄 Generate PDF** — `generate-pdf.mjs`를 스트림합니다.
+  출력은 `output/*.pdf`에 저장됩니다. Playwright 필요 (Health
+  페이지에서 부모의 `node_modules`에 설치되었는지 확인 가능).
+  생성이 완료되면 **가장 새** PDF가 기본 다운로드 폴더로 자동
+  다운로드되며, 페이지의 목록은 이전에 생성한 모든 파일을
+  유지합니다.
+
+### 톤/포맷 팁
+
+- 한 불릿 = 지표 한 개가 있는 한 가지 성과.
+  *"p99 latency 38% 감소"*가 *"performance 개선"*보다 모든
+  평가 루브릭에서 우수합니다.
+- 섹션 순서: **Summary** (3–5줄), **Experience** (역연대순),
+  **Projects** (최대 5개), **Education**, **Skills** (중복 제거,
+  버즈워드 나열 금지).
+- 1500단어 이내로. 채점 루브릭은 정보 밀도가 높은 텍스트를
+  좋아하며, 산만한 CV는 노이즈로 감점됩니다.
 
 ---
 
-## 5. 포털 & 소스 (`portals.yml`)
+## 5. Portals & 소스 (`portals.yml`)
 
-스캐너 설정. 세 섹션이 중요:
+스캐너 설정은 부모 루트의 `portals.yml`에 있습니다. 세 섹션이
+중요합니다. SPA의 세 섹션(아래)은
+[scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+의 career-ops.org 정식 스키마와 1:1로 일치합니다.
 
 ### `title_filter`
 
@@ -236,11 +449,18 @@ title_filter:
   seniority_boost: [Senior, Staff, Lead, Principal]
 ```
 
-스캔된 vacancy는 title이 **하나 이상의 positive**를 포함하고 **어떤
-negative도 없을 때** 통과.
+스캔된 공고는 제목이 **positive 키워드 중 하나 이상**을 포함하고
+**negative 키워드 중 어느 것도** 포함하지 않을 때 통과합니다.
+양쪽 모두 튜닝하십시오. 키워드는 대소문자 무시 부분 일치입니다.
 
+`seniority_boost`는 세 번째 제목 필터 키입니다. 여기 나열된
+키워드는 무엇도 걸러내지 않지만, 매칭된 공고를 결과에서 더 위로
+밀어 올려 "Senior Backend Engineer"가 "Engineer"보다 위에
+오도록 합니다. 기본값: `["Senior", "Staff", "Lead"]`. 타깃
+직무가 어떻게 명명되는지에 맞춰 튜닝하십시오.
 
-`seniority_boost`는 title-filter의 세 번째 키입니다. 여기에 나열된 키워드는 어떤 것도 필터링하지 않습니다 — 일치하는 작업을 결과의 상위로 끌어올려 "Senior Backend Engineer"가 "Engineer"보다 위에 표시됩니다. 기본값: `["Senior", "Staff", "Lead"]`. 타겟 역할이 어떻게 명명되는지에 맞게 조정하세요.
+명확성을 위해 positive 키워드 3–5개로 시작하고 나중에
+넓히십시오.
 
 ### `search_queries`
 
@@ -254,443 +474,800 @@ search_queries:
     enabled: false
 ```
 
-`search_queries`는 AI 기반 Option B 스캔(`/career-ops scan`을 Claude Code / Codex 내에서)을 구동합니다. 인-프로세스 `npm run scan`(공개 보드 API만 호출)에서는 실행되지 **않습니다**. `tracked_companies`에 아직 없는 회사의 역할을 발견하고 싶을 때 사용하세요. 항목을 유지하되 실행하지 않으려면 `enabled: false`로 설정하세요.
+`search_queries`는 AI 기반 Option B 스캔(Claude Code / Codex
+내부의 `/career-ops scan`)을 구동합니다. 인프로세스
+`npm run scan` (공개 보드 API만 호출)에서는 실행되지 **않습니다**.
+`tracked_companies`에 아직 없는 회사의 롤을 발견하고 싶을 때
+사용하십시오. 항목을 유지하면서 실행하지 않으려면
+`enabled: false`로 설정하십시오.
 
 ### `tracked_companies`
 
 ```yaml
 tracked_companies:
-  - { name: Stripe,    enabled: true, careers_url: https://job-boards.greenhouse.io/stripe }
-  - { name: Linear,    enabled: true, careers_url: https://jobs.ashbyhq.com/linear }
-  - { name: JetBrains, enabled: true, careers_url: https://jobs.lever.co/jetbrains }
+  - { name: Stripe,     enabled: true, careers_url: https://job-boards.greenhouse.io/stripe }
+  - { name: Linear,     enabled: true, careers_url: https://jobs.ashbyhq.com/linear }
+  - { name: JetBrains,  enabled: true, careers_url: https://jobs.lever.co/jetbrains }
 ```
 
-EN 스캐너는 URL 패턴에서 ATS를 감지하고 boards-api를 직접 호출.
+항목당 필수 필드: `name`과 `careers_url`. 선택: `api` (명시적
+Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday
+엔드포인트), `enabled: true|false`로 항목을 삭제하지 않고
+포함/제외 가능. ATS 스캐너는 URL 패턴
+(`job-boards.greenhouse.io/<slug>` → Greenhouse 등)에서 ATS를
+감지하고 각 회사의 공개 boards-api를 직접 호출합니다. 인식
+가능한 ATS가 없는 회사는 건너뜁니다 (`/#/scan`의 **Active
+Companies** 카드에서 회색 `○`로 표시).
 
 ### `russian_portals`
 
 ```yaml
 russian_portals:
-  sources: [hh, habr]
-  area: 113                 # 113=러시아, 1001=원격
+  sources: [hh, habr]      # 또는 하나만
+  area: 113                 # 1=Moscow, 2=SPb, 113=Russia, 1001=remote
   per_page: 50
   only_remote: false
   queries:
     - "Senior PHP"
     - "Senior Go"
+    - "Тимлид PHP"
 ```
 
-`queries`와 negative 리스트의 충돌을 주의 — 콘솔이 경고합니다.
+`queries`는 hh.ru와 Habr Career의 공고 제목에 대한 대소문자
+무시 부분 일치입니다. **negative 리스트와의 중복에 주의**하십시오
+— `"Senior PHP"`가 `queries`에 있는데 `"php"`가
+`title_filter.negative`에 들어가면 스캔이 0건을 반환하고
+콘솔이 충돌을 경고합니다.
 
-### Bootstrap
+### CLI 부트스트랩 흐름 ([scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
 
-첫 부팅에서 서버는 `russian_portals:` 블록이 없으면 자동 추가
-(idempotent).
-
----
-
-
-### CLI 플로우 ([career-ops.org/docs/.../scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
-
-career-ops 표준 setup (부모 디렉터리에서 한 번 실행):
+부모 루트에서 한 번 실행하는 career-ops 정식 설정:
 
 ```bash
 cp templates/portals.example.yml portals.yml
 $EDITOR portals.yml
 ```
 
-`portals.yml`은 세 섹션을 가지며, career-ops.org 표준 schema는 위 SPA의 세 섹션과 1:1 매칭됩니다:
+이것이 전체 부트스트랩입니다. 세 섹션(`title_filter`,
+`tracked_companies`, `search_queries`, 선택적 `russian_portals`)을
+편집하고 저장하면 스캔할 준비가 끝납니다.
 
-- **title_filter** — `positive`, `negative`, `seniority_boost` 키워드 리스트(case-insensitive). 공고는 ≥ 1개 `positive` 매칭 + 0개 `negative` 매칭 필요. `seniority_boost`는 필터링 없이 랭킹만 올림.
-- **tracked_companies** — 각 엔트리는 `name`과 `careers_url` 필수. 선택: `api`(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday 엔드포인트), `enabled: true|false`.
-- **search_queries** — 사전 빌드된 더 광범위한 웹 검색. 디폴트로 충분.
+### SPA 부트스트랩 동작
+
+최초 실행 시 서버는 `portals.yml`에 `russian_portals:` 블록이
+없으면 문서화된 형태로 덧붙입니다 — 멱등적입니다 (두 번째 부팅은
+no-op. 리터럴 `russian_portals:` 라인이 이미 있기 때문). 영문
+섹션은 자동 주입되지 **않습니다**. 위의 정식 부트스트랩대로
+`templates/portals.example.yml`을 복사해서 얻으십시오.
 
 ---
 
 ## 6. Health (`#/health`)
 
-모든 setup 게이트가 OK / OPTIONAL / FAIL 배지로 표시.
+OK / OPTIONAL / FAIL 배지로 표시되는 모든 설정 게이트. "동작하지
+않습니다" 이슈를 등록하기 전에 먼저 읽으십시오.
 
-### 필수 (없으면 시스템이 작동 안 함)
+### 필수 체크 (없으면 시스템 동작 불가)
 
-`Node version` ≥ 18, `Project root`, `cv.md`, `config/profile.yml`,
-`portals.yml`, `data/applications.md`, `data/pipeline.md`,
-`modes/oferta.md`.
+- `Node version` ≥ 18 — 서버가 네이티브 `fetch`와 `node:test`를
+  사용합니다.
+- `Project root` — `CAREER_OPS_ROOT`(환경 변수 또는 자동 감지)가
+  존재합니다.
+- `cv.md`, `config/profile.yml`, `portals.yml`,
+  `data/applications.md`, `data/pipeline.md`, `modes/oferta.md`.
 
-### 선택 (경고만)
+### 선택 체크 (경고만)
 
-`Profile customized`, `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`,
-`(server uses default UA)`, Playwright, 부모 deps, 디렉토리.
+- `Profile customized` — `candidate.full_name`이 템플릿
+  자리표시자가 아님.
+- `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` — `.env`에 설정됨.
+- `(서버가 기본 UA 사용)` — 러시아 외부에서 hh.ru 스캔 시에만
+  중요.
+- `Playwright (parent node_modules)` — PDF 생성과
+  `check-liveness.mjs`에 필수. 설치:
+  `cd $CAREER_OPS_ROOT && npm install && npx playwright install chromium`.
+- `Parent project dependencies` — 누락 시
+  `cd $CAREER_OPS_ROOT && npm install`.
+- `data/`, `reports/`, `output/`, `jds/` 디렉터리 — 첫 쓰기 시
+  자동 생성.
 
-`HOST=0.0.0.0`일 때 절대 경로와 정확한 Node 버전은 숨겨집니다.
+서버가 loopback 외부에 노출되면 (`HOST=0.0.0.0`) 절대 경로와 정확한
+Node 버전은 응답에서 `"hidden"`으로 대체되어, 호기심 많은 이웃이
+설치 환경을 핑거프린팅할 수 없습니다.
 
 ### 실행 버튼
 
-- **▶ Doctor** — `node doctor.mjs`.
-- **▶ Verify pipeline** — `node verify-pipeline.mjs`.
+- **▶ Doctor**는 `node doctor.mjs`를 실행하고 모달에 출력 표시.
+- **▶ Verify pipeline**은 `node verify-pipeline.mjs` 실행.
 
 ---
 
 ## 7. Scan (`#/scan`)
 
-스캐너가 활성 보드를 순회하고 히스토리에 대해 dedup하고 hits를
-`data/last-scan.json`과 `data/pipeline.md`에 기록.
+스캐너는 활성화된 모든 보드를 크롤링하고 이력과 중복 제거한 다음
+hits를 `data/last-scan.json`과 `data/pipeline.md`에 기록합니다.
 
-### 원클릭 스캔
+### 원클릭 스캔 (SPA)
 
-**🌐 Scan**이 한 번에 모든 소스를 실행. 라이브 SSE 로그가
-오른쪽에 표시. **Stop** 또는 페이지 떠나기로 중단.
+**🌐 Scan**은 활성화된 모든 소스를 한 번에 실행합니다:
 
-### 결과 필터
+- Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday
+  (ATS 스윕) — 인식 가능한 ATS URL을 가진 `tracked_companies`의
+  모든 회사.
+- hh.ru API + Habr Career HTML — `russian_portals`의 모든 쿼리.
 
-- 자유 텍스트.
-- Source 드롭다운.
-- Remote / Hybrid / Onsite.
-- Stack chips (PHP, Go, Backend, Senior) 자동 감지.
-- 동적 chips: title의 가장 빈번한 capitalized 토큰 top-25.
+스캔이 진행되는 동안 SSE 라이브 로그가 오른쪽 패널에 흐릅니다.
+중단하려면 **Stop**을 클릭하거나 페이지에서 나가면 됩니다. 서버는
+진행 중인 HTTPS 요청을 `AbortController`로 취소합니다.
 
-### Active Companies
+### 결과 필터링
 
-접을 수 있는 카드:
+로그 아래에서 결과 테이블이 `data/last-scan.json`의 행을
+렌더링합니다.
 
-- ✓ 녹색 — 직접 API 지원.
-- ○ 회색 — 웹 검색 fallback.
+필터:
 
-**이름 클릭** → 위 결과 필터를 채움. **↗ 클릭** → 새 탭에서
-`careers_url`.
+- **자유 텍스트** — 제목/회사에 대한 부분 문자열 일치.
+- **Source** 드롭다운 — Greenhouse / Ashby / Lever / Workable /
+  SmartRecruiters / Workday / hh.ru / Habr.
+- **Remote / Hybrid / Onsite** 드롭다운.
+- **스택 칩** (PHP / Go / Backend / Senior / …) — 각 행에 대해
+  `Skills.detectTech`와 `Skills.detectLevel`이 자동 감지합니다.
+  다중 선택은 교집합 — `PHP + Senior` 선택 시 두 가지 모두 가진
+  행만 표시됩니다.
+- **동적 칩** — 정적 스택 칩 아래에 제목의 대문자 토큰 중 빈도
+  상위 25개를 보여주어, 백엔드 엔지니어 어휘에 갇히지 않고
+  실제로 스캔하는 롤(마케팅, 디자인, 재무 등)에 UI가 적응하도록
+  합니다.
 
----
+### Active Companies 카드
 
+`portals.yml`의 모든 회사를 스캔 상태와 함께 보여주는 접이식
+카드:
 
-### CLI 스캔 플로우 ([career-ops.org/docs/.../scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
+- ✓ 초록 태그 — 직접 API 지원 (Greenhouse / Ashby / Lever /
+  Workable / SmartRecruiters / Workday).
+- ○ 회색 태그 — 웹 검색 프롬프트 폴백 (API 매칭 없음).
 
-CLI에서 스캔하는 두 가지 방법(둘 다 SPA가 읽는 `data/pipeline.md`에 기록):
+**회사 이름 클릭** → 위 결과 필터에 그 이름이 채워집니다.
+**↗ 아이콘 클릭** → 회사의 `careers_url`을 새 탭에서 엽니다.
 
-**Option A — 직접 스크립트(~30초, AI 토큰 0):**
+### CLI 스캔 흐름 ([scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
+
+CLI 쪽에서 스캔하는 두 가지 방법 (둘 다 SPA가 읽는 동일한
+`data/pipeline.md`에 URL을 적재):
+
+**옵션 A — 직접 스크립트 (~30초, AI 토큰 0):**
 
 ```bash
-npm run scan
-npm run scan -- --dry-run
-npm run scan -- --company Anthropic
+npm run scan                          # 모든 Greenhouse/Ashby/Lever 보드
+npm run scan -- --dry-run             # 영속화 없이 미리보기
+npm run scan -- --company Anthropic   # 하나의 tracked company로 좁히기
 ```
 
-Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday만 작동(인식 가능한 ATS URL).
+Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday
+(인식 가능한 ATS URL)에서만 동작합니다. 공개 boards API를 직접
+호출하므로 AI 토큰을 소비하지 않습니다.
 
-**Option B — AI 브라우저 스캔:** `/career-ops scan`을 Claude Code / Codex / Cursor / Gemini CLI에서 실행. 모델 토큰 사용. `tracked_companies` 각 페이지 직접 방문, non-API 보드 발견 가능.
+**옵션 B — AI 기반 브라우저 스캔:**
 
-**Output(둘 다)** — 새 JD URL이 `data/pipeline.md`에 추가, 방문한 URL은 `data/scan-history.tsv`에 기록(모든 향후 스캔에서 dedup).
+```
+/career-ops scan
+```
 
-**Score 별 액션 임계값:**
+Claude Code / Codex / Cursor / Gemini CLI 내부에서. 모델 토큰을
+사용합니다. 각 `tracked_companies` 페이지를 직접 방문하며 API가
+없는 보드(채용 페이지, 커스텀 ATS, 지역 포털)도 발견할 수
+있습니다. 느리지만 더 넓습니다. 채용 중인 것이 분명한 타깃에서
+ATS 스윕이 아무것도 반환하지 않을 때 유용합니다.
 
-| Score | 다음 단계 |
+**출력 (양쪽 모두)** — 새 JD URL이 `data/pipeline.md`에
+append되고, 방문한 모든 URL이 `data/scan-history.tsv`에
+로그됩니다(미래의 모든 스캔에 걸친 중복 제거). 요약 출력: 스캔된
+회사 수 · 발견된 잡 수 · 제목으로 필터된 수 · 건너뛴 중복 수 ·
+추가된 새 오퍼 수.
+
+**Score별 액션 임계값** (`/career-ops pipeline`이 새 URL을 배치
+채점한 후 적용):
+
+| Score | 권장 다음 단계 |
 |---|---|
-| **≥ 4.5** | `/career-ops apply` — 높은 적합도 |
-| **4.0 – 4.4** | 지원 또는 `/career-ops contacto` |
+| **≥ 4.5** | `/career-ops apply` — 적합도 높음. 즉시 지원 |
+| **4.0 – 4.4** | 지원 또는 `/career-ops contacto`로 warm intro |
 | **3.5 – 3.9** | `/career-ops deep` — 먼저 리서치 |
-| **< 3.5** | 특별한 이유 없으면 건너뜀 |
+| **< 3.5** | 특별한 개인 사유 없는 한 건너뜀 |
+
+SPA의 `#/dashboard`와 `#/tracker`는 4.0 이상 모든 행을 강조하여,
+어떤 것도 재실행하지 않고 다음 액션을 고를 수 있게 합니다.
+
+### 후속 명령
+
+채점 후 정식 후속 명령:
+
+- `/career-ops apply` — 맞춤형 답변으로 지원서 작성.
+- `/career-ops contacto` — LinkedIn / 이메일 outreach 초안.
+- `/career-ops deep` — 회사/롤 심층 리서치.
+- `/career-ops tracker` — 파이프라인 상태 보기.
 
 ---
 
 ## 8. Pipeline (`#/pipeline`)
 
-평가 대기 URL의 inbox. `data/pipeline.md`에 저장.
+평가 대기 URL의 inbox. `data/pipeline.md`에 존재합니다.
 
 ### URL 추가
 
-- 입력하거나 붙여넣고 **+ Add**.
-- **Ctrl+K** / **Cmd+K** → 글로벌 검색에 포커스 → URL 붙여넣고
-  Enter.
-- Scan 실행 → 새 hits가 자동으로 추가.
+세 가지 방법:
 
-각 URL은 서버 측 `isValidJobUrl()`을 통과. Loopback, `file://`,
-`javascript:`, IP 리터럴, 템플릿 문자 — 모두 400.
+- 입력란에 URL을 입력/붙여넣고 **+ Add** 클릭.
+- **Ctrl+K** (또는 **Cmd+K**)로 전역 검색에 포커스, `http(s)://…`
+  링크를 붙여넣고 **Enter** — URL이 즉시 pipeline에 들어갑니다.
+- Scan 실행 (위 참조) — 새 hits가 자동으로 pipeline에 들어갑니다.
 
-### 서버 측 미리보기
+모든 URL은 서버 측에서 `isValidJobUrl()`을 통과합니다. Loopback
+(`localhost`, `127.0.0.1`), `file://`, `javascript:`, IP 리터럴,
+템플릿 문자 (`<`, `>`, `"`)를 포함한 문자열은 모두 400.
 
-행 클릭 시 오른쪽에 미리보기. 서버가 프록시하고
-`<script>`/`<style>`/태그를 제거하고 최대 8 KB 평문을 반환.
+### 서버 측 미리보기 패널
 
-리다이렉트는 **hop별 SSRF 검증**으로 수동 추적. 캡 3홉, 15초 timeout.
+pipeline 행을 클릭하면 오른쪽에 미리보기가 로드됩니다. 대부분의
+ATS 보드는 CORS 헤더를 보내지 않으므로 브라우저가 직접 가져올 수
+없습니다. 서버가 요청을 프록시하고 `<script>` / `<style>` / HTML
+태그를 제거한 다음 최대 8 KB의 평문을 반환합니다.
+
+미리보기 프록시는 리디렉트를 수동으로 따라가며 **홉별 SSRF
+검증**을 수행합니다 — 모든 `Location` 헤더가 다시 `isValidJobUrl()`을
+통과하므로 적대적인 보드가 loopback / 사설 IP / `file://`로
+바운스시킬 수 없습니다. 최대 3홉, 15초 타임아웃.
 
 ### 행 액션
 
-- **▶** — `#/evaluate?url=…`로 이동.
-- **✕** — pipeline에서 제거.
+- **▶** — URL이 미리 채워진 채로 `#/evaluate?url=…`로 이동.
+- **✕** — `data/pipeline.md`에서 URL 제거.
 
-### 상단 버튼
+### 오른쪽 상단 버튼
 
-- **⚡ Evaluate first** — 첫 URL을 Evaluate에서 엽니다.
-- **Scan** — 스캐너로 돌아가기.
+- **⚡ Evaluate first** — Evaluate 페이지에서 큐 첫 번째 URL을
+  열어 채점 준비.
+- **Scan** — 더 많은 URL이 필요하면 스캐너로 돌아가기.
 
 ---
 
 ## 9. Evaluate (`#/evaluate`)
 
-JD를 `cv.md`와 `config/profile.yml`에 대해 점수화. `modes/oferta.md`
-당 A–G 평가 + 0–5 점수 반환.
+단일 Job Description을 `cv.md`와 `config/profile.yml`에 대해
+채점합니다. `modes/oferta.md`에 따른 구조화된 A–G 평가와 0–5
+점수를 반환합니다.
 
 ### 입력
 
-JD를 textarea에 붙여넣거나 `#/pipeline`에서 `?url=…`로 도착.
+JD를 텍스트 영역에 붙여넣거나, `#/pipeline`에서 `?url=<href>`로
+이동합니다 — 페이지가 pipeline 미리보기와 동일한 SSRF-안전
+프록시를 통해 URL을 가져와 텍스트 영역에 미리 채웁니다.
 
-**💾 Save JD** → `jds/jd-<date>-<ts>.txt`에 저장.
+**💾 Save JD**를 클릭하면 JD가 감사 추적용으로
+`jds/jd-<date>-<ts>.txt`에 영속화됩니다 (API 호출에서 `save:
+true`도 동일 효과).
 
-### Fallback 체인
+### 폴백 체인
 
-1. **Anthropic** — `ANTHROPIC_API_KEY`가 설정되면 우선됨.
-   `bundleProjectContext`가 cv + profile + `_shared.md` +
-   `oferta.md`를 인라인. 각 파일 16 KB 캡, 프롬프트 soft-cap 200 KB.
-2. **Gemini** — `GEMINI_API_KEY`만 있을 때. `gemini-eval.mjs`
-   spawn.
-3. **Manual** — 키 없음. 페이지가 복사할 prompt 반환.
+1. **Anthropic** — `ANTHROPIC_API_KEY` 설정 시 선호. 서버는 프롬프트
+   앞에 `<project_context>` 블록으로 `cv.md`, `config/profile.yml`,
+   `modes/_shared.md`, `modes/oferta.md`를 묶습니다 (각 파일 16
+   KB, 전체 프롬프트 200 KB 소프트 캡). 페이지로 grounded
+   markdown을 직접 반환합니다.
+2. **Gemini** — `GEMINI_API_KEY`만 설정된 경우. 서버가 JD를 임시
+   파일로 두고 `gemini-eval.mjs`를 스폰합니다. 무료 티어 모델
+   (`gemini-2.0-flash`)도 일상적 채점에 충분합니다.
+3. **수동** — 키가 없을 때. 페이지가 Claude Code, ChatGPT 또는
+   다른 LLM에 붙여넣을 수 있는 완성된 프롬프트를 반환합니다.
 
-### 출력
+### 출력 섹션 (정식 career-ops.org A–F)
 
-A. Role Summary · B. CV Match · C. Strategy · D. Compensation · E.
-Personalization · F. STAR stories(score와 legitimacy는 리포트
-헤더로 이동). **v1.15.0부터 표준 A–F** — pre-v1.15의 A–G 리포트
-(C=Risks, F=Verdict, G=Legitimacy)는 그대로 렌더링합니다.
+> **v1.15.0 정렬.** 블록 글자가 이제
+> [정식 career-ops.org 스키마](https://career-ops.org/docs)와
+> 일치합니다. v1.15 이전 보고서는 A–G(`C=Risks`, `F=Verdict`,
+> `G=Legitimacy`)를 사용했으며 호환성을 위해 그대로 렌더링되지만,
+> 새 보고서는 아래 정식 의미의 A–F를 발행합니다. Score와
+> Legitimacy는 이제 보고서 헤더에 있습니다 (`score: 4.2/5`,
+> `legitimacy: High|Medium|Low`).
 
-**💾 Save report** → `reports/<date>-<company>-<role>.md`.
+A. **Role Summary** — 3불릿 요약 (리스크는 인라인으로 명시).
+B. **CV Match** — 매칭된 상위 3개 스킬 + 누락된 상위 3개.
+C. **Strategy** — 권장사항: 즉시 지원 / contacto 먼저 / deep
+먼저 / skip. v1.15 이전엔 `Risks`였음.
+D. **Compensation** — `target.comp_total_min_usd` (레거시) 또는
+`compensation.target_range` (정식) 대비.
+E. **Personalization** — 강조할 어프로치, archetype별 프레이밍,
+커버 레터 / outreach에서 언급할 후크. v1.15 이전엔 `Application
+Strategy`였음.
+F. **STAR stories** — 롤에 맞춘 즉시 붙여넣기 가능한 1–3개의
+S-T-A-R 블록. v1.15 이전엔 `Verdict` (원점수)였으며, score는 이제
+`legitimacy`와 함께 보고서 헤더에 표시됩니다.
+
+### 보고서 저장
+
+**💾 Save report**를 클릭하거나 API 호출의 save 토글을 사용하면
+마크다운이 `reports/<date>-<company>-<role>.md`에 영속화됩니다.
+보고서의 파싱된 헤더(Score / Legitimacy / URL)는 **Reports**
+페이지와 **Dashboard**에 나타납니다.
+
+### 10개 이상 JD가 있을 때는 배치 평가
+
+단일 JD라면 이 `#/evaluate` 페이지가 적절한 도구입니다.
+pipeline에 10개 이상 URL이 큐잉되었다면 JD별 클릭은 비현실적이니
+14절의 **Batch evaluate** 하위 절(부모에서 `./batch/batch-runner.sh`
+실행)로 점프해서 밤새 돌리고, `#/reports` / `#/tracker`에서
+결과를 확인하십시오. 전체 흐름:
+[batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers).
 
 ---
 
 ## 10. Reports (`#/reports`)
 
-저장된 모든 평가 탐색. 카드는 title, 날짜, legitimacy 플래그, 점수
-(녹색 ≥ 4.0, 노란색 ≥ 3.0, 빨간색 미만)를 표시. 페이지당 12개.
+저장된 모든 평가를 탐색합니다. 카드에는 제목, 날짜, legitimacy
+플래그, score (색상 코드: 초록 ≥ 4.0, 노랑 ≥ 3.0, 빨강 그 아래)가
+표시됩니다.
 
-단일 리포트 뷰: **← All reports**, **🔗 Open JD**.
+카드를 클릭하면 전체 마크다운을 읽을 수 있습니다. 페이지네이션:
+페이지당 12개, 하단에 컨트롤.
+
+단일 보고서 뷰에는 다음도 있습니다:
+
+- **← All reports** — 그리드로 돌아감.
+- **🔗 Open JD** — 원본 채용 공고를 새 탭에서 엽니다.
 
 ---
 
 ## 11. Tracker (`#/tracker`)
 
-CRM. 한 행 = 한 지원. `data/applications.md`에 GFM 테이블로 저장.
+CRM. 지원당 한 행. `data/applications.md`에 GitHub-Flavored
+Markdown 테이블로 존재합니다.
 
 ### 상태 흐름
 
 `Evaluated` → `Applied` → `Responded` → `Interview` → `Offer` /
-`Rejected` / `Discarded` / `SKIP`. 화이트리스트 서버 측 강제.
+`Rejected` / `Discarded` / `SKIP`.
 
-### 컬럼
+상태 허용 목록은 서버 측에서 강제됩니다. `POST /api/tracker`에서
+다른 값을 보내면 `Evaluated`로 기본 설정됩니다. 정식
+`Evaluated → Applied` 전환은 `/career-ops apply` 마지막에
+`Submitted.`를 확인할 때 자동입니다 (14절 참조).
 
-| 컬럼 | 의미 |
+### 컬럼 레이아웃
+
+| 컬럼 | 설명 |
 |---|---|
-| `#` | 자동 번호. |
-| `Date` | ISO. |
-| `Company` | 자유 텍스트. **파이프와 줄바꿈 이스케이프됨.** |
+| `#` | 자동 번호, 영 패딩 (`001`, `002`, …). |
+| `Date` | ISO 날짜 (`YYYY-MM-DD`). 기본 오늘. |
+| `Company` | 자유 텍스트. **파이프 (`\|`)와 개행은 자동 이스케이프됩니다.** |
 | `Role` | 동일. |
-| `Score` | `N/5`. |
-| `Status` | 화이트리스트. |
-| `PDF` | ✅ 성공 시. |
-| `Report` | `reports/*.md` 링크. |
-| `Notes` | 자유 텍스트, 최대 200자. |
+| `Score` | `N/5` 포맷 (예: `4.2/5`). |
+| `Status` | 허용 목록 enum. |
+| `PDF` | `generate-pdf.mjs`가 이 행에 대해 성공하면 ✅. |
+| `Report` | 대응하는 `reports/*.md`로의 마크다운 링크. |
+| `Notes` | 자유 텍스트, 200자 캡. |
 
 ### 필터
 
-Status, Score (`≥ 4.0`/`≥ 3.0`/`< 3.0`), Search. 페이지당 25행.
+- **Status** 드롭다운.
+- **Score** 드롭다운 — `≥ 4.0` (높음), `≥ 3.0` (중간),
+  `< 3.0` (낮음).
+- **Search** — 회사 + 롤에 대한 부분 문자열 일치.
 
-### 유지보수
+모든 필터는 페이지네이터를 1페이지로 리셋합니다. 페이지당 25행.
 
-- **▶ Normalize** / **▶ Dedup** / **▶ Merge**.
+### 유지보수 버튼
+
+- **▶ Normalize**는 `normalize-statuses.mjs`를 실행 — 상태
+  표기를 재정규화 (`applied` → `Applied`, `interview` →
+  `Interview`).
+- **▶ Dedup**은 `dedup-tracker.mjs`를 실행 — `(company, role)`
+  기준 대소문자 무시 중복 제거.
+- **▶ Merge**는 `merge-tracker.mjs`를 실행 —
+  `batch/tracker-additions/*.tsv` (부모의 배치 흐름이 Apply
+  헬퍼로 제출한 지원을 떨어뜨리는 곳)의 대기 항목을 가져옵니다.
+  중복을 제거하고 처리된 파일을 `batch/tracker-additions/merged/`로
+  아카이브합니다. 업스트림 배치 흐름은
+  [batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+  를 참조하십시오.
+
+### 행 추가
+
+`POST /api/tracker` — 바디 `{ company, role, score?, status?,
+url?, reportSlug?, notes?, date? }`. `(company, role)` 대소문자
+무시로 중복 제거. UI에서는 Evaluate 페이지가 채점 성공 후 "Add to
+tracker" 버튼을 제공합니다.
 
 ---
 
 ## 12. Deep research (`#/deep`)
 
-회사 구조화 브리프 생성: snapshot, 엔지니어링 문화, 최근 뉴스,
-Glassdoor 정서, 인터뷰 프로세스, 협상 레버리지, 리크루터에게 할 세
-가지 똑똑한 질문.
+구조화된 회사 브리프 생성: 스냅샷, 엔지니어링 문화, 최근 뉴스,
+Glassdoor 분위기, 인터뷰 프로세스, 협상 레버리지 포인트,
+리크루터에게 물어볼 스마트한 질문 3가지.
 
 ### 입력
 
-회사명 + (선택) 역할. `modes/deep.md` 템플릿이 구조를 결정.
+두 필드 — 회사 이름과 (선택) 롤. 구조를 형성하는 것은 모드
+템플릿(`modes/deep.md`)입니다.
 
 ### 출력 경로
 
-Evaluate와 동일한 fallback 체인:
+Evaluate와 동일한 폴백 체인:
 
-1. **Anthropic live** — `bundleProjectContext`가 cv + profile +
-   `_shared.md` + `deep.md` 인라인. 10–30 KB grounded markdown을
-   `interview-prep/<company>-<role>.md`에 저장.
-2. **Gemini live** — `gemini-eval.mjs`.
-3. **Manual** — Claude Code용 prompt (WebFetch + WebSearch로 실제
-   리서치).
+1. **Anthropic 라이브** (선호) — `bundleProjectContext`가
+   cv + profile + `_shared.md` + `deep.md`를 인라인. 출력:
+   `interview-prep/<company>-<role>.md`에 저장되는 10–30 KB의
+   grounded markdown.
+2. **Gemini 라이브** — `gemini-eval.mjs` 호출. 동일 저장 경로.
+3. **수동 프롬프트** — 페이지가 Claude Code (WebFetch + WebSearch가
+   있어 실제 리서치 가능)에 줄 준비된 프롬프트를 건넵니다.
 
 ### 팁
 
-- Anthropic `claude-sonnet-4-6`은 보통 1–3분에 ~13 KB.
-- 라이브 호출은 유료; 한 Sonnet 4.6 deep-research 호출 ≈ $0.30–0.50.
+- Anthropic `claude-sonnet-4-6`은 호출당 보통 1–3분에 약 13 KB의
+  유용한 텍스트를 반환합니다.
+- Anthropic SDK는 내장 웹 검색이 없습니다. 최신 뉴스 + Glassdoor
+  분위기가 필요한 롤은 수동 프롬프트를 Claude Code에 붙여넣어
+  WebFetch 툴을 사용하게 하십시오.
+- 라이브 실행은 과금됩니다. Sonnet 4.6 심층 리서치 호출 한
+  번에 약 $0.30–0.50.
 
 ---
 
-## 13. Mode prompts (일곱 페이지 `/#/<mode>`)
+## 13. 모드 프롬프트 (일곱 개 `/#/<mode>` 페이지)
 
-일곱 가지 prompt 빌더: **Project** 아이디어, **Training** 계획,
-**Follow-up** 이메일, **Batch** 평가, **Outreach** 리크루터에게,
-**Interview prep** one-pager, **Patterns** 회고. 각각
+일곱 개 프롬프트 빌더: **Project** 아이디어, **Training** 계획,
+**Follow-up** 이메일, **Batch** 평가, **Outreach**(리크루터에게),
+**Interview prep** 한 장 요약, **Patterns** 회고. 각각 특정
 `modes/<slug>.md` 템플릿을 감쌉니다:
 
-| 페이지 | Slug | 용도 |
+| 페이지 | Slug | 목적 |
 |---|---|---|
-| `#/project` | `project` | 타깃 역할에 맞춘 포트폴리오 프로젝트. |
-| `#/training` | `training` | 스킬 갭 분석 → 커리큘럼. |
-| `#/followup` | `followup` | 인터뷰 후 이메일 초안. |
-| `#/batch` | `batch` | 멀티 JD 배치 평가 prompt. |
-| `#/contacto` | `contacto` | 리크루터 / 추천 outreach 메시지. |
-| `#/interview-prep` | `interview-prep` | 특정 라운드 one-pager. |
-| `#/patterns` | `patterns` | "어떤 패턴이 나를 성공시켰는가?" |
+| `#/project` | `project` | 타깃 롤에 맞춘 포트폴리오 프로젝트 |
+| `#/training` | `training` | 스킬 갭 분석 → 커리큘럼 |
+| `#/followup` | `followup` | 인터뷰 후 이메일 초안 |
+| `#/batch` | `batch` | 다중 JD 배치 평가 프롬프트 |
+| `#/contacto` | `contacto` | 리크루터/추천 outreach 메시지 |
+| `#/interview-prep` | `interview-prep` | 특정 인터뷰 라운드 한 장 준비 |
+| `#/patterns` | `patterns` | "어떤 패턴이 나를 성공시켰나?" 반성적 분석 |
 
 ### 공통 형태
 
-각 페이지: 작은 form + **▶ Generate prompt** (manual) +
-**⚡ Run live** (키가 있을 때 primary).
+각 페이지에 모드별 소형 폼, **▶ Generate prompt** 버튼(수동),
+그리고 Anthropic 또는 Gemini 키가 있을 때 — 기본 액션으로 격상되는
+**⚡ Run live** 버튼이 있습니다.
 
-**▶ Generate prompt** → 사용자 form 값을 JSON으로 `User-supplied
-context:` 블록에 직렬화한 조립 prompt 반환.
+**▶ Generate prompt** 클릭은 폼 값을 `User-supplied context:`
+블록에 JSON 직렬화한 다음 `modes/<slug>.md` 템플릿을 그대로
+이어 붙인 조립된 프롬프트를 반환합니다. 선호하는 LLM에 복사해
+붙여넣으십시오.
 
-**⚡ Run live** → 같은 prompt를 Anthropic (또는 Gemini)에 전송, cv +
-profile + `_shared.md`가 `bundleProjectContext`로 인라인. 결과는
-페이지에서 렌더링되고 복사 가능, `.md`로 다운로드 가능.
+**⚡ Run live** 클릭은 동일 프롬프트를 Anthropic(또는 Gemini)에
+보내며, `cv.md` + `profile.yml` + `_shared.md`는
+`bundleProjectContext`로 인라인됩니다. 결과는 페이지에
+렌더링되고, 복사 가능하며, `.md`로 다운로드할 수 있습니다.
+
+이 일곱 페이지는 명시적 허용 목록입니다. 전용 라우트를 가진
+모드(`oferta` → Evaluate, `deep` → Deep research)와 부모
+프로젝트가 Claude Code 내부에서만 지원하는 모드(`apply`, `scan`,
+`pipeline`, `tracker`, `pdf`, `latex`, `ofertas`,
+`auto-pipeline`)는 의도적으로 이 UI에서 제외됩니다.
 
 ---
 
 ## 14. Apply checklist (`#/apply`)
 
-지원하기로 결정한 후 Apply helper 페이지가 제출 체크리스트를 생성.
-폼을 자동 채우지 **않음** — 그 흐름은 부모의 Playwright를 사용하는
-Claude Code의 `/career-ops apply`에 남습니다.
+지원을 결정한 다음 이 Apply 헬퍼 페이지가 실제 지원 단계용 제출
+체크리스트를 생성합니다. 폼을 자동 채우지는 **않습니다** — 그
+흐름은 부모 프로젝트에서 Playwright를 사용하는 Claude Code 내부의
+`/career-ops apply`에 남아 있습니다.
 
-체크리스트:
+### SPA 체크리스트 모드 (`#/apply`)
 
-0. Claude Code에서 `/career-ops apply <url>` 실행.
-1. 게시물이 여전히 활성인지 확인 (`check-liveness.mjs`).
-2. CV가 최신인지 확인 (`cv-sync-check.mjs`, score ≥ 4.0이면 PDF).
-3. cover letter / "Why us?" 답변을 `cv.md`의 STAR+R proof point로
+SPA의 체크리스트는 Playwright를 호출하지 않고 손으로 폼을 채우려는
+사용자를 위한 것입니다. 다음을 다룹니다:
+
+0. Claude Code에서 `/career-ops apply <url>`를 실행해 Playwright로
+   폼을 읽기 (손으로 채울 거면 이 단계 생략).
+1. 공고가 여전히 열려 있는지 확인 (`check-liveness.mjs`).
+2. CV가 최신인지 확인 (`cv-sync-check.mjs`, 점수 ≥ 4.0이면 PDF).
+3. `cv.md`의 STAR+R proof points로 커버 레터 / "Why us?" 답변
    맞춤화.
-4. EEO / 스폰서십 / 시작일 질문에 정직하게.
-5. 답변을 `interview-prep/{company}-{role}.md`에 저장 후 제출.
-6. **자동 제출 절대 안 됨** — 사람(당신)이 마지막 버튼 클릭.
-7. 제출 후: `data/applications.md`에 행 추가.
+4. EEO / 스폰서십 / 시작일 질문은 진실되게 답변.
+5. 제출 전에 채워진 답변을 `interview-prep/{company}-{role}.md`에
+   저장.
+6. **절대 자동 제출 금지** — 최종 버튼은 사람(여러분)이 클릭.
+7. 제출 후: `data/applications.md`에 행 추가 (또는
+   `batch/tracker-additions/`에 TSV 쓰기).
 
----
+### 수동 채우기 vs Playwright 보조
 
+실제 제출의 두 경로:
 
-### 전체 CLI apply 플로우 ([career-ops.org/docs/.../apply-for-a-job](https://career-ops.org/docs/introduction/guides/apply-for-a-job))
+- **수동** — 일반 브라우저 탭에서 채용 페이지를 열고, 위 SPA
+  체크리스트를 따르며, 답변을 복사/붙여넣기. Playwright 불필요.
+  폼이 짧거나 Chromium이 설치되어 있지 않을 때 사용.
+- **Playwright 보조** — Claude Code(부모 프로젝트)에서
+  `/career-ops apply <company>` 실행. Playwright가 자체 브라우저를
+  열고 모든 폼 필드를 읽으며 번호 매긴 초안 답변을 반환합니다.
+  Submit은 여전히 여러분이 클릭. 폼이 길거나 동적일 때, 또는 어떤
+  질문에 어떻게 답했는지 감사 추적이 필요할 때 사용.
 
-선행 조건: `/career-ops pipeline` 먼저(JD에 평가 리포트 필요); Playwright 설치(`npx playwright install chromium`) 권장; 없으면 WebFetch로 폴백.
+### 전체 CLI apply 흐름 ([apply-for-a-job](https://career-ops.org/docs/introduction/guides/apply-for-a-job))
 
-번호 매겨진 플로우:
+**선결 조건:**
 
-1. **명령 실행** `/career-ops apply <company>` (예: `/career-ops apply Anthropic`). 인수 없으면 다음 턴에 폼 스크린샷/텍스트/URL 제공.
-2. **Playwright가 브라우저 자동 오픈**하고 폼 읽음. 사용자가 브라우저를 직접 열지 않음.
-3. **초안 답변** 폼 필드 순서대로 번호 매겨진 리스트로 반환. 리포트의 proof points와 STAR stories에서 가져옴.
-4. **플래그된 항목** — salary anchor, 누락된 CV 필드, 선택적 질문 등 사람 검토 필요.
-5. **각 답변 검토**, 폼 채우고 **Submit은 본인이 클릭**. career-ops는 절대 Submit 누르지 않음.
-6. **제출 확인** 채팅에서: `Submitted.`
-7. **자동 업데이트** — `data/applications.md`에서 `Evaluated → Applied` 전환.
-8. **Tracker로 핸드오프:** `/career-ops tracker`.
+1. 먼저 `/career-ops pipeline`을 실행해서 JD가 `reports/`에 평가
+   보고서를 갖도록 합니다. apply 명령은 기존 평가에 의존합니다.
+   평가가 없다면 먼저 pipeline을 실행하십시오.
+2. 보고서와 프로필이 로드된 상태.
+3. **권장:** Playwright 설치
+   (`npx playwright install chromium` — 아래 Playwright Setup
+   참조). 누락 시 WebFetch로 폴백 (텍스트 전용 폼 미리보기, 클릭
+   채우기 없음).
 
-### Batch evaluate ([career-ops.org/docs/.../batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers))
+**번호 매긴 흐름** (정식 8단계):
 
-10개 이상 JD를 한 번에(`#/evaluate` 하나씩은 비현실적):
+1. **회사 이름과 함께 명령 실행:**
 
-1. `batch/batch-input.tsv`를 탭 구분 컬럼 `id | url | source | notes`로 편집. JD당 한 줄.
-2. Dry-run: `./batch/batch-runner.sh --dry-run`.
-3. 실행:
-
-   ```bash
-   ./batch/batch-runner.sh
-   ./batch/batch-runner.sh --parallel 2
-   ./batch/batch-runner.sh --parallel 3 --min-score 4.0
+   ```
+   /career-ops apply <company>
    ```
 
-4. 재시도: `./batch/batch-runner.sh --retry-failed --max-retries 3`.
-5. **Reports**는 `reports/`에(형식 `NNN-company-YYYY-MM-DD.md`); 요약은 `batch/tracker-additions/`.
-6. 머지: `node merge-tracker.mjs` (또는 `--dry-run`).
+   예: `/career-ops apply Anthropic`. 인자 없이 실행하면 다음 턴에
+   폼 스크린샷, 폼 텍스트 붙여넣기, 또는 지원 URL을 제공합니다.
 
-SPA가 결과 리포트를 `#/reports`에, 트래커 행을 `#/tracker`에 표시.
+2. **보고서 찾기.** 시스템이 `reports/`에서 매칭되는 평가
+   (앞서 `/career-ops pipeline` 또는 `#/evaluate`로 만든 것)를
+   찾습니다.
 
-### Playwright 설정 ([career-ops.org/docs/.../set-up-playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright))
+3. **폼 열기.** Playwright가 브라우저 창을 **자동으로** 띄웁니다 —
+   직접 여는 것이 아닙니다.
+
+4. **필드 읽기.** 시스템이 모든 폼 필드(레이블, 타입, 필수 여부,
+   select의 옵션)를 읽고 파싱합니다.
+
+5. **답변 생성.** career-ops가 프로필, proof points, 롤을 기반으로
+   각 필드에 대한 맞춤형 응답을 만듭니다.
+
+6. **번호 매긴 목록 반환.** 폼 레이아웃에 맞춰 답변이
+   정렬됩니다 — 단순 필드(이름, 이메일)부터, 자유 텍스트(커버
+   레터, "Why us?")는 마지막. 플래그 표시는 사람의 주의가 필요한
+   것 — 급여 앵커, 누락된 이력서 디테일, 선택 질문 — 을 가리킵니다.
+
+7. **수동 채우기.** 각 답변을 해당 필드에 복사/붙여넣습니다. 이
+   단계는 수동이며 자동화되지 않습니다. 모든 답변을 먼저
+   검토하십시오.
+
+8. **사용자가 제출.** Submit은 여러분이 직접 클릭합니다.
+   career-ops는 **절대로** Submit을 클릭하지 않습니다. 채팅에
+   다음을 입력해 완료를 확인합니다:
+
+   ```
+   Submitted.
+   ```
+
+**`Submitted.` 시 자동 갱신:**
+
+- `data/applications.md`에서 상태가 `Evaluated → Applied`로 전환.
+- 채워진 답변이 추후 참조용으로 보고서 G 섹션에 영속화.
+
+**Tracker로의 핸드오프:**
+
+```
+/career-ops tracker
+```
+
+롤 점수와 무관하게 전체 파이프라인 상태를 모니터링합니다.
+
+### Batch evaluate ([batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers))
+
+한 번에 채점할 JD가 10개 이상이라면 (SPA의 일대일 `#/evaluate`는
+그 볼륨에 비현실적입니다) CLI의 배치 러너를 사용하십시오.
+
+**입력 파일 — `batch/batch-input.tsv`** (탭 구분):
+
+| 컬럼 | 목적 |
+|---|---|
+| `id` | 고유 순차 번호 |
+| `url` | 전체 채용 공고 링크 |
+| `source` | 출처 플랫폼 (LinkedIn, Greenhouse 등) |
+| `notes` | 선택적 맥락 정보 |
+
+행 예시:
+
+```
+1<TAB>https://jobs.example.com/senior<TAB>LinkedIn<TAB>
+```
+
+**`./batch/batch-runner.sh` 플래그:**
+
+- `--dry-run` — 평가 없이 대기 중인 오퍼 미리보기. TSV를 검증할
+  때 항상 먼저 실행하십시오.
+- `--parallel N` — N개 워커를 동시 실행 (1, 2, 3 권장).
+- `--min-score X.X` — 임계값 미만 점수의 오퍼는 영속화 건너뜀.
+  적합도 높은 롤의 보고서만 보관할 때 유용.
+- `--retry-failed` — 이전 실행에서 오류 난 오퍼(네트워크 실패,
+  레이트 리밋)만 재처리.
+- `--max-retries N` — 실패한 오퍼를 최대 N번 재시도 (기본 2).
+
+**표준 시퀀스:**
+
+1. **편집** `batch/batch-input.tsv` — JD당 한 행.
+
+2. **Dry-run** (먼저 권장):
+
+   ```bash
+   ./batch/batch-runner.sh --dry-run
+   ```
+
+3. **실행** — 순차 또는 병렬:
+
+   ```bash
+   ./batch/batch-runner.sh                       # 하나씩
+   ./batch/batch-runner.sh --parallel 2          # 두 개 동시
+   ./batch/batch-runner.sh --parallel 3          # 세 개 동시
+   ./batch/batch-runner.sh --parallel 2 --min-score 4.0  # 적합도 높은 것만 영속화
+   ```
+
+4. **실패 재시도** (네트워크 / 레이트 리밋):
+
+   ```bash
+   ./batch/batch-runner.sh --retry-failed --max-retries 3
+   ```
+
+5. **Reports**는 `reports/`에
+   `{id}-{company}-{YYYY-MM-DD}.md` 형태로 저장됩니다. 요약 행이
+   `batch/tracker-additions/`에 append됩니다.
+
+6. **Tracker로 병합:**
+
+   ```bash
+   node merge-tracker.mjs                 # 배치 추가분 적용
+   node merge-tracker.mjs --dry-run       # 병합 미리보기
+   ```
+
+   병합 명령은 항목을 중복 제거하고 처리된 파일을
+   `batch/tracker-additions/merged/`로 아카이브합니다.
+
+SPA는 결과 보고서를 `#/reports`(페이지네이션, 점수 필 색상)에,
+tracker 행을 `#/tracker`에 노출합니다 — 마치 `#/evaluate`로 각각
+추가한 것과 동일합니다. CLI로 내려가는 것을 선호하지 않는다면
+`#/tracker`의 **▶ Merge** 유지보수 버튼과 짝지어 사용하십시오.
+
+### Playwright Setup ([set-up-playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright))
+
+두 가지 career-ops 기능에 필수:
+
+- **폼 채우기**: `/career-ops apply` 내부 (위 3단계 — Playwright가
+  브라우저를 열고 필드 레이블을 읽으며 답변을 제안합니다).
+- **PDF 생성**: `/career-ops pdf` 및 `#/cv` / `#/reports/:slug` /
+  `#/evaluate` / `#/deep` / `#/interview-prep`의 SPA
+  **📄 Generate PDF** 버튼.
+
+**Playwright가 없을 때의 폴백:** apply 흐름은 WebFetch로
+폴백합니다 (텍스트 전용 폼 미리보기, 클릭 채우기 없음). PDF
+생성은 그냥 오류가 납니다.
+
+**기본 설정 (career-ops 부모 루트에서 실행):**
 
 ```bash
+# Playwright용 Chromium 설치
 npm install
 npx playwright install chromium
+
+# Claude Code가 폼을 구동할 수 있도록 Playwright MCP 등록
 claude mcp add playwright npx @playwright/mcp@latest
+
+# 세 컴포넌트(Chromium, Playwright lib, MCP) 모두 검증
 npm run doctor
 ```
 
-MCP 대체 등록은 `.claude/settings.local.json`:
+**대안 MCP 등록** — `.claude/settings.local.json`에 추가:
 
 ```json
-{ "mcpServers": { "playwright": { "command": "npx", "args": ["-y", "@playwright/mcp@latest"] } } }
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    }
+  }
+}
 ```
+
+**동작 노트:**
+
+- **기본 헤드리스.** Playwright는 조용히 동작합니다. 브라우저를
+  실제로 보고 싶다면 Claude에게 `open up with playwright the
+  browser and fill out the entire form.`이라고 지시하십시오.
+- **한 패키지 안의 세 가지 역할** — Playwright npm 설치는
+  브라우저 자동화 라이브러리, `/career-ops pdf`용 PDF 렌더링
+  엔진, 그리고 (MCP를 통해) Claude Code 안의 폼 채우기 워크플로를
+  모두 제공합니다.
+- **신뢰하기 전에 검증** — `npm run doctor`가 세 가지가 모두
+  작동함을 확인합니다. SPA의 Health 페이지는 누락 시 빠르게
+  실패하는 `Playwright (parent node_modules)` 체크를 노출합니다.
 
 ---
 
 ## 15. 인터뷰 준비
 
-post-research, pre-interview 단계. 이 앱의 세 가지 아티팩트가
-수렴:
+리서치 이후, 인터뷰 이전 단계. 이 앱의 세 가지 산출물이 수렴합니다:
 
-1. **저장된 deep-research 파일** — `interview-prep/`. Deep research
-   페이지에서 검색.
-2. **Patterns mode** (`#/patterns`) — "최근 N 인터뷰 / 오퍼 / 거절을
-   가로질러 어떤 패턴이 유지되는가?" 5+ tracker 행이 있을 때 유용.
-3. **Interview-prep mode** (`#/interview-prep`) — 다가오는 특정
-   라운드(behavioral, technical, system design)를 위한 one-pager
-   사전 작성.
+1. **저장된 심층 리서치 파일**: `interview-prep/` 아래, 실행한
+   회사-롤 쌍마다 하나. **Deep research** 페이지에서 또는 직접
+   `/api/interview-prep`로 탐색.
+2. **Patterns 모드** (`#/patterns`) — 자기 성찰 프롬프트 생성:
+   "지난 N건의 인터뷰 / 오퍼 / 거절을 가로질러 어떤 패턴이
+   있는가?" tracker 행이 5개 이상 쌓였을 때 유용.
+3. **Interview-prep 모드** (`#/interview-prep`) — 다가오는 특정
+   라운드(behavioral, technical, system design)를 위한 한 장
+   요약을 미리 채워줍니다. 출력은 동일한 `interview-prep/`
+   폴더로 떨어집니다.
 
 ### 권장 워크플로
 
-각 인터뷰:
+예약된 각 인터뷰에 대해:
 
-1. 전날 Deep을 다시 실행하거나 저장된 파일 열기.
-2. `#/interview-prep` — 특정 라운드용 one-pager 생성.
-3. System design / coding — `#/training`에서 30분 타깃 리프레셔.
-4. Compensation — deep-research 파일 열고 "Negotiation leverage
-   points"로 점프. 2–3 datapoint(Glassdoor 밴드, 최근 펀딩, 비교
-   가능한 오퍼)를 가져옵니다.
-5. Behavioral — `cv.md`에서 STAR+R 스토리를 꺼내 원래 Evaluate
-   리포트의 B 섹션에 들어가게 합니다.
+1. **Deep을 재실행** (또는 저장 파일 열기)을 전날 수행.
+2. **`#/interview-prep`** — 해당 라운드용 한 장 요약 생성. 메모에
+   붙여넣기.
+3. **System design / 코딩 라운드** — `#/training`을 열어 JD가
+   강조하는 특정 서브시스템에 대한 30분 타깃 복습 요청.
+4. **보상 라운드** — 심층 리서치 파일을 열고 "Negotiation
+   leverage points"로 이동. 2–3개의 구체적 데이터 포인트
+   (Glassdoor 밴드, 최근 펀딩, 다른 회사의 비교 가능 오퍼)
+   준비.
+5. **Behavioral 라운드** — 원본 Evaluate 보고서 B 섹션에 들어간
+   `cv.md`의 STAR+R 스토리를 꺼내기.
 
 인터뷰 직후:
 
-1. tracker 행 업데이트: status → `Responded` (이후 `Interview`,
-   `Offer`).
-2. `#/followup`을 실행하여 thank-you 이메일 초안.
-3. 새 정보(보상 범위, 팀 구성, 예상치 못한 tech stack)가 있으면
-   `interview-prep/<company>-<role>.md`에 `## Post-round notes`로
-   편집.
+1. tracker 행 갱신: 상태 → `Responded` (그 다음 `Interview`,
+   `Offer` 등).
+2. `#/followup` 실행 — 감사 이메일 초안 작성.
+3. 새 정보(보상 범위, 팀 구성, 기술 스택의 의외성)를 얻었다면,
+   저장된 `interview-prep/<company>-<role>.md`에 `## Post-round
+   notes`로 편집해 둬서 미래의 자신이 가질 수 있게 하십시오.
 
 ---
 
-## 16. Activity 로그 + 트러블슈팅
+## 16. Activity log + 문제 해결
 
-### Activity 로그 (`#/activity`)
+### Activity log (`#/activity`)
 
-서버에 도달하는 모든 state-changing 요청의 audit trail. 시크릿
-(`ANTHROPIC_API_KEY`, `GEMINI_API_KEY`)은 진입 시 redact —
-`data/activity.jsonl`에서 실제 키 값을 절대 볼 수 없습니다.
+서버에 도달하는 모든 상태 변경 요청의 감사 추적. 기록:
+pipeline 추가, tracker 쓰기, CV 저장, JD 저장, evaluate 실행,
+deep research 실행, scan 실행, 설정 변경, 모드 실행.
 
-action prefix로 필터(`pipeline.`, `cv.`, `evaluate`, `scan.`).
-페이지당 25행; 서버는 최대 500개의 가장 최근 이벤트를 반환.
+비밀(`ANTHROPIC_API_KEY`, `GEMINI_API_KEY`)은 들어오는 과정에서
+편집됩니다. `data/activity.jsonl`에서 실제 키 값을 보는 일은
+없습니다.
 
-### 트러블슈팅
+액션 프리픽스 (`pipeline.`, `cv.`, `evaluate`, `scan.` 등)로
+필터링. 페이지당 25행. 서버는 가장 최근 이벤트 최대 500개를
+반환합니다.
+
+### 문제 해결
 
 | 증상 | 가능한 원인 | 해결 |
 |---|---|---|
-| Health가 `cv.md`에서 빨강 | 첫 실행, 파일 없음 | `touch $CAREER_OPS_ROOT/cv.md` + refresh. |
-| `Profile customized`가 빨강 | `full_name`이 여전히 `Jane Smith` | `config/profile.yml` 편집. |
-| `hh.ru: HTTP 403` | 비-러시아 IP, `(server uses default UA)` 없음 | `dev.hh.ru/admin`에 등록, `(server uses default UA)` 설정. |
-| `gemini-eval.mjs: ERR_MODULE_NOT_FOUND` | 부모 deps 미설치 | `cd $CAREER_OPS_ROOT && npm install`. |
-| Generate PDF 에러 | Playwright 미설치 | `npx playwright install chromium`. |
-| `EADDRINUSE: 4317` | 옛 인스턴스 실행 중 | `pkill -f 'node server/index.mjs'`. |
-| 라이브 LLM 호출 2분 이상 멈춤 | 거대한 prompt 또는 Anthropic 느림 | soft-cap 200 KB → 413. |
-| Pipeline 미리보기 `(unsafe redirect)` | 게시물이 사설 IP / loopback으로 리다이렉트 | 보안 기능 (REVIEW-B1). |
-| Tracker 행이 테이블 깨뜨림 | v1.9.1 이전 파이프 | v1.9.1+로 업데이트 (BF-1). |
-| `npm test` fresh clone에서 실패 | 테스트가 부모 레이아웃 가정 | `CAREER_OPS_ROOT=$(mktemp -d)`. |
+| Health 페이지에서 `cv.md`가 빨강 | 최초 실행, 파일 아직 없음 | `touch $CAREER_OPS_ROOT/cv.md` 후 새로고침. |
+| `Profile customized`가 빨강 | `candidate.full_name`이 여전히 `Jane Smith` | `config/profile.yml` 편집. |
+| 스캔 로그에 `hh.ru: HTTP 403` | 러시아 외부 IP, `(서버가 기본 UA 사용)` 미설정 | `dev.hh.ru/admin`에 등록, 러시아 IP / VPN 사용. |
+| `gemini-eval.mjs: ERR_MODULE_NOT_FOUND` | 부모 프로젝트 의존성 미설치 | `cd $CAREER_OPS_ROOT && npm install`. |
+| Generate PDF 오류 | 부모에 Playwright 미설치 | `cd $CAREER_OPS_ROOT && npx playwright install chromium`. |
+| `/career-ops apply`가 "no report found"라 함 | Pipeline이 이 JD를 채점한 적 없음 | `/career-ops pipeline` (또는 `#/evaluate`) 먼저 실행. 14절 선결 조건 참조. |
+| `batch-runner.sh: no such file` | 잘못된 디렉터리에서 실행 | `./batch/batch-runner.sh` 호출 전에 `cd $CAREER_OPS_ROOT`. |
+| 서버가 `EADDRINUSE: 4317` 보고 | 기존 인스턴스 실행 중 | `pkill -f 'node server/index.mjs'` 후 재시작. |
+| 라이브 LLM 호출이 2분 이상 멈춤 | 프롬프트가 거대하거나 Anthropic이 느림 | `/api/health`의 Anthropic 플래그 확인. 서버는 프롬프트를 200 KB 소프트 캡으로 자르고 413을 반환합니다. |
+| Pipeline 미리보기에 `(unsafe redirect)` | 공고가 사설 IP / loopback으로 리디렉트 | 보안 기능입니다(REVIEW-B1). 리디렉트 타깃은 거부되고 원본 URL은 변경되지 않습니다. |
+| Tracker 행이 테이블을 깨뜨림 | v1.9.1 이전의 회사 이름 파이프 | v1.9.1+로 업데이트 — 파이프는 종단 간 이스케이프됩니다 (BF-1). |
+| 신선한 클론에서 `npm test` 실패 | 테스트가 부모 프로젝트 레이아웃 가정 | `CAREER_OPS_ROOT=$(mktemp -d)` 사용 및 픽스처 부트스트랩. |
 
-심층 진단: Health에서 **▶ Doctor** 실행하고 출력을 복사해서
-<https://github.com/Fighter90/career-ops-ui/issues>에서 검색.
+더 깊은 진단: Health 페이지에서 **▶ Doctor** 실행, 출력 복사,
+<https://github.com/Fighter90/career-ops-ui/issues>의 이슈
+트래커에서 검색하십시오.

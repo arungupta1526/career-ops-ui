@@ -1,59 +1,124 @@
 # Ayuda — career-ops-ui
 
-Recorrido completo por cada página, desde el primer arranque hasta la
-preparación para entrevistas. Cada `##` corresponde a una entrada del
-sidebar o a una fase del flujo. Lea de arriba a abajo en el primer
-arranque; después salte a la sección que necesite mediante el TOC.
+Recorrido completo por cada página, desde el momento en que arrancas
+la app hasta conseguir una entrevista. Cada encabezado `##` de abajo
+corresponde a una entrada del sidebar o a una fase del workflow. Lee
+de arriba a abajo en el primer arranque; después salta a la sección
+concreta vía el índice del sidebar de ayuda.
 
-> **Para quién:** quien acaba de poner este UI dentro de un checkout
-> de `career-ops` y ejecutó `bash bin/start.sh`. No se asume
-> conocimiento previo.
-
+> **Audiencia:** cualquiera que acaba de poner este UI dentro de un
+> checkout de `career-ops` y ejecutó `bash bin/start.sh`. No se asume
+> conocimiento previo de career-ops.
 
 ### Sobre career-ops
 
-[career-ops](https://career-ops.org) es un sistema open-source de búsqueda de empleo que corre como slash-comandos dentro de cualquier CLI de codificación con IA (Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot CLI). Modelo-agnóstico. Evalúa cada puesto contra tu CV con una rúbrica de seis dimensiones 0.0–5.0, genera CVs PDF adaptados, y registra cada solicitud localmente.
+[career-ops](https://career-ops.org) es un sistema open-source de
+búsqueda de empleo que se ejecuta como slash-comandos dentro de
+cualquier CLI de codificación con IA (Claude Code, Codex, Cursor,
+Gemini CLI, GitHub Copilot CLI). Modelo-agnóstico. Evalúa cada puesto
+contra tu CV con una rúbrica de seis dimensiones 0.0–5.0, genera CVs
+PDF adaptados, y registra cada candidatura localmente en tu máquina.
 
-**Principios** (de [career-ops.org/docs](https://career-ops.org/docs)):
+**Referencia canónica (léela en orden en la primera instalación):**
 
-- **Open source, en serio** — MIT, sin tier de pago, sin lista de espera, sin telemetría, sin cuentas.
-- **Soberanía de datos** — `cv.md`, `config/profile.yml`, `data/`, `reports/`, `interview-prep/` no salen de tu máquina salvo que las subas explícitamente.
-- **El humano envía** — career-ops redacta las respuestas y abre el formulario, pero **tú haces clic en Submit**. Nunca auto-aplica.
-- **Búsqueda estructurada** — pensado para búsqueda activa y deliberada, no es un motor de recomendaciones.
+- [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
+  — el sistema, los principios y el inventario de conceptos.
+- [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
+  — descubre vacantes; alimenta el Pipeline.
+- [Apply for a job](https://career-ops.org/docs/introduction/guides/apply-for-a-job)
+  — flujo de envío completo con la lectura de formularios de Playwright.
+- [Batch-evaluate offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+  — puntúa 10+ JDs a la vez vía `batch-runner.sh`.
+- [Set up Playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright)
+  — instala Chromium + registra el MCP para PDF y form-fill.
 
-**Conceptos clave**
+**Principios fundamentales** (de
+[career-ops.org/docs/introduction/what-is-career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)):
+
+- **Open source, en serio** — MIT, sin tier de pago, sin lista de
+  espera, sin telemetría, sin cuentas. El sistema funciona sin niveles
+  de pago, cuentas ni telemetría. Las contribuciones de código pasan
+  revisión comunitaria antes del release.
+- **Soberanía de datos** — `cv.md`, `config/profile.yml`, `data/`,
+  `reports/`, `interview-prep/` nunca salen de tu portátil salvo que
+  los subas explícitamente. Lo ejecutas en local, conservando la
+  soberanía total de tus datos.
+- **Arquitectura AI-agnóstica** — career-ops NO empaqueta un modelo.
+  Funciona como comandos dentro de las CLIs de codificación con IA
+  existentes. Cambia de proveedor (Anthropic ↔ Gemini ↔ OpenAI) y tu
+  historial de evaluaciones se mantiene consistente.
+- **Envío controlado por humanos** — career-ops redacta las respuestas
+  y abre el formulario, pero **tú haces clic en Submit**. El sistema
+  jamás auto-aplica. Aporta estructura y evaluación; el humano
+  conserva la autoridad final sobre el envío.
+- **Búsqueda estructurada** — pensado para una búsqueda activa y
+  deliberada con muchas candidaturas; no es una herramienta de envío
+  único ni un motor de recomendaciones. La instalación lleva ~15
+  minutos y asume soltura con la terminal.
+
+**Lo que career-ops NO es** (no-objetivos explícitos):
+
+- No es un auto-applier. No enviará formularios por ti.
+- No es un reconstructor de currículum. Adapta por JD; no inventa
+  experiencia.
+- No es un optimizador de LinkedIn. Tu perfil es asunto tuyo.
+- No es un sustituto de hoja de cálculo escondido tras un UI SaaS. Los
+  datos son markdown plano en tu sistema de archivos.
+
+**Conceptos clave** (inventario completo — cada artefacto que
+career-ops toca):
 
 | Concepto | Qué es |
 |---|---|
-| **Mode** | Plantilla de prompt bajo `modes/<slug>.md`. Built-in: `oferta`, `deep`, `apply`, `pipeline`, `batch`, `contacto`, `followup`, `interview-prep`, `patterns`, `project`, `training`. |
-| **Arquetipo** | Perfil de rol objetivo en `config/profile.yml`. La rúbrica pondera coincidencias de skills contra el arquetipo activo — **el campo más importante**. |
+| **Mode** | Plantilla de prompt bajo `modes/<slug>.md`. Built-in: `oferta`, `deep`, `apply`, `pipeline`, `batch`, `contacto`, `followup`, `interview-prep`, `patterns`, `project`, `training`, `ofertas`, `auto-pipeline`, `pdf`, `latex`, `scan`, `tracker`. |
+| **Arquetipo** | Un perfil de rol objetivo en `config/profile.yml`. La rúbrica pondera coincidencias de skills contra el arquetipo activo — **el campo más importante**. |
 | **Pipeline** | `data/pipeline.md` — inbox de URLs de JD pendientes de evaluación. |
-| **Tracker** | `data/applications.md` — tabla GFM histórica de cada evaluación y estado de aplicación. |
-| **Report** | `reports/<NNN>-<company>-<DATE>.md` — evaluación A–G completa por JD, con score + legitimidad. |
+| **Tracker** | `data/applications.md` — tabla GFM histórica de cada evaluación + estado de candidatura. |
+| **Report** | `reports/<NNN>-<company>-<DATE>.md` — evaluación A–F completa por JD, con puntuación + legitimidad en el header. |
 | **Scan history** | `data/scan-history.tsv` — log append-only; previene duplicados entre scans. |
+| **Proof points** | Bloques de evidencia STAR+R extraídos de `cv.md`, reutilizados a través de evaluación, respuestas de apply y preparación de entrevistas. |
+| **JD store** | `jds/jd-<date>-<ts>.txt` — descripciones de empleo verbatim guardadas durante la evaluación para el audit trail. |
+| **Interview-prep** | `interview-prep/<company>-<role>.md` — briefings de deep research y one-pagers por ronda. |
+| **Batch additions** | `batch/tracker-additions/*.tsv` — filas pendientes encoladas por `batch-runner.sh` para su merge al tracker. |
 
 ### career-ops vs career-ops-ui (esta app)
 
 | | career-ops (CLI) | career-ops-ui (esta app) |
 |---|---|---|
 | Dónde corre | dentro de Claude Code / Codex / Cursor / Gemini CLI | `http://127.0.0.1:4317` en tu navegador |
-| Superficie | slash-comandos `/career-ops <mode>` | sidebar, una página por workflow |
-| Form-fill | sí, vía Playwright MCP | no — genera el checklist, tú lo completas en el CLI |
+| Superficie | slash-comandos `/career-ops <mode>` | sidebar con una página por workflow |
+| Form-fill | sí, vía Playwright MCP | no — genera la checklist, tú la completas en el CLI |
 | PDF | `generate-pdf.mjs` | `📄 Generate PDF` en `#/cv`, `#/reports/:slug`, `#/evaluate`, `#/deep`, `#/interview-prep` |
 | Archivos de datos | compartidos con career-ops-ui | compartidos con career-ops |
 
-### Umbrales de acción por score
+career-ops-ui son **puramente adiciones**. Nada dentro de
+`career-ops/` cambia. Ambas superficies comparten el mismo `cv.md`,
+`config/profile.yml`, `portals.yml`, `data/`, `reports/`,
+`interview-prep/`, `modes/`.
 
-| Score | Siguiente paso |
+### Umbrales de acción por puntuación
+
+Una vez que un JD tiene una evaluación, la puntuación determina qué
+hacer a continuación (tabla canónica de
+[career-ops.org/docs/introduction/what-is-career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)):
+
+| Puntuación | Siguiente paso |
 |---|---|
-| **≥ 4.5** | Ejecuta `/career-ops apply` — alto fit, aplica de inmediato. |
+| **≥ 4.5** | Ejecuta `/career-ops apply` — fit alto, envía de inmediato. |
 | **4.0 – 4.4** | Aplica, o `/career-ops contacto` para warm intro primero. |
-| **3.5 – 3.9** | Ejecuta `/career-ops deep` — investiga la empresa/rol antes de decidir. |
-| **< 3.5** | Salta salvo razón específica. |
+| **3.5 – 3.9** | Ejecuta `/career-ops deep` — investiga la empresa / rol antes de decidir. |
+| **< 3.5** | Salta salvo que tengas un motivo personal específico. |
+
+El `#/dashboard` y el `#/tracker` de career-ops-ui resaltan cada fila
+en 4.0 o por encima para que puedas tomar acción sin re-ejecutar
+nada.
 
 ### Documentación externa
 
-Referencia completa del motor career-ops (scanning, rúbrica, batch, apply, Playwright) en [career-ops.org/docs](https://career-ops.org/docs):
+Referencia completa del motor career-ops subyacente (scanning, rúbrica
+de evaluación, procesamiento batch, flujo de apply, setup de
+Playwright) en
+[career-ops.org/docs](https://career-ops.org/docs):
 
 - [What is career-ops](https://career-ops.org/docs/introduction/what-is-career-ops)
 - [Scan job portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
@@ -65,173 +130,335 @@ Referencia completa del motor career-ops (scanning, rúbrica, batch, apply, Play
 
 ## 1. Inicio rápido — paso a paso de "crear CV" hasta "postulado y mensajeado"
 
-Playbook canónico botón-por-botón. Sígalo en orden la primera vez.
+Este es el playbook canónico botón-por-botón. Síguelo en orden la
+primera vez. Cada paso nombra la ruta exacta, el botón exacto, y qué
+verás al éxito. Las secciones 2–16 entran en profundidad en cada fase.
 
-**A. Configuración (una sola vez, ~5 min)**
+### A. Configuración (haz esto una vez, ~5 minutos)
 
-1. Abrir `http://127.0.0.1:4317` (o `bash bin/start.sh` desde la raíz).
-2. Sidebar **❤ Health** → todos los chequeos requeridos en verde.
-3. Sidebar **⚒ App settings** → pestaña *API keys & runtime* → pegar
-   `ANTHROPIC_API_KEY` y/o `GEMINI_API_KEY` → **💾 Save** →
-   **▶ Test Anthropic / Gemini**.
-4. Misma página → pestaña *Profile* → editar `candidate.full_name`,
-   `email`, `target.roles`, `target.comp_total_min_usd`,
-   `target.archetypes` → **💾 Save**.
+**Paso 1 — Abre la app en `http://127.0.0.1:4317`.** Si no está
+corriendo, en una terminal ejecuta `bash bin/start.sh` desde la raíz
+del repo. Carga el Dashboard (`#/dashboard`).
 
-**B. CV (una sola vez, ~10 min)**
+**Paso 2 — Haz clic en `❤ Health` en el sidebar izquierdo.** Cada
+check requerido debe estar en verde:
 
-5. Sidebar **✎ CV** — abrir el editor.
-6. Botón **📁 Upload CV** → subir `.docx/.doc/.odt/.rtf/.pdf/.html
-   /.txt/.md` (servidor convierte y sanitiza); o pegar markdown.
-7. **💾 Save** (top-right) — toast "Saved".
-8. (Opcional) **📄 Generate PDF** — el PDF más reciente se descarga
-   automáticamente al terminar.
+- Existen `cv.md`, `config/profile.yml`, `portals.yml`
+- API key configurada (al menos una de `ANTHROPIC_API_KEY` /
+  `GEMINI_API_KEY`)
+- Playwright instalado (solo necesario si vas a usar Generate PDF)
 
-**C. Encontrar vacantes (~2 min por scan)**
+Si algo está en rojo, la página te indica el archivo o variable de
+entorno exacta a arreglar. No continúes hasta que Health esté verde.
 
-9. Sidebar **🌐 Scan** → **🌐 Scan now** → log SSE en vivo.
-10. Click en un tag de empresa filtra; ↗ abre la página de carreras.
+**Paso 3 — Haz clic en `⚒ App settings` en el sidebar.** Aterrizas en
+la pestaña **API keys & runtime**.
+- Pega `ANTHROPIC_API_KEY` (preferida — mejor scoring de formato
+  largo) y/o `GEMINI_API_KEY`. Obtén las claves en
+  <https://console.anthropic.com/settings/keys> o
+  <https://aistudio.google.com/apikey>.
+- Haz clic en **💾 Save**. Después haz clic en **▶ Test Anthropic**
+  (o Gemini) — un round-trip diminuto confirma que la clave funciona.
 
-**D. Puntuar (~30 s por JD)**
+**Paso 4 — Cambia a la pestaña `Profile` en la misma página.** Es el
+editor YAML directo para `config/profile.yml`. Edita como mínimo:
+- `candidate.full_name` — reemplaza cualquier placeholder ("Jane
+  Smith") por tu nombre real
+- `candidate.email`, `linkedin`, `github` — se usan en cover letters
+- `target.roles` — los títulos de empleo a los que aplicarás
+- `target.comp_total_min_usd` — compensación total mínima; las
+  ofertas por debajo se marcan en la sección D de cada evaluación
+- `target.archetypes` — los patrones de carrera que aceptas (el campo
+  individual de mayor impacto)
 
-11. Sidebar **Pipeline** — click en una entrada para preview del JD.
-12. **▶ Evaluate** junto al JD → modelo puntúa 0–5 → reporte en
-    `reports/<fecha>-<slug>.md`.
-13. Sidebar **Reports** — revisar el reporte; pursuables = short-list.
+Haz clic en **💾 Save**. El servidor valida el YAML y estampa el
+encabezado canónico `# Career-Ops Profile Configuration`.
 
-**E. Decidir + investigar a fondo (~3 min)**
+### B. CV (haz esto una vez, ~10 minutos)
 
-14. Sidebar **Deep research** → empresa + rol → brief de 7 secciones,
-    guardado en `interview-prep/<empresa>-<rol>.md`.
+**Paso 5 — Haz clic en `✎ CV` en el sidebar.** Dos columnas: editor a
+la izquierda, vista previa en vivo a la derecha.
 
-**F. Postular (~5 min por aplicación)**
+**Paso 6 — Elige una ruta para llenar el editor:**
+- **Sube un currículum existente** — haz clic en **📁 Upload CV**,
+  elige cualquiera de `.docx / .doc / .odt / .rtf / .pdf / .html /
+  .txt / .md`. El servidor convierte a markdown vía pandoc o
+  pdftotext, sanea XSS, y coloca el resultado en el editor. **Revisa
+  la conversión** — los PDFs especialmente pueden perder fidelidad de
+  layout.
+- **Pega markdown directamente** — el textarea es un editor markdown;
+  el panel derecho es lo que verá el LLM (y tu futuro reclutador).
+- **Tips de tono:** un bullet = un logro con métrica. Mantén por
+  debajo de 1500 palabras. Secciones en este orden: Summary,
+  Experience, Projects, Education, Skills.
 
-15. Sidebar **Apply checklist** → URL + JD → checklist (cover letter,
-    keywords, archivos, **NUNCA auto-submit**).
-16. Abrir la página de carreras en pestaña nueva → enviar manualmente.
-17. Sidebar **Outreach** (`#/contacto`) → mensaje LinkedIn / email
-    desde el brief de paso 14 → personalizar y enviar.
+**Paso 7 — Haz clic en `💾 Save` (arriba a la derecha de la página
+CV).** El servidor sanea (se eliminan `<script>` / `javascript:` /
+manejadores inline) y escribe `cv.md`. Toast: *"Saved"*.
 
-**G. Trackear y follow-up (continuo)**
+**Paso 8 (opcional) — Haz clic en `📄 Generate PDF`.** Ejecuta
+`generate-pdf.mjs` en el padre (Playwright requerido) y **el PDF nuevo
+se descarga automáticamente** en tu navegador al terminar. La lista al
+final de la página conserva cada archivo previamente generado.
 
-18. Sidebar **Tracker** → fila: empresa, rol, score, status `Applied`,
-    enlaces al reporte y al brief.
-19. Una semana después: modo **Follow-up** → check-in → status
-    `Followed up`.
-20. Invitación a entrevista: modo **Interview prep** → preparación
-    para system design / behavioral / coding.
-21. Oferta: actualizar Tracker a `Offer` y revisar la sección comp del
-    reporte.
+### C. Encontrar vacantes (~2 minutos por scan)
 
-**TL;DR — el orden del sidebar coincide con el workflow:**
-Health → App settings → Profile → CV → Scan → Pipeline → Evaluate →
-Reports → Deep research → Apply checklist → Outreach → Tracker →
-Follow-up → Interview prep → Activity log.
+**Paso 9 — Haz clic en `🌐 Scan` en el sidebar.** Confirma que
+`portals.yml` lista los boards que te interesan (sección 5 de esta
+ayuda). Pulsa el botón **🌐 Scan now**. Un log SSE en vivo se va
+mostrando mientras el scanner recorre Greenhouse / Ashby / Lever /
+Workable / SmartRecruiters / Workday (boards en inglés) y hh.ru / Habr
+Career (boards rusos, si están habilitados).
+
+**Paso 10 — Cuando termine el scan, revisa los resultados.** Haz clic
+en cualquier tag de empresa para filtrar; haz clic en el icono ↗ para
+abrir la página de carreras de la empresa en una pestaña nueva. Cada
+vacante que sobrevivió al filtro de título queda encolada en el
+Pipeline.
+
+### D. Puntuar las ofertas (~30 segundos por JD)
+
+**Paso 11 — Haz clic en `Pipeline` en el sidebar.** Ves cada URL que
+el scanner encoló. Haz clic en una entrada para vista previa del JD
+inline.
+
+**Paso 12 — Haz clic en `▶ Evaluate` al lado de cualquier JD.** Esto
+salta a `#/evaluate`. Con una API key configurada, corre live; sin
+ella, obtienes un prompt manual para pegar en tu propio LLM. El modo
+live produce una **puntuación 0–5** contra tu CV en las secciones A–G
+(Rol / Empresa / Compensación / Riesgo / Stretch / Fit cultural /
+Verdict). El guardado aterriza en `reports/<date>-<slug>.md`.
+
+**Paso 13 — Haz clic en `Reports` en el sidebar** y revisa la última
+evaluación. Cualquier cosa por debajo de tu `comp_total_min_usd` se
+marca en rojo en la sección D. Cualquier cosa con `Verdict: pursue`
+es tu short-list.
+
+### E. Decidir e investigar a fondo la empresa preseleccionada (~3 minutos)
+
+**Paso 14 — Elige una vacante que valga la pena perseguir. Haz clic
+en `Deep research` en el sidebar.** Introduce el nombre de la empresa
+y el rol. El modelo produce un briefing de empresa de 7 secciones
+(misión, news recientes, stack tecnológico, señales de contratación,
+benchmarks de compensación, riesgos, ángulo recomendado). El guardado
+aterriza en `interview-prep/<company>-<role>.md`.
+
+### F. Postular (~5 minutos por candidatura)
+
+**Paso 15 — Haz clic en `Apply checklist` en el sidebar.** Pega la
+URL de la vacante + JD. El helper genera una checklist de envío paso
+a paso:
+- Borrador de cover letter adaptada (usa tu `cv.md` + `profile.yml`)
+- Keywords específicas a reflejar desde el JD
+- Archivos a adjuntar (CV en PDF — ver paso 8)
+- Dónde aplicar (la URL canónica de careers, no redirecciones de
+  agregadores)
+- Recordatorio: **NUNCA auto-enviar** — la revisión final y el envío
+  son siempre manuales.
+
+**Paso 16 — Abre la página de careers en una pestaña nueva.** Usa la
+apply checklist como tu lista de tareas. Envía a través del formulario
+real de la empresa. Adjunta el PDF que generaste en el paso 8.
+
+**Paso 17 — Contacta con un humano real.** Abre el modo **Outreach**
+(`#/contacto` en el sidebar). El modelo redacta un mensaje corto de
+LinkedIn / email adaptado al briefing de empresa del paso 14.
+Personaliza el opener (un detalle específico de tu briefing de deep
+research). Envíalo.
+
+### G. Trackear y hacer follow-up (continuo)
+
+**Paso 18 — Haz clic en `Tracker` en el sidebar** y añade una fila
+para la candidatura: empresa, rol, puntuación, estado `Applied`,
+enlace al reporte, enlace al briefing de deep research. La fecha se
+autorellena.
+
+**Paso 19 — Una semana después: abre el modo `Follow-up`**
+(`#/followup`). Redacta un email cortés de check-in referenciando la
+candidatura original. Envía. Actualiza el estado del tracker a
+`Followed up`.
+
+**Paso 20 — Cuando te llegue una invitación a entrevista, ejecuta el
+modo `Interview prep`** (`#/interview-prep`). Genera preparación
+dirigida para la empresa + etapa específica (system design /
+behavioral / coding). Tira automáticamente del briefing de deep
+research.
+
+**Paso 21 — ¿Conseguiste la oferta? Actualiza el estado del Tracker a
+`Offer`** y revisa la sección de comp de tu reporte de evaluación —
+tu número mínimo de aceptación está justo ahí.
+
+### TL;DR — el orden del sidebar coincide con el workflow
+
+`Health → App settings → Profile → CV → Scan → Pipeline → Evaluate
+→ Reports → Deep research → Apply checklist → Outreach → Tracker
+→ Follow-up → Interview prep → Activity log`
+
+Eso es todo. 21 pasos, botón-por-botón, de cero a oferta.
 
 ---
 
 ## 2. App settings & API keys (`#/config`)
 
-Dos pestañas: **API keys & runtime** edita el `.env` del proyecto
-padre desde el navegador (mismo archivo que leen los scripts Node);
-**Profile** es un editor YAML directo de `config/profile.yml` que
-añade automáticamente el encabezado canónico
-`# Career-Ops Profile Configuration` y valida que haya un `candidate`.
-Un guardado en cualquier pestaña se aplica al instante — sin reinicio.
+Dos pestañas:
+
+1. **API keys & runtime** — edita el `.env` del proyecto padre desde
+   el navegador (el mismo archivo que los scripts Node de career-ops
+   leen al arrancar).
+2. **Profile** — editor YAML directo para `config/profile.yml`. El
+   guardado estampa el encabezado canónico
+   `# Career-Ops Profile Configuration`.
+
+Un guardado en cualquiera de las pestañas se propaga al instante — sin
+reiniciar el servidor.
+
+### Pestaña Profile
+
+- El textarea muestra el `config/profile.yml` actual verbatim.
+- Edita y haz clic en **💾 Save**. El servidor valida el YAML (debe
+  ser un mapping, debe contener `candidate`) y escribe el archivo.
+- Se añade un encabezado `# Career-Ops Profile Configuration` si no
+  está.
+- El resumen de solo lectura en `#/profile` es el compañero visual.
 
 ### Claves reconocidas
 
-| Clave | Para qué | Dónde obtenerla |
+| Clave | Para qué sirve | Dónde obtenerla |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | Habilita llamadas live al SDK Anthropic. Preferida cuando ambas están — mejor output estructurado largo. | <https://console.anthropic.com/settings/keys> |
-| `ANTHROPIC_MODEL` | Sobrescribe el default `claude-sonnet-4-6`. | — |
-| `GEMINI_API_KEY` | Fallback sin Anthropic. Usada por `gemini-eval.mjs` para `oferta`. | <https://aistudio.google.com/apikey> |
-| `GEMINI_MODEL` | Sobrescribe modelo Gemini. | — |
-| `(server uses default UA)` | Necesario para escanear `hh.ru` desde fuera de Rusia. | dev.hh.ru |
-| `PORT` | Puerto Express. Default 4317. | — |
-| `HOST` | Bind. Default `127.0.0.1`. `0.0.0.0` expone en LAN — **sin auth gate aún**. | — |
+| `ANTHROPIC_API_KEY` | Habilita llamadas live al SDK de Anthropic. Preferida cuando ambas Anthropic + Gemini están configuradas — mejor output estructurado largo para puntuación de JD y deep research. | <https://console.anthropic.com/settings/keys> |
+| `ANTHROPIC_MODEL` | Sobrescribe el default `claude-sonnet-4-6`. Prueba `claude-opus-4-7` para razonamiento más exigente, `claude-haiku-4-5-20251001` para barato-y-rápido. | — |
+| `GEMINI_API_KEY` | Fallback cuando no hay clave Anthropic. La usa `gemini-eval.mjs` para el modo `oferta`. El free tier funciona para volumen bajo. | <https://aistudio.google.com/apikey> |
+| `GEMINI_MODEL` | Sobrescribe el modelo Gemini por defecto. | — |
+| `(server uses default UA)` | Necesario al ejecutar scans en `hh.ru` desde fuera de Rusia (la API devuelve 403 ante User-Agents planos). Registra una app en <https://dev.hh.ru/admin> y usa su string UA. | dev.hh.ru |
+| `PORT` | Puerto de bind de Express. Default 4317. | — |
+| `HOST` | Dirección de bind. Default `127.0.0.1`. Poner `0.0.0.0` expone el UI en la LAN — **sin auth gate todavía**, ver el doc de Production-readiness. | — |
 
 ### Comportamiento
 
-- **Lectura** (`GET /api/config`) devuelve cada clave conocida; las
-  secretas están **enmascaradas** (`sk-ant•••••a1b2`).
-- **Guardado** (`POST /api/config`) valida, escribe a `.env` y aplica
-  a `process.env` en vivo.
-- **Valor vacío borra** la clave.
+- **Lectura** (`GET /api/config`) devuelve cada clave reconocida. Las
+  claves secretas (`ANTHROPIC_API_KEY`, `GEMINI_API_KEY`) están
+  **enmascaradas** — ves `sk-ant•••••••a1b2`, nunca el valor
+  completo.
+- **Guardado** (`POST /api/config`) valida cada valor, escribe en
+  `<parent>/.env`, e inmediatamente aplica al proceso en ejecución.
+  No se requiere reinicio.
+- **Un valor vacío borra** la clave. Útil si quieres dejar de usar
+  una IP rusa / VPN.
 
 ### Botones smoke-test
 
-Tras guardar pulse **▶ Test Anthropic** o **▶ Test Gemini** — ambos
-mandan un prompt minúsculo (≤256 tokens) confirmando que la clave
-funciona. Devuelve un sample de ~200 caracteres.
+Después de guardar, haz clic en **▶ Test Anthropic** o **▶ Test
+Gemini** — ambos disparan un prompt diminuto (≤256 tokens de output)
+para que gastes esencialmente nada mientras confirmas que la clave
+está conectada correctamente. Devuelve una muestra de ~200 caracteres
+en caso de éxito.
 
 ---
 
 ## 3. Profile (`#/profile` — también accesible como `#/settings`)
 
-Vista de solo lectura de `config/profile.yml`. Edite el archivo en
-disco; la página re-parsea al recargar.
+Una vista de tarjeta resumen de solo lectura de `config/profile.yml`.
+**Para editar**, ve a **App settings → pestaña Profile** (`#/config`
+→ Profile). Los guardados aterrizan en el mismo archivo; esta página
+re-parsea al recargar.
 
-Campos clave:
+Los campos que más importan:
 
-- `candidate.full_name` — usado en cada prompt. **Reemplace `Jane
-  Smith`** antes de cualquier scan real.
-- `candidate.email`, `linkedin`, `github` — referenciados en cover
-  letters y apply checklist.
-- `target.roles` — títulos aceptados.
-- `target.comp_total_min_usd` — comp mínimo. Sección D de cada
-  evaluación marca ofertas debajo.
-- `target.archetypes` — el campo *más importante*. Cada JD se mide
-  contra ellos; el mejor archetype va al header del reporte.
+- `candidate.full_name` — usado en cada prompt. **Reemplaza el
+  template `Jane Smith`** antes de escanear nada de verdad, o tus
+  cover letters generadas saldrán bajo el nombre placeholder.
+- `candidate.email`, `linkedin`, `github` — referenciados en la
+  generación de cover letters y en la apply checklist.
+- `target.roles` — títulos de empleo aceptados. El filtro positivo
+  del scanner los usa implícitamente (vía
+  `portals.yml::title_filter`).
+- `target.comp_total_min_usd` — compensación total mínima. La sección
+  D de cada evaluación marca ofertas por debajo de esto.
+- `target.archetypes` — el *campo más importante*. Estos son los
+  patrones de carrera que aceptas (p. ej. `Tech-Lead-Backend`,
+  `Founding-Engineer`, `Data-Platform`). Cada JD se mide contra ellos
+  y el arquetipo de mejor fit aterriza en el header del reporte.
 
-Health marca **Profile customized** mientras `full_name` sea un
-placeholder conocido.
+La página Health expone un check **Profile customized** que falla
+mientras `full_name` coincida con un nombre placeholder conocido.
 
 ---
 
 ## 4. CV (`#/cv`)
 
-Fuente de verdad para cada evaluación, deep research y cover letter.
-Vive en `cv.md` en la raíz del padre.
+Fuente única de verdad para cada evaluación, deep research, y cover
+letter. Vive en `cv.md` en la raíz del proyecto padre.
 
-### Edición
+### Opciones de edición
 
-- **Pegar directo** — el textarea izquierdo es un editor markdown.
-- **📁 Upload CV** — `.md/.markdown/.txt/.html/.htm` (texto plano),
-  `.docx/.doc/.odt/.rtf` (vía pandoc — `brew install pandoc`),
-  o `.pdf` (vía pdftotext — `brew install poppler`). El servidor
-  convierte a markdown, lo sanea, y lo carga en el editor;
-  **💾 Save** persiste. Límite: 10 MB.
-- **Desde LinkedIn** — abra Claude Code en el padre, ejecute
-  `/career-ops`, pegue su URL y pida `extract my CV from this and
-  write it to cv.md`.
+- **Pégalo directamente** — el textarea de la izquierda es un editor
+  markdown. El panel derecho refleja lo que el LLM (y tu futuro
+  reclutador) verán.
+- **📁 Upload CV** — elige un archivo local en cualquiera de estos
+  formatos y el servidor te lo convierte a markdown:
+  - **Formatos de texto** — `.md`, `.markdown`, `.txt`, `.html`,
+    `.htm` se pasan a través (HTML va vía pandoc → GFM markdown).
+  - **Formatos de Office** — `.docx`, `.doc`, `.odt`, `.rtf` se
+    convierten vía **pandoc** (`brew install pandoc` en macOS,
+    `apt install pandoc` en Linux).
+  - **PDF** — `.pdf` se extrae vía **pdftotext** de Poppler
+    (`brew install poppler` / `apt install poppler-utils`).
+  - El markdown convertido aterriza en el editor; haz clic en **💾
+    Save** para persistir. El resultado se sanea (mismo strip XSS
+    que el pegado).
+  - Tope estricto: **10 MB** por upload. Archivos más grandes → 413.
+- **Desde LinkedIn** — la ruta más fácil: abre Claude Code en el
+  proyecto padre, ejecuta `/career-ops`, pega tu URL de LinkedIn, y
+  pide `extract my CV from this and write it to cv.md`.
 
-### Sanitización
+### Qué se sanea
 
-`stripDangerousMarkdown` remueve `<script>`, `<iframe>`, `<object>`,
-`<embed>`, `<svg>`, `<style>`, `<form>`, manejadores inline (`onclick=`),
-y URIs `javascript:`/`vbscript:`/`data:text/html`. Respuesta incluye
-`sanitized: true` cuando algo fue tocado. Max 1 MB.
+Server-side, cada PUT a `/api/cv` pasa por `stripDangerousMarkdown`:
+
+- Tags `<script>`, `<iframe>`, `<object>`, `<embed>`, `<svg>`,
+  `<style>`, `<form>` — eliminados por completo.
+- Manejadores de eventos inline (`onclick=`, `onerror=`, etc.) —
+  eliminados.
+- Esquemas URI `javascript:`, `vbscript:`, `data:text/html` —
+  neutralizados.
+
+La respuesta incluye `sanitized: true` siempre que se haya eliminado
+alguno de los anteriores, así sabes si la fuente tenía algo
+desagradable.
+
+Tamaño máximo de body: 1 MB. Cualquier cosa más grande devuelve 413.
 
 ### Otros botones
 
-- **sync-check** — `cv-sync-check.mjs`.
-- **📄 Generate PDF** — `generate-pdf.mjs` → `output/*.pdf`. Necesita
-  Playwright (Health lo confirma).
+- **sync-check** — ejecuta `cv-sync-check.mjs` en el proyecto padre.
+  Marca inconsistencias: un proyecto listado en tu CV pero no en los
+  arquetipos de `data/applications.md`, etc.
+- **📄 Generate PDF** — streamea `generate-pdf.mjs`. El output
+  aterriza en `output/*.pdf`. Requiere Playwright (la página Health
+  muestra si está instalado en el `node_modules` del padre). Cuando
+  termina la generación, el PDF **más reciente** se descarga
+  automáticamente a tu carpeta de Descargas por defecto; la lista
+  on-page conserva cada archivo previamente generado.
 
-### Tips de formato
+### Tips de tono / formato
 
-- Una bullet = un logro con métrica. *"Reducí p99 38%"* gana a
-  *"mejoré performance"*.
-- Secciones: **Summary**, **Experience**, **Projects**, **Education**,
-  **Skills**.
-- Bajo 1500 palabras.
+- Un bullet = un logro con métrica.
+  *"Reducí la latencia p99 en un 38%"* le gana a *"mejoré el
+  rendimiento"* en cada rúbrica de evaluación.
+- Secciones en este orden: **Summary** (3–5 líneas), **Experience**
+  (reverse-chronological), **Projects** (máximo 5), **Education**,
+  **Skills** (deduplicadas, sin sopa de buzzwords).
+- Mantén bajo 1500 palabras. La rúbrica de scoring usa información
+  densa; un CV desbordante se penaliza por ruido.
 
 ---
 
 ## 5. Portales y fuentes (`portals.yml`)
 
-Config del scanner. Tres secciones importan:
+La configuración del scanner vive en `portals.yml` en la raíz del
+padre. Tres secciones importan. Las tres secciones del SPA (abajo)
+coinciden 1:1 con el schema canónico de career-ops.org de
+[scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals).
 
 ### `title_filter`
 
@@ -242,11 +469,17 @@ title_filter:
   seniority_boost: [Senior, Staff, Lead, Principal]
 ```
 
-Una vacante pasa si su title contiene **al menos una positiva** Y
-**ninguna negativa**.
+Una vacante escaneada pasa cuando su título contiene **al menos una
+keyword positiva** Y **ninguna de las keywords negativas**. Ajusta
+ambas. Las keywords son substrings case-insensitive.
 
+`seniority_boost` es la tercera clave de title-filter. Las keywords
+listadas aquí no filtran nada — empujan los empleos coincidentes más
+arriba en los resultados, así un "Senior Backend Engineer" queda por
+encima de un "Engineer". Default: `["Senior", "Staff", "Lead"]`.
+Ajusta para que coincida con cómo se titulan tus roles objetivo.
 
-`seniority_boost` es la tercera clave de title-filter. Las palabras listadas aquí no filtran nada — empujan los trabajos coincidentes más arriba en los resultados, así un "Senior Backend Engineer" queda por encima de un "Engineer". Por defecto: `["Senior", "Staff", "Lead"]`. Ajusta para que coincida con cómo se titulan tus puestos objetivo.
+Empieza con 3–5 keywords positivas por claridad; amplía después.
 
 ### `search_queries`
 
@@ -260,408 +493,741 @@ search_queries:
     enabled: false
 ```
 
-`search_queries` impulsa el scan AI Option B (`/career-ops scan` dentro de Claude Code / Codex). NO los ejecuta el `npm run scan` in-process (que solo consulta APIs públicas de tableros). Úsalos cuando quieras descubrir puestos en empresas que no están aún en `tracked_companies`. Pon `enabled: false` para mantener una entrada sin ejecutarla.
+`search_queries` impulsa el scan AI-powered Option B (`/career-ops
+scan` dentro de Claude Code / Codex). NO los ejecuta el `npm run
+scan` in-process (que solo consulta APIs públicas de tableros). Úsalos
+cuando quieras descubrir roles en empresas que aún no están en
+`tracked_companies`. Pon `enabled: false` para mantener una entrada
+sin ejecutarla.
 
 ### `tracked_companies`
 
 ```yaml
 tracked_companies:
-  - { name: Stripe,    enabled: true, careers_url: https://job-boards.greenhouse.io/stripe }
-  - { name: Linear,    enabled: true, careers_url: https://jobs.ashbyhq.com/linear }
-  - { name: JetBrains, enabled: true, careers_url: https://jobs.lever.co/jetbrains }
+  - { name: Stripe,     enabled: true, careers_url: https://job-boards.greenhouse.io/stripe }
+  - { name: Linear,     enabled: true, careers_url: https://jobs.ashbyhq.com/linear }
+  - { name: JetBrains,  enabled: true, careers_url: https://jobs.lever.co/jetbrains }
 ```
 
-El ATS scanner detecta el ATS por la URL y golpea boards-api directo.
+Campos requeridos por entrada: `name` y `careers_url`. Opcionales:
+`api` (endpoint explícito de Greenhouse / Ashby / Lever / Workable /
+SmartRecruiters / Workday), `enabled: true|false` para incluir /
+excluir sin borrar la entrada. El ATS scanner detecta el ATS desde el
+patrón de URL (`job-boards.greenhouse.io/<slug>` → Greenhouse, etc.)
+y consulta la boards-api pública de cada empresa directamente. Las
+empresas sin un ATS reconocible se omiten (la tarjeta **Active
+Companies** en `/#/scan` las muestra en gris con `○`).
 
 ### `russian_portals`
 
 ```yaml
 russian_portals:
-  sources: [hh, habr]
-  area: 113                 # 113=Rusia, 1001=remoto
+  sources: [hh, habr]      # o solo uno
+  area: 113                 # 1=Moscú, 2=SPb, 113=Rusia, 1001=remoto
   per_page: 50
   only_remote: false
   queries:
     - "Senior PHP"
     - "Senior Go"
+    - "Тимлид PHP"
 ```
 
-`queries` son matches de substring contra titles. **Cuide solapamiento
-con la lista negativa** — si `"php"` está en negative y `"Senior PHP"`
-en queries, el scan vuelve cero (la consola lo avisa).
+`queries` son matches de substring case-insensitive contra los títulos
+de vacantes en hh.ru y Habr Career. **Cuida el solapamiento con la
+lista negativa** — si `"Senior PHP"` está en `queries` pero `"php"`
+acaba en `title_filter.negative`, el scan devolverá cero resultados y
+la consola te avisará del conflicto.
 
-### Bootstrap
+### Flujo bootstrap CLI ([scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
 
-En primer arranque el server append una sección `russian_portals:`
-documentada si falta (idempotente).
-
----
-
-
-### Flujo CLI ([career-ops.org/docs/.../scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
-
-Setup canónico de career-ops (ejecutar desde el padre una vez):
+El setup canónico de career-ops (ejecutar desde la raíz del padre una
+sola vez):
 
 ```bash
 cp templates/portals.example.yml portals.yml
 $EDITOR portals.yml
 ```
 
-`portals.yml` tiene tres secciones; el schema canónico de career-ops.org coincide 1:1 con las tres secciones SPA de arriba:
+Eso es todo el bootstrap. Edita las tres secciones (`title_filter`,
+`tracked_companies`, `search_queries`, y opcionalmente
+`russian_portals`), guarda, y estás listo para escanear.
 
-- **title_filter** — listas de palabras clave `positive`, `negative`, `seniority_boost` (case-insensitive). Una vacante necesita ≥ 1 match `positive` y cero `negative`. `seniority_boost` sube el ranking sin filtrar. Empieza con 3–5 positivas para claridad.
-- **tracked_companies** — cada entrada DEBE tener `name` y `careers_url`. Opcional: `api` (endpoint Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday), `enabled: true|false` para incluir/excluir sin borrar.
-- **search_queries** — búsquedas web más amplias preconstruidas (LinkedIn / Indeed). Los defaults sirven para la mayoría.
+### Comportamiento de bootstrap del SPA
+
+En el primer arranque el servidor añade un bloque `russian_portals:`
+documentado a `portals.yml` si falta — idempotente (el segundo boot
+es un no-op porque la línea literal `russian_portals:` ya está). Las
+secciones en inglés NO se auto-inyectan; vienen del
+`templates/portals.example.yml` que copiaste según el bootstrap
+canónico de arriba.
 
 ---
 
 ## 6. Health (`#/health`)
 
-Cada gate de setup en badges OK / OPTIONAL / FAIL.
+Cada gate de setup, en badges OK / OPTIONAL / FAIL. Lee esto antes de
+abrir cualquier issue de "no funciona".
 
-### Required (sin esto el sistema no corre)
+### Checks requeridos (el sistema no puede funcionar sin estos)
 
-- `Node version` ≥ 18.
-- `Project root` — `CAREER_OPS_ROOT` existe.
+- `Node version` ≥ 18 — el servidor usa `fetch` y `node:test`
+  nativos.
+- `Project root` — que `CAREER_OPS_ROOT` (env o auto-detectado)
+  exista.
 - `cv.md`, `config/profile.yml`, `portals.yml`,
   `data/applications.md`, `data/pipeline.md`, `modes/oferta.md`.
 
-### Optional (solo warnings)
+### Checks opcionales (solo warnings)
 
-- `Profile customized`, `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`,
-  `(server uses default UA)`, Playwright, deps del padre, directorios `data/`,
-  `reports/`, `output/`, `jds/`.
+- `Profile customized` — `candidate.full_name` no es el placeholder
+  del template.
+- `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` — configuradas en `.env`.
+- `(server uses default UA)` — solo importa si escaneas hh.ru desde
+  fuera de Rusia.
+- `Playwright (parent node_modules)` — requerido para generación de
+  PDF y `check-liveness.mjs`. Instálalo con
+  `cd $CAREER_OPS_ROOT && npm install && npx playwright install chromium`.
+- `Parent project dependencies` — `cd $CAREER_OPS_ROOT && npm
+  install` si faltan.
+- Directorios `data/`, `reports/`, `output/`, `jds/` — se
+  auto-crean en la primera escritura.
 
-Cuando `HOST=0.0.0.0` se ocultan rutas absolutas y versión Node
-exacta.
+Cuando el servidor está expuesto más allá de loopback (`HOST=0.0.0.0`)
+las rutas absolutas y la versión Node exacta se reemplazan por
+`"hidden"` en la respuesta para que un vecino curioso no pueda hacer
+fingerprinting de tu instalación.
 
 ### Botones de ejecución
 
-- **▶ Doctor** — `node doctor.mjs`.
-- **▶ Verify pipeline** — `node verify-pipeline.mjs`.
+- **▶ Doctor** ejecuta `node doctor.mjs` y muestra el output en un
+  modal.
+- **▶ Verify pipeline** ejecuta `node verify-pipeline.mjs`.
 
 ---
 
 ## 7. Scan (`#/scan`)
 
-El scanner recorre boards habilitados, deduplica contra historia y
-escribe hits a `data/last-scan.json` y `data/pipeline.md`.
+El scanner crawlea cada board habilitado, deduplica contra tu
+historia, y escribe los hits a `data/last-scan.json` y
+`data/pipeline.md`.
 
-### Scan de un click
+### Scan de un clic (SPA)
 
-**🌐 Scan** ejecuta cada fuente en una sola pasada (Greenhouse, Ashby,
-Lever, hh.ru, Habr Career). Log SSE en vivo a la derecha. **Stop** o
-navegar fuera aborta el scan.
+**🌐 Scan** ejecuta cada fuente habilitada en una sola pasada:
 
-### Filtros
+- Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday
+  (la pasada ATS) para cada empresa de `tracked_companies` con una
+  URL ATS reconocible.
+- API de hh.ru + HTML de Habr Career para cada query de
+  `russian_portals`.
 
-- Búsqueda por texto.
-- Source dropdown.
-- Remote / Hybrid / Onsite.
-- Chips de stack (PHP, Go, Backend, Senior…) auto-detectados.
-- Chips dinámicos top-25 capitalized tokens.
+El log SSE en vivo se va mostrando en el panel derecho mientras corre
+el scan. Haz clic en **Stop** (o simplemente navega fuera) para
+abortar — el servidor cancela los requests HTTPS en vuelo vía
+`AbortController`.
 
-### Active Companies
+### Filtrado de resultados
 
-Tarjeta colapsable con cada compañía:
+Debajo del log, la tabla de resultados renderiza filas de
+`data/last-scan.json`.
 
-- ✓ verde — soporte API directo.
-- ○ gris — fallback web-search.
+Filtros:
 
-**Click en el nombre** → llena el filtro. **Click en ↗** → abre
-`careers_url` en pestaña nueva.
+- **Texto libre** — match de substring contra título / empresa.
+- Dropdown **Source** — Greenhouse / Ashby / Lever / Workable /
+  SmartRecruiters / Workday / hh.ru / Habr.
+- Dropdown **Remote / Hybrid / Onsite**.
+- **Chips de stack** (PHP / Go / Backend / Senior / …) —
+  auto-detectados por fila por `Skills.detectTech` y
+  `Skills.detectLevel`. Intersección multi-select — seleccionar `PHP
+  + Senior` muestra filas que tienen AMBAS.
+- **Chips dinámicos** debajo de los chips de stack estáticos — top-25
+  tokens capitalizados más frecuentes de los títulos, así el UI se
+  adapta a cualquier rol que de hecho escanees (marketing, design,
+  finance…) en vez de quedar fijado al vocabulario de backend
+  engineer.
 
----
+### Tarjeta Active Companies
 
+Una tarjeta colapsable listando cada empresa de `portals.yml` con su
+estado de scan:
 
-### Flujo CLI de scan ([career-ops.org/docs/.../scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
+- Tag verde ✓ — soporte API directo (Greenhouse / Ashby / Lever /
+  Workable / SmartRecruiters / Workday).
+- Tag gris ○ — fallback a prompt web-search (sin match de API).
 
-Dos formas de escanear desde el CLI (ambas escriben al mismo `data/pipeline.md` que lee la SPA):
+**Haz clic en el nombre de la empresa** → rellena el filtro de
+resultados arriba con ese nombre. **Haz clic en el icono ↗** → abre
+el `careers_url` de la empresa en una pestaña nueva.
 
-**Option A — script directo (~30 s, cero AI tokens):**
+### Flujo CLI de scan ([scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals))
+
+Dos formas de escanear desde el lado CLI (ambas depositan URLs en el
+mismo `data/pipeline.md` que el SPA lee):
+
+**Option A — script directo (~30 s, cero tokens de IA consumidos):**
 
 ```bash
 npm run scan                          # todos los boards Greenhouse/Ashby/Lever
 npm run scan -- --dry-run             # preview sin persistir
-npm run scan -- --company Anthropic   # una sola compañía
+npm run scan -- --company Anthropic   # acota a una empresa rastreada
 ```
 
-Funciona solo para Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday (URLs ATS reconocibles).
+Funciona solo para Greenhouse / Ashby / Lever / Workable /
+SmartRecruiters / Workday (URLs ATS reconocibles). No se consumen
+tokens de IA — consulta las APIs públicas de los tableros
+directamente.
 
-**Option B — AI-powered browser scan:**
+**Option B — scan AI-powered desde navegador:**
 
 ```
 /career-ops scan
 ```
 
-Dentro de Claude Code / Codex / Cursor / Gemini CLI. Usa tokens del modelo. Visita cada página de `tracked_companies` directamente y puede descubrir boards no-API. Más lento pero más amplio.
+Dentro de Claude Code / Codex / Cursor / Gemini CLI. Usa tokens del
+modelo. Visita cada página de `tracked_companies` directamente y
+puede descubrir boards sin API (career pages, ATS custom, portales
+regionales). Más lento pero más amplio. Útil cuando una pasada ATS
+no devuelve nada para un target que sabes que está contratando.
 
-**Output (ambos paths)** — nuevos JD URLs añadidos a `data/pipeline.md`, cada URL visitada loggeada en `data/scan-history.tsv` (dedup entre todos los scans futuros).
+**Output (ambos paths)** — nuevos JD URLs añadidos a
+`data/pipeline.md`, cada URL visitada loggeada a
+`data/scan-history.tsv` (dedup entre todos los scans futuros),
+resumen impreso: empresas escaneadas · empleos encontrados · filtrados
+por título · duplicados omitidos · nuevas ofertas añadidas.
 
-**Umbrales de acción por score:**
+**Umbrales de acción por puntuación** (aplica después de que
+`/career-ops pipeline` puntúe en batch las URLs nuevas):
 
-| Score | Siguiente paso |
+| Puntuación | Siguiente paso recomendado |
 |---|---|
-| **≥ 4.5** | `/career-ops apply` — alto fit |
-| **4.0 – 4.4** | aplica o `/career-ops contacto` |
+| **≥ 4.5** | `/career-ops apply` — fit alto, envía de inmediato |
+| **4.0 – 4.4** | aplica, o `/career-ops contacto` para warm intro |
 | **3.5 – 3.9** | `/career-ops deep` — investiga primero |
-| **< 3.5** | salta salvo razón específica |
+| **< 3.5** | salta salvo razón personal específica |
+
+El `#/dashboard` y el `#/tracker` del SPA resaltan cada fila en 4.0
+o por encima para que puedas tomar acción sin re-ejecutar nada.
+
+### Comandos de seguimiento
+
+Después del scoring, los seguimientos canónicos son:
+
+- `/career-ops apply` — rellena candidatura con respuestas adaptadas
+- `/career-ops contacto` — redacta outreach a LinkedIn / email
+- `/career-ops deep` — investiga empresa / rol a fondo
+- `/career-ops tracker` — visualiza el estado del pipeline
 
 ---
 
 ## 8. Pipeline (`#/pipeline`)
 
-Inbox de URLs por evaluar. Vive en `data/pipeline.md`.
+Inbox de URLs esperando ser evaluadas. Vive en `data/pipeline.md`.
 
-### Agregar URLs
+### Añadir URLs
 
 Tres formas:
 
-- Tipear o pegar + **+ Add**.
-- **Ctrl+K** / **Cmd+K** para focus en search global, pegar URL,
-  Enter.
-- Correr Scan — los hits frescos van al pipeline automáticamente.
+- Tipea / pega una URL en el input + haz clic en **+ Add**.
+- Pulsa **Ctrl+K** (o **Cmd+K**) para enfocar la búsqueda global,
+  pega cualquier enlace `http(s)://…`, dale a **Enter** — la URL va
+  al pipeline inmediatamente.
+- Ejecuta un Scan (ver arriba) — los hits frescos van al pipeline
+  automáticamente.
 
-Cada URL pasa por `isValidJobUrl()`. Loopback, `file://`,
-`javascript:`, IP literales, chars de template — todos 400.
+Cada URL pasa por `isValidJobUrl()` del lado del servidor. Loopback
+(`localhost`, `127.0.0.1`), `file://`, `javascript:`, IP literales, y
+strings con chars de template (`<`, `>`, `"`) — todos 400.
 
-### Vista previa server-side
+### Panel de vista previa server-side
 
-Click en una fila carga preview a la derecha. El servidor proxea,
-quita scripts/styles/tags y devuelve hasta 8 KB de texto plano.
+Haz clic en cualquier fila del pipeline para cargar una vista previa
+a la derecha. La mayoría de los boards ATS no envían cabeceras CORS
+así que el navegador no puede fetchearlos directamente; el servidor
+proxea la petición, elimina `<script>` / `<style>` / tags HTML, y
+devuelve hasta 8 KB de texto plano.
 
-El proxy camina los redirects **con validación SSRF por hop** — cada
-`Location` re-pasa por `isValidJobUrl()`. Cap 3 hops, timeout 15s.
+El proxy de preview camina las redirecciones manualmente con
+**validación SSRF por hop** — cada cabecera `Location` re-pasa por
+`isValidJobUrl()`, así un board hostil no puede hacerte rebotar a
+loopback / IP privada / `file://`. Capado a 3 hops, timeout de 15
+segundos.
 
 ### Acciones de fila
 
-- **▶** — salta a `#/evaluate?url=…`.
-- **✕** — borra del pipeline.
+- **▶** — salta a `#/evaluate?url=…` con la URL pre-rellenada.
+- **✕** — elimina la URL de `data/pipeline.md`.
 
-### Botones arriba
+### Botones arriba a la derecha
 
-- **⚡ Evaluate first** — abre el primer URL en Evaluate.
-- **Scan** — vuelve al scanner.
+- **⚡ Evaluate first** — abre la primera URL encolada en la página
+  Evaluate, lista para puntuar.
+- **Scan** — vuelve al scanner si quieres más URLs.
 
 ---
 
 ## 9. Evaluate (`#/evaluate`)
 
-Puntúa un JD contra `cv.md` y `config/profile.yml`. Devuelve
-evaluación A–G y score 0–5.
+Puntúa una sola Job Description contra `cv.md` y
+`config/profile.yml`. Devuelve una evaluación estructurada A–G según
+`modes/oferta.md` más una puntuación 0–5.
 
 ### Input
 
-Pegue el JD, o llegue desde `#/pipeline` con `?url=…` (la página
-fetcha vía el proxy SSRF-safe).
+Pega el JD en el textarea, o llega aquí desde `#/pipeline` con
+`?url=<href>` — la página fetchea la URL a través del mismo proxy
+SSRF-safe usado para previews del pipeline y pre-rellena el textarea.
 
-**💾 Save JD** persiste a `jds/jd-<date>-<ts>.txt`.
+Haz clic en **💾 Save JD** para persistir el JD a
+`jds/jd-<date>-<ts>.txt` para el audit trail (o pasa `save: true` en
+la llamada API — mismo efecto).
 
 ### Cadena de fallback
 
-1. **Anthropic** — preferida con `ANTHROPIC_API_KEY`. El servidor
-   inlinea cv + profile + `_shared.md` + `oferta.md` en un bloque
-   `<project_context>` (cada archivo cap 16 KB, prompt soft-cap
-   200 KB).
-2. **Gemini** — solo con `GEMINI_API_KEY`. Spawnea `gemini-eval.mjs`.
-3. **Manual** — sin clave. La página devuelve un prompt listo para
-   pegar.
+1. **Anthropic** — preferida cuando `ANTHROPIC_API_KEY` está
+   configurada. El servidor agrupa `cv.md`, `config/profile.yml`,
+   `modes/_shared.md` y `modes/oferta.md` en un bloque
+   `<project_context>` antes del prompt (cada archivo capado a 16
+   KB, prompt completo soft-cap a 200 KB). Devuelve markdown
+   fundamentado directo a la página.
+2. **Gemini** — cuando solo `GEMINI_API_KEY` está configurada. El
+   servidor spawnea `gemini-eval.mjs` con el JD como archivo
+   temporal. El modelo del free tier (`gemini-2.0-flash`) está bien
+   para scoring rutinario.
+3. **Manual** — sin clave configurada. La página devuelve un prompt
+   completamente formado que puedes pegar en Claude Code, ChatGPT, o
+   cualquier otro LLM.
 
-### Salida
+### Secciones de salida (A-F canónicas de career-ops.org)
 
-A. Role Summary · B. CV Match · C. Strategy · D. Compensation · E.
-Personalization · F. STAR stories (score + legitimacy en el header del
-reporte). **A–F canónico desde v1.15.0** — reportes pre-v1.15 con A–G
-(C=Risks, F=Verdict, G=Legitimacy) siguen renderizándose tal cual.
+> **Realineación v1.15.0.** Las letras de bloque ahora coinciden con
+> el [schema canónico de career-ops.org](https://career-ops.org/docs).
+> Los reportes pre-v1.15 usaban A–G (con `C=Risks`, `F=Verdict`,
+> `G=Legitimacy`); seguimos renderizándolos tal cual por
+> compatibilidad hacia atrás, pero los reportes nuevos emiten A–F con
+> la semántica canónica de abajo. Score y Legitimacy ahora viven en
+> el header del reporte (`score: 4.2/5`, `legitimacy: High|Medium|Low`).
 
-**💾 Save report** persiste el markdown a
-`reports/<date>-<company>-<role>.md`.
+A. **Role Summary** — recapitulación de 3 bullets (riesgos
+mencionados inline).
+B. **CV Match** — top 3 skills coincidentes + top 3 ausentes.
+C. **Strategy** — recomendación: apply now / contacto first / deep
+first / skip. Antes de v1.15 era `Risks`.
+D. **Compensation** — relativa a tu `target.comp_total_min_usd`
+(legacy) o `compensation.target_range` (canónico).
+E. **Personalization** — ángulo para liderar, framing por arquetipo,
+ganchos a mencionar en cover letter / outreach. Antes de v1.15 era
+`Application Strategy`.
+F. **STAR stories** — 1–3 bloques S-T-A-R listos-para-pegar adaptados
+al rol. Antes de v1.15 era `Verdict` (puntuación cruda); la
+puntuación ahora aparece en el header del reporte junto a
+`legitimacy`.
+
+### Guardar el reporte
+
+Haz clic en **💾 Save report** (o usa el toggle de save en la llamada
+API) para persistir el markdown a
+`reports/<date>-<company>-<role>.md`. El header parseado del reporte
+(Score / Legitimacy / URL) aparece en la página **Reports** y en el
+**Dashboard**.
+
+### Evaluación en batch cuando tienes 10+ JDs
+
+Para un solo JD esta página `#/evaluate` es la herramienta correcta.
+Para 10+ URLs encoladas en el pipeline, el click-through por JD es
+impráctico — salta a la subsección **Batch evaluate** del §14
+(ejecutando `./batch/batch-runner.sh` desde el padre), deja que
+trabaje toda la noche, después vuelve a `#/reports` / `#/tracker`
+para los resultados. Flujo completo:
+[batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers).
 
 ---
 
 ## 10. Reports (`#/reports`)
 
-Cada evaluación guardada. Cards con title, fecha, legitimidad, score
-(verde ≥ 4.0, amarillo ≥ 3.0, rojo abajo). Paginación 12/página.
+Navega cada evaluación guardada. Las tarjetas muestran título, fecha,
+flag de legitimidad, y puntuación (color-coded: verde ≥ 4.0,
+amarillo ≥ 3.0, rojo por debajo).
 
-Vista de un solo report:
+Haz clic en una tarjeta para leer el markdown completo. Paginación:
+12 por página; controles abajo.
+
+La vista de reporte individual también tiene:
 
 - **← All reports** — vuelve al grid.
-- **🔗 Open JD** — abre el JD original.
+- **🔗 Open JD** — abre el job posting original en una pestaña nueva.
 
 ---
 
 ## 11. Tracker (`#/tracker`)
 
-CRM. Una fila por aplicación. Vive en `data/applications.md` como
-tabla GFM.
+El CRM. Una fila por candidatura; vive en `data/applications.md` como
+tabla GitHub-Flavored Markdown.
 
-### Status flow
+### Flujo de estados
 
 `Evaluated` → `Applied` → `Responded` → `Interview` → `Offer` /
-`Rejected` / `Discarded` / `SKIP`. Whitelist enforced en el server.
+`Rejected` / `Discarded` / `SKIP`.
 
-### Columnas
+La whitelist de estados se aplica del lado del servidor; enviar
+cualquier otra cosa en un `POST /api/tracker` cae por defecto a
+`Evaluated`. La transición canónica `Evaluated → Applied` es
+automática cuando confirmas `Submitted.` al final de `/career-ops
+apply` (ver §14).
 
-| Col | Qué |
+### Layout de columnas
+
+| Columna | Qué es |
 |---|---|
-| `#` | Auto-numerado. |
-| `Date` | ISO. |
-| `Company` | Free text. **Pipes y newlines escapados.** |
-| `Role` | Igual. |
-| `Score` | `N/5`. |
-| `Status` | Whitelist. |
-| `PDF` | ✅ tras éxito. |
-| `Report` | Link a `reports/*.md`. |
-| `Notes` | Free text, max 200. |
+| `#` | Auto-numerado, con ceros a la izquierda (`001`, `002`, …). |
+| `Date` | Fecha ISO (`YYYY-MM-DD`). Default: hoy. |
+| `Company` | Texto libre. **Pipes (`\|`) y newlines se escapan automáticamente.** |
+| `Role` | Lo mismo. |
+| `Score` | Formato `N/5` (p. ej. `4.2/5`). |
+| `Status` | Enum de la whitelist. |
+| `PDF` | ✅ una vez que `generate-pdf.mjs` tuvo éxito para esta fila. |
+| `Report` | Enlace markdown al `reports/*.md` correspondiente. |
+| `Notes` | Texto libre, capado a 200 chars. |
 
 ### Filtros
 
-Status, Score (`≥ 4.0`/`≥ 3.0`/`< 3.0`), Search. 25 filas/página.
+- Dropdown **Status**.
+- Dropdown **Score** — `≥ 4.0` (alto), `≥ 3.0` (medio), `< 3.0`
+  (bajo).
+- **Search** — match de substring a través de empresa + rol.
 
-### Mantenimiento
+Cada filtro resetea el paginador a la página 1. 25 filas por página.
 
-- **▶ Normalize** — `normalize-statuses.mjs`.
-- **▶ Dedup** — `dedup-tracker.mjs`.
-- **▶ Merge** — `merge-tracker.mjs`.
+### Botones de mantenimiento
+
+- **▶ Normalize** ejecuta `normalize-statuses.mjs` —
+  re-canonicaliza la ortografía de estados (`applied` → `Applied`,
+  `interview` → `Interview`).
+- **▶ Dedup** ejecuta `dedup-tracker.mjs` — elimina duplicados
+  case-insensitive por `(empresa, rol)`.
+- **▶ Merge** ejecuta `merge-tracker.mjs` — trae entradas pendientes
+  de `batch/tracker-additions/*.tsv` (donde el flujo batch del padre
+  deposita candidaturas enviadas vía el helper Apply). Deduplica y
+  archiva los archivos procesados a `batch/tracker-additions/merged/`.
+  Ver
+  [batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers)
+  para el flujo batch upstream.
+
+### Añadir filas
+
+`POST /api/tracker` — body `{ company, role, score?, status?, url?,
+reportSlug?, notes?, date? }`. Dedup por `(empresa, rol)`
+case-insensitive. Desde el UI, la página Evaluate ofrece un botón
+"Add to tracker" tras una puntuación exitosa.
 
 ---
 
 ## 12. Deep research (`#/deep`)
 
-Genera un informe estructurado de empresa: snapshot, cultura de
-ingeniería, news recientes, sentiment Glassdoor, proceso de
-entrevistas, palancas de negociación, tres preguntas inteligentes.
+Genera un briefing estructurado de la empresa: snapshot, cultura de
+ingeniería, news recientes, sentiment de Glassdoor, proceso de
+entrevistas, palancas de negociación, tres preguntas inteligentes para
+hacerle al reclutador.
 
 ### Input
 
-Empresa + (opc.) rol. Plantilla `modes/deep.md`.
+Dos campos — nombre de empresa y (opcional) rol. La plantilla del
+modo (`modes/deep.md`) es la que da forma a la estructura.
 
-### Salida
+### Rutas de salida
 
-Misma cadena que Evaluate:
+Misma cadena de fallback que Evaluate:
 
-1. **Anthropic live** — `bundleProjectContext` inlinea cv + profile
-   + `_shared.md` + `deep.md`. 10–30 KB de markdown guardado a
+1. **Anthropic live** (preferida) — `bundleProjectContext` inlinea
+   cv + profile + `_shared.md` + `deep.md`. Output: 10–30 KB de
+   markdown fundamentado guardado a
    `interview-prep/<company>-<role>.md`.
-2. **Gemini live** — `gemini-eval.mjs`.
-3. **Manual** — prompt listo para Claude Code (con WebFetch +
-   WebSearch).
+2. **Gemini live** — invocación de `gemini-eval.mjs`. Mismo target de
+   guardado.
+3. **Prompt manual** — la página te entrega un prompt listo para
+   Claude Code (que tiene WebFetch + WebSearch y puede hacer
+   research real).
 
 ### Tips
 
-- Anthropic en `claude-sonnet-4-6` ~13 KB en 1–3 minutos.
-- Anthropic SDK no tiene web search; para news frescas use Claude
-  Code manual.
-- Costo live ≈ $0.30–0.50 por call.
+- Anthropic en `claude-sonnet-4-6` típicamente devuelve ~13 KB de
+  texto útil en 1–3 minutos por llamada.
+- El SDK de Anthropic no tiene web search built-in. Para roles donde
+  necesitas news frescas + sentiment de Glassdoor, pega el prompt
+  manual en Claude Code y deja que use su herramienta WebFetch.
+- Las ejecuciones live se facturan; una llamada de deep-research con
+  Sonnet 4.6 cuesta ≈ $0.30–0.50.
 
 ---
 
-## 13. Mode prompts (siete páginas `/#/<mode>`)
+## 13. Mode prompts (las siete páginas `/#/<mode>`)
 
-Siete generadores de prompt: **Project** ideas, **Training** plans,
-**Follow-up** emails, **Batch** evaluations, **Outreach** a
-recruiters, **Interview prep** one-pagers, **Patterns** retrospectivas.
-Cada uno envuelve una plantilla `modes/<slug>.md`:
+Siete generadores de prompts: ideas de **Project**, planes de
+**Training**, emails de **Follow-up**, evaluaciones **Batch**,
+**Outreach** a reclutadores, one-pagers de **Interview prep**, y
+retrospectivas de **Patterns**. Cada uno envuelve una plantilla
+`modes/<slug>.md` específica:
 
 | Página | Slug | Propósito |
 |---|---|---|
-| `#/project` | `project` | Ajustar un proyecto del portfolio. |
-| `#/training` | `training` | Análisis skill-gap → currículum. |
-| `#/followup` | `followup` | Draft email post-entrevista. |
-| `#/batch` | `batch` | Evaluación batch multi-JD. |
-| `#/contacto` | `contacto` | Mensaje outreach a recruiter / referido. |
-| `#/interview-prep` | `interview-prep` | One-pager por ronda. |
-| `#/patterns` | `patterns` | "¿Qué patrones me hicieron exitoso?" |
+| `#/project` | `project` | Adaptar un proyecto del portfolio para un rol objetivo. |
+| `#/training` | `training` | Análisis de skill-gap → currículum. |
+| `#/followup` | `followup` | Borrador de email post-entrevista. |
+| `#/batch` | `batch` | Prompt de evaluación batch multi-JD. |
+| `#/contacto` | `contacto` | Mensaje de outreach a un reclutador / referido. |
+| `#/interview-prep` | `interview-prep` | One-pager de prep para una ronda específica. |
+| `#/patterns` | `patterns` | Análisis reflexivo "¿Qué patrones me hicieron exitoso?". |
 
-### Forma común
+### Forma compartida
 
-Cada página: pequeña forma + **▶ Generate prompt** (manual) +
-**⚡ Run live** (cuando hay clave).
+Cada página tiene un pequeño formulario (los campos son específicos
+del modo), un botón **▶ Generate prompt** (manual), y — cuando hay
+una clave Anthropic o Gemini presente — un botón **⚡ Run live** que
+asciende a primary.
 
-**▶ Generate prompt** devuelve el prompt ensamblado con sus valores
-JSON-ificados.
+Hacer clic en **▶ Generate prompt** devuelve el prompt ensamblado con
+tus valores del formulario JSON-stringificados en un bloque
+`User-supplied context:`, seguido por la plantilla `modes/<slug>.md`
+verbatim. Copia y pega en tu LLM de elección.
 
-**⚡ Run live** envía a Anthropic (o Gemini) con cv + profile +
-`_shared.md` inline. Resultado renderizado, copiable, descargable.
+Hacer clic en **⚡ Run live** envía el mismo prompt a Anthropic (o
+Gemini), con `cv.md` + `profile.yml` + `_shared.md` inlineados vía
+`bundleProjectContext`. El resultado se renderiza en la página, es
+copiable, y descargable como `.md`.
+
+Las siete páginas son una allowlist explícita — los modos que tienen
+una ruta dedicada (`oferta` → Evaluate, `deep` → Deep research) y los
+modos que el proyecto padre solo soporta dentro de Claude Code
+(`apply`, `scan`, `pipeline`, `tracker`, `pdf`, `latex`, `ofertas`,
+`auto-pipeline`) deliberadamente se quedan fuera de este UI.
 
 ---
 
 ## 14. Apply checklist (`#/apply`)
 
-Una vez decidido aplicar, el Apply helper genera una checklist de
-envío. **NO** auto-rellena formularios — ese flujo queda en
-`/career-ops apply` dentro de Claude Code (vía Playwright).
+Una vez que has decidido aplicar, esta página Apply helper genera una
+checklist de envío para el paso de candidatura real. **NO**
+auto-rellena formularios — ese flujo se queda en `/career-ops apply`
+dentro de Claude Code, que usa Playwright en el proyecto padre.
 
-La checklist cubre:
+### Modo checklist SPA (`#/apply`)
 
-0. Correr `/career-ops apply <url>` en Claude Code.
-1. Verificar que el posting siga vivo.
-2. Confirmar que el CV está actualizado (sync-check, PDF si ≥ 4.0).
-3. Personalizar cover letter / "Why us?" con proof points STAR+R.
-4. Responder EEO / sponsorship / start-date con honestidad.
-5. Guardar respuestas en `interview-prep/{company}-{role}.md` antes
-   de enviar.
-6. **NUNCA auto-enviar** — usted (humano) hace click final.
-7. Tras submit: agregar fila al tracker.
+La checklist del SPA es para usuarios que prefieren rellenar el
+formulario a mano sin invocar Playwright. Cubre:
 
----
+0. Ejecuta `/career-ops apply <url>` en Claude Code para leer el
+   formulario vía Playwright (omite este paso si lo rellenas a mano).
+1. Verifica que el posting siga vivo (`check-liveness.mjs`).
+2. Confirma que el CV es el último (`cv-sync-check.mjs`, después PDF
+   si la puntuación ≥ 4.0).
+3. Adapta la cover letter / respuesta "Why us?" usando proof points
+   STAR+R de `cv.md`.
+4. Responde con honestidad las preguntas de EEO / sponsorship /
+   start-date.
+5. Guarda las respuestas rellenadas en
+   `interview-prep/{company}-{role}.md` antes de enviar.
+6. **NUNCA auto-enviar** — tú (el humano) haces clic en el botón
+   final.
+7. Tras enviar: añade una fila a `data/applications.md` (o escribe un
+   TSV a `batch/tracker-additions/`).
 
+### Rellenado manual vs asistido por Playwright
 
-### Flujo CLI completo de apply ([career-ops.org/docs/.../apply-for-a-job](https://career-ops.org/docs/introduction/guides/apply-for-a-job))
+Dos rutas para el envío real:
 
-Prerequisitos: `/career-ops pipeline` previamente (la JD necesita un evaluation report) · Playwright instalado (`npx playwright install chromium`) recomendado · fallback a WebFetch sin él.
+- **Manual** — abre la página de careers en una pestaña normal del
+  navegador, sigue la checklist SPA de arriba, copia/pega las
+  respuestas. No se requiere Playwright. Úsalo cuando el formulario
+  es corto o no tienes Chromium instalado.
+- **Asistido por Playwright** — ejecuta `/career-ops apply <company>`
+  en Claude Code (proyecto padre). Playwright abre su propio
+  navegador, lee cada campo del formulario, devuelve respuestas
+  numeradas en borrador. Tú aún haces clic en Submit. Úsalo cuando
+  el formulario es largo, dinámico, o quieres el audit trail de qué
+  preguntas tuvieron qué respuestas.
 
-Flujo numerado:
+### Flujo CLI completo de apply ([apply-for-a-job](https://career-ops.org/docs/introduction/guides/apply-for-a-job))
 
-1. **Ejecuta** `/career-ops apply <company>` (ej.: `/career-ops apply Anthropic`). Sin argumento, comparte screenshot del form, texto pegado, o URL en el siguiente turno.
-2. **Playwright abre el navegador** automáticamente y lee el form. NO abres el navegador tú.
-3. **Respuestas en borrador** vienen como lista numerada en el orden de los campos del form, desde los proof points y STAR stories del report.
-4. **Items marcados** apuntan a lo que requiere atención humana — salary anchor, campos de CV ausentes, preguntas opcionales.
-5. **Revisas cada respuesta**, llenas el form, y haces clic en **Submit** tú. career-ops nunca clickea Submit.
-6. **Confirma envío** en chat:
+**Prerrequisitos:**
+
+1. Ejecuta `/career-ops pipeline` primero para que el JD tenga un
+   reporte de evaluación bajo `reports/`. El comando apply depende de
+   una evaluación existente; sin una, ejecuta el pipeline
+   inicialmente.
+2. Tener el reporte y el profile cargados.
+3. **Recomendado:** Playwright instalado (`npx playwright install
+   chromium` — ver Setup de Playwright abajo). Cae a WebFetch
+   (preview de formulario solo texto, sin click-fill) cuando falta.
+
+**Flujo numerado** (los 8 pasos canónicos):
+
+1. **Ejecuta el comando** con el nombre de la empresa:
+
+   ```
+   /career-ops apply <company>
+   ```
+
+   Ejemplo: `/career-ops apply Anthropic`. Sin argumento, comparte un
+   screenshot del formulario, el texto del formulario pegado, o la
+   URL de la candidatura en el siguiente turno.
+
+2. **Localiza el reporte.** El sistema encuentra la evaluación
+   correspondiente en `reports/` (la creada por `/career-ops
+   pipeline` o `#/evaluate` previamente).
+
+3. **Abre el formulario.** Playwright lanza una ventana del navegador
+   **automáticamente** — tú NO la abres.
+
+4. **Lee los campos.** El sistema lee y parsea cada campo del
+   formulario (label, type, required, options para los selects).
+
+5. **Genera respuestas.** career-ops crea respuestas adaptadas para
+   cada campo basadas en tu profile, proof points, y el rol.
+
+6. **Devuelve lista numerada.** Recibes respuestas ordenadas para
+   coincidir con el layout del formulario — campos simples (name,
+   email) primero, campos de texto libre (cover letter, "Why us?")
+   al final. Los items marcados apuntan a cosas que necesitan
+   atención humana — salary anchor, detalles del currículum
+   ausentes, preguntas opcionales.
+
+7. **Rellenado manual.** Tú copias y pegas cada respuesta en el
+   campo correspondiente. Este paso es manual, no automatizado.
+   Revisas cada respuesta primero.
+
+8. **El usuario envía.** Tú haces clic en Submit tú mismo. career-ops
+   **nunca** hace clic en Submit. Confirma la finalización tipeando
+   en el chat:
 
    ```
    Submitted.
    ```
 
-7. **Actualizaciones automáticas** — el status pasa `Evaluated → Applied` en `data/applications.md`; las respuestas persisten en la Section G del report.
-8. **Handoff a tracker:** `/career-ops tracker`.
+**Actualizaciones automáticas al confirmar `Submitted.`:**
 
-### Batch evaluate ([career-ops.org/docs/.../batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers))
+- El estado cambia `Evaluated → Applied` en `data/applications.md`.
+- Las respuestas rellenadas persisten en la Section G del reporte
+  para referencia futura.
 
-Cuando tienes 10+ JDs para evaluar a la vez (el `#/evaluate` uno-por-uno del SPA es impráctico a ese volumen) — usa el batch runner desde CLI:
+**Handoff al tracker:**
 
-1. **Edita** `batch/batch-input.tsv` con columnas tab-separadas `id | url | source | notes`. Una fila por JD.
-2. **Dry-run** primero: `./batch/batch-runner.sh --dry-run`.
-3. **Ejecuta** — secuencial o paralelo:
+```
+/career-ops tracker
+```
+
+Monitorea el estado de todo tu pipeline, independientemente de la
+puntuación del rol.
+
+### Batch evaluate ([batch-evaluate-offers](https://career-ops.org/docs/introduction/guides/batch-evaluate-offers))
+
+Cuando tienes 10+ JDs para puntuar a la vez (el `#/evaluate` del SPA
+uno-por-uno es impráctico para ese volumen), usa el batch runner
+desde el CLI.
+
+**Archivo de entrada — `batch/batch-input.tsv`** (tab-separado):
+
+| Columna | Propósito |
+|---|---|
+| `id` | Número secuencial único |
+| `url` | Enlace completo del job posting |
+| `source` | Plataforma de origen (LinkedIn, Greenhouse, etc.) |
+| `notes` | Detalle contextual opcional |
+
+Fila de ejemplo:
+
+```
+1<TAB>https://jobs.example.com/senior<TAB>LinkedIn<TAB>
+```
+
+**Flags de `./batch/batch-runner.sh`:**
+
+- `--dry-run` — Previsualiza ofertas pendientes sin evaluación.
+  Ejecuta esto siempre primero para validar el TSV.
+- `--parallel N` — Ejecuta N workers simultáneamente (1, 2, o 3
+  recomendados).
+- `--min-score X.X` — Omite persistir ofertas que puntúen por debajo
+  del umbral. Útil para quedarte solo con reportes de roles de alto
+  fit.
+- `--retry-failed` — Reprocesa solo las ofertas que dieron error en
+  la ejecución anterior (fallos de red, rate limits).
+- `--max-retries N` — Reintenta las ofertas fallidas hasta N veces
+  (default: 2).
+
+**Secuencia estándar:**
+
+1. **Edita** `batch/batch-input.tsv` — una fila por JD.
+
+2. **Dry-run** (recomendado primero):
+
+   ```bash
+   ./batch/batch-runner.sh --dry-run
+   ```
+
+3. **Ejecuta** — secuencial o en paralelo:
 
    ```bash
    ./batch/batch-runner.sh                       # uno a uno
    ./batch/batch-runner.sh --parallel 2          # dos concurrentes
-   ./batch/batch-runner.sh --parallel 3
-   ./batch/batch-runner.sh --parallel 2 --min-score 4.0
+   ./batch/batch-runner.sh --parallel 3          # tres concurrentes
+   ./batch/batch-runner.sh --parallel 2 --min-score 4.0  # solo persistir high-fit
    ```
 
-4. **Retry fallos:** `./batch/batch-runner.sh --retry-failed --max-retries 3`.
-5. **Reports** aterrizan en `reports/` (formato `NNN-company-YYYY-MM-DD.md`); summary rows en `batch/tracker-additions/`.
-6. **Merge a tracker:** `node merge-tracker.mjs` (o `--dry-run`).
+4. **Reintentar fallos** (red / rate-limit):
 
-El SPA muestra los reports en `#/reports` y los tracker rows en `#/tracker` — exactamente igual que si los hubieras agregado por `#/evaluate`.
+   ```bash
+   ./batch/batch-runner.sh --retry-failed --max-retries 3
+   ```
 
-### Setup de Playwright ([career-ops.org/docs/.../set-up-playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright))
+5. **Los reportes** aterrizan en `reports/` como
+   `{id}-{company}-{YYYY-MM-DD}.md`. Las filas resumen se añaden a
+   `batch/tracker-additions/`.
 
-Requerido para el form-fill apply y para `📄 Generate PDF` en este SPA. Sin él, apply hace fallback a WebFetch (text-only).
+6. **Merge al tracker:**
+
+   ```bash
+   node merge-tracker.mjs                 # aplica las batch additions
+   node merge-tracker.mjs --dry-run       # previsualiza el merge
+   ```
+
+   El comando merge deduplica las entradas y archiva los archivos
+   procesados a `batch/tracker-additions/merged/`.
+
+El SPA expone los reportes resultantes en `#/reports` (paginados,
+con pill de score coloreada) y las filas del tracker bajo `#/tracker`
+— exactamente como si hubieras añadido cada uno a través de
+`#/evaluate`. Combínalo con el botón de mantenimiento **▶ Merge** en
+`#/tracker` si prefieres no bajar al CLI.
+
+### Setup de Playwright ([set-up-playwright](https://career-ops.org/docs/introduction/guides/set-up-playwright))
+
+Requerido para dos features de career-ops:
+
+- **Form-fill** en `/career-ops apply` (paso 3 de arriba — Playwright
+  abre el navegador, lee labels de campos, sugiere respuestas).
+- **Generación de PDF** vía `/career-ops pdf` y el botón **📄
+  Generate PDF** del SPA en `#/cv` / `#/reports/:slug` /
+  `#/evaluate` / `#/deep` / `#/interview-prep`.
+
+**Fallback cuando falta Playwright:** el flujo apply cae a WebFetch
+(preview de formulario solo texto, sin click-fill). La generación de
+PDF simplemente da error.
+
+**Setup principal (ejecutar desde la raíz del padre career-ops):**
 
 ```bash
-# desde career-ops root
+# Instalar Chromium para Playwright
 npm install
 npx playwright install chromium
+
+# Registrar el MCP de Playwright para que Claude Code pueda manejar formularios
 claude mcp add playwright npx @playwright/mcp@latest
+
+# Verificar los tres componentes (Chromium, lib de Playwright, MCP)
 npm run doctor
 ```
 
-Alternativa MCP vía `.claude/settings.local.json`:
+**Registro MCP alternativo** — añadir a
+`.claude/settings.local.json`:
 
 ```json
 {
@@ -674,38 +1240,65 @@ Alternativa MCP vía `.claude/settings.local.json`:
 }
 ```
 
+**Notas de comportamiento:**
+
+- **Headless por defecto.** Playwright opera silenciosamente. Para
+  ver el navegador en acción, dile a Claude `open up with playwright
+  the browser and fill out the entire form.`
+- **Tres roles en un paquete** — la instalación npm de Playwright te
+  da la librería de automatización del navegador, el motor de
+  renderizado de PDF para `/career-ops pdf`, y (vía el MCP) el
+  workflow de form-fill dentro de Claude Code.
+- **Verifica antes de confiar en él** — `npm run doctor` confirma
+  que los tres están operativos. La página Health del SPA expone un
+  check `Playwright (parent node_modules)` que falla rápido si
+  falta.
+
 ---
 
 ## 15. Preparación para entrevistas
 
-Fase post-research, pre-interview. Tres artefactos convergen:
+Esta es la fase post-research, pre-interview. Tres artefactos en
+esta app convergen:
 
-1. **Saved deep-research files** en `interview-prep/`. Browse desde
-   Deep research.
-2. **Patterns mode** (`#/patterns`) — "¿qué patrones se mantienen en
-   mis últimas N entrevistas?" Útil con 5+ filas en tracker.
-3. **Interview-prep mode** (`#/interview-prep`) — pre-rellena
-   one-pager por ronda.
+1. **Archivos de deep-research guardados** bajo `interview-prep/`,
+   uno por pareja company-role que ejecutaste. Navégalos desde la
+   página **Deep research** o directamente vía `/api/interview-prep`.
+2. **Modo Patterns** (`#/patterns`) — genera un prompt
+   auto-reflexivo: "a través de mis últimas N entrevistas / ofertas
+   / rechazos, ¿qué patrones se mantienen?" Útil cuando hayas
+   acumulado 5+ filas en el tracker.
+3. **Modo Interview-prep** (`#/interview-prep`) — pre-rellena un
+   one-pager para una ronda upcoming específica (behavioral,
+   technical, system design). El output va al mismo folder
+   `interview-prep/`.
 
 ### Workflow recomendado
 
-Para cada entrevista:
+Para cada entrevista que tengas agendada:
 
-1. Re-correr Deep o abrir el archivo guardado el día anterior.
-2. `#/interview-prep` — generar one-pager para la ronda específica.
-3. System design / coding — `#/training` para refresher 30 min.
-4. Compensation — abrir deep-research, jump a "Negotiation leverage."
-   Lleve 2–3 datos (Glassdoor band, funding reciente, oferta
-   comparable).
-5. Behavioral — sacar STAR+R de su `cv.md` que aparezcan en sección B
-   del Evaluate.
+1. **Re-ejecuta Deep** (o abre el archivo guardado) el día anterior.
+2. **`#/interview-prep`** — genera un one-pager para la ronda
+   específica. Pégalo en tus notas.
+3. **Rondas de System design / coding** — abre `#/training` y pide
+   un refresher de 30 minutos dirigido sobre el subsistema específico
+   que el JD enfatiza.
+4. **Rondas de compensación** — abre el archivo de deep-research,
+   salta a "Negotiation leverage points." Lleva 2–3 datos específicos
+   (banda de Glassdoor, funding reciente, oferta comparable en otra
+   empresa).
+5. **Rondas behavioral** — saca historias STAR+R de tu `cv.md` que
+   aterrizan en la sección B del reporte de Evaluate original.
 
-Tras la entrevista:
+Tras la entrevista, inmediatamente:
 
-1. Actualizar tracker: `Responded` → `Interview` → `Offer`.
-2. `#/followup` para draft thank-you.
-3. Si hubo info nueva, editar `interview-prep/<company>-<role>.md`
-   con `## Post-round notes`.
+1. Actualiza la fila del tracker: estado → `Responded` (después
+   `Interview`, `Offer`, etc.).
+2. Ejecuta `#/followup` para redactar el email de agradecimiento.
+3. Si conseguiste inteligencia nueva (rango de compensación,
+   composición del equipo, sorpresa del stack tecnológico), edita el
+   `interview-prep/<company>-<role>.md` guardado con `## Post-round
+   notes` así future-you lo tiene.
 
 ---
 
@@ -713,26 +1306,36 @@ Tras la entrevista:
 
 ### Activity log (`#/activity`)
 
-Audit trail de cada request state-changing. Secretos redacted
-on-write — nunca verá el valor real en `data/activity.jsonl`.
-Filtros por prefijo de acción. 25 por página; servidor devuelve
-hasta 500 eventos.
+Audit trail de cada request state-changing que llega al servidor.
+Registra: adiciones al pipeline, escrituras al tracker, guardados de
+CV, guardados de JD, ejecuciones de evaluate, ejecuciones de
+deep-research, ejecuciones de scan, cambios de configuración,
+ejecuciones de modos.
+
+Los secretos (`ANTHROPIC_API_KEY`, `GEMINI_API_KEY`) se redactan al
+entrar; nunca verás un valor real de clave en `data/activity.jsonl`.
+
+Filtra por prefijo de acción (`pipeline.`, `cv.`, `evaluate`,
+`scan.`, etc.). 25 filas por página; el servidor devuelve hasta los
+500 eventos más recientes.
 
 ### Troubleshooting
 
 | Síntoma | Causa probable | Solución |
 |---|---|---|
-| Health rojo en `cv.md` | Primer arranque, archivo no existe | `touch $CAREER_OPS_ROOT/cv.md`, refresh. |
-| Health rojo en `Profile customized` | `full_name` aún `Jane Smith` | Edite `config/profile.yml`. |
-| `hh.ru: HTTP 403` | IP no rusa, sin `(server uses default UA)` | Registre app en `dev.hh.ru/admin`, use a Russian IP / VPN. |
-| `gemini-eval.mjs: ERR_MODULE_NOT_FOUND` | Deps del padre no instaladas | `cd $CAREER_OPS_ROOT && npm install`. |
-| Errores en Generate PDF | Playwright no instalado | `npx playwright install chromium`. |
-| `EADDRINUSE: 4317` | Instancia vieja corriendo | `pkill -f 'node server/index.mjs'`. |
-| LLM live cuelga > 2 min | Prompt enorme o Anthropic lento | Soft-cap 200 KB → 413. |
-| Pipeline preview `(unsafe redirect)` | Posting redirige a IP privada / loopback | Es un security feature (REVIEW-B1). |
-| Fila tracker rompe la tabla | Pipe en company name pre-v1.9.1 | Update v1.9.1+ (BF-1). |
-| `npm test` falla en clone fresco | Tests asumen layout del padre | `CAREER_OPS_ROOT=$(mktemp -d)`. |
+| Página Health roja en `cv.md` | Primer arranque, el archivo aún no existe | `touch $CAREER_OPS_ROOT/cv.md` y después refresca. |
+| Health roja en `Profile customized` | `candidate.full_name` aún dice `Jane Smith` | Edita `config/profile.yml`. |
+| `hh.ru: HTTP 403` en el log del scan | IP no rusa, sin `(server uses default UA)` | Registra una app en `dev.hh.ru/admin`, usa una IP / VPN rusa. |
+| `gemini-eval.mjs: ERR_MODULE_NOT_FOUND` | Dependencias del proyecto padre no instaladas | `cd $CAREER_OPS_ROOT && npm install`. |
+| Errores al Generate PDF | Playwright no instalado en el padre | `cd $CAREER_OPS_ROOT && npx playwright install chromium`. |
+| `/career-ops apply` dice "no report found" | El pipeline nunca puntuó este JD | Ejecuta `/career-ops pipeline` (o `#/evaluate`) primero; ver prerrequisitos del §14. |
+| `batch-runner.sh: no such file` | Ejecutando desde el directorio incorrecto | `cd $CAREER_OPS_ROOT` antes de invocar `./batch/batch-runner.sh`. |
+| El servidor reporta `EADDRINUSE: 4317` | Instancia vieja aún corriendo | `pkill -f 'node server/index.mjs'` y reinicia. |
+| Llamada LLM live cuelga > 2 min | Prompt enorme o Anthropic lento | Revisa el flag de Anthropic en `/api/health`; el servidor pone soft-cap a los prompts en 200 KB y devuelve 413. |
+| Pipeline preview muestra `(unsafe redirect)` | El posting redirigió a una IP privada / loopback | Es un feature de seguridad (REVIEW-B1). El target de redirect se rechaza y la URL original se mantiene sin cambios. |
+| El texto de una fila del tracker rompe la tabla | Pipe en el nombre de empresa pre-v1.9.1 | Actualiza a v1.9.1+ — los pipes se escapan end-to-end (BF-1). |
+| `npm test` falla en clon fresco | Los tests asumen el layout del proyecto padre | Usa `CAREER_OPS_ROOT=$(mktemp -d)` y bootstrapea fixtures. |
 
-Para diagnóstico profundo: ejecute **▶ Doctor** desde Health, copie
-output, busque issue en
+Para diagnóstico más profundo: ejecuta **▶ Doctor** en la página
+Health, copia el output, y busca el issue en el tracker en
 <https://github.com/Fighter90/career-ops-ui/issues>.

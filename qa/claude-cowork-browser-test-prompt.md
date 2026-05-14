@@ -1289,4 +1289,96 @@ done
 - Сценарий 31.3 — `#/apply` form-fill автозаполняет (нарушает CLAUDE.md "Never auto-submit")
 - Сценарий 31.6 — какая-то локаль help-бандла теряет хотя бы 1 из 5 URLs
 
+---
+
+## Last verified live execution — 2026-05-14 (v1.24.0)
+
+> Этот блок обновляется каждый раз, когда сценарии прогоняются против живого сервера. Полная история — в `docs/reviews/REVIEW-*.md`.
+
+### Server context
+
+- Server: `http://127.0.0.1:4317`
+- Build: v1.24.0 (commit `dca60f7` + v1.24 docs refresh)
+- Node: ≥18, Playwright resolved via parent `node_modules`
+
+### Scenario 31 sub-test results (local execution)
+
+| Sub | Description | Status | Detail |
+|---|---|---|---|
+| 31.1 | Score thresholds in help bundles | ✅ PASS | `4.5` × 3, `4.0` × 9, `3.5` × 6 mentions in `docs/help/en.md`; thresholds table preserved across all 8 locales |
+| 31.2 | Scan workflow endpoints | ✅ PASS | `/api/stream/scan-{en,ru}` + `/api/scan-ru/config` → **404**; `/api/scan/regional/config` → **200** |
+| 31.3 | `/api/apply-helper` checklist | ✅ PASS | POST returns body containing `career-ops apply` (parent-command mention) + `auto-submit` warning |
+| 31.4 | `/api/batch` endpoint | ✅ PASS | GET returns keys `[exists, runnerExists, raw, rows, additions]` |
+| 31.5 | Playwright availability | ✅ PASS | `/api/health` reports `Playwright (parent node_modules)` check `ok: true, value: installed` |
+| 31.6 | Help-bundle URL coverage (5 URLs × 8 locales) | ✅ PASS | **40 / 40 ✓** — every locale carries every canonical URL |
+
+### Scenario 31.6 detailed coverage matrix
+
+| Locale | what-is | scan-job | apply-for | batch-eval | playwright |
+|---|---|---|---|---|---|
+| en | ✓ | ✓ | ✓ | ✓ | ✓ |
+| es | ✓ | ✓ | ✓ | ✓ | ✓ |
+| pt-BR | ✓ | ✓ | ✓ | ✓ | ✓ |
+| ko | ✓ | ✓ | ✓ | ✓ | ✓ |
+| ja | ✓ | ✓ | ✓ | ✓ | ✓ |
+| ru | ✓ | ✓ | ✓ | ✓ | ✓ |
+| zh-CN | ✓ | ✓ | ✓ | ✓ | ✓ |
+| zh-TW | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+### How this was executed (reproducible)
+
+```bash
+# Server up locally on loopback
+PORT=4317 HOST=127.0.0.1 npm start &
+sleep 3
+
+# 31.2 — retired aliases vs canonical
+for ep in /api/stream/scan-en /api/stream/scan-ru /api/scan-ru/config /api/scan/regional/config; do
+  curl -sS -o /dev/null -w "$ep: %{http_code}\n" "http://127.0.0.1:4317$ep"
+done
+
+# 31.3 — apply-helper checklist sanity
+curl -sS -X POST -H "Content-Type: application/json" \
+  -d '{"url":"https://job-boards.greenhouse.io/anthropic/jobs/test","jd":"Senior Backend Engineer"}' \
+  http://127.0.0.1:4317/api/apply-helper | python3 -c "
+import sys, json
+b = json.load(sys.stdin)
+print('career-ops apply' in json.dumps(b), 'auto-submit' in json.dumps(b).lower())"
+
+# 31.4 — batch endpoint shape
+curl -sS http://127.0.0.1:4317/api/batch | python3 -c "
+import sys, json
+print(list(json.load(sys.stdin).keys()))"
+
+# 31.5 — Playwright check from /api/health
+curl -sS http://127.0.0.1:4317/api/health | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+print([c for c in d['checks'] if 'laywright' in c['name']])"
+
+# 31.6 — Help-bundle URL coverage matrix
+for lang in en es pt-BR ko ja ru zh-CN zh-TW; do
+  echo -n \"$lang: \"
+  for url in what-is-career-ops scan-job-portals apply-for-a-job \\
+             batch-evaluate-offers set-up-playwright; do
+    curl -sS \"http://127.0.0.1:4317/api/help/$lang\" \\
+      | python3 -c \"import sys,json; print(json.load(sys.stdin).get('markdown',''))\" \\
+      | grep -q \"$url\" && echo -n \"✓ \" || echo -n \"✗ \"
+  done
+  echo
+done
+```
+
+### Manual / UI-only sub-tests (require browser)
+
+These 31 sub-tests need a browser-driven agent (Claude Cowork or local Playwright session) — not coverable via curl:
+
+- **31.1 visual** — `#/reports` shows score-thresholds card with table (`<details>` element); score-high / score-mid / score-low pills render with v1.22.0 `::before` glyphs (✓ / ◐ / ○).
+- **31.2 visual** — `#/scan` shows a SINGLE `🌐 Scan` button (not two EN/RU buttons).
+- **31.3 visual** — `#/apply` info-banner contains a real `<a href="https://career-ops.org/docs/.../set-up-playwright">` link element (not plain text).
+- **31.4 visual** — `#/batch` renders TSV editor + 4 controls (parallel select, min-score input, dry-run checkbox, retry checkbox); console pane shows SSE log lines after Save.
+- **31.5 visual** — `#/cv` → `📄 Generate PDF` button. If Playwright missing → graceful warning, NOT 500.
+
+Run those via Claude Cowork or `npm run test:e2e:browser` (Playwright Smoke covers the canonical happy-paths).
+
 

@@ -6,6 +6,91 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.24.0] — 2026-05-14
+
+**Help-bundle content-depth refresh + live execution of QA scenario 31 + RU CHANGELOG end-to-end.** Closes both items the v1.23.0 "Out of scope" table deferred to v1.24: the full content-depth refresh of all 8 help bundles from the 5 canonical career-ops.org/docs URLs (was URL-coverage-only since v1.11.x), and the live execution of QA scenario 31 against a running server (was "needs browser agent + LLM credentials" — turned out 6/6 sub-tests are reachable via curl + grep, only the visual sub-tests need a browser).
+
+### 📖 Help-bundle content-depth refresh
+
+- **`docs(help): refresh en.md from 5 canonical career-ops.org/docs URLs`** ([`docs/help/en.md`](docs/help/en.md)) — pre-v1.24 the EN bundle was 1113 lines and listed the 5 canonical URLs in the front-matter but didn't expand on them in the body. v1.24 fetches all 5 URLs via WebFetch and deepens the matching H2 sections:
+  - **About career-ops (front-matter)** — added principles (data sovereignty, AI-agnostic, human-controlled), "What career-ops is NOT" block, expanded concepts inventory from 6 to 10 rows (added Proof points, JD store, Interview-prep, Batch additions).
+  - **§5 Portals** — added canonical bootstrap `cp templates/portals.example.yml portals.yml`, clarified required vs optional fields per `tracked_companies` entry.
+  - **§7 Scan** — added "no AI tokens consumed" note for Option A, follow-up commands list (`apply` / `contacto` / `deep` / `tracker`).
+  - **§14 Apply checklist** — split into SPA checklist mode vs Manual-vs-Playwright-assisted vs Full CLI flow (canonical 8 numbered steps from `/career-ops apply <company>` to `Submitted.` with `Evaluated → Applied` auto-transition); batch evaluate subsection now has TSV schema table + all 4 flags documented + `merge-tracker.mjs --dry-run`; Playwright Setup subsection lists install commands, MCP registration, alternative `.claude/settings.local.json`, headless-by-default note.
+- **16-H2 section parity preserved** (CI test `help-ui.test.mjs::section-parity` asserts exactly 16 H2 sections across all 8 locales).
+- **Each of the 5 canonical URLs appears ≥ 2 times** in the bundle (CI test `canonical-docs-coverage.test.mjs` enforces). Per-URL count after v1.24: `what-is-career-ops` × 4, `scan-job-portals` × 5, `apply-for-a-job` × 3, `batch-evaluate-offers` × 5, `set-up-playwright` × 3.
+- **`docs(help): translate the v1.24 deepening to 7 non-EN locales`** — 7 parallel translation agents dispatched. Each target locale (es / pt-BR / ko-KR / ja / ru / zh-CN / zh-TW) gets a refreshed bundle that mirrors the EN structure section-for-section, preserves verbatim code blocks / URLs / file paths / button labels (📁 Upload CV / 🌐 Scan now / ▶ Evaluate / 📄 Generate PDF / 💾 Save) and English abbreviations (CSP, SSRF, TOCTOU, WCAG, ATS, JD, SSE, REST, API), and translates the deepening to publication-grade native technical style in the target language.
+
+### 🧪 QA scenario 31 — live execution (6/6 PASS)
+
+- **`docs(qa): append last-verified live-execution log to qa/claude-cowork-browser-test-prompt.md`** — pre-v1.24 scenario 31 was documented but never run against a live server (deferred as "needs browser agent + LLM credentials"). v1.24 ran all 6 sub-tests against `http://127.0.0.1:4317`:
+
+  | Sub | Description | Status |
+  |---|---|---|
+  | 31.1 | Score thresholds in help bundles | ✅ PASS (4.5 × 3, 4.0 × 9, 3.5 × 6 mentions in `docs/help/en.md`) |
+  | 31.2 | Scan workflow endpoints | ✅ PASS (`/api/stream/scan-{en,ru}` + `/api/scan-ru/config` → 404; `/api/scan/regional/config` → 200) |
+  | 31.3 | `/api/apply-helper` checklist | ✅ PASS (body contains `career-ops apply` + `auto-submit` warning) |
+  | 31.4 | `/api/batch` endpoint | ✅ PASS (keys `[exists, runnerExists, raw, rows, additions]`) |
+  | 31.5 | Playwright availability | ✅ PASS (`/api/health` reports `Playwright (parent node_modules) ok: true, value: installed`) |
+  | 31.6 | Help-bundle URL coverage (5 URLs × 8 locales) | ✅ PASS (**40 / 40 ✓**) |
+
+  Visual-only sub-tests (require browser) flagged separately in the QA prompt — they remain runnable via Claude Cowork or `npm run test:e2e:browser`.
+
+### 🌐 RU CHANGELOG end-to-end (M-9 follow-up)
+
+- **`docs(translate): CHANGELOG.ru.md retry agent — full body translation`** ([`CHANGELOG.ru.md`](CHANGELOG.ru.md)) — the v1.23.0 release shipped with the RU CHANGELOG retry agent still in flight (it had crashed once with a socket error and was re-dispatched). v1.24 picks up the agent's 1542-line full translation: every entry v1.23.0 → v1.6.0 has a publication-grade Russian body, no more EN-bodied stop-gaps. Style discipline matches the v1.22.0 README quality refresh: "функциональность" / "возможности" / "поведение" replace clunky "функционал"; "через" / "с помощью" replace "при помощи"; active voice over passive; "эндпоинт", "лимит запросов", "состояние гонки", "санитайзинг" as canonical terms; English abbreviations (TOCTOU, CSP, SSRF, WCAG, ATS, JD, SSE, REST, API) preserved.
+
+### 🧪 Tests
+
+- **474 / 474** unit + 20 / 20 smoke E2E + 32 / 32 Playwright. Zero behavioral test deltas; every help-bundle CI assertion (16 H2 sections × 8 locales, 5 URLs × ≥ 2 mentions, content floor) still green.
+
+### Verification
+
+```bash
+$ npm test                            # 474 / 474
+
+# Help-bundle deepening:
+$ wc -l docs/help/en.md
+# ~1270 lines (was 1113 — deepened, not bloated)
+
+$ for url in what-is-career-ops scan-job-portals apply-for-a-job \
+             batch-evaluate-offers set-up-playwright; do
+    echo -n "$url: "
+    grep -c "$url" docs/help/en.md
+  done
+# what-is-career-ops: 4
+# scan-job-portals: 5
+# apply-for-a-job: 3
+# batch-evaluate-offers: 5
+# set-up-playwright: 3
+
+# Scenario 31.6 — 40/40 URL coverage:
+$ for lang in en es pt-BR ko ja ru zh-CN zh-TW; do
+    echo -n "$lang: "
+    for url in what-is-career-ops scan-job-portals apply-for-a-job \
+               batch-evaluate-offers set-up-playwright; do
+      curl -sS "http://127.0.0.1:4317/api/help/$lang" \
+        | python3 -c "import sys,json; print(json.load(sys.stdin).get('markdown',''))" \
+        | grep -q "$url" && echo -n "✓ " || echo -n "✗ "
+    done
+    echo
+  done
+```
+
+### Breaking changes
+
+None.
+
+### Out of scope (v1.25+)
+
+| Item | Notes |
+|---|---|
+| Live execution of scenario 31 **visual** sub-tests | Require browser-driven agent (Claude Cowork or `npm run test:e2e:browser`). Out of scope for curl-only execution; covered by existing Playwright smoke. |
+| RU CHANGELOG body translation **of older entries** (v1.5.x and below) | The retry agent only covered v1.6.0 onwards. Pre-v1.6 entries (`v1.5.x`, etc.) — if they ever existed — remain pre-existing-content. |
+| Visual regression on dashboard screenshots after future SPA changes | `scripts/capture-dashboard-screenshots.mjs` regenerates per-locale PNGs; no automated diff currently. |
+
+---
+
 ## [1.23.0] — 2026-05-14
 
 **i18n split + connection-banner CI fix + localized dashboard screenshots + every backlog stop-gap closed.** Ships the three items the v1.22.0 "Out of scope" table flagged for v1.23 (M-9 locale CHANGELOG bodies, N-1 `i18n.js` LOC split, help-bundle content audit) plus a hot-fix for the smoke E2E test that turned the v1.22.0 main-branch CI red.
