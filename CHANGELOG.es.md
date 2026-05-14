@@ -10,6 +10,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.30.0] — 2026-05-14
+
+**Paginador en `#/scan` — reemplaza el truncamiento «primeros 200 de N» de v1.12.**
+
+Pre-v1.30 la tabla de resultados de scan estaba acotada a las primeras 200 filas filtradas con una nota «Showing first 200 of N» al pie. Las filas 201..N eran inalcanzables desde la UI. v1.30.0 cambia el cap por `UI.paginate` (mismo helper que `#/tracker` / `#/reports` / `#/activity`). `PAGE_SIZE = 200` conserva la densidad visual previa; orden boosted-to-top estable entre páginas (orden COMPLETO y luego paginación); reset automático a página 1 al cambiar filtros. Clave i18n obsoleta `scan.shownTop` eliminada (×8 locales). 9 nuevos casos de prueba en `tests/scan-paginator.test.mjs` (7 canarios estáticos + 1 tabla lógica con 6 casos límite + 1 cómputo del resumen). **558 → 567** unit + acceptance (+9). Detalles completos en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.29.2] — 2026-05-14
 
 **Hot-fix: `🌐 Scan` con `source=both` solo ejecutaba la fase EN. La fase RU se eliminaba silenciosamente.**

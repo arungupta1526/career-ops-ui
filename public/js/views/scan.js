@@ -257,6 +257,13 @@ Router.register('scan', async () => {
     const ruRows = (scope === 'fresh' ? ru?.fresh : (ru?.filtered || ru?.fresh)) || [];
     return [...enRows, ...ruRows];
   }
+  // v1.30.0 — replaces the hardcoded 200-row truncation. UI.paginate
+  // auto-clamps the page when filters narrow the list (so the user
+  // can't end up on an empty trailing page), and re-renders via
+  // onChange when paginator buttons are clicked. PAGE_SIZE picked to
+  // match the prior 200-row visual density per page.
+  const PAGE_SIZE = 200;
+  const pager = UI.paginate({ pageSize: PAGE_SIZE, onChange: () => renderResults() });
   function renderResults() {
     resultsEl.innerHTML = '';
     const allRows = getRows();
@@ -322,11 +329,14 @@ Router.register('scan', async () => {
     // order is preserved otherwise. Boost is sourced from
     // `portals.yml::title_filter.seniority_boost` and stamped server-side
     // by both en-scanner and ru-scanner.
-    const sorted = rows.slice(0, 200).sort((a, b) => {
+    // v1.30.0 — sort the FULL filtered set FIRST (so the boost-to-top
+    // invariant holds across pages), then page-slice.
+    const sortedAll = rows.slice().sort((a, b) => {
       const ab = a && a._boosted ? 1 : 0;
       const bb = b && b._boosted ? 1 : 0;
       return bb - ab;
     });
+    const sorted = pager.slice(sortedAll);
     const tbody = c('tbody', null, sorted.map((r) => {
       const wt = r.workplaceType || (r.isRemote ? 'Remote' : 'Onsite');
       const wtClass = /remote/i.test(wt) ? 'badge-ok' : /hybrid/i.test(wt) ? 'badge-info' : '';
@@ -360,13 +370,15 @@ Router.register('scan', async () => {
         tbody,
       ])
     ));
-    if (rows.length > 200) {
-      resultsEl.appendChild(c('p', { className: 'field-hint', style: { textAlign: 'center', marginTop: '12px' } },
-        `${t('scan.shownTop')} ${rows.length}.`));
-    }
+    // v1.30.0 — paginator replaces the v1.12-v1.29.x "first 200 of N"
+    // hint. controls() returns null when there's only one page, so
+    // small result sets stay clean.
+    resultsEl.appendChild(pager.controls(sorted.length, rows.length));
   }
 
-  ;[filterText, filterRemote, filterSource, filterScope].forEach((el) => el.addEventListener('input', renderResults));
+  // Resetting the pager when filter inputs change keeps page-1 sticky
+  // (matches the tracker / reports pattern).
+  ;[filterText, filterRemote, filterSource, filterScope].forEach((el) => el.addEventListener('input', () => { pager.reset(); renderResults(); }));
 
   // Build a chip row for one facet category. Active selections survive across re-renders
   // because activeTech / activeLevel are scoped above.

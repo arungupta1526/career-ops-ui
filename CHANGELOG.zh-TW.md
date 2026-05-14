@@ -8,6 +8,14 @@
 
 ---
 
+## [1.30.0] — 2026-05-14
+
+**`#/scan` 結果分頁器 — 取代 v1.12 的「顯示前 200(共 N)」截斷。**
+
+v1.30 之前,掃描結果表會被硬截斷為前 200 列過濾後的資料,底部一行「Showing first 200 of N」提示,201..N 列無法從 UI 存取。v1.30.0 將上限替換為 `UI.paginate`(與 `#/tracker` / `#/reports` / `#/activity` 同一 helper)。`PAGE_SIZE = 200` 保持原有視覺密度;boost-to-top 排序在跨頁時仍穩定(先對完整集合排序,再分頁);任意篩選變化時自動重置為第 1 頁。已棄用的 i18n key `scan.shownTop` 被移除(8 個語系)。`tests/scan-paginator.test.mjs` 新增 9 個案例(7 個靜態 canary + 含 6 個邊界條件的純邏輯表 1 個 + 摘要計算 1 個)。**558 → 567** 單元 + 驗收測試(+9)。完整細節見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.29.2] — 2026-05-14
 
 **熱修復:`🌐 Scan` 在 `source=both` 模式下只跑了 EN 階段,RU 階段被靜默丟棄。**

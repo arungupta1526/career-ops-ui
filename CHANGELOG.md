@@ -6,6 +6,44 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.30.0] — 2026-05-14
+
+**`#/scan` results paginator — replaces the v1.12.0 "first 200 of N" truncation.**
+
+### ✨ Features
+
+- **`feat(scan): paginate over full filtered result set`** ([`public/js/views/scan.js`](public/js/views/scan.js)) — pre-v1.30 the scan results table was hard-capped at the first 200 filtered rows with a footnote saying "Showing first 200 of N". Rows 201..N were unreachable from the UI; the user had to re-tune `title_filter.positive` in `portals.yml` to narrow the set if they wanted to inspect later rows. v1.30.0 swaps the cap for `UI.paginate` (the same helper that drives `#/tracker`, `#/reports`, `#/activity`).
+  - `PAGE_SIZE = 200` preserves the prior visual density per page.
+  - The FULL filtered set is sorted first (boost-to-top is stable across pages), then page-sliced — so a boosted row that lands on page 2 still appears at the top of page 2, not buried.
+  - Filter input (text / source / remote / scope / chips) calls `pager.reset()` so the user lands on page 1 of the new filter result.
+  - `pager.controls(visible, total)` renders `« ‹ N-M of K › »` with disabled-state buttons when on first / last page. When `total ≤ pageSize`, the controls show only the item count (clean for small datasets).
+- Stale `scan.shownTop` i18n key removed from [`public/js/lib/i18n-dict.js`](public/js/lib/i18n-dict.js) (× 8 locales — no longer referenced).
+
+### 🧪 Tests
+
+- **`test(scan): tests/scan-paginator.test.mjs`** — 9 cases across three layers:
+  - **Static-source canaries (7):** scan.js declares `PAGE_SIZE = 200`; wires `UI.paginate({ pageSize: PAGE_SIZE, onChange: …renderResults… })`; resets pager on filter input; sorts the FULL `rows.slice()` into `sortedAll` BEFORE paginating; uses `pager.slice(sortedAll)`; appends `pager.controls(sorted.length, rows.length)` after the table; no longer contains the pre-v1.30 `rows.slice(0, 200)` truncation. `i18n-dict.js` does NOT carry the stale `scan.shownTop` key. `api.js` still exports the `paginate()` helper with `.slice / .controls / .reset` surface.
+  - **Pure-logic paginator table (1):** replicates clamp+slice rules and exercises 6 boundary cases — page 0 of 550 → 200 rows starting at 0; page 1 → 200 rows starting at 200; page 2 → 150 rows starting at 400; overflow page=99 → clamp to last valid page (2); filter-narrow to 5 rows while on page 2 → clamp to page 0 returning the 5 rows; empty set → page=0, empty slice.
+  - **Summary computation (1):** mirrors `start = page * pageSize + 1; end = min(total, start + visible - 1)` from api.js paginate().controls(). Verifies the displayed range across all 3 pages of a 550-row dataset.
+- **558 → 567** unit + acceptance (+9 new).
+
+### 🔄 Migration
+
+No user action needed beyond updating to v1.30.0. The next scan that produces > 200 filtered rows will surface the paginator below the results table. Smaller scans see only an "N items" hint (unchanged from `UI.paginate`'s established behaviour in tracker / reports / activity).
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 567 / 567
+# ✓ no .also( leftovers in views/
+# ✓ CHANGELOG parity: all 8 locales at v1.30.0
+```
+
+Manual smoke after redeploy: run a scan that produces > 200 filtered rows, navigate `#/scan`, scroll past the results table, click `›` to advance to page 2 — should show rows 201..400 instantly (no server round-trip; pure client-side slicing of the already-fetched result set).
+
+---
+
 ## [1.29.2] — 2026-05-14
 
 **Hot-fix: `🌐 Scan` with `source=both` only ran the EN phase. RU phase was silently dropped.**
