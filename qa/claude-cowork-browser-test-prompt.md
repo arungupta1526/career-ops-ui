@@ -1,6 +1,6 @@
-# Промпт для Claude Cowork — браузерное E2E тестирование career-ops-ui v1.21.0
+# Промпт для Claude Cowork — браузерное E2E тестирование career-ops-ui v1.24.0
 
-> Версия живёт вместе с релизами. На 2026-05-14 последний релиз — **v1.21.0** (security + concurrency + a11y polish from two code-review passes: DNS-rebind TOCTOU closed, sanitizePathName consolidated, LLM rate-limit, file-lock for concurrent writes, 19 i18n keys, batch.js a11y fixes). Сценарии 0–19 покрывают всё что было до v1.11.x, сценарии 20–23 — функционал v1.12.0–v1.14.0, сценарии 24–27 — релизы v1.15.0–v1.20.0, сценарии 28–30 — функционал v1.21.0.
+> Версия живёт вместе с релизами. На 2026-05-14 последний релиз — **v1.24.0** (help-bundle content-depth refresh из 5 канонических career-ops.org/docs URLs × 8 локалей + live execution QA scenario 31 6/6 PASS + RU CHANGELOG end-to-end 1542 строки). История релизов после v1.21.0: v1.22.0 (M/L/N backlog clearout + docs alignment), v1.23.0 (i18n split + CI hot-fix + переводы тел CHANGELOG в 7 локалях), v1.24.0 (help-bundle refresh + scenario 31 live). Сценарии 0–19 покрывают всё что было до v1.11.x, сценарии 20–23 — функционал v1.12.0–v1.14.0, сценарии 24–27 — релизы v1.15.0–v1.20.0, сценарии 28–30 — функционал v1.21.0, сценарий 31 — docs alignment audit (v1.22.0+, статус verified 6/6 в v1.24.0).
 >
 > ⚠️ **Перед запуском:** Claude Cowork работает с публичными URL — а у вас приложение крутится на `127.0.0.1:4317`. Самый быстрый способ открыть его наружу — запустить `ngrok http 4317` (или `cloudflared tunnel --url http://127.0.0.1:4317`) и подставить полученный HTTPS-URL в `BASE_URL` ниже. Без этого облачный браузер до приложения не достучится.
 
@@ -46,7 +46,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 
 ## Контекст
 
-Я тестирую **career-ops-ui** v1.21.0 — это веб-интерфейс на Express + vanilla JS поверх AI-пайплайна для поиска работы. Хеш-роутер, **17 страниц** (Dashboard / Scan / Pipeline / Evaluate / Reports / Tracker / Activity / CV / Profile / App settings / Health / Help + Batch + Deep / Apply / Modes), 8 локалей, режим работы single-tenant на loopback. Тема **dark / light** переключается через `🌓` в sidebar.
+Я тестирую **career-ops-ui** v1.24.0 — это веб-интерфейс на Express + vanilla JS поверх AI-пайплайна для поиска работы. Хеш-роутер, **17 страниц** (Dashboard / Scan / Pipeline / Evaluate / Reports / Tracker / Activity / CV / Profile / App settings / Health / Help + Batch + Deep / Apply / Modes), 8 локалей, режим работы single-tenant на loopback. Тема **dark / light** переключается через `🌓` в sidebar.
 
 **Что нового в v1.11.x–v1.14.0** (важно для тестировщика):
 
@@ -73,7 +73,13 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 - **H-3 (i18n):** 19 keys × 8 locales добавлено в DICT. Russian/Japanese/Chinese screen-reader users больше не слышат English `aria-label`s.
 - **H-1 / H-2 (a11y):** `id="batch-tsv-hint"` на hint paragraph + `htmlFor` на двух labels. WCAG 1.3.1 / 3.3.2 wires валидны.
 
-**Baseline счётчики на v1.21.0:** 461/461 unit (+34 от v1.20.0) + 20/20 smoke E2E + 23/23 comprehensive E2E + 32/32 Playwright = 536 тестов, 0 фейлов.
+**Что нового в v1.22.0–v1.24.0** (расширяет сценарий 31 + dev tooling):
+
+- **v1.22.0** — закрыт весь M-tier + L-tier + nit-tier (9 M + 5 L + 2 nits) v1.20.1 backlog'а: entity-aware `stripDangerousMarkdown`, exponential backoff на health-ping, Safari `localStorage` guard, WCAG 1.4.1 cues на score pills + connection-banner (✓ / ◐ / ○ glyphs), inline hints на mode-page (152 i18n keys × 19 fields), `bash --noprofile --norc` на batch runner, `parseInt` radix, Windows-safe entrypoint, drop `Element.prototype.also`, 404-canary для retired `/api/scan-ru/config`. Plus 7 не-EN READMEs quality refresh + сценарий 31 (docs alignment audit).
+- **v1.23.0** — `i18n.js` split (639 LOC → 86 logic + 578 data fixture `i18n-dict.js`) + CI hot-fix для connection-banner recovery (cap 60s→15s, eager `visibilitychange` re-check, reschedule on state-flip) + переводы тел CHANGELOG в 6/7 локалях через параллельные translation agents + 8 README + DO-NOT-REVERT markers на per-locale dashboard screenshots.
+- **v1.24.0** — help-bundle content-depth refresh: `docs/help/en.md` 1113 → 1269 строк с глубокой интеграцией 5 канонических career-ops.org/docs URLs (× 3-5 mentions каждый) + 7 параллельных translation agents для не-EN bundles (1184-1344 строк каждый) + **live execution QA scenario 31 — 6/6 PASS** + RU CHANGELOG retry agent landed (1542 строки end-to-end).
+
+**Baseline счётчики на v1.24.0:** 474/474 unit (+34 от v1.20.0) + 20/20 smoke E2E + 23/23 comprehensive E2E + 32/32 Playwright = 549 тестов, 0 фейлов. v1.20.1 backlog полностью закрыт (23 finding'а shipped).
 
 ```
 BASE_URL = <вставь сюда https://...ngrok-free.app>
