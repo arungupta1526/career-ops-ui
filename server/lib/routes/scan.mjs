@@ -19,6 +19,7 @@
 import { runRuScan, loadConfig as loadRuConfig } from '../ru-scanner.mjs';
 import { runEnScan, loadLastScan } from '../en-scanner.mjs';
 import { getLastWorkdayFallback } from '../sources/workday.mjs';
+import { SOURCES } from '../sources/registry.mjs';
 
 /**
  * Open an SSE response with the standard headers used across this repo.
@@ -105,6 +106,16 @@ export function registerScanRoutes(app) {
     } catch (e) {
       res.status(500).json({ error: e.message });
     }
+  });
+
+  // v1.29.0 — canonical list of every source the scanner knows about.
+  // The SPA's #/scan source-filter dropdown reads this on mount so adding
+  // a new adapter = one entry in `server/lib/sources/registry.mjs`,
+  // dropdown updates automatically. Cached for 60s upstream because the
+  // list is effectively static per-deploy.
+  app.get('/api/scan/sources', (_req, res) => {
+    res.set('Cache-Control', 'public, max-age=60');
+    res.json({ sources: SOURCES });
   });
 
   // ─── Latest scan results (for table view in UI) ───

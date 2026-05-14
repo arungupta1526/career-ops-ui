@@ -8,6 +8,19 @@
 
 ---
 
+## [1.29.0] — 2026-05-14
+
+**Сканер русских порталов расширен с 2 до 5 источников. Registry + динамический dropdown. Новая секция §17 «Как добавить новый источник».**
+
+- **3 новых RU-адаптера:** `Trudvsem` (open-data API «Работа в России», без auth, без гео-гейта), `GetMatch` и `GeekJob` (HTML-скрейп с defensive-парсером — `[]` при неудачном парсе, никогда не throw на здоровом 200).
+- **Source registry** в `server/lib/sources/registry.mjs` — единый источник правды, который читают dispatcher + endpoint + dropdown. До v1.29 список жил жёстко-захардкоженным в трёх местах.
+- **Новый endpoint** `GET /api/scan/sources` с `Cache-Control: max-age=60` — SPA при mount'е `#/scan` динамически перестраивает dropdown.
+- **Новая §17 во всех 8 локалях:** «Как добавить новый источник для скана» (template адаптера, запись в registry, dispatcher, мокированный тест, `portals.yml`).
+- **Дефолт `russian_portals.sources`** меняется с `["hh", "habr"]` на 5 источников; если у тебя в `portals.yml` уже явно перечислены `sources:`, добавь три новых руками.
+- Тесты: **520 → 540** (+20). Полные подробности в [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.28.1] — 2026-05-14
 
 **Hot-fix: router 404 на хэшах с `?query`. Строку HH_USER_AGENT убрали из health.**

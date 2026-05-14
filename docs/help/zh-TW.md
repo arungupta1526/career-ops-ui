@@ -184,7 +184,7 @@ Health 全綠之前不要繼續往下做。
 **第 9 步 — 點側邊欄的 `🌐 Scan`。** 確認 `portals.yml` 已列出
 你關心的職缺板(請參考本說明的第 5 節)。按下 **🌐 Scan now**
 按鈕。掃描器在巡訪 Greenhouse / Ashby / Lever / Workable /
-SmartRecruiters / Workday(英文板)以及 hh.ru / Habr Career
+SmartRecruiters / Workday(英文板)以及 hh.ru / Habr Career / Trudvsem / GetMatch / GeekJob
 (若啟用俄文板)時,即時 SSE 日誌會串流呈現。
 
 **第 10 步 — 掃描結束後檢視結果。** 點任一公司標籤可進行篩選;
@@ -461,7 +461,7 @@ Workday 端點)、`enabled: true|false` 可在不刪除條目的情況下
 
 ```yaml
 russian_portals:
-  sources: [hh, habr]      # 或只填一個
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob"]      # 或只填一個
   area: 113                 # 1=莫斯科, 2=聖彼得堡, 113=俄羅斯, 1001=remote
   per_page: 50
   only_remote: false
@@ -1195,3 +1195,92 @@ scan 執行、設定變更、mode 執行。
 更深入的診斷:在 Health 頁面執行 **▶ Doctor**,複製輸出,並到
 <https://github.com/Fighter90/career-ops-ui/issues> 搜尋 issue
 追蹤。
+
+
+---
+
+## 17. 如何新增職位入口網站來源
+
+career-ops-ui 將每個職位網站視為 **adapter** — [`server/lib/sources/<slug>.mjs`](../../server/lib/sources/) 下的單一檔案,知道如何取得並正規化某個站點的結果。v1.29.0 內建 11 個 adapter(6 個英文 ATS、5 個俄文板塊)。新增第 12 個 = 本儲存庫內的 3 處短編輯 + 父專案 `portals.yml` 的一列。
+
+### 步驟 1 — 編寫 adapter
+
+建立 `server/lib/sources/<slug>.mjs`。對於有公開 JSON API 的來源:
+
+```js
+// server/lib/sources/example.mjs
+const ENDPOINT = 'https://example.com/api/v1/vacancies';
+
+export async function searchExample(query, opts = {}) {
+  const { onlyRemote = false, fetchImpl = fetch, signal } = opts;
+  const res = await fetchImpl(`${ENDPOINT}?text=${encodeURIComponent(query)}`, {
+    signal,
+    headers: { Accept: 'application/json' },
+  });
+  if (!res.ok) {
+    const err = new Error(`Example: HTTP ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
+  const data = await res.json();
+  return (data.items || []).map(normalizeExample);
+}
+
+function normalizeExample(item) {
+  return {
+    id: `example-${item.id}`,
+    title: item.title || '',
+    company: item.company?.name || '',
+    url: item.url || '',
+    salary: item.salary || '',
+    location: item.location || '',
+    isRemote: !!item.remote,
+    workplaceType: item.remote ? 'Remote' : 'Onsite',
+    relocates: false,
+    date: item.posted_at || '',
+    snippet: (item.description || '').slice(0, 240),
+    source: 'example',
+  };
+}
+```
+
+### 步驟 2 — 在 registry 中新增一列
+
+開啟 [`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs) 並新增一項:
+
+```js
+export const SOURCES = [
+  // …existing entries…
+  { value: 'example', label: 'Example.com', region: 'ru', configKey: 'example' },
+];
+```
+
+### 步驟 3 — 接入 dispatcher(僅 RU)
+
+EN adapter 自動從 `tracked_companies` 發現。RU adapter 需開啟 [`server/lib/ru-scanner.mjs`](../../server/lib/ru-scanner.mjs) 並在 `RU_DISPATCH` 中新增一列:
+
+```js
+import { searchExample } from './sources/example.mjs';
+// …
+const RU_DISPATCH = {
+  // …existing…
+  example: { label: 'example.com', search: searchExample },
+};
+```
+
+### 步驟 4 — 測試(mock,嚴禁真實網路)
+
+測試中**禁止**真實網路(CI-isolation 契約)。向 adapter 傳入 mock 化的 `fetchImpl` — 參見 [`tests/sources-trudvsem.test.mjs`](../../tests/sources-trudvsem.test.mjs)。
+
+### 步驟 5 — 在你的 `portals.yml` 中啟用
+
+父專案的 `portals.yml` 是使用者所有的設定。把新來源的 `configKey` 加到陣列裡:
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob", "example"]
+```
+
+在瀏覽器中重新載入 `#/scan`。來源篩選下拉框會自動取得新條目(單一事實來源:`GET /api/scan/sources` → `registry.mjs`)。
+
+**完整程式碼範例(HTML 抓取 adapter、常見陷阱、參考 adapter 表)請參閱本節英文版 [docs/help/en.md §17](https://github.com/Fighter90/career-ops-ui/blob/main/docs/help/en.md#17-how-to-add-a-new-job-portal-source)。**

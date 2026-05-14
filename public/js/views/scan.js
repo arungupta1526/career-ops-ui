@@ -58,21 +58,47 @@ Router.register('scan', async () => {
     c('option', { value: 'hybrid' }, t('scan.hybrid')),
     c('option', { value: 'reloc' }, t('scan.reloc')),
   ]);
-  // v1.16.0 — source dropdown rebuilt from the v1.14.0 adapter registry
-  // (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday)
-  // plus the two regional portals (hh.ru, Habr). Alphabetical sort,
-  // no geo-tag prefix per F-014.
+  // v1.29.0 — source dropdown is now dynamic. We fetch the canonical
+  // list from `GET /api/scan/sources` (backed by
+  // `server/lib/sources/registry.mjs`) so adding a new adapter = one
+  // edit in the registry, the dropdown updates automatically.
+  // Fallback list mirrors the registry at build time and is only used
+  // if the fetch fails (offline / server starting up / cached SPA hits
+  // a temporarily-unreachable backend). Kept alphabetical by label.
+  const FALLBACK_SOURCES = [
+    { value: 'ashby',           label: 'Ashby' },
+    { value: 'greenhouse',      label: 'Greenhouse' },
+    { value: 'lever',           label: 'Lever' },
+    { value: 'smartrecruiters', label: 'SmartRecruiters' },
+    { value: 'workable',        label: 'Workable' },
+    { value: 'workday',         label: 'Workday' },
+    { value: 'geekjob',         label: 'GeekJob' },
+    { value: 'getmatch',        label: 'GetMatch' },
+    { value: 'habr-career',     label: 'Habr Career' },
+    { value: 'hh.ru',           label: 'hh.ru' },
+    { value: 'trudvsem',        label: 'Trudvsem' },
+  ];
   const filterSource = c('select', { className: 'select', style: { maxWidth: '160px' } }, [
     c('option', { value: '' }, t('scan.allSources')),
-    c('option', { value: 'ashby' }, 'Ashby'),
-    c('option', { value: 'greenhouse' }, 'Greenhouse'),
-    c('option', { value: 'habr-career' }, 'Habr Career'),
-    c('option', { value: 'hh.ru' }, 'hh.ru'),
-    c('option', { value: 'lever' }, 'Lever'),
-    c('option', { value: 'smartrecruiters' }, 'SmartRecruiters'),
-    c('option', { value: 'workable' }, 'Workable'),
-    c('option', { value: 'workday' }, 'Workday'),
   ]);
+  function paintSourceOptions(list) {
+    // Keep the "all sources" first option; drop the rest and re-render.
+    while (filterSource.children.length > 1) filterSource.removeChild(filterSource.lastChild);
+    list
+      .slice()
+      .sort((a, b) => a.label.localeCompare(b.label))
+      .forEach((s) => filterSource.appendChild(c('option', { value: s.value }, s.label)));
+  }
+  paintSourceOptions(FALLBACK_SOURCES);
+  // Best-effort live refresh from the registry. Network failure → keep
+  // the fallback list. Race vs. user interaction is fine — appending
+  // to a <select> after first paint doesn't reset the user's choice.
+  (async () => {
+    try {
+      const r = await API.get('/api/scan/sources');
+      if (r && Array.isArray(r.sources) && r.sources.length) paintSourceOptions(r.sources);
+    } catch {}
+  })();
   const filterScope = c('select', { className: 'select', style: { maxWidth: '160px' } }, [
     c('option', { value: 'all' }, t('scan.scopeAll')),
     c('option', { value: 'fresh' }, t('scan.scopeFresh')),

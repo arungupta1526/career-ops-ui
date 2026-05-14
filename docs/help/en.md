@@ -496,7 +496,7 @@ in gray with `○`).
 
 ```yaml
 russian_portals:
-  sources: [hh, habr]      # or just one
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob"]      # or just one
   area: 113                 # 1=Moscow, 2=SPb, 113=Russia, 1001=remote
   per_page: 50
   only_remote: false
@@ -1266,3 +1266,207 @@ events.
 For deeper diagnostics: run **▶ Doctor** on the Health page, copy the
 output, and search the issue tracker on
 <https://github.com/Fighter90/career-ops-ui/issues>.
+
+
+---
+
+## 17. How to add a new job-portal source
+
+career-ops-ui treats each job board as an **adapter** — a single file under
+[`server/lib/sources/<slug>.mjs`](../../server/lib/sources/) that knows
+how to fetch + normalize one board's results. v1.29.0 ships with 11
+adapters (6 English ATSes, 5 Russian boards). Adding a 12th is three
+short edits in this repo + one line in the parent's `portals.yml`.
+
+### Step 1 — Write the adapter
+
+Create `server/lib/sources/<slug>.mjs`. Two patterns work depending on
+whether the source has a JSON API or only renders HTML:
+
+**API-backed source** (cleanest — use this whenever the site has an
+open data endpoint):
+
+```js
+// server/lib/sources/example.mjs
+const ENDPOINT = 'https://example.com/api/v1/vacancies';
+const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ...';
+
+export async function searchExample(query, opts = {}) {
+  const { onlyRemote = false, fetchImpl = fetch, signal } = opts;
+  const res = await fetchImpl(`${ENDPOINT}?text=${encodeURIComponent(query)}`, {
+    signal,
+    headers: { 'User-Agent': UA, Accept: 'application/json' },
+  });
+  if (!res.ok) {
+    const err = new Error(`Example: HTTP ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
+  const data = await res.json();
+  return (data.items || []).map(normalizeExample);
+}
+
+function normalizeExample(item) {
+  return {
+    id: `example-${item.id}`,
+    title: item.title || '',
+    company: item.company?.name || '',
+    url: item.url || '',
+    salary: item.salary || '',
+    location: item.location || '',
+    isRemote: !!item.remote,
+    workplaceType: item.remote ? 'Remote' : 'Onsite',
+    relocates: false,
+    date: item.posted_at || '',
+    snippet: (item.description || '').slice(0, 240),
+    source: 'example',           // ← must match the registry `value` exactly
+  };
+}
+```
+
+**HTML-scrape source** (when there is no API — see
+[`getmatch.mjs`](../../server/lib/sources/getmatch.mjs) and
+[`geekjob.mjs`](../../server/lib/sources/geekjob.mjs) for full examples):
+
+```js
+const BASE = 'https://example.com';
+
+export async function searchExample(query, opts = {}) {
+  const { fetchImpl = fetch, signal } = opts;
+  const res = await fetchImpl(`${BASE}/vacancies?q=${encodeURIComponent(query)}`, {
+    signal,
+    headers: { 'User-Agent': UA, Accept: 'text/html' },
+  });
+  if (!res.ok) {
+    throw Object.assign(new Error(`Example: HTTP ${res.status}`), { status: res.status });
+  }
+  return parseExampleCards(await res.text());
+}
+
+export function parseExampleCards(html) {
+  // …regex-based card extraction. Return [] on parse failure (DON'T throw):
+  // a healthy 200 with no parseable cards is "no results", not "error",
+  // so the multi-source scanner can keep going.
+}
+```
+
+Two contracts every adapter MUST honor:
+
+- **Accept `{ onlyRemote, fetchImpl, signal }` in `opts`.** `fetchImpl`
+  is what makes adapters testable without network; `signal` is required
+  for client-disconnect propagation (REVIEW-B3).
+- **Return records with the common shape** —
+  `{ id, title, company, url, salary, location, isRemote, workplaceType,
+  relocates, date, snippet, source }`, where `source` matches the
+  registry `value`.
+
+### Step 2 — Add a row to the registry
+
+Open [`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs)
+and add one entry:
+
+```js
+export const SOURCES = [
+  // …existing entries…
+  { value: 'example', label: 'Example.com', region: 'ru', configKey: 'example' },
+];
+```
+
+- `value` MUST match `job.source` from your adapter.
+- `region: 'en'` joins the ATS sweep (auto-discovers from
+  `tracked_companies` URL patterns); `region: 'ru'` joins the regional
+  dispatcher.
+- `configKey` (only for `region: 'ru'`) — the key the user lists in
+  `portals.yml::russian_portals.sources`.
+
+### Step 3 — Wire into the dispatcher (RU only)
+
+EN ATS sources auto-discover from `tracked_companies` URL patterns —
+no further wiring needed. For RU sources, open
+[`server/lib/ru-scanner.mjs`](../../server/lib/ru-scanner.mjs), find
+the `RU_DISPATCH` table, and add a row:
+
+```js
+import { searchExample } from './sources/example.mjs';
+// …
+const RU_DISPATCH = {
+  // …existing…
+  example: { label: 'example.com', search: searchExample },
+};
+```
+
+The dispatcher loop calls `entry.search(query, opts)` for every key
+present in `cfg.sources`. No further code change needed.
+
+### Step 4 — Test (mocked, never live)
+
+Drop a file under `tests/sources-<slug>.test.mjs`. Real network is
+**forbidden** in tests (CI-isolation contract):
+
+```js
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { searchExample } from '../server/lib/sources/example.mjs';
+
+test('searchExample normalizes one record', async () => {
+  const fetchImpl = async () =>
+    new Response(
+      JSON.stringify({ items: [{ id: 1, title: 'Backend Engineer' }] }),
+      { status: 200, headers: { 'content-type': 'application/json' } }
+    );
+  const out = await searchExample('q', { fetchImpl });
+  assert.equal(out.length, 1);
+  assert.equal(out[0].source, 'example');
+});
+```
+
+### Step 5 — Enable in your `portals.yml`
+
+The parent project's `portals.yml` is the user-owned config. Add the
+new source's `configKey` to the array:
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob", "example"]
+  area: 113
+  per_page: 50
+  only_remote: false
+  queries:
+    - "Senior PHP"
+    - "Senior Go"
+```
+
+Reload `#/scan` in the browser. The source-filter dropdown picks the
+new entry up automatically (single source of truth via
+[`GET /api/scan/sources`](../../server/lib/routes/scan.mjs) →
+[`registry.mjs`](../../server/lib/sources/registry.mjs)). The
+🌐 Scan button now includes the new source on every regional sweep.
+
+### Reference adapters (mirror these for new sources)
+
+| Adapter file | Type | Notes |
+|---|---|---|
+| [`hh.mjs`](../../server/lib/sources/hh.mjs) | JSON API | Canonical RU API adapter; geo-aware UA fallback. |
+| [`trudvsem.mjs`](../../server/lib/sources/trudvsem.mjs) | JSON API | Russian government open-data; no IP gate. |
+| [`habr.mjs`](../../server/lib/sources/habr.mjs) | HTML scrape | Russian tech board; regex-based card parser. |
+| [`getmatch.mjs`](../../server/lib/sources/getmatch.mjs) | HTML scrape | Defensive parser, `[]` on parse miss. |
+| [`geekjob.mjs`](../../server/lib/sources/geekjob.mjs) | HTML scrape | Same defensive style as GetMatch. |
+| [`greenhouse.mjs`](../../server/lib/sources/greenhouse.mjs) | JSON API | Canonical EN ATS adapter; uses `tracked_companies` URL pattern. |
+
+### Common pitfalls
+
+- **`source` field mismatch.** The string written by your adapter MUST
+  match the `value` in `registry.mjs` exactly. If they drift, the
+  `#/scan` filter dropdown will show the source but selecting it will
+  filter out every row (because the equality check is `r.source === fs`).
+- **Throwing on parse failure.** HTML scrapers MUST return `[]` on a
+  healthy 200 with no parseable cards. Throwing breaks the multi-source
+  dispatcher loop — one bad HTML structure kills every other source for
+  the same query.
+- **Forgetting `fetchImpl` / `signal`.** Without them, your adapter
+  cannot be unit-tested without hitting live network, and client
+  disconnects don't propagate (background fetch stays alive after the
+  user closes the tab).
+- **Trusting `tracked_companies` for RU.** That list is for EN ATS
+  sources only. RU adapters drive themselves from
+  `russian_portals.queries` instead — no per-company entries.

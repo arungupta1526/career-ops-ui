@@ -8,6 +8,19 @@
 
 ---
 
+## [1.29.0] — 2026-05-14
+
+**러시아 포털 스캐너가 2 → 5 소스로 확장; registry + 동적 드롭다운; 새로운 §17 "새 포털 추가 방법".**
+
+- **3개의 새 RU 어댑터:** `Trudvsem`(정부 open-data API, 인증/지오 게이트 없음), `GetMatch` 및 `GeekJob`(방어적 HTML 스크레이프 — 파싱 실패 시 `[]`, 정상 200에서 throw 안 함).
+- **Source registry** `server/lib/sources/registry.mjs` — dispatcher + endpoint + dropdown 모두 단일 진실 공급원. v1.29 이전에는 세 곳에 하드코딩되어 있었음.
+- **새 엔드포인트** `GET /api/scan/sources` (`Cache-Control: max-age=60`) — SPA가 `#/scan` 마운트 시 소스 필터 드롭다운을 동적으로 다시 그림.
+- **Help-bundle §17 신규** 8개 로케일 전체: 「새 채용 포털 소스를 추가하는 방법」(어댑터 템플릿, 레지스트리 엔트리, 디스패처, 모크 테스트, `portals.yml`).
+- **`russian_portals.sources` 기본값**이 `["hh", "habr"]`에서 5 소스로 변경; `portals.yml`에서 `sources:`를 명시적으로 나열했다면 새 3개를 수동으로 추가해야 합니다.
+- 테스트: **520 → 540**(+20). 상세 내역은 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.28.1] — 2026-05-14
 
 **핫픽스: `?query`를 포함한 해시에서의 router 404. health에서 HH_USER_AGENT 행 제거.**

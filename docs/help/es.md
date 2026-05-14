@@ -521,7 +521,7 @@ Companies** en `/#/scan` las muestra en gris con `○`).
 
 ```yaml
 russian_portals:
-  sources: [hh, habr]      # o solo uno
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob"]      # o solo uno
   area: 113                 # 1=Moscú, 2=SPb, 113=Rusia, 1001=remoto
   per_page: 50
   only_remote: false
@@ -1338,3 +1338,92 @@ Filtra por prefijo de acción (`pipeline.`, `cv.`, `evaluate`,
 Para diagnóstico más profundo: ejecuta **▶ Doctor** en la página
 Health, copia el output, y busca el issue en el tracker en
 <https://github.com/Fighter90/career-ops-ui/issues>.
+
+
+---
+
+## 17. Cómo añadir una nueva fuente de portal de empleo
+
+career-ops-ui trata cada bolsa de empleo como un **adapter** — un único archivo bajo [`server/lib/sources/<slug>.mjs`](../../server/lib/sources/) que sabe cómo obtener y normalizar los resultados de una bolsa concreta. v1.29.0 incluye 11 adapters (6 ATS en inglés, 5 portales rusos). Añadir el 12.º son tres ediciones cortas en este repo más una línea en el `portals.yml` del proyecto padre.
+
+### Paso 1 — Escribe el adapter
+
+Crea `server/lib/sources/<slug>.mjs`. Para una fuente con API JSON pública:
+
+```js
+// server/lib/sources/example.mjs
+const ENDPOINT = 'https://example.com/api/v1/vacancies';
+
+export async function searchExample(query, opts = {}) {
+  const { onlyRemote = false, fetchImpl = fetch, signal } = opts;
+  const res = await fetchImpl(`${ENDPOINT}?text=${encodeURIComponent(query)}`, {
+    signal,
+    headers: { Accept: 'application/json' },
+  });
+  if (!res.ok) {
+    const err = new Error(`Example: HTTP ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
+  const data = await res.json();
+  return (data.items || []).map(normalizeExample);
+}
+
+function normalizeExample(item) {
+  return {
+    id: `example-${item.id}`,
+    title: item.title || '',
+    company: item.company?.name || '',
+    url: item.url || '',
+    salary: item.salary || '',
+    location: item.location || '',
+    isRemote: !!item.remote,
+    workplaceType: item.remote ? 'Remote' : 'Onsite',
+    relocates: false,
+    date: item.posted_at || '',
+    snippet: (item.description || '').slice(0, 240),
+    source: 'example',
+  };
+}
+```
+
+### Paso 2 — Añade una fila al registry
+
+Abre [`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs) y añade una entrada:
+
+```js
+export const SOURCES = [
+  // …existing entries…
+  { value: 'example', label: 'Example.com', region: 'ru', configKey: 'example' },
+];
+```
+
+### Paso 3 — Conecta al dispatcher (sólo RU)
+
+Los adapters EN se auto-descubren desde `tracked_companies`. Para RU, edita [`server/lib/ru-scanner.mjs`](../../server/lib/ru-scanner.mjs) y añade una fila a `RU_DISPATCH`:
+
+```js
+import { searchExample } from './sources/example.mjs';
+// …
+const RU_DISPATCH = {
+  // …existing…
+  example: { label: 'example.com', search: searchExample },
+};
+```
+
+### Paso 4 — Test (mockeado, jamás en vivo)
+
+La red real está **prohibida** en los tests (contrato CI-isolation). Pasa un `fetchImpl` mockeado al adapter — ver [`tests/sources-trudvsem.test.mjs`](../../tests/sources-trudvsem.test.mjs).
+
+### Paso 5 — Activa en tu `portals.yml`
+
+El `portals.yml` del proyecto padre es la config del usuario. Añade el `configKey` de la nueva fuente al array:
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob", "example"]
+```
+
+Recarga `#/scan` en el navegador. El dropdown del filtro de fuente recoge la nueva entrada automáticamente (única fuente de verdad vía `GET /api/scan/sources` → `registry.mjs`).
+
+**Para el ejemplo de código completo (adapter HTML-scrape, pitfalls comunes, tabla de adapters de referencia), consulta la versión inglesa de esta sección en [docs/help/en.md §17](https://github.com/Fighter90/career-ops-ui/blob/main/docs/help/en.md#17-how-to-add-a-new-job-portal-source).**

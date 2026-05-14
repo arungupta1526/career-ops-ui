@@ -201,8 +201,7 @@ batch 처리, apply 흐름, Playwright 설정)는
 **9단계 — 사이드바 `🌐 Scan`을 클릭합니다.** `portals.yml`에
 원하는 보드가 등록되어 있는지 확인하십시오 (이 도움말의 5절).
 **🌐 Scan now** 버튼을 누르십시오. 스캐너가 Greenhouse / Ashby /
-Lever / Workable / SmartRecruiters / Workday(영문 보드)와 hh.ru /
-Habr Career(활성화된 경우의 러시아어 보드)를 순회하는 동안 SSE
+Lever / Workable / SmartRecruiters / Workday(영문 보드)와 hh.ru / Habr Career / Trudvsem / GetMatch / GeekJob(활성화된 경우의 러시아어 보드)를 순회하는 동안 SSE
 라이브 로그가 흐릅니다.
 
 **10단계 — 스캔이 끝나면 결과를 검토합니다.** 회사 태그를 클릭해
@@ -502,7 +501,7 @@ Companies** 카드에서 회색 `○`로 표시).
 
 ```yaml
 russian_portals:
-  sources: [hh, habr]      # 또는 하나만
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob"]      # 또는 하나만
   area: 113                 # 1=Moscow, 2=SPb, 113=Russia, 1001=remote
   per_page: 50
   only_remote: false
@@ -1270,3 +1269,92 @@ deep research 실행, scan 실행, 설정 변경, 모드 실행.
 더 깊은 진단: Health 페이지에서 **▶ Doctor** 실행, 출력 복사,
 <https://github.com/Fighter90/career-ops-ui/issues>의 이슈
 트래커에서 검색하십시오.
+
+
+---
+
+## 17. 새 채용 포털 소스를 추가하는 방법
+
+career-ops-ui는 각 채용 사이트를 **어댑터**로 취급합니다 — [`server/lib/sources/<slug>.mjs`](../../server/lib/sources/) 아래의 단일 파일이 한 사이트의 결과를 가져오고 정규화하는 방법을 알고 있습니다. v1.29.0은 11개의 어댑터(영문 ATS 6개, 러시아 보드 5개)를 포함합니다. 12번째 어댑터를 추가하려면 이 저장소에서 짧은 편집 3건 + 부모 프로젝트의 `portals.yml`에서 한 줄을 추가하면 됩니다.
+
+### 1단계 — 어댑터 작성
+
+`server/lib/sources/<slug>.mjs`를 생성합니다. JSON API가 있는 소스의 경우:
+
+```js
+// server/lib/sources/example.mjs
+const ENDPOINT = 'https://example.com/api/v1/vacancies';
+
+export async function searchExample(query, opts = {}) {
+  const { onlyRemote = false, fetchImpl = fetch, signal } = opts;
+  const res = await fetchImpl(`${ENDPOINT}?text=${encodeURIComponent(query)}`, {
+    signal,
+    headers: { Accept: 'application/json' },
+  });
+  if (!res.ok) {
+    const err = new Error(`Example: HTTP ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
+  const data = await res.json();
+  return (data.items || []).map(normalizeExample);
+}
+
+function normalizeExample(item) {
+  return {
+    id: `example-${item.id}`,
+    title: item.title || '',
+    company: item.company?.name || '',
+    url: item.url || '',
+    salary: item.salary || '',
+    location: item.location || '',
+    isRemote: !!item.remote,
+    workplaceType: item.remote ? 'Remote' : 'Onsite',
+    relocates: false,
+    date: item.posted_at || '',
+    snippet: (item.description || '').slice(0, 240),
+    source: 'example',
+  };
+}
+```
+
+### 2단계 — 레지스트리에 행 추가
+
+[`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs)를 열고 한 항목을 추가합니다:
+
+```js
+export const SOURCES = [
+  // …existing entries…
+  { value: 'example', label: 'Example.com', region: 'ru', configKey: 'example' },
+];
+```
+
+### 3단계 — 디스패처에 연결 (RU만)
+
+EN 어댑터는 `tracked_companies`에서 자동 검색됩니다. RU 소스의 경우 [`server/lib/ru-scanner.mjs`](../../server/lib/ru-scanner.mjs)를 열고 `RU_DISPATCH`에 행을 추가합니다:
+
+```js
+import { searchExample } from './sources/example.mjs';
+// …
+const RU_DISPATCH = {
+  // …existing…
+  example: { label: 'example.com', search: searchExample },
+};
+```
+
+### 4단계 — 테스트 (모킹, 실제 네트워크 금지)
+
+실제 네트워크는 테스트에서 **금지**됩니다(CI-isolation 계약). 어댑터에 모킹된 `fetchImpl`을 전달하세요 — [`tests/sources-trudvsem.test.mjs`](../../tests/sources-trudvsem.test.mjs)를 참고하세요.
+
+### 5단계 — 자신의 `portals.yml`에서 활성화
+
+부모 프로젝트의 `portals.yml`은 사용자 소유 설정입니다. 새 소스의 `configKey`를 배열에 추가하세요:
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob", "example"]
+```
+
+브라우저에서 `#/scan`을 새로 고치세요. 소스 필터 드롭다운이 새 항목을 자동으로 인식합니다(단일 진실 공급원: `GET /api/scan/sources` → `registry.mjs`).
+
+**전체 코드 예시(HTML 스크레이프 어댑터, 일반적인 함정, 참조 어댑터 테이블)는 이 섹션의 영문 버전 [docs/help/en.md §17](https://github.com/Fighter90/career-ops-ui/blob/main/docs/help/en.md#17-how-to-add-a-new-job-portal-source)을 참조하세요.**

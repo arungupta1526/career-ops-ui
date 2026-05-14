@@ -6,6 +6,77 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.29.0] — 2026-05-14
+
+**Russian-portal scanner expanded from 2 to 5 sources. Source registry + dynamic dropdown. New help-section explaining how to add a 12th.**
+
+### ✨ Features
+
+- **`feat(scan): 3 new RU portal adapters — Trudvsem, GetMatch, GeekJob`** ([`server/lib/sources/`](server/lib/sources/)):
+  - [`trudvsem.mjs`](server/lib/sources/trudvsem.mjs) — Russian government open-data API (`opendata.trudvsem.ru/api/v1/vacancies`). No auth, no IP gate. Normalizes the documented v1 JSON shape.
+  - [`getmatch.mjs`](server/lib/sources/getmatch.mjs) — tech-focused RU HTML board. Defensive regex parser, returns `[]` on parse miss (never throws on healthy 200).
+  - [`geekjob.mjs`](server/lib/sources/geekjob.mjs) — same pattern as GetMatch. Handles `article` and `div`-wrapped card variants.
+
+- **`feat(scan): source registry — single source of truth for every adapter`** ([`server/lib/sources/registry.mjs`](server/lib/sources/registry.mjs)): one array of `{ value, label, region, configKey }` records, consumed by the scanner dispatcher, the `GET /api/scan/sources` endpoint, and the SPA's source-filter dropdown. Adding a 12th adapter = one entry here + one adapter file + one row in `RU_DISPATCH`. The pre-v1.29 three-place drift (hardcoded dropdown / hardcoded if-chain / hardcoded default) is gone.
+
+- **`feat(api): GET /api/scan/sources`** ([`server/lib/routes/scan.mjs`](server/lib/routes/scan.mjs)): returns the canonical source list with `Cache-Control: max-age=60`. The SPA fetches this on `#/scan` mount and rebuilds the source-filter dropdown dynamically.
+
+- **`feat(scan-ui): dynamic source-filter dropdown`** ([`public/js/views/scan.js`](public/js/views/scan.js)): on view mount, fetches `/api/scan/sources` and paints `<option>` entries. Build-time hardcoded fallback list survives if the endpoint is unreachable. The filter chip in `#/scan` now lists 11 sources (6 EN ATS + 5 RU).
+
+- **`feat(ru-scanner): default = 5 sources, dispatcher loop generalized`** ([`server/lib/ru-scanner.mjs`](server/lib/ru-scanner.mjs)):
+  - Default `russian_portals.sources` (the value used when `portals.yml` omits the array) now pulls from `registry.mjs::RU_CONFIG_KEYS` — 5 sources, not 2.
+  - Pre-v1.29 the dispatcher had two hand-written `if (cfg.sources.includes('hh'))` / `if (cfg.sources.includes('habr'))` blocks. v1.29 replaces them with a single loop over `RU_DISPATCH` that's keyed by the registry. Adding a sixth source = no scanner-loop edit.
+
+### 📝 Documentation
+
+- **`docs(help): new §17 "How to add a new job-portal source" × 8 locales`** ([`docs/help/<locale>.md`](docs/help/)) — full English step-by-step (adapter template for API + HTML patterns, registry entry, dispatcher wiring, mocked unit test, `portals.yml` enablement); 7 locale versions with localized prose + universal code blocks + cross-link to the EN canonical text for the full pitfalls table.
+- **`docs(help): §5 + §7 updated for 5 RU sources × 8 locales`** — `russian_portals.sources` example now reads `["hh", "habr", "trudvsem", "getmatch", "geekjob"]`; the Source-dropdown description names all 5.
+- Help-bundle section count: **16 → 17** (CI parity contract bumped accordingly).
+
+### 🧪 Tests
+
+- **`test(sources): tests/sources-trudvsem.test.mjs`** — 6 cases: normalization, `удалённо`→remote inference, `onlyRemote` filter, 5xx propagation, empty results = no throw, null-record safety.
+- **`test(sources): tests/sources-getmatch-geekjob.test.mjs`** — 11 cases across both HTML scrapers: fixture-driven card extraction, nav-anchor skip, empty/null safety, 5xx propagation, `onlyRemote` filter.
+- **`test(scan): tests/scan-sources-endpoint.test.mjs`** — 4 cases: shape, RU-source list parity (5 entries), EN-source list parity (6 entries), `Cache-Control` header.
+- **`test(ru-scanner): tests/ru-scanner.test.mjs`** — e2e dispatcher test extended to mock all 5 sources.
+- **`test(canonical-docs): 17-H2 parity contract`** ([`tests/canonical-docs-coverage.test.mjs`](tests/canonical-docs-coverage.test.mjs)) and **`tests/help-ui.test.mjs`** — both lifted 16 → 17.
+- **520 → 540** unit + acceptance (+ 20 new). Playwright 32/32 unchanged.
+
+### 🔄 Migration
+
+For the new RU adapters to fire on your stand, the parent project's `portals.yml` must list them:
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob"]
+  area: 113
+  per_page: 50
+  only_remote: false
+  queries:
+    - "Senior PHP"
+    - "Senior Go"
+```
+
+If your `portals.yml` has NO `russian_portals.sources:` line at all, the v1.29.0 default kicks in and all 5 sources run automatically. If `sources:` IS present (as in the pre-v1.29 setup), it's used verbatim and you must update it manually — the web-ui never edits parent-project files.
+
+Also note: a global `title_filter.negative: ["php"]` will neutralize every `Senior PHP` query. The scanner emits a stderr warning at scan time (collision detector from v1.13). Adjust the negative list if you see "0 hits" but expected results.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 540 / 540
+# ✓ no .also( leftovers in views/
+# ✓ CHANGELOG parity: all 8 locales at v1.29.0
+
+$ curl -fsS http://127.0.0.1:4317/api/scan/sources | jq '.sources | length'
+11
+$ curl -fsS http://127.0.0.1:4317/api/scan/sources | jq '[.sources[] | select(.region=="ru") | .value]'
+[ "geekjob", "getmatch", "habr-career", "hh.ru", "trudvsem" ]
+```
+
+---
+
 ## [1.28.1] — 2026-05-14
 
 **Hot-fix: router 404 on hashes with `?query`. HH_USER_AGENT row pruned from health.**

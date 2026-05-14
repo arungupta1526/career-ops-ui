@@ -184,7 +184,7 @@ career-ops-ui 的 `#/dashboard` 与 `#/tracker` 会高亮每一条 ≥ 4.0 的
 关心的招聘版面(详见本帮助第 5 节)。按下 **🌐 Scan now** 按钮。实
 时 SSE 日志会流式输出,扫描器会遍历 Greenhouse / Ashby / Lever /
 Workable / SmartRecruiters / Workday(英文版面)以及启用情况下的
-hh.ru / Habr Career(俄罗斯版面)。
+hh.ru / Habr Career / Trudvsem / GetMatch / GeekJob(俄罗斯版面)。
 
 **第 10 步 — 扫描完成后查看结果。** 点击公司标签可过滤;点击 ↗
 图标在新标签页打开公司招聘主页。所有通过标题过滤器的空缺都会进入
@@ -458,7 +458,7 @@ Greenhouse 等)并直接调用每家公司的公共 boards-api。没有可识别
 
 ```yaml
 russian_portals:
-  sources: [hh, habr]      # 或只填其中一个
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob"]      # 或只填其中一个
   area: 113                 # 1=莫斯科,2=圣彼得堡,113=俄罗斯,1001=远程
   per_page: 50
   only_remote: false
@@ -1181,3 +1181,92 @@ tracker 写入、CV 保存、JD 保存、evaluate 运行、deep-research 运
 更深入的诊断:在 Health 页运行 **▶ Doctor**,复制输出,在
 <https://github.com/Fighter90/career-ops-ui/issues> 的 issue tracker
 中搜索。
+
+
+---
+
+## 17. 如何添加新的招聘门户来源
+
+career-ops-ui 将每个招聘站点视为一个 **adapter** — [`server/lib/sources/<slug>.mjs`](../../server/lib/sources/) 下的单一文件,知道如何获取并规范化某个站点的结果。v1.29.0 自带 11 个 adapter(6 个英文 ATS、5 个俄文板块)。添加第 12 个 = 本仓库内的 3 处简短编辑 + 父项目 `portals.yml` 的一行。
+
+### 步骤 1 — 编写 adapter
+
+创建 `server/lib/sources/<slug>.mjs`。对于有公开 JSON API 的来源:
+
+```js
+// server/lib/sources/example.mjs
+const ENDPOINT = 'https://example.com/api/v1/vacancies';
+
+export async function searchExample(query, opts = {}) {
+  const { onlyRemote = false, fetchImpl = fetch, signal } = opts;
+  const res = await fetchImpl(`${ENDPOINT}?text=${encodeURIComponent(query)}`, {
+    signal,
+    headers: { Accept: 'application/json' },
+  });
+  if (!res.ok) {
+    const err = new Error(`Example: HTTP ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
+  const data = await res.json();
+  return (data.items || []).map(normalizeExample);
+}
+
+function normalizeExample(item) {
+  return {
+    id: `example-${item.id}`,
+    title: item.title || '',
+    company: item.company?.name || '',
+    url: item.url || '',
+    salary: item.salary || '',
+    location: item.location || '',
+    isRemote: !!item.remote,
+    workplaceType: item.remote ? 'Remote' : 'Onsite',
+    relocates: false,
+    date: item.posted_at || '',
+    snippet: (item.description || '').slice(0, 240),
+    source: 'example',
+  };
+}
+```
+
+### 步骤 2 — 在 registry 中添加一行
+
+打开 [`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs) 并添加一项:
+
+```js
+export const SOURCES = [
+  // …existing entries…
+  { value: 'example', label: 'Example.com', region: 'ru', configKey: 'example' },
+];
+```
+
+### 步骤 3 — 接入 dispatcher(仅 RU)
+
+EN adapter 自动从 `tracked_companies` 发现。RU adapter 需打开 [`server/lib/ru-scanner.mjs`](../../server/lib/ru-scanner.mjs) 并在 `RU_DISPATCH` 中添加一行:
+
+```js
+import { searchExample } from './sources/example.mjs';
+// …
+const RU_DISPATCH = {
+  // …existing…
+  example: { label: 'example.com', search: searchExample },
+};
+```
+
+### 步骤 4 — 测试(mock,严禁真实网络)
+
+测试中**禁止**真实网络(CI-isolation 契约)。向 adapter 传入 mock 化的 `fetchImpl` — 参见 [`tests/sources-trudvsem.test.mjs`](../../tests/sources-trudvsem.test.mjs)。
+
+### 步骤 5 — 在你的 `portals.yml` 中启用
+
+父项目的 `portals.yml` 是用户所有的配置。把新来源的 `configKey` 加到数组里:
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob", "example"]
+```
+
+在浏览器中刷新 `#/scan`。来源筛选下拉框会自动加载新条目(单一事实来源:`GET /api/scan/sources` → `registry.mjs`)。
+
+**完整代码示例(HTML 抓取 adapter、常见坑、参考 adapter 表)请参阅本节英文版 [docs/help/en.md §17](https://github.com/Fighter90/career-ops-ui/blob/main/docs/help/en.md#17-how-to-add-a-new-job-portal-source)。**

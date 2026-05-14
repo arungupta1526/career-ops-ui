@@ -8,6 +8,19 @@
 
 ---
 
+## [1.29.0] — 2026-05-14
+
+**俄文招聘门户扫描器从 2 个源扩展到 5 个;registry + 动态下拉框;新增 §17「如何添加新门户」。**
+
+- **3 个新 RU adapter:** `Trudvsem`(政府 open-data API,无认证、无地理门),`GetMatch` 与 `GeekJob`(HTML 抓取,防御式解析器 — 解析失败返回 `[]`,健康 200 决不 throw)。
+- **Source registry** 位于 `server/lib/sources/registry.mjs` — 由 dispatcher + endpoint + dropdown 共同消费的单一事实来源。v1.29 之前列表硬编码在三处。
+- **新增 endpoint** `GET /api/scan/sources`(`Cache-Control: max-age=60`)— SPA 在挂载 `#/scan` 时动态重绘来源筛选下拉。
+- **新增 §17** 覆盖 8 个语种:「如何添加新的招聘门户来源」(adapter 模板、registry 条目、dispatcher、mock 测试、`portals.yml`)。
+- **`russian_portals.sources` 默认值**从 `["hh", "habr"]` 改为 5 个源;如果你的 `portals.yml` 已显式列出 `sources:`,需要手动加入 3 个新条目。
+- 测试:**520 → 540**(+20)。完整细节见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.28.1] — 2026-05-14
 
 **热修复:`?query` 哈希导致 router 404;从 health 移除 HH_USER_AGENT 行。**

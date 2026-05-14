@@ -514,7 +514,7 @@ Companies** カードがグレー `○` で表示します)。
 
 ```yaml
 russian_portals:
-  sources: [hh, habr]      # またはいずれか一方
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob"]      # またはいずれか一方
   area: 113                 # 1=モスクワ、2=サンクトペテルブルク、113=ロシア、1001=リモート
   per_page: 50
   only_remote: false
@@ -1308,3 +1308,92 @@ evaluate 実行、deep-research 実行、scan 実行、設定変更、モード
 コピーし、issue トラッカー
 <https://github.com/Fighter90/career-ops-ui/issues> を検索して
 ください。
+
+
+---
+
+## 17. 新しい求人ポータルソースを追加する方法
+
+career-ops-ui は各求人サイトを **アダプタ** として扱います — [`server/lib/sources/<slug>.mjs`](../../server/lib/sources/) 配下の 1 ファイルが、1 サイトの結果取得と正規化の方法を持ちます。v1.29.0 では 11 個のアダプタ(英語圏 ATS 6 個、ロシア系ボード 5 個)が同梱されています。12 個目を追加するには、本リポジトリ内で短い編集を 3 か所、加えて親プロジェクトの `portals.yml` に 1 行追加すれば完了です。
+
+### ステップ 1 — アダプタを書く
+
+`server/lib/sources/<slug>.mjs` を作成します。JSON API があるソース向け:
+
+```js
+// server/lib/sources/example.mjs
+const ENDPOINT = 'https://example.com/api/v1/vacancies';
+
+export async function searchExample(query, opts = {}) {
+  const { onlyRemote = false, fetchImpl = fetch, signal } = opts;
+  const res = await fetchImpl(`${ENDPOINT}?text=${encodeURIComponent(query)}`, {
+    signal,
+    headers: { Accept: 'application/json' },
+  });
+  if (!res.ok) {
+    const err = new Error(`Example: HTTP ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
+  const data = await res.json();
+  return (data.items || []).map(normalizeExample);
+}
+
+function normalizeExample(item) {
+  return {
+    id: `example-${item.id}`,
+    title: item.title || '',
+    company: item.company?.name || '',
+    url: item.url || '',
+    salary: item.salary || '',
+    location: item.location || '',
+    isRemote: !!item.remote,
+    workplaceType: item.remote ? 'Remote' : 'Onsite',
+    relocates: false,
+    date: item.posted_at || '',
+    snippet: (item.description || '').slice(0, 240),
+    source: 'example',
+  };
+}
+```
+
+### ステップ 2 — レジストリに 1 行追加
+
+[`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs) を開き、エントリを追加します:
+
+```js
+export const SOURCES = [
+  // …existing entries…
+  { value: 'example', label: 'Example.com', region: 'ru', configKey: 'example' },
+];
+```
+
+### ステップ 3 — ディスパッチャに配線(RU のみ)
+
+EN アダプタは `tracked_companies` から自動検出されます。RU の場合は [`server/lib/ru-scanner.mjs`](../../server/lib/ru-scanner.mjs) を開き、`RU_DISPATCH` に 1 行追加します:
+
+```js
+import { searchExample } from './sources/example.mjs';
+// …
+const RU_DISPATCH = {
+  // …existing…
+  example: { label: 'example.com', search: searchExample },
+};
+```
+
+### ステップ 4 — テスト(モック、ライブネットワーク禁止)
+
+テストにおける実ネットワークは **禁止** されています(CI-isolation 契約)。アダプタにモックの `fetchImpl` を渡してください — [`tests/sources-trudvsem.test.mjs`](../../tests/sources-trudvsem.test.mjs) を参照。
+
+### ステップ 5 — 自分の `portals.yml` で有効化
+
+親プロジェクトの `portals.yml` はユーザ所有の設定です。新しいソースの `configKey` を配列に追加します:
+
+```yaml
+russian_portals:
+  sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob", "example"]
+```
+
+ブラウザで `#/scan` をリロードしてください。ソースフィルタのドロップダウンは新エントリを自動取得します(`GET /api/scan/sources` → `registry.mjs` が単一情報源)。
+
+**完全なコード例(HTML スクレイプアダプタ、よくある落とし穴、参照アダプタ表)は、本セクションの英語版 [docs/help/en.md §17](https://github.com/Fighter90/career-ops-ui/blob/main/docs/help/en.md#17-how-to-add-a-new-job-portal-source) を参照してください。**

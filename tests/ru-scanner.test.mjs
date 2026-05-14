@@ -161,7 +161,12 @@ test('searchHabr: builds URL with params', async () => {
 test('runRuScan: end-to-end with mocked sources, dry-run', async () => {
   const { runRuScan } = await import('../server/lib/ru-scanner.mjs');
 
-  // Fake fetch routes both hh.ru and habr.career
+  // v1.29.0 — fake fetch now routes all FIVE RU sources (the default
+  // `russian_portals.sources` expanded from 2 to 5). hh + habr still
+  // return live-looking data; the 3 new sources return empty payloads
+  // so we exercise the dispatcher path without polluting the assertion
+  // on result counts. Per-adapter parser logic is tested separately in
+  // tests/trudvsem-adapter.test.mjs etc.
   const fakeFetch = async (url) => {
     if (url.startsWith('https://api.hh.ru/')) {
       return new Response(JSON.stringify({
@@ -177,6 +182,14 @@ test('runRuScan: end-to-end with mocked sources, dry-run', async () => {
 <div class="vacancy-card"><a class="vacancy-card__backdrop-link" href="/vacancies/9001"></a><div class="vacancy-card__inner"><div class="vacancy-card__company"><a class="link-comp" href="/c/y">Y Corp</a></div><div class="vacancy-card__title"><a class="vacancy-card__title-link" href="/vacancies/9001">Junior PHP</a></div></div></div>
 <div class="vacancy-card"><a class="vacancy-card__backdrop-link" href="/vacancies/9002"></a><div class="vacancy-card__inner"><div class="vacancy-card__company"><a class="link-comp" href="/c/z">Z Corp</a></div><div class="vacancy-card__title"><a class="vacancy-card__title-link" href="/vacancies/9002">Senior Go Developer</a></div></div></div>
 </section>`, { status: 200, headers: { 'content-type': 'text/html' } });
+    }
+    if (url.startsWith('https://opendata.trudvsem.ru/')) {
+      return new Response(JSON.stringify({ status: 200, results: { vacancies: [] } }),
+        { status: 200, headers: { 'content-type': 'application/json' } });
+    }
+    if (url.startsWith('https://getmatch.ru/') || url.startsWith('https://geekjob.ru/')) {
+      return new Response('<html><body>no results</body></html>',
+        { status: 200, headers: { 'content-type': 'text/html' } });
     }
     throw new Error('unexpected URL: ' + url);
   };

@@ -10,6 +10,19 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.29.0] — 2026-05-14
+
+**Scanner de portales rusos pasa de 2 a 5 fuentes; registry + dropdown dinámico; nueva sección §17 "Cómo añadir un nuevo portal".**
+
+- **3 nuevos adaptadores RU:** `Trudvsem` (API open-data del gobierno, sin auth ni geo-gate), `GetMatch` y `GeekJob` (HTML scrape con parser defensivo — `[]` si no parsea, nunca throw en 200 sano).
+- **Source registry** en `server/lib/sources/registry.mjs` — única fuente de verdad consumida por dispatcher + endpoint + dropdown. Pre-v1.29 el listado de fuentes vivía hardcoded en TRES lugares.
+- **Nuevo endpoint** `GET /api/scan/sources` con `Cache-Control: max-age=60` — el SPA reconstruye el dropdown del filtro de fuente al cargar `#/scan`.
+- **Help-bundle §17 nueva** en las 8 locales: «Cómo añadir un nuevo portal» (plantilla de adaptador, entry del registry, dispatcher, test mockeado, `portals.yml`).
+- **`russian_portals.sources` por defecto** cambia de `["hh", "habr"]` a las 5 fuentes; si tu `portals.yml` ya lista `sources:` explícitamente, debes añadir las 3 nuevas a mano.
+- Tests: **520 → 540** (+20). Detalles completos en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.28.1] — 2026-05-14
 
 **Hot-fix: router 404 con hashes que llevan `?query`. Fila HH_USER_AGENT eliminada de health.**

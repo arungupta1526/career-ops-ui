@@ -1,5 +1,7 @@
 /**
- * RU portal scanner — orchestrates hh.ru + Habr Career.
+ * RU portal scanner — orchestrates every Russian source the registry
+ * knows about (v1.29.0: hh.ru + Habr Career + Trudvsem + GetMatch +
+ * GeekJob).
  *
  * Reads search keywords + filters from portals.yml (or sensible defaults).
  * Filters by negative keywords. Dedups against data/scan-history.tsv.
@@ -8,14 +10,39 @@
  * Designed to be invoked from `/api/stream/scan?source=regional` (or
  * `source=both`) and stream live progress via an `onLog(stream, line)`
  * callback. v1.18.0 retired the legacy `/api/stream/scan-ru` alias.
+ *
+ * v1.29.0 — added Trudvsem (API), GetMatch (HTML), GeekJob (HTML).
+ * The default `sources` list pulled in from
+ * `server/lib/sources/registry.mjs::RU_CONFIG_KEYS` so adding a sixth
+ * source = one entry in the registry + one new adapter file. The
+ * dispatcher loop below uses `RU_DISPATCH` to map config-key → adapter.
  */
 import { readFileSync, existsSync, appendFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import yaml from 'js-yaml';
 import { PATHS } from './paths.mjs';
 import { searchHH } from './sources/hh.mjs';
 import { searchHabr } from './sources/habr.mjs';
+import { searchTrudvsem } from './sources/trudvsem.mjs';
+import { searchGetMatch } from './sources/getmatch.mjs';
+import { searchGeekJob } from './sources/geekjob.mjs';
+import { RU_CONFIG_KEYS } from './sources/registry.mjs';
 import { addPipelineUrl } from './parsers.mjs';
 import { saveLastScan } from './en-scanner.mjs';
+
+/**
+ * v1.29.0 — dispatch table from `russian_portals.sources[*]` key to its
+ * adapter + display label + extra opts. ONE entry per RU adapter.
+ * Adding a new source = adding an adapter file + one row here + one
+ * row in `server/lib/sources/registry.mjs`. No changes to the
+ * scanner's loop body.
+ */
+const RU_DISPATCH = {
+  hh:       { label: 'hh.ru',       search: searchHH,       hhAware: true },
+  habr:     { label: 'habr',        search: searchHabr },
+  trudvsem: { label: 'trudvsem',    search: searchTrudvsem },
+  getmatch: { label: 'getmatch',    search: searchGetMatch },
+  geekjob:  { label: 'geekjob',     search: searchGeekJob },
+};
 
 /**
  * Default Russian-language search queries — used when portals.yml lacks a
@@ -64,7 +91,10 @@ export function loadConfig() {
     queries,
     negative,
     boosts,
-    sources: ru.sources || ['hh', 'habr'],
+    // v1.29.0 — default now pulls every RU source from the registry
+    // (hh, habr, trudvsem, getmatch, geekjob). User's portals.yml
+    // takes precedence if it explicitly lists `sources: [...]`.
+    sources: ru.sources || [...RU_CONFIG_KEYS],
     area: ru.area ?? 113, // Russia
     perPage: ru.per_page ?? 50,
     onlyRemote: ru.only_remote ?? false,
@@ -243,9 +273,22 @@ export async function runRuScan(opts = {}) {
 
 async function runQuery(query, cfg, fetchImpl, errors, sourceFailures, hhDisabled, log, signal) {
   const out = [];
-  if (cfg.sources.includes('hh') && !hhDisabled) {
+  // v1.29.0 — single loop over the dispatch table. Adding a new source =
+  // adding an entry to RU_DISPATCH above. The scanner doesn't need to
+  // know about hh.ru, Habr Career, Trudvsem, GetMatch, or GeekJob
+  // individually past the registry.
+  for (const key of cfg.sources) {
+    const entry = RU_DISPATCH[key];
+    if (!entry) {
+      // Unknown config-key — log once for visibility and skip.
+      log('stderr', `  ⚠ unknown source "${key}" in russian_portals.sources — skipped`);
+      continue;
+    }
+    if (key === 'hh' && hhDisabled) continue;
     try {
-      const items = await searchHH(query, {
+      const items = await entry.search(query, {
+        // Common opts every adapter accepts (extras like area/perPage are
+        // honored by adapters that care about them, ignored by the rest).
         area: cfg.area,
         perPage: cfg.perPage,
         onlyRemote: cfg.onlyRemote,
@@ -253,28 +296,14 @@ async function runQuery(query, cfg, fetchImpl, errors, sourceFailures, hhDisable
         signal,
       });
       out.push(...items);
-      log('stdout', `    hh.ru:  ${items.length}`);
+      log('stdout', `    ${entry.label.padEnd(8)} ${items.length}`);
     } catch (e) {
-      // Track in sourceFailures for one-line summary
-      sourceFailures.hh = sourceFailures.hh || { count: 0, firstMessage: e.message, geoBlocked: e.geoBlocked };
-      sourceFailures.hh.count += 1;
-      errors.push(`hh.ru "${query}": ${e.message}`);
-      // Suppress per-query log spam — one summary handled in caller
-    }
-  }
-  if (cfg.sources.includes('habr')) {
-    try {
-      const items = await searchHabr(query, {
-        onlyRemote: cfg.onlyRemote,
-        fetchImpl,
-        signal,
-      });
-      out.push(...items);
-      log('stdout', `    habr:   ${items.length}`);
-    } catch (e) {
-      sourceFailures.habr = sourceFailures.habr || { count: 0, firstMessage: e.message };
-      sourceFailures.habr.count += 1;
-      errors.push(`Habr "${query}": ${e.message}`);
+      const failKey = key;
+      sourceFailures[failKey] = sourceFailures[failKey] || {
+        count: 0, firstMessage: e.message, geoBlocked: e.geoBlocked,
+      };
+      sourceFailures[failKey].count += 1;
+      errors.push(`${entry.label} "${query}": ${e.message}`);
     }
   }
   return out;
