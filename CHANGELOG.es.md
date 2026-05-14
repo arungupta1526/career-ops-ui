@@ -10,6 +10,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.26.1] — 2026-05-14
+
+**Hot-fix WCAG 2.5.5 — altura mínima 44 px de `.btn` restaurada.**
+
+v1.26.0 perdió la declaración `min-height: 44px` en `.btn`; los botones del header renderizaban a 39-41 px (violación WCAG 2.5.5). v1.26.1 restaura el suelo de 44 px + `flex-shrink: 0` + `line-height: 1.2`. **502 → 506** unit, 32/32 Playwright sin cambios. Detalle en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.26.0] — 2026-05-14
 
 **Pirámide de tests + cobertura ≥ 93 % línea.**

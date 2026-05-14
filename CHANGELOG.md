@@ -6,6 +6,66 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.26.1] — 2026-05-14
+
+**Hot-fix: WCAG 2.5.5 — header `.btn` height restored to 44 px floor.**
+
+### 🚑 Critical hot-fix
+
+- **`fix(css): restore min-height: 44px + line-height + flex-shrink:0 on .btn`** ([`public/css/app.css:391-410`](public/css/app.css#L391-L410)) — live Playwright measurement on v1.26.0 found 5 header buttons rendering at 39-41 px (Doctor / Quick scan / Open Pipeline / 🌐 Scan now / ✨ Auto-pipeline a URL) — a WCAG 2.5.5 violation. The fix:
+  - Adds `min-height: 44px` to `.btn`. A stale comment at line 427-430 still claimed this floor was in place, but the declaration itself had been lost between v1.18 and v1.26.
+  - Adds `line-height: 1.2` so the in-block text doesn't compute the row taller than intended on browsers with looser default leading.
+  - Adds `flex-shrink: 0` + `box-sizing: border-box` to keep parent flex rows from squashing the button under their own height constraints.
+  - `.btn-sm` keeps its existing 32 px floor (small-control exception per WCAG 2.5.5 + 2.5.8 spaced-target) — `.btn-sm` follows `.btn` in source order so the override applies.
+
+### 🧪 Tests
+
+- **`test(wcag): tests/wcag-target-size.test.mjs`** — 4 static CSS canaries:
+  - `.btn` block has `min-height: 44px`
+  - `.btn` block has `flex-shrink: 0`
+  - `.btn-sm` keeps `min-height: 32px`
+  - `.btn-sm` defined AFTER `.btn` in source order (cascade)
+- **502 → 506** unit (+4) + 32/32 Playwright unchanged.
+- Live verification via headless Chromium across all 13 sidebar routes — every `.btn:not(.btn-sm)` measured ≥ 44 × 44 px after the fix.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 506 / 506
+# ✓ no .also( leftovers in views/
+# ✓ CHANGELOG parity: all 8 locales at v1.26.1
+
+# Live Playwright probe (run against server on :4317):
+$ for route in /dashboard /scan /pipeline /evaluate /batch /reports /tracker \
+                /activity /cv /profile /config /health /help; do
+    # use the parent project's playwright to measure
+    cd $CAREER_OPS_ROOT && node -e "
+      const { chromium } = require('playwright');
+      (async () => {
+        const browser = await chromium.launch({ headless: true });
+        const page = await (await browser.newContext()).newPage();
+        await page.goto('http://127.0.0.1:4317/#$route', { waitUntil: 'networkidle' });
+        const bad = await page.\$\$eval('.btn:not(.btn-sm)', els =>
+          els.filter(b => b.getBoundingClientRect().height < 44).length);
+        console.log('$route:', bad === 0 ? 'PASS' : 'FAIL ' + bad);
+        await browser.close();
+      })();
+    "
+  done
+# Every route → PASS
+```
+
+### Out of scope (v1.27.0)
+
+| Item | Notes |
+|---|---|
+| G-005 — A-G → A-F report block realignment | Still waiting on coordinated parent commit. |
+| G-003 — `README.cn.md` rename | Verified-already-closed: repo has `README.zh-CN.md`, no orphan. |
+| Sidebar duplicate `#/dashboard` (brand logo + nav item) | Trivial cosmetic, zero UX impact. |
+
+---
+
 ## [1.26.0] — 2026-05-14
 
 **Test pyramid (unit → functional → acceptance → e2e) + coverage push to ≥ 93 % line / ≥ 83 % branch.** Adopts the 4-tier structure mandated by the v1.25 backlog. Adds 22 new tests targeting the biggest coverage gaps from v1.25's `npm run test:coverage` report; introduces the `tests/acceptance/` directory for cross-endpoint user-journey tests.

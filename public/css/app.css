@@ -397,9 +397,19 @@ body.sidebar-open .sidebar-backdrop { display: block; }
   border-radius: var(--radius);
   font-weight: 600;
   font-size: 14px;
+  line-height: 1.2;
   border: 1px solid transparent;
   transition: background var(--transition), border-color var(--transition), transform var(--transition);
   white-space: nowrap;
+  /* v1.26.1 (WCAG-2.5.5) — restore the 44 px floor the line-431 comment
+   * still references. The declaration was lost somewhere between v1.18 and
+   * v1.26; live measurement at v1.26.0 showed header buttons rendering at
+   * 39-41 px tall (Doctor, Quick scan, Open Pipeline, 🌐 Scan now, ✨
+   * Auto-pipeline a URL). flex-shrink: 0 prevents parent rows from
+   * squashing the button below its min-height under flex layout. */
+  min-height: 44px;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 .btn:active { transform: scale(.98); }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
