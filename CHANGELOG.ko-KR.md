@@ -8,6 +8,14 @@
 
 ---
 
+## [1.28.1] — 2026-05-14
+
+**핫픽스: `?query`를 포함한 해시에서의 router 404. health에서 HH_USER_AGENT 행 제거.**
+
+v1.28.1 이전에는 `Router.go('/evaluate?url=…')`가 첫 `split('/')` 세그먼트로 `"evaluate?url=…"` 리터럴을 만들어내어 등록된 라우트와 절대 일치하지 않았고, 결과적으로 `__not_found__`(404)으로 떨어졌습니다. 한 줄 수정: 이름 분할 전에 `hash.split('?')[0]`. 보고된 두 클릭을 모두 처리합니다: `#/pipeline → ▶` 및 "App settings → Modes". 선택적 `HH_USER_AGENT` 행을 `/api/health`에서 제거(러시아 외 403 게이트 힌트는 help-bundle §16에 그대로 남아 있으며, 스캔 시 stderr에서도 그대로 출력). **515 → 520** 유닛 + 어셉턴스(+5 신규). 상세 내역은 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.28.0] — 2026-05-14
 
 **도큐 정렬 + `#/batch`의 `--max-retries N` 컨트롤.** `qa/QA-PROMPT-docs-vs-app.md`에서 제기된 두 개의 open 이슈를 종료합니다.

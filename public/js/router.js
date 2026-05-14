@@ -16,7 +16,15 @@ window.Router = (function () {
 
   function current() {
     const hash = window.location.hash.slice(2) || 'dashboard';
-    const [rawName, ...rest] = hash.split('/');
+    // v1.28.1 — strip `?query` before route lookup.
+    // Pre-v1.28.1 `Router.go('/evaluate?url=…')` produced a hash whose
+    // first split('/') segment was the whole "evaluate?url=…" literal,
+    // which never matched a registered route → __not_found__ (404).
+    // The view itself parses `window.location.hash.split('?')[1]` via
+    // URLSearchParams (see evaluate.js, config.js), so we only need to
+    // drop the query portion from the NAME lookup, not from the hash.
+    const beforeQuery = hash.split('?')[0];
+    const [rawName, ...rest] = beforeQuery.split('/');
     const name = ALIASES[rawName] || rawName;
     return { name, rawName, params: rest };
   }

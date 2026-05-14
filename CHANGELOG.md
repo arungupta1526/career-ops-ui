@@ -6,6 +6,44 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.28.1] — 2026-05-14
+
+**Hot-fix: router 404 on hashes with `?query`. HH_USER_AGENT row pruned from health.**
+
+### 🚑 Critical hot-fix
+
+- **`fix(router): strip ?query before route lookup`** ([`public/js/router.js`](public/js/router.js)) — pre-v1.28.1 `Router.go('/evaluate?url=…')` produced a hash whose first `split('/')` segment was the whole `"evaluate?url=…"` literal, which never matched a registered route → `__not_found__` (404). Two reported failures had this single root cause:
+  - `#/pipeline → ▶` button (`pipeline.js:145`: `Router.go('/evaluate?url=' + encodeURIComponent(url))`).
+  - "App settings → Modes" deep link (`settings.js:80`: `href="#/config?tab=modes"`).
+  Fix is one line: `hash.split('?')[0]` before the route-name split. The view itself continues to parse query strings via `window.location.hash.split('?')[1]` + `URLSearchParams` (see `evaluate.js`, `config.js`).
+
+### 🧹 Cleanup
+
+- **`fix(health): remove HH_USER_AGENT optional row`** ([`server/lib/routes/health.mjs:54`](server/lib/routes/health.mjs#L54)) — the row surfaced `"unset (hh.ru may 403 from non-RU IPs)"` on every Health page render, including for users who never scan hh.ru. The hh.ru adapter falls back to a baked-in UA when the env var is unset; the 403-from-non-RU gate is still documented in `docs/help/<locale>.md §16` (troubleshooting) and `server/lib/ru-scanner.mjs` still emits a stderr hint at scan time. Removing the row reduces dashboard noise without losing any diagnostic.
+
+### 🧪 Tests
+
+- **`test(router): tests/router-query-string.test.mjs`** — 3 cases: static-source canary (`router.js` must split off `?` before name lookup), explainer-comment canary (the v1.28.1 fix rationale stays in the source), and pure-logic simulation of `current()` over four representative hashes (`#/evaluate?url=…`, `#/config?tab=modes`, `#/reports/abc-123`, `#/dashboard`).
+- **`test(health): tests/health-no-hh-user-agent-row.test.mjs`** — 2 cases: regression guard that `/api/health` no longer surfaces `HH_USER_AGENT` row; sanity that adjacent optional rows survived the prune.
+- **515 → 520** unit + acceptance (+ 5 new). Playwright 32/32 unchanged.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 520 / 520
+# ✓ no .also( leftovers in views/
+# ✓ CHANGELOG parity: all 8 locales at v1.28.1
+
+# Manual smoke (after redeploy):
+$ open "http://127.0.0.1:4317/#/evaluate?url=https%3A%2F%2Fexample.com%2Fjd"
+# (should render the Evaluate view with the URL prefilled — no 404)
+$ open "http://127.0.0.1:4317/#/config?tab=modes"
+# (should land directly on the Modes tab of App settings — no 404)
+```
+
+---
+
 ## [1.28.0] — 2026-05-14
 
 **Docs alignment + `#/batch` `--max-retries N` UI surface.** Closes two open backlog items raised by `qa/QA-PROMPT-docs-vs-app.md`.

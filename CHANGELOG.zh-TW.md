@@ -8,6 +8,14 @@
 
 ---
 
+## [1.28.1] — 2026-05-14
+
+**熱修復:`?query` 雜湊導致 router 404;從 health 移除 HH_USER_AGENT 列。**
+
+v1.28.1 之前,`Router.go('/evaluate?url=…')` 產生的 hash 經 `split('/')` 後第一段是字面量 `"evaluate?url=…"`,永遠不會比對到已註冊路由 → `__not_found__`(404)。一行修復:在依名稱拆分前先 `hash.split('?')[0]`。覆蓋兩個已回報的點擊:`#/pipeline → ▶` 與「App settings → Modes」。`/api/health` 中可選的 `HH_USER_AGENT` 列被移除(俄羅斯境外 403 提示仍保留在 help-bundle §16 中,掃描時 stderr 也仍會提示)。**515 → 520** 單元 + 驗收測試(+5 新增)。完整細節見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.28.0] — 2026-05-14
 
 **文件對齊 + `#/batch` 新增 `--max-retries N` 控制項。**關閉 `qa/QA-PROMPT-docs-vs-app.md` 中提出的兩個未決 issue。

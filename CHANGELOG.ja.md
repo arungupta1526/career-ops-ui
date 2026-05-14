@@ -8,6 +8,14 @@
 
 ---
 
+## [1.28.1] — 2026-05-14
+
+**ホットフィックス: `?query` 付きハッシュでの router 404。health から HH_USER_AGENT 行を削除。**
+
+v1.28.1 以前は `Router.go('/evaluate?url=…')` が最初の `split('/')` セグメントとして `"evaluate?url=…"` リテラルを生成し、登録済みルートに一致せず `__not_found__`(404)に落ちていました。1 行修正: 名前分割の前に `hash.split('?')[0]`。報告された 2 つのクリックを両方カバーします:`#/pipeline → ▶` と「App settings → Modes」。オプションの `HH_USER_AGENT` 行は `/api/health` から削除(ロシア外 403 ゲートのヒントは help-bundle §16 に残り、スキャン時に stderr でも依然として出力される)。**515 → 520** unit + acceptance(+5 新規)。完全な詳細は [`CHANGELOG.md`](CHANGELOG.md) を参照。
+
+---
+
 ## [1.28.0] — 2026-05-14
 
 **ドキュメント整合 + `#/batch` の `--max-retries N` コントロール。**`qa/QA-PROMPT-docs-vs-app.md` から提起された 2 件のオープン issue を解消します。

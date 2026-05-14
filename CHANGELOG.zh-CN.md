@@ -8,6 +8,14 @@
 
 ---
 
+## [1.28.1] — 2026-05-14
+
+**热修复:`?query` 哈希导致 router 404;从 health 移除 HH_USER_AGENT 行。**
+
+v1.28.1 之前,`Router.go('/evaluate?url=…')` 产生的 hash 经 `split('/')` 后第一段是字面量 `"evaluate?url=…"`,永远不会匹配已注册的路由 → `__not_found__`(404)。一行修复:在按名称拆分前先 `hash.split('?')[0]`。覆盖两个已报告点击:`#/pipeline → ▶` 与「App settings → Modes」。`/api/health` 中可选的 `HH_USER_AGENT` 行被移除(俄国外 403 提示仍保留在 help-bundle §16 中,扫描时 stderr 也仍会提示)。**515 → 520** 单元 + 验收测试(+5 新增)。完整细节见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.28.0] — 2026-05-14
 
 **文档对齐 + `#/batch` 新增 `--max-retries N` 控件。**关闭 `qa/QA-PROMPT-docs-vs-app.md` 中提出的两个未决 issue。

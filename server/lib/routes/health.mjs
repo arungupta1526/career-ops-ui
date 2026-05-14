@@ -50,8 +50,11 @@ export function registerHealthRoutes(app) {
     // Optional — UI works fine without these
     checks.push({ name: 'GEMINI_API_KEY', required: false, ok: !!process.env.GEMINI_API_KEY, value: process.env.GEMINI_API_KEY ? 'set' : 'unset (manual mode)' });
     checks.push({ name: 'ANTHROPIC_API_KEY', required: false, ok: !!process.env.ANTHROPIC_API_KEY, value: process.env.ANTHROPIC_API_KEY ? 'set' : 'unset (set to enable live "Run" buttons)' });
-    // FIX-H1 — surface hh.ru anti-bot gate as an optional setup hint.
-    checks.push({ name: 'HH_USER_AGENT', required: false, ok: !!process.env.HH_USER_AGENT, value: process.env.HH_USER_AGENT ? 'set' : 'unset (hh.ru may 403 from non-RU IPs)' });
+    // v1.28.1 — HH_USER_AGENT health row removed. The hh.ru adapter falls
+    // back to a baked-in UA when the env var is unset; the 403-from-non-RU
+    // gate is documented in help-bundle §16 troubleshooting and the
+    // ru-scanner already emits a stderr hint at scan time. Surfacing it as
+    // an optional health-check row was redundant noise on the dashboard.
     // Playwright + parent deps — required for PDF generation and liveness
     // checks; we don't install them but surface the gap.
     const playwrightInstalled = existsSync(projPath('node_modules', 'playwright'));

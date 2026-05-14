@@ -1,8 +1,14 @@
 /**
  * FIX-C6 + FIX-H6 — Health checks now mirror what `node doctor.mjs`
- * would report (parent-deps, Playwright, dirs, profile-customized,
- * HH_USER_AGENT). Single source of truth via /api/health, no second
- * read of state via the Doctor button.
+ * would report (parent-deps, Playwright, dirs, profile-customized).
+ * Single source of truth via /api/health, no second read of state via
+ * the Doctor button.
+ *
+ * v1.28.1 — HH_USER_AGENT row removed from /api/health (it was
+ * redundant noise — the 403-from-non-RU hint still lives in
+ * help-bundle §16 and in the ru-scanner's stderr at scan time).
+ * `tests/health-no-hh-user-agent-row.test.mjs` is the regression
+ * guard that asserts it stays absent.
  */
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -49,13 +55,13 @@ async function getHealth() {
 test('Health: surfaces all the checks Doctor used to expose', async () => {
   const h = await getHealth();
   const names = h.checks.map((c) => c.name);
-  // Required for FIX-C6: ≥13 checks (was: 9 — the fix-prompt acceptance bar)
-  assert.ok(h.checks.length >= 13, `expected ≥13 checks, got ${h.checks.length}: ${names.join(', ')}`);
+  // v1.28.1 — bar was ≥13 pre-prune; HH_USER_AGENT removal drops it to ≥12.
+  assert.ok(h.checks.length >= 12, `expected ≥12 checks, got ${h.checks.length}: ${names.join(', ')}`);
   // Critical doctor parity:
   for (const expected of [
     'Profile customized',
     'GEMINI_API_KEY',
-    'HH_USER_AGENT',
+    // v1.28.1 — HH_USER_AGENT removed (see file header).
     'Playwright (parent node_modules)',
     'Parent project dependencies',
     'data/ directory',

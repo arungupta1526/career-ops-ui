@@ -10,6 +10,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.28.1] — 2026-05-14
+
+**Hot-fix: router 404 con hashes que llevan `?query`. Fila HH_USER_AGENT eliminada de health.**
+
+Antes de v1.28.1 `Router.go('/evaluate?url=…')` producía un hash cuyo primer `split('/')` era el literal `"evaluate?url=…"`, que nunca coincidía con una ruta registrada → `__not_found__` (404). Fix de una línea: `hash.split('?')[0]` antes del split del nombre. Cubre dos clicks reportados: `#/pipeline → ▶` y "App settings → Modes". La fila opcional `HH_USER_AGENT` se elimina de `/api/health` (la pista 403-fuera-de-Rusia sigue en help-bundle §16 y se emite en stderr al escanear). **515 → 520** unit + acceptance (+ 5 nuevos). Detalles completos en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.28.0] — 2026-05-14
 
 **Alineación de docs + nuevo control `--max-retries N` en `#/batch`.** Cierra las dos issues abiertas levantadas por `qa/QA-PROMPT-docs-vs-app.md`.

@@ -8,6 +8,14 @@
 
 ---
 
+## [1.28.1] — 2026-05-14
+
+**Hot-fix: router 404 на хэшах с `?query`. Строку HH_USER_AGENT убрали из health.**
+
+До v1.28.1 `Router.go('/evaluate?url=…')` производил hash, чей первый сегмент по `split('/')` был литералом `"evaluate?url=…"`, который никогда не совпадал с зарегистрированной ветвью → `__not_found__` (404). Однострочный фикс: `hash.split('?')[0]` перед разбиением имени. Закрывает оба известных клика: `#/pipeline → ▶` и «App settings → Modes». Опциональная строка `HH_USER_AGENT` убрана из `/api/health` (подсказка про 403-вне-РФ остаётся в help-bundle §16 и в stderr самого ru-scanner). **515 → 520** unit + acceptance (+5 новых). Полные подробности в [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.28.0] — 2026-05-14
 
 **Выравнивание документации + контрол `--max-retries N` на `#/batch`.** Закрывает два открытых issue, поднятых в `qa/QA-PROMPT-docs-vs-app.md`.
