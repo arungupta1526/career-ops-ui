@@ -54,7 +54,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 `career-ops-ui` добавляет сверху аккуратный UI:
 
 - **Просмотр** трекера, отчётов и pipeline в формате CRM.
-- **Запуск** сканов (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **и** hh.ru / Habr Career) с трансляцией логов через SSE в режиме реального времени.
+- **Запуск** сканов (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **и** hh.ru / Habr Career / Trudvsem / GetMatch / GeekJob) с трансляцией логов через SSE в режиме реального времени.
 - **Оценка** JD в реальном времени через Anthropic (предпочтительно) или Gemini; при отсутствии API-ключей выдаётся готовый промпт для копирования в Claude Code.
 - **Глубокое исследование** компаний через Anthropic SDK с автоматической подстановкой содержимого cv / profile / mode-файлов.
 - **Редактирование** `cv.md` с параллельным предпросмотром markdown и серверной защитой от XSS.
@@ -146,7 +146,7 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 | Страница         | Назначение                                                                                                       |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------- |
 | **Дашборд**      | Сводные счётчики (заявки / pipeline / отчёты), средняя оценка, распределение по статусам, последние 5 заявок и последний отчёт. |
-| **Поиск**        | **🌐 Единая кнопка Scan** — за один проход обходит все включённые источники (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday для EN, hh.ru + Habr Career для RU). Поток логов SSE в реальном времени и кликабельная таблица результатов с фильтрами по локации, badge Remote-Hybrid, флагу релокации, зарплате и источнику; динамические chip-фильтры по стеку, уровню и ключевым словам. Карточка Active Companies перечисляет все отслеживаемые доски и состояние их API. |
+| **Поиск**        | **🌐 Единая кнопка Scan** — за один проход обходит все включённые источники (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday для EN, hh.ru + Habr Career + Trudvsem + GetMatch + GeekJob для RU). Поток логов SSE в реальном времени и кликабельная таблица результатов с фильтрами по локации, badge Remote-Hybrid, флагу релокации, зарплате и источнику; динамические chip-фильтры по стеку, уровню и ключевым словам. Карточка Active Companies перечисляет все отслеживаемые доски и состояние их API. |
 | **Pipeline**     | CRUD над `data/pipeline.md`. Серверный preview-прокси (защита от SSRF, проверка редиректов на каждом hop, ограничение тела 8 KB). Прямой переход от URL к оценке. |
 | **Оценка**       | Вставляете JD → **сначала Anthropic** (предпочтительно, когда заданы оба ключа), затем Gemini, затем ручной промпт-fallback. По пути Anthropic автоматически подставляются cv / profile / `_shared.md` / `oferta.md` (REVIEW-A1). Сохранение JD в `jds/` — опционально. |
 | **Глубокое исследование** | Та же цепочка fallback, что и у Оценки. Anthropic в реальном времени возвращает ~10–30 KB обоснованного markdown, который сохраняется в `interview-prep/<company>-<role>.md`. |
@@ -197,7 +197,7 @@ russian_portals:
   queries: ["Senior PHP", "Senior Go", "Tech Lead"]
 ```
 
-Все источники объединены за единым SSE-эндпоинтом: `/api/stream/scan?source=ats|regional|both`. Кнопка **🌐 Scan** в UI вызывает `source=both`, поэтому каждый адаптер (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday + hh.ru + Habr Career) работает в рамках одного соединения. Соединение корректно реагирует на `AbortSignal` при отключении клиента — никаких висящих fetch-запросов.
+Все источники объединены за единым SSE-эндпоинтом: `/api/stream/scan?source=ats|regional|both`. Кнопка **🌐 Scan** в UI вызывает `source=both`, поэтому каждый адаптер (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday + hh.ru + Habr Career + Trudvsem + GetMatch + GeekJob) работает в рамках одного соединения. Соединение корректно реагирует на `AbortSignal` при отключении клиента — никаких висящих fetch-запросов.
 
 ---
 

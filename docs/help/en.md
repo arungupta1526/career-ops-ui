@@ -676,7 +676,14 @@ history, and writes hits into `data/last-scan.json` and
 
 - Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday (the ATS sweep) for every company in
   `tracked_companies` with a recognizable ATS URL.
-- hh.ru API + Habr Career HTML for every query in `russian_portals`.
+- hh.ru API + Habr Career + Trudvsem + GetMatch + GeekJob for every query in `russian_portals`.
+
+**Two phases, one click (v1.29.2).** The single 🌐 Scan button drives BOTH the ATS sweep and the regional sweep in one SSE stream. You'll see two phase headers in the log, in order:
+
+1. `▶ ATS scan (Greenhouse + Ashby + Lever)` — EN ATS boards.
+2. `▶ Regional scan (hh.ru + Habr Career)` — 5 RU sources from the registry.
+
+Each phase ends with a `✓ done · NEW=N` summary. If you only see the ATS phase, your stand is on a pre-v1.29.2 build — upgrade. Pre-v1.29.2 the SSE client closed on the first `done` event and the regional phase was silently dropped (`tests/scan-stream-multi-phase.test.mjs` is the regression net).
 
 Live SSE log streams to the right pane while the scan runs. Click
 **Stop** (or just navigate away) to abort — the server cancels
@@ -689,7 +696,7 @@ Below the log, the results table renders rows from `data/last-scan.json`.
 Filters:
 
 - **Free text** — substring match against title / company.
-- **Source** dropdown — Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday / hh.ru / Habr.
+- **Source** dropdown — Ashby / GeekJob / Greenhouse / GetMatch / Habr Career / hh.ru / Lever / SmartRecruiters / Trudvsem / Workable / Workday.
 - **Remote / Hybrid / Onsite** dropdown.
 - **Stack chips** (PHP / Go / Backend / Senior / …) — auto-detected
   per row by `Skills.detectTech` and `Skills.detectLevel`. Multi-select

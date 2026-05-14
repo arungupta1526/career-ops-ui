@@ -54,7 +54,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 `career-ops-ui`는 그 위에 다듬어진 UI 한 겹을 더합니다.
 
 - **탐색** — 트래커, 보고서, 파이프라인을 CRM처럼 살펴봅니다.
-- **트리거** — 스캔(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **및** hh.ru / Habr Career)을 실행하고 실시간 SSE 로그를 확인합니다.
+- **트리거** — 스캔(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **및** hh.ru / Habr Career / Trudvsem / GetMatch / GeekJob)을 실행하고 실시간 SSE 로그를 확인합니다.
 - **평가** — Anthropic(우선) 또는 Gemini로 JD를 라이브 평가하거나, API 키가 없을 경우 Claude Code용 복붙 프롬프트를 받습니다.
 - **딥 리서치** — Anthropic SDK를 통한 라이브 회사 리서치를 수행하며, cv / profile / mode 파일을 자동으로 인라인 처리합니다.
 - **편집** — `cv.md`를 사이드 바이 사이드 마크다운 프리뷰와 서버 사이드 XSS 새니타이즈로 편집합니다.
@@ -146,7 +146,7 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 | 페이지            | 기능                                                                                                              |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
 | **Dashboard**    | 집계 카운트(apps / pipeline / reports), 평균 점수, 상태 분포, 최근 5개 apps + 최신 보고서.                                  |
-| **Scan**         | **🌐 단일 Scan 버튼** — 활성화된 모든 소스를 한 번에 실행합니다(EN은 Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday, RU는 hh.ru + Habr Career). 실시간 SSE 로그 스트리밍과 클릭 가능한 결과 테이블, location / Remote-Hybrid 배지 / relocation 플래그 / 급여 / source 필터, 동적 stack / level / keyword 칩을 제공합니다. Active-Companies 카드는 추적 중인 모든 board와 API health를 나열합니다. |
+| **Scan**         | **🌐 단일 Scan 버튼** — 활성화된 모든 소스를 한 번에 실행합니다(EN은 Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday, RU는 hh.ru + Habr Career + Trudvsem + GetMatch + GeekJob). 실시간 SSE 로그 스트리밍과 클릭 가능한 결과 테이블, location / Remote-Hybrid 배지 / relocation 플래그 / 급여 / source 필터, 동적 stack / level / keyword 칩을 제공합니다. Active-Companies 카드는 추적 중인 모든 board와 API health를 나열합니다. |
 | **Pipeline**     | `data/pipeline.md`에 대한 CRUD. 서버 사이드 프리뷰 프록시(SSRF 안전, per-hop redirect 검증, 8 KB body cap). URL에서 바로 평가로 이동할 수 있습니다. |
 | **Evaluate**     | JD 붙여넣기 → **Anthropic 우선**(두 키가 모두 있을 때 선호), 그다음 Gemini, 마지막으로 수동 프롬프트 폴백. Anthropic 경로는 cv / profile / `_shared.md` / `oferta.md`를 자동으로 인라인합니다(REVIEW-A1). JD를 `jds/`에 저장하는 옵션도 있습니다. |
 | **Deep research**| Evaluate와 동일한 폴백 체인. 라이브 Anthropic은 약 10~30 KB의 grounded markdown을 `interview-prep/<company>-<role>.md`에 저장합니다. |
@@ -197,7 +197,7 @@ russian_portals:
   queries: ["Senior PHP", "Senior Go", "Tech Lead"]
 ```
 
-모든 소스는 단일 SSE 엔드포인트(`/api/stream/scan?source=ats|regional|both`)를 거쳐 흐릅니다. **🌐 Scan** UI 버튼은 `source=both`를 호출하여 모든 어댑터(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday + hh.ru + Habr Career)를 단일 연결로 실행합니다. 클라이언트가 연결을 끊으면 `AbortSignal`을 honor하므로 orphan fetch가 발생하지 않습니다.
+모든 소스는 단일 SSE 엔드포인트(`/api/stream/scan?source=ats|regional|both`)를 거쳐 흐릅니다. **🌐 Scan** UI 버튼은 `source=both`를 호출하여 모든 어댑터(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday + hh.ru + Habr Career + Trudvsem + GetMatch + GeekJob)를 단일 연결로 실행합니다. 클라이언트가 연결을 끊으면 `AbortSignal`을 honor하므로 orphan fetch가 발생하지 않습니다.
 
 ---
 

@@ -54,7 +54,7 @@ O [career-ops](https://github.com/santifer/career-ops) é um sistema poderoso de
 O `career-ops-ui` coloca uma UI bem feita por cima:
 
 - **Navegue** pelo tracker, relatórios e pipeline como em um CRM.
-- **Dispare** scans (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **e** hh.ru / Habr Career) e acompanhe logs SSE ao vivo.
+- **Dispare** scans (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **e** hh.ru / Habr Career / Trudvsem / GetMatch / GeekJob) e acompanhe logs SSE ao vivo.
 - **Avalie** uma JD em tempo real via Anthropic (preferida) ou Gemini; ou receba um prompt pronto para colar no Claude Code, caso nenhuma chave de API esteja configurada.
 - **Pesquise empresas** ao vivo via Anthropic SDK, com cv / profile / arquivos de modo embutidos automaticamente.
 - **Edite** o `cv.md` com preview markdown lado a lado e sanitização XSS no servidor.
@@ -146,7 +146,7 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 | Página           | O que faz                                                                                                          |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------ |
 | **Dashboard**    | Contadores agregados (apps / pipeline / relatórios), score médio, breakdown por status, últimas 5 apps + último relatório. |
-| **Scan**         | **🌐 Botão único de Scan** — percorre todas as fontes habilitadas em uma única passagem (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday para EN, hh.ru + Habr Career para RU). Logs SSE ao vivo + tabela de resultados clicável com filtros por location / badge Remote-Hybrid / flag de relocation / salário / source e chips dinâmicos de stack / nível / palavra-chave. O card Active-Companies lista cada board rastreado com o status da sua API. |
+| **Scan**         | **🌐 Botão único de Scan** — percorre todas as fontes habilitadas em uma única passagem (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday para EN, hh.ru + Habr Career + Trudvsem + GetMatch + GeekJob para RU). Logs SSE ao vivo + tabela de resultados clicável com filtros por location / badge Remote-Hybrid / flag de relocation / salário / source e chips dinâmicos de stack / nível / palavra-chave. O card Active-Companies lista cada board rastreado com o status da sua API. |
 | **Pipeline**     | CRUD sobre `data/pipeline.md`. Proxy de preview no servidor (SSRF-safe, validação de redirect por hop, cap de 8 KB no corpo). Pule direto de uma URL para a avaliação. |
 | **Evaluate**     | Cole a JD → **Anthropic-first** (preferida quando ambas as chaves estão presentes), depois Gemini, depois fallback manual. O caminho Anthropic embute automaticamente cv / profile / `_shared.md` / `oferta.md` (REVIEW-A1). Salvar a JD em `jds/` é opcional. |
 | **Deep research**| Mesmo encadeamento de fallback do Evaluate. O Anthropic ao vivo devolve ~10–30 KB de markdown fundamentado, salvo em `interview-prep/<company>-<role>.md`. |
@@ -197,7 +197,7 @@ russian_portals:
   queries: ["Senior PHP", "Senior Go", "Tech Lead"]
 ```
 
-Todas as fontes fluem por um único endpoint SSE: `/api/stream/scan?source=ats|regional|both`. O botão **🌐 Scan** na UI chama `source=both` para que cada adapter (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday + hh.ru + Habr Career) rode em uma única conexão. Respeita `AbortSignal` na desconexão do cliente — sem fetches órfãos.
+Todas as fontes fluem por um único endpoint SSE: `/api/stream/scan?source=ats|regional|both`. O botão **🌐 Scan** na UI chama `source=both` para que cada adapter (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday + hh.ru + Habr Career + Trudvsem + GetMatch + GeekJob) rode em uma única conexão. Respeita `AbortSignal` na desconexão do cliente — sem fetches órfãos.
 
 ---
 

@@ -633,7 +633,14 @@ $EDITOR portals.yml
 - Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday
   (ATS 全量扫描)针对 `tracked_companies` 中每家有可识别 ATS URL 的
   公司。
-- hh.ru API + Habr Career HTML,针对 `russian_portals` 中的每个查询。
+- hh.ru API + Habr Career + Trudvsem + GetMatch + GeekJob,针对 `russian_portals` 中的每个查询。
+
+**一键两阶段(v1.29.2)。** 唯一的 🌐 Scan 按钮在一个 SSE 流中同时驱动 ATS 与区域两次扫描。日志会按顺序出现两个阶段标题:
+
+1. `▶ ATS scan (Greenhouse + Ashby + Lever)` — EN ATS 板块。
+2. `▶ Regional scan (hh.ru + Habr Career)` — 来自 registry 的 5 个 RU 来源。
+
+每阶段以 `✓ done · NEW=N` 总结结束。如果只看到 ATS 阶段,说明 stand 仍是 v1.29.2 之前的版本 —— 请升级。v1.29.2 之前,SSE 客户端在第一个 `done` 上就关闭了,区域阶段会被静默丢弃。
 
 实时 SSE 日志会在扫描期间流向右侧面板。点击 **Stop**(或直接离开页
 面)即可中止 — 服务器会通过 `AbortController` 取消进行中的 HTTPS
@@ -646,8 +653,7 @@ $EDITOR portals.yml
 过滤器:
 
 - **自由文本** — 对 title / company 做子串匹配。
-- **Source** 下拉 — Greenhouse / Ashby / Lever / Workable /
-  SmartRecruiters / Workday / hh.ru / Habr。
+- **Source** 下拉 — Ashby / GeekJob / Greenhouse / GetMatch / Habr Career / hh.ru / Lever / SmartRecruiters / Trudvsem / Workable / Workday。
 - **Remote / Hybrid / Onsite** 下拉。
 - **技术栈标签**(PHP / Go / Backend / Senior / …)— 每行由
   `Skills.detectTech` 与 `Skills.detectLevel` 自动检测。多选交集 —

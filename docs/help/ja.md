@@ -698,8 +698,15 @@ $EDITOR portals.yml
 - Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday
   (ATS スイープ) を、認識可能な ATS URL を持つ `tracked_companies`
   のすべての企業に対して実行。
-- hh.ru API + Habr Career HTML を、`russian_portals` の各クエリに
+- hh.ru API + Habr Career + Trudvsem + GetMatch + GeekJob を、`russian_portals` の各クエリに
   対して実行。
+
+**1 クリックで 2 フェーズ(v1.29.2)。** 単一の 🌐 Scan ボタンが ATS スイープと地域スイープの両方を、1 つの SSE ストリーム上で実行します。ログには 2 つのフェーズ見出しが順番に現れます:
+
+1. `▶ ATS scan (Greenhouse + Ashby + Lever)` — EN ATS ボード。
+2. `▶ Regional scan (hh.ru + Habr Career)` — レジストリの 5 つの RU ソース。
+
+各フェーズは `✓ done · NEW=N` のサマリで終わります。ATS フェーズしか見えない場合、stand は v1.29.2 より前のビルドです — アップグレードしてください。v1.29.2 より前は SSE クライアントが最初の `done` でクローズし、地域フェーズが静かに失われていました。
 
 ライブ SSE ログがスキャン中に右ペインへストリーム表示されます。
 **Stop** をクリック (または単に離脱) すると中断します — サーバは
@@ -713,8 +720,9 @@ $EDITOR portals.yml
 フィルタ:
 
 - **フリーテキスト** — タイトル / 会社名に対する部分一致。
-- **Source** ドロップダウン — Greenhouse / Ashby / Lever / Workable
-  / SmartRecruiters / Workday / hh.ru / Habr。
+- **Source** ドロップダウン — Ashby / GeekJob / Greenhouse / GetMatch /
+  Habr Career / hh.ru / Lever / SmartRecruiters / Trudvsem / Workable /
+  Workday(全 11 件、レジストリから動的構築)。
 - **Remote / Hybrid / Onsite** ドロップダウン。
 - **スタックチップ** (PHP / Go / Backend / Senior / …) — 行ごとに
   `Skills.detectTech` と `Skills.detectLevel` で自動検出。複数選択は

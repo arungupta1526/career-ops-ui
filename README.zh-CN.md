@@ -54,7 +54,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 `career-ops-ui` 在其之上加上一层精致 UI:
 
 - **浏览** 跟踪表、报告与流水线,如同操作 CRM。
-- **触发** 扫描(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **以及** hh.ru / Habr Career),实时查看 SSE 日志。
+- **触发** 扫描(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **以及** hh.ru / Habr Career / Trudvsem / GetMatch / GeekJob),实时查看 SSE 日志。
 - **评估** 通过 Anthropic(首选)或 Gemini 实时评估 JD;未配置 API key 时,返回一个可复制到 Claude Code 的 prompt。
 - **深度调研** 通过 Anthropic SDK 实时调研公司,自动内联 cv / profile / mode 文件。
 - **编辑** `cv.md`,提供并排 markdown 预览与服务端 XSS 清理。
@@ -146,7 +146,7 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 | 页面             | 功能说明                                                                                                                                |
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | **Dashboard**    | 聚合计数(apps / pipeline / reports)、平均分、按状态分布、最新 5 条投递 + 最新报告。                                                   |
-| **Scan**         | **🌐 单按钮扫描** —— 一键运行所有已启用来源(EN:Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday;RU:hh.ru + Habr Career)。SSE 实时日志 + 可点击结果表格(支持 location / Remote-Hybrid 徽章 / relocation 标志 / 薪资 / 来源筛选,以及动态 stack / level / keyword chip)。Active-Companies 卡片列出每个已跟踪 board 及其 API 健康状态。 |
+| **Scan**         | **🌐 单按钮扫描** —— 一键运行所有已启用来源(EN:Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday;RU:hh.ru + Habr Career + Trudvsem + GetMatch + GeekJob)。SSE 实时日志 + 可点击结果表格(支持 location / Remote-Hybrid 徽章 / relocation 标志 / 薪资 / 来源筛选,以及动态 stack / level / keyword chip)。Active-Companies 卡片列出每个已跟踪 board 及其 API 健康状态。 |
 | **Pipeline**     | 对 `data/pipeline.md` 进行 CRUD。服务端预览代理(SSRF 安全、逐跳 redirect 校验、8 KB 响应体上限)。可从 URL 直接跳转评估。               |
 | **Evaluate**     | 粘贴 JD → **Anthropic 优先**(两个 key 同时存在时首选),其次 Gemini,最后手动 prompt 回退。Anthropic 路径自动内联 cv / profile / `_shared.md` / `oferta.md`(REVIEW-A1)。可选将 JD 存入 `jds/`。 |
 | **Deep research**| 与 Evaluate 共用同一条回退链。实时 Anthropic 返回约 10–30 KB 的有据 markdown,并写入 `interview-prep/<company>-<role>.md`。              |
@@ -197,7 +197,7 @@ russian_portals:
   queries: ["Senior PHP", "Senior Go", "Tech Lead"]
 ```
 
-所有来源汇入同一个 SSE 端点:`/api/stream/scan?source=ats|regional|both`。**🌐 Scan** 按钮调用 `source=both`,从而在一个连接中完成所有 adapter(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday + hh.ru + Habr Career)的扫描。客户端断开时尊重 `AbortSignal` —— 不会留下孤儿 fetch。
+所有来源汇入同一个 SSE 端点:`/api/stream/scan?source=ats|regional|both`。**🌐 Scan** 按钮调用 `source=both`,从而在一个连接中完成所有 adapter(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday + hh.ru + Habr Career + Trudvsem + GetMatch + GeekJob)的扫描。客户端断开时尊重 `AbortSignal` —— 不会留下孤儿 fetch。
 
 ---
 

@@ -709,6 +709,13 @@ historia, y escribe los hits a `data/last-scan.json` y
 - API de hh.ru + HTML de Habr Career para cada query de
   `russian_portals`.
 
+**Dos fases en un clic (v1.29.2).** El único botón 🌐 Scan dispara TANTO el sweep ATS COMO el regional en un único stream SSE. En el log verás dos encabezados de fase, en orden:
+
+1. `▶ ATS scan (Greenhouse + Ashby + Lever)` — boards ATS EN.
+2. `▶ Regional scan (hh.ru + Habr Career)` — 5 fuentes RU del registry.
+
+Cada fase termina con un resumen `✓ done · NEW=N`. Si solo ves la fase ATS, tu stand está en un build pre-v1.29.2 — actualiza. Antes de v1.29.2 el cliente SSE cerraba en el primer `done` y la fase regional se descartaba silenciosamente.
+
 El log SSE en vivo se va mostrando en el panel derecho mientras corre
 el scan. Haz clic en **Stop** (o simplemente navega fuera) para
 abortar — el servidor cancela los requests HTTPS en vuelo vía
@@ -722,8 +729,7 @@ Debajo del log, la tabla de resultados renderiza filas de
 Filtros:
 
 - **Texto libre** — match de substring contra título / empresa.
-- Dropdown **Source** — Greenhouse / Ashby / Lever / Workable /
-  SmartRecruiters / Workday / hh.ru / Habr.
+- Dropdown **Source** — Ashby / GeekJob / Greenhouse / GetMatch / Habr Career / hh.ru / Lever / SmartRecruiters / Trudvsem / Workable / Workday.
 - Dropdown **Remote / Hybrid / Onsite**.
 - **Chips de stack** (PHP / Go / Backend / Senior / …) —
   auto-detectados por fila por `Skills.detectTech` y

@@ -54,7 +54,7 @@ This clones both repos (career-ops + career-ops-ui), installs deps, and starts t
 `career-ops-ui` puts a polished UI on top:
 
 - **Browse** the tracker, reports, and pipeline like a CRM.
-- **Trigger** scans (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **and** hh.ru / Habr Career) and watch live SSE logs.
+- **Trigger** scans (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **and** hh.ru / Habr Career / Trudvsem / GetMatch / GeekJob) and watch live SSE logs.
 - **Evaluate** a JD live via Anthropic (preferred) or Gemini, or get a copy-paste prompt for Claude Code if no API key is set.
 - **Deep research** companies live via Anthropic SDK with cv / profile / mode files inlined automatically.
 - **Edit** `cv.md` with side-by-side markdown preview and server-side XSS sanitization.
@@ -146,7 +146,7 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 | Page             | What it does                                                                                                       |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------ |
 | **Dashboard**    | Aggregated counts (apps / pipeline / reports), avg score, status breakdown, latest 5 apps + latest report.         |
-| **Scan**         | **🌐 Single Scan button** — runs every enabled source in one go (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday for EN, hh.ru + Habr Career for RU). Live SSE log streaming + clickable results table with location / Remote-Hybrid badge / relocation flag / salary / source filters and dynamic stack / level / keyword chips. Active-Companies card lists every tracked board with its API health. |
+| **Scan**         | **🌐 Single Scan button** — runs every enabled source in one go (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday for EN, hh.ru + Habr Career + Trudvsem + GetMatch + GeekJob for RU). Live SSE log streaming + clickable results table with location / Remote-Hybrid badge / relocation flag / salary / source filters and dynamic stack / level / keyword chips. Active-Companies card lists every tracked board with its API health. |
 | **Pipeline**     | CRUD on `data/pipeline.md`. Server-side preview proxy (SSRF-safe, per-hop redirect validation, 8 KB body cap). Jump straight from a URL to evaluate.       |
 | **Evaluate**     | Paste JD → **Anthropic-first** (preferred when both keys present), then Gemini, then manual prompt fallback. Anthropic path inlines cv / profile / `_shared.md` / `oferta.md` automatically (REVIEW-A1). Save JD to `jds/` optional. |
 | **Deep research**| Same fallback chain as Evaluate. Live Anthropic returns ~10-30 KB of grounded markdown saved to `interview-prep/<company>-<role>.md`. |
@@ -197,7 +197,7 @@ russian_portals:
   queries: ["Senior PHP", "Senior Go", "Tech Lead"]
 ```
 
-All sources flow through a single SSE endpoint: `/api/stream/scan?source=ats|regional|both`. The **🌐 Scan** UI button calls `source=both` so every adapter (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday + hh.ru + Habr Career) runs in one connection. Honors `AbortSignal` on client disconnect — no orphan fetches.
+All sources flow through a single SSE endpoint: `/api/stream/scan?source=ats|regional|both`. The **🌐 Scan** UI button calls `source=both` so every adapter (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday + hh.ru + Habr Career + Trudvsem + GetMatch + GeekJob) runs in one connection. Honors `AbortSignal` on client disconnect — no orphan fetches.
 
 ---
 

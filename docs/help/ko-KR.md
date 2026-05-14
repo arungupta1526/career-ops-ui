@@ -681,7 +681,14 @@ hits를 `data/last-scan.json`과 `data/pipeline.md`에 기록합니다.
 - Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday
   (ATS 스윕) — 인식 가능한 ATS URL을 가진 `tracked_companies`의
   모든 회사.
-- hh.ru API + Habr Career HTML — `russian_portals`의 모든 쿼리.
+- hh.ru API + Habr Career + Trudvsem + GetMatch + GeekJob — `russian_portals`의 모든 쿼리.
+
+**한 번의 클릭으로 두 단계 (v1.29.2).** 단일 🌐 Scan 버튼이 ATS 스윕과 지역 스윕을 모두 하나의 SSE 스트림으로 실행합니다. 로그에는 두 개의 단계 헤더가 순서대로 나타납니다:
+
+1. `▶ ATS scan (Greenhouse + Ashby + Lever)` — EN ATS 보드.
+2. `▶ Regional scan (hh.ru + Habr Career)` — 레지스트리의 5개 RU 소스.
+
+각 단계는 `✓ done · NEW=N` 요약으로 끝납니다. ATS 단계만 보인다면 stand가 v1.29.2 이전 빌드입니다 — 업그레이드하세요. v1.29.2 이전에는 SSE 클라이언트가 첫 `done`에서 닫혀 지역 단계가 조용히 누락되었습니다.
 
 스캔이 진행되는 동안 SSE 라이브 로그가 오른쪽 패널에 흐릅니다.
 중단하려면 **Stop**을 클릭하거나 페이지에서 나가면 됩니다. 서버는
@@ -695,8 +702,7 @@ hits를 `data/last-scan.json`과 `data/pipeline.md`에 기록합니다.
 필터:
 
 - **자유 텍스트** — 제목/회사에 대한 부분 문자열 일치.
-- **Source** 드롭다운 — Greenhouse / Ashby / Lever / Workable /
-  SmartRecruiters / Workday / hh.ru / Habr.
+- **Source** 드롭다운 — Ashby / GeekJob / Greenhouse / GetMatch / Habr Career / hh.ru / Lever / SmartRecruiters / Trudvsem / Workable / Workday.
 - **Remote / Hybrid / Onsite** 드롭다운.
 - **스택 칩** (PHP / Go / Backend / Senior / …) — 각 행에 대해
   `Skills.detectTech`와 `Skills.detectLevel`이 자동 감지합니다.

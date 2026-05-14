@@ -146,7 +146,7 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 | ページ            | 内容                                                                                                              |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
 | **Dashboard**    | 集計カウント(apps / pipeline / reports)、平均スコア、ステータス内訳、最新 5 件の応募と最新レポート。 |
-| **Scan**         | **🌐 単一 Scan ボタン** — 有効なすべてのソースを 1 回のスイープで実行します(EN は Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday、RU は hh.ru + Habr Career)。ライブ SSE ログストリーミングに加え、location / Remote-Hybrid バッジ / relocation フラグ / 給与 / source フィルタと、動的な stack / level / keyword チップ付きのクリック可能な結果テーブルを備えます。Active-Companies カードには、追跡対象のすべてのボードと API ヘルスが表示されます。 |
+| **Scan**         | **🌐 単一 Scan ボタン** — 有効なすべてのソースを 1 回のスイープで実行します(EN は Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday、RU は hh.ru + Habr Career + Trudvsem + GetMatch + GeekJob)。ライブ SSE ログストリーミングに加え、location / Remote-Hybrid バッジ / relocation フラグ / 給与 / source フィルタと、動的な stack / level / keyword チップ付きのクリック可能な結果テーブルを備えます。Active-Companies カードには、追跡対象のすべてのボードと API ヘルスが表示されます。 |
 | **Pipeline**     | `data/pipeline.md` への CRUD。サーバーサイドのプレビュープロキシ(SSRF セーフ、ホップごとのリダイレクト検証、8 KB のボディ上限)。URL から評価へ直接ジャンプできます。 |
 | **Evaluate**     | JD を貼り付け → **Anthropic 優先**(両キーがあれば優先)、次に Gemini、最後に手動プロンプトのフォールバックの順で評価します。Anthropic 経路では cv / profile / `_shared.md` / `oferta.md` を自動的にインライン化します(REVIEW-A1)。JD を `jds/` に保存するオプションあり。 |
 | **Deep research**| Evaluate と同じフォールバック連鎖。Anthropic がライブで稼働すると、約 10–30 KB のグラウンディングされた Markdown を返し、`interview-prep/<company>-<role>.md` に保存します。 |
@@ -199,7 +199,7 @@ russian_portals:
   queries: ["Senior PHP", "Senior Go", "Tech Lead"]
 ```
 
-すべてのソースは単一の SSE エンドポイント `/api/stream/scan?source=ats|regional|both` を経由します。**🌐 Scan** UI ボタンは `source=both` を呼び出すため、すべてのアダプタ(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday + hh.ru + Habr Career)が 1 本の接続で並行実行されます。クライアントの切断時には `AbortSignal` を尊重し、孤児となる fetch を残しません。
+すべてのソースは単一の SSE エンドポイント `/api/stream/scan?source=ats|regional|both` を経由します。**🌐 Scan** UI ボタンは `source=both` を呼び出すため、すべてのアダプタ(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday + hh.ru + Habr Career + Trudvsem + GetMatch + GeekJob)が 1 本の接続で並行実行されます。クライアントの切断時には `AbortSignal` を尊重し、孤児となる fetch を残しません。
 
 ---
 

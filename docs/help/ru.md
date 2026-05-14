@@ -702,7 +702,14 @@ $EDITOR portals.yml
 - Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday
   (ATS-проход) для каждой компании в `tracked_companies` с
   распознаваемым ATS-URL.
-- hh.ru API + Habr Career HTML для каждого query из `russian_portals`.
+- hh.ru API + Habr Career + Trudvsem + GetMatch + GeekJob для каждого query из `russian_portals`.
+
+**Две фазы — один клик (v1.29.2).** Единственная кнопка 🌐 Scan запускает И ATS-проход, И регионарный — в одном SSE-стриме. В логе появятся два заголовка фаз, по очереди:
+
+1. `▶ ATS scan (Greenhouse + Ashby + Lever)` — EN ATS-доски.
+2. `▶ Regional scan (hh.ru + Habr Career)` — 5 RU-источников из registry.
+
+Каждая фаза заканчивается итогом `✓ done · NEW=N`. Если видишь только ATS-фазу — твой стенд на сборке до v1.29.2; обнови. До v1.29.2 SSE-клиент закрывался на первом `done`, и регионарная фаза тихо терялась (`tests/scan-stream-multi-phase.test.mjs` — регрессионный гейт).
 
 Живой SSE-лог стримится в правую панель, пока скан идёт. Нажмите
 **Stop** (или просто уйдите со страницы), чтобы прервать — сервер
@@ -715,8 +722,7 @@ $EDITOR portals.yml
 Фильтры:
 
 - **Free text** — подстрочное совпадение по title / company.
-- **Source** dropdown — Greenhouse / Ashby / Lever / Workable /
-  SmartRecruiters / Workday / hh.ru / Habr.
+- **Source** dropdown — Ashby / GeekJob / Greenhouse / GetMatch / Habr Career / hh.ru / Lever / SmartRecruiters / Trudvsem / Workable / Workday.
 - **Remote / Hybrid / Onsite** dropdown.
 - **Stack chips** (PHP / Go / Backend / Senior / …) —
   авто-определяются по строке через `Skills.detectTech` и
