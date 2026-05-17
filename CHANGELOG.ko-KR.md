@@ -8,6 +8,12 @@
 
 ---
 
+## [1.39.0] — 2026-05-18
+
+**WS8.2 — LLM 공급자 선택 + OpenAI/Codex 키 + 대화형 `init` 마법사.** env-config에 `LLM_PROVIDER`(auto|claude|gemini)+`OPENAI_API_KEY`(시크릿). llm.mjs 6개 gate-site가 `_provGate()`로 `providerOrder()` 참조; auto는 동작 불변. #/config에 select+필드. `scripts/init.mjs`는 실제 마법사(검증된 경로로 parent .env 기록). 7 테스트. 622 → 629. README ×8/정식문서 fold = WS8.3/WS10. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.38.0] — 2026-05-17
 
 **WS8.1 — 통합 CLI 디스패처 + `doctor` 동사.** `bin/career-ops-ui.sh`가 setup/run/doctor/init/help 라우팅. `scripts/doctor.mjs`는 `/api/health` 엔진을 그대로 재사용(createApp 인프로세스 → 터미널 리포트); 필수 체크 전부 통과 시에만 exit 0. docs/sdd + help §1 ×8. 6 테스트. 616 → 622. README ×8 = WS8.3. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

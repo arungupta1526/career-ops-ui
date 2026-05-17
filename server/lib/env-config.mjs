@@ -14,15 +14,36 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
  * in the file when we have to bootstrap an empty .env.
  */
 export const KNOWN_KEYS = [
-  // ── LLM provider keys (preferred order: Anthropic > Gemini) ──
+  // ── LLM provider selection (v1.39.0, WS8.2) ──
+  'LLM_PROVIDER',          // auto | claude | gemini  (auto = Anthropic→Gemini)
+  // ── LLM provider keys (default preferred order: Anthropic > Gemini) ──
   'ANTHROPIC_API_KEY',
   'ANTHROPIC_MODEL',
   'GEMINI_API_KEY',
   'GEMINI_MODEL',
+  'OPENAI_API_KEY',        // Codex / OpenAI-CLI side (stored; live-eval is claude|gemini)
   // ── Server runtime ──
   'PORT',
   'HOST',
 ];
+
+/** Valid LLM_PROVIDER values. `auto` = current Anthropic→Gemini fallback. */
+export const LLM_PROVIDERS = ['auto', 'claude', 'gemini'];
+
+/**
+ * Effective provider preference order from LLM_PROVIDER:
+ *   auto (default/unset/unknown) → ['anthropic', 'gemini'] (legacy)
+ *   claude                       → ['anthropic']
+ *   gemini                       → ['gemini']
+ * A forced provider with no key falls through to the manual-prompt
+ * path exactly like the pre-v1.39 no-key behaviour.
+ */
+export function providerOrder(env = process.env) {
+  const v = String(env.LLM_PROVIDER || 'auto').trim().toLowerCase();
+  if (v === 'claude') return ['anthropic'];
+  if (v === 'gemini') return ['gemini'];
+  return ['anthropic', 'gemini'];
+}
 
 /**
  * Group classification for the SPA config view (F-013). v1.19.0 collapsed
@@ -34,16 +55,18 @@ export const KNOWN_KEYS = [
  * HH_USER_AGENT directly in `career-ops/.env`.
  */
 export const KEY_GROUPS = {
+  LLM_PROVIDER: 'core',
   ANTHROPIC_API_KEY: 'core',
   ANTHROPIC_MODEL: 'core',
   GEMINI_API_KEY: 'core',
   GEMINI_MODEL: 'core',
+  OPENAI_API_KEY: 'core',
   PORT: 'runtime',
   HOST: 'runtime',
 };
 
 /** Keys whose values are secret and must never be returned in plain text. */
-export const SECRET_KEYS = new Set(['ANTHROPIC_API_KEY', 'GEMINI_API_KEY']);
+export const SECRET_KEYS = new Set(['ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'OPENAI_API_KEY']);
 
 /**
  * Parse an .env file body into a plain object. Preserves the raw text

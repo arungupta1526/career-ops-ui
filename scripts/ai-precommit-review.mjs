@@ -76,14 +76,25 @@ export function secretHits(diffText) {
   return hits;
 }
 
-/** `.also(` leftover in staged view files (mirrors the CI gate). */
+/**
+ * `.also(` leftover in staged view files. MIRRORS
+ * `scripts/check-no-also-leftovers.mjs` EXACTLY: line-by-line, skip
+ * lines whose trimmed start is `//` or `*` (commented-out / JSDoc),
+ * then `/\.also\(/`. A bare whole-file regex false-positived on a
+ * historical comment in config.js (v1.39.0 incident) — the floor
+ * MUST equal the CI gate, never be stricter.
+ */
 export function alsoLeftovers(stagedFiles, readFile) {
   const out = [];
   for (const f of stagedFiles) {
     if (!/public\/js\/views\/.*\.js$/.test(f)) continue;
     let src = '';
     try { src = readFile(f); } catch { continue; }
-    if (/\.also\s*\(/.test(src)) out.push(f);
+    for (const line of src.split('\n')) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('//') || trimmed.startsWith('*')) continue;
+      if (/\.also\(/.test(line)) { out.push(f); break; }
+    }
   }
   return out;
 }

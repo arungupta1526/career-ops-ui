@@ -43,6 +43,14 @@ Router.register('config', async () => {
   ];
   const FIELDS = [
     {
+      // v1.39.0 (WS8.2) — explicit provider preference.
+      key: 'LLM_PROVIDER', secret: false, kind: 'select',
+      options: ['auto', 'claude', 'gemini'], defaultValue: 'auto',
+      labelKey: 'config.llmProvider', label: 'LLM_PROVIDER',
+      hintKey: 'config.llmProviderHint',
+      hintFallback: 'auto = Anthropic then Gemini (default). claude = force Anthropic. gemini = force Gemini. No key for the forced provider → manual-prompt fallback. (Codex/OpenAI is a CLI-side provider — its key is stored below for the parent multi-CLI flow.)',
+    },
+    {
       key: 'ANTHROPIC_API_KEY', secret: true,
       labelKey: 'config.anthropicKey', label: 'ANTHROPIC_API_KEY',
       hintKey: 'config.anthropicHint',
@@ -67,6 +75,15 @@ Router.register('config', async () => {
       labelKey: 'config.geminiModel', label: 'GEMINI_MODEL',
       hintKey: 'config.geminiModelHint',
       hintFallback: 'Default: gemini-2.0-flash (free-tier, fast). Pro tier: gemini-1.5-pro.',
+    },
+    {
+      // v1.39.0 (WS8.2) — Codex / OpenAI-CLI provider key. The parent
+      // career-ops multi-CLI flow (Codex / OpenCode) reads this; web-ui
+      // live-eval stays Anthropic|Gemini. Stored + masked like the others.
+      key: 'OPENAI_API_KEY', secret: true,
+      labelKey: 'config.openaiKey', label: 'OPENAI_API_KEY',
+      hintKey: 'config.openaiHint',
+      hintFallback: 'platform.openai.com → API keys. Used by the Codex / OpenCode CLI side of career-ops (parent multi-CLI flow). web-ui live-eval uses Anthropic or Gemini.',
     },
     // v1.19.0 — HH_USER_AGENT removed from the UI per user direction.
     // The server still honors the env var if a power user sets it via

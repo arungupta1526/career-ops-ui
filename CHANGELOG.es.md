@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.39.0] — 2026-05-18
+
+**WS8.2 — selector de proveedor LLM + clave OpenAI/Codex + asistente `init` interactivo.** `LLM_PROVIDER` (auto|claude|gemini) + `OPENAI_API_KEY` en env-config (secreto). `providerOrder()` consultado por los 6 gate-sites de llm.mjs vía `_provGate()`; sin cambio de comportamiento para auto. Select + campo en #/config. `scripts/init.mjs` ahora es un asistente real (escribe parent .env por la ruta validada). 7 tests. 622 → 629. README ×8 / fold canónico = WS8.3/WS10. Detalle en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.38.0] — 2026-05-17
 
 **WS8.1 — dispatcher CLI unificado + verbo `doctor`.** `bin/career-ops-ui.sh` despacha setup/run/doctor/init/help. `scripts/doctor.mjs` reutiliza el motor `/api/health` exacto (createApp in-process → reporte terminal); exit 0 sólo si todos los checks REQUERIDOS pasan. docs/sdd + help §1 ×8. 6 tests. 616 → 622. README quickstart ×8 = WS8.3 (paso final). Detalle en [`CHANGELOG.md`](CHANGELOG.md).

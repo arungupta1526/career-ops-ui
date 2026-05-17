@@ -103,6 +103,19 @@ Route reviewers (`web-ui-route-reviewer` agent) flag every miss.
 - CI gates (run via `npm run test:ci`): unit + acceptance + `scripts/check-no-also-leftovers.mjs` (no `.also(` patterns leaking into views) + `scripts/check-changelog-parity.mjs` (all 8 locales at the same version).
 - Current count as of v1.30.0: **567** unit + acceptance tests, **32** Playwright. Run `npm run test:coverage` for the V8 coverage report.
 
+## LLM provider selection (v1.39.0, WS8.2)
+
+`LLM_PROVIDER` ∈ `auto|claude|gemini` (env-config `KNOWN_KEYS`).
+`providerOrder(env)` in `server/lib/env-config.mjs` is the single
+contract: `auto`→`[anthropic,gemini]` (legacy), `claude`→`[anthropic]`,
+`gemini`→`[gemini]`. All 6 provider-gate sites in
+`server/lib/routes/llm.mjs` (evaluate/deep/mode × Anthropic/Gemini)
+consult it via the local `_provGate()` — never re-derive provider
+preference elsewhere. Provider keys = exactly what santifer/career-ops
+implements: `GEMINI_API_KEY` (parent gemini-eval), `ANTHROPIC_API_KEY`
+(web-ui SDK + Claude Code), `OPENAI_API_KEY` (Codex/OpenCode CLI side).
+Do NOT add speculative keys for providers the parent doesn't wire.
+
 ## CLI dispatcher (v1.38.0, WS8.1)
 
 `bin/career-ops-ui.sh` is the unified entrypoint (`package.json`

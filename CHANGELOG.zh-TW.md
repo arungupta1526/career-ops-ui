@@ -8,6 +8,12 @@
 
 ---
 
+## [1.39.0] — 2026-05-18
+
+**WS8.2 —— LLM 供應方選擇器 + OpenAI/Codex 金鑰 + 互動式 `init` 精靈。** env-config 新增 `LLM_PROVIDER`(auto|claude|gemini)+`OPENAI_API_KEY`(密鑰)。llm.mjs 全部 6 個 gate-site 經 `_provGate()` 用 `providerOrder()`;auto 行為不變。#/config 新增 select+欄位。`scripts/init.mjs` 現為真實精靈(經驗證路徑寫 parent .env)。7 測試。622 → 629。README ×8/規範文件 fold = WS8.3/WS10。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.38.0] — 2026-05-17
 
 **WS8.1 —— 統一 CLI 調度器 + `doctor` 動詞。** `bin/career-ops-ui.sh` 路由 setup/run/doctor/init/help。`scripts/doctor.mjs` 重用確切的 `/api/health` 引擎(createApp 程序內 → 終端報告);僅當所有必需檢查通過才 exit 0。docs/sdd + help §1 ×8。6 測試。616 → 622。README ×8 = WS8.3。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

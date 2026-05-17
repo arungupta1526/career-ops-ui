@@ -21,6 +21,7 @@ import { PATHS, path as projPath } from '../paths.mjs';
 import { slugify, today } from '../parsers.mjs';
 import { runNodeScript } from '../runner.mjs';
 import { runAnthropic, hasAnthropicKey, hasGeminiKey } from '../anthropic.mjs';
+import { providerOrder } from '../env-config.mjs';
 import { sanitizeJobDescription, sanitizePathName } from '../security.mjs';
 import { llmRateLimit } from '../rate-limit.mjs';
 import {
@@ -31,6 +32,15 @@ import {
   buildApplyChecklist,
   resolveLocale,
 } from '../prompts.mjs';
+
+// v1.39.0 (WS8.2) — honor LLM_PROVIDER. auto → both (legacy
+// Anthropic→Gemini); claude → Anthropic only; gemini → Gemini
+// only. A forced provider with no key falls through to the
+// manual-prompt path exactly like the pre-v1.39 no-key case.
+function _provGate() {
+  const o = providerOrder();
+  return { wantAnthropic: o.includes('anthropic'), wantGemini: o.includes('gemini') };
+}
 
 // Generic mode endpoints — kept narrow on purpose. Modes that have a
 // dedicated route (oferta → /api/evaluate, deep → /api/deep) and
@@ -86,7 +96,7 @@ export function registerLlmRoutes(app) {
     // present (better long-form structured output for oferta-style A-G
     // evaluations). REVIEW-A1 inlining: bundle cv + profile + _shared +
     // oferta so the model has the files the prompt references.
-    if (hasAnthropicKey()) {
+    if (_provGate().wantAnthropic && hasAnthropicKey()) {
       const ctx = bundleProjectContext({ modeSlugs: ['_shared', 'oferta'] });
       const fullPrompt = ctx + promptText;
       // BF-3 — bail fast when the assembled prompt would exceed the
@@ -103,7 +113,7 @@ export function registerLlmRoutes(app) {
       return res.json({ mode: 'anthropic', prompt: promptText, markdown: r.markdown, usage: r.usage, saved });
     }
 
-    if (hasGeminiKey()) {
+    if (_provGate().wantGemini && hasGeminiKey()) {
       // Use the existing gemini-eval.mjs pipe interface — it reads the
       // CV from disk itself (it's a Node script in the parent), so no
       // bundleProjectContext needed here.
@@ -173,7 +183,7 @@ export function registerLlmRoutes(app) {
     if (run) {
       let result = null;
       let mode = null;
-      if (hasAnthropicKey()) {
+      if (_provGate().wantAnthropic && hasAnthropicKey()) {
         mode = 'anthropic';
         // REVIEW-A1 — Anthropic has no filesystem; inline cv/profile/mode
         // content so "Read these files first" actually has files to read.
@@ -188,7 +198,7 @@ export function registerLlmRoutes(app) {
         const r = await runAnthropic(fullPrompt, { maxTokens: 8192 });
         if (r.error) return res.status(502).json({ mode, prompt, error: r.error });
         result = { markdown: r.markdown, code: 0 };
-      } else if (hasGeminiKey()) {
+      } else if (_provGate().wantGemini && hasGeminiKey()) {
         mode = 'gemini';
         const tmp = projPath('output', `web-deep-${Date.now()}.txt`);
         mkdirSync(PATHS.outputDir, { recursive: true });
@@ -267,7 +277,7 @@ export function registerLlmRoutes(app) {
       // structured output than Gemini for these modes); fall back to
       // Gemini if no Anthropic key. Either path produces the same
       // response shape so the UI doesn't care which engine ran.
-      if (hasAnthropicKey()) {
+      if (_provGate().wantAnthropic && hasAnthropicKey()) {
         // REVIEW-A1 — buildModePrompt already inlines modes/<slug>.md;
         // here we add cv.md + profile.yml + modes/_shared.md so Anthropic
         // has the same context that Claude Code would read locally.
@@ -283,7 +293,7 @@ export function registerLlmRoutes(app) {
         if (r.error) return res.status(502).json({ mode: 'anthropic', slug, prompt, error: r.error });
         return res.json({ mode: 'anthropic', slug, prompt, markdown: r.markdown, usage: r.usage });
       }
-      if (hasGeminiKey()) {
+      if (_provGate().wantGemini && hasGeminiKey()) {
         const tmp = projPath('output', `web-${slug}-${Date.now()}.txt`);
         mkdirSync(PATHS.outputDir, { recursive: true });
         writeFileSync(tmp, prompt);

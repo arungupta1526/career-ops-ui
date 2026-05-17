@@ -318,6 +318,8 @@ auto-starts. The dashboard ✨ button and this sidebar entry both land
 here (single coherent flow — the pre-1.34 transient modal was promoted
 to this page).
 > **CLI (v1.38.0).** One command does the chain: `career-ops-ui setup` (bootstrap → install → start). Standalone verbs: `career-ops-ui doctor` (env/keys/tooling check — same engine as the Health page; exit 1 on any required failure), `career-ops-ui run`, `career-ops-ui init` (provider+key wizard, v1.39.0).
+> **Providers (v1.39.0).** API-keys tab adds an `LLM_PROVIDER` select (`auto` = Anthropic→Gemini default · `claude` · `gemini`) and an `OPENAI_API_KEY` field (Codex/OpenCode CLI side). `career-ops-ui init` is an interactive wizard for the same.
+
 
 
 ---

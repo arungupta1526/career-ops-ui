@@ -44,6 +44,14 @@ test('alsoLeftovers flags staged view files containing .also(', () => {
     ['public/js/views/bad.js']);
 });
 
+test('alsoLeftovers: a COMMENT mentioning .also( is NOT flagged (mirrors CI gate)', () => {
+  const fs = {
+    'public/js/views/c.js': '  // v1.24.1 — was `.also((root) => …)` via Element.prototype.also,\nconst x = c(div);',
+    'public/js/views/star.js': '   * docs: do not use .also( anymore\nconst y = 1;',
+  };
+  assert.deepEqual(alsoLeftovers(Object.keys(fs), (f) => fs[f]), []);
+});
+
 test('deterministicFloor aggregates all blocker classes', () => {
   const r = deterministicFloor({
     stagedFiles: ['.env', 'public/js/views/v.js'],

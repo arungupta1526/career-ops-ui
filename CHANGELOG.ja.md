@@ -8,6 +8,12 @@
 
 ---
 
+## [1.39.0] — 2026-05-18
+
+**WS8.2 — LLM プロバイダ選択 + OpenAI/Codex キー + 対話型 `init` ウィザード。** env-config に `LLM_PROVIDER`(auto|claude|gemini)+`OPENAI_API_KEY`(秘匿)。llm.mjs の 6 ゲートが `_provGate()` 経由で `providerOrder()` を参照;auto は挙動不変。#/config に select+フィールド。`scripts/init.mjs` は実ウィザード(検証済みパスで parent .env 書込)。7 テスト。622 → 629。README ×8/正規ドキュメント fold = WS8.3/WS10。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.38.0] — 2026-05-17
 
 **WS8.1 — 統合 CLI ディスパッチャ + `doctor` 動詞。** `bin/career-ops-ui.sh` が setup/run/doctor/init/help をルーティング。`scripts/doctor.mjs` は `/api/health` エンジンをそのまま再利用(createApp インプロセス → ターミナルレポート);必須チェック全通過時のみ exit 0。docs/sdd + help §1 ×8。6 テスト。616 → 622。README ×8 = WS8.3。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.39.0] — 2026-05-18
+
+**WS8.2 — селектор LLM-провайдера + ключ OpenAI/Codex + интерактивный мастер `init`.** В env-config `LLM_PROVIDER` (auto|claude|gemini) + `OPENAI_API_KEY` (секрет). `providerOrder()` используется всеми 6 gate-site llm.mjs через `_provGate()`; для auto поведение неизменно. select + поле в #/config. `scripts/init.mjs` теперь реальный мастер (пишет parent .env через validated-path). 7 тестов. 622 → 629. README ×8 / fold канон-доков = WS8.3/WS10. Подробно — [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.38.0] — 2026-05-17
 
 **WS8.1 — единый CLI-диспетчер + verb `doctor`.** `bin/career-ops-ui.sh` маршрутизирует setup/run/doctor/init/help. `scripts/doctor.mjs` переиспользует точный движок `/api/health` (createApp in-process → терминальный отчёт); exit 0 только если все ОБЯЗАТЕЛЬНЫЕ проверки зелёные. docs/sdd + help §1 ×8. 6 тестов. 616 → 622. README quickstart ×8 = WS8.3 (финальный шаг). Подробно — [`CHANGELOG.md`](CHANGELOG.md).

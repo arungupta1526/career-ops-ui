@@ -303,6 +303,8 @@ Save 先は `interview-prep/<company>-<role>.md`。
 
 フィードバックは縦型 **ステッパー**(順序リスト、アクティブ手順に `aria-current`、スクリーンリーダー用ライブ領域)。完了時カードがレポート(**レポート表示 · N/5**)と **トラッカー** へディープリンク。失敗手順はマークされ、ボタン再有効化でリロードなし再試行。**API キーなし?** 手動モード:手順 3–5 が折りたたまれコピー用プロンプト。リンク可:`#/auto?url=<enc>&go=1` で自動開始。
 > **CLI (v1.38.0)。** 1 コマンドで全チェーン:`career-ops-ui setup`。動詞:`career-ops-ui doctor`(env/キー/ツール検査 — Health と同一エンジン;必須失敗で exit 1)、`career-ops-ui run`、`career-ops-ui init`(プロバイダ+キーウィザード、v1.39.0)。
+> **プロバイダ (v1.39.0)。** API-keys タブに `LLM_PROVIDER` セレクト(`auto`=Anthropic→Gemini · `claude` · `gemini`)と `OPENAI_API_KEY` フィールド(Codex/OpenCode CLI 側)を追加。`career-ops-ui init` が対話ウィザード。
+
 
 
 ---

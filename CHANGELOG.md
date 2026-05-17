@@ -6,6 +6,34 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.39.0] — 2026-05-18
+
+**WS8.2 — LLM provider selector + OpenAI/Codex key + interactive `init` wizard.**
+
+### ✨ Features
+
+- **`feat(config): LLM_PROVIDER selector + OPENAI_API_KEY`** — `server/lib/env-config.mjs` adds `LLM_PROVIDER` (auto|claude|gemini) + `OPENAI_API_KEY` to `KNOWN_KEYS`/`KEY_GROUPS`; `OPENAI_API_KEY` is secret-masked. New `providerOrder(env)` helper: `auto`→`[anthropic,gemini]` (legacy), `claude`→`[anthropic]`, `gemini`→`[gemini]`. All **6** provider-gate sites in `server/lib/routes/llm.mjs` (evaluate/deep/mode × Anthropic/Gemini) consult it via `_provGate()` — a forced provider with no key falls through to the manual-prompt path exactly like the pre-v1.39 no-key behaviour (zero behaviour change for `auto`/default). `#/config` API-keys tab gains an `LLM_PROVIDER` select + `OPENAI_API_KEY` input. Provider-key set matches what santifer/career-ops actually implements (Gemini = parent gemini-eval, Anthropic = web-ui SDK + Claude Code, OpenAI = Codex/OpenCode CLI side); Mistral/Qwen are model names with no parent env key — not invented.
+- **`feat(cli): interactive career-ops-ui init`** — `scripts/init.mjs` is now a real wizard (was a WS8.1 stub): pick provider 1-4, enter key(s), writes parent `.env` via the validated `env-config.updateEnvFile` path (explicit user action, same as POST /api/config). Flag-driven too: `--provider --anthropic-key --gemini-key --openai-key --yes`.
+
+### 📝 Documentation
+
+- help-bundle §2 × 8 + `docs/sdd/CONVENTIONS.md` — provider selector + the 3 parent-implemented provider keys. (Full README ×8 + canonical-docs fold = WS8.3/WS10, the user-mandated final steps.)
+
+### 🧪 Tests
+
+- **`test: tests/provider-selector.test.mjs`** — 7 cases: `providerOrder` (auto/unknown/whitespace → legacy, claude/gemini forced), env-config surface (KNOWN/SECRET/LLM_PROVIDERS), `init` `parseArgs`+`buildUpdates` (clamp, non-empty-only), and a static canary that all 6 llm.mjs gate-sites use `_provGate()`. 622 → 629.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 629 / 629 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.39.0
+$ career-ops-ui init --provider gemini --gemini-key … --yes   # writes parent .env
+$ career-ops-ui doctor                                          # verifies
+```
+
+---
+
 ## [1.38.0] — 2026-05-17
 
 **WS8.1 — unified CLI dispatcher + `doctor` verb.**
