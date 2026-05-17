@@ -121,3 +121,6 @@ Icon?
 
 # Claude Code scheduled-task state
 .claude/scheduled_tasks.lock
+
+# playwright-cli scratch (UI verification)
+.playwright-cli

@@ -51,6 +51,25 @@ function ask(rl, q) {
   return new Promise((r) => rl.question(q, (a) => r(a.trim())));
 }
 
+/**
+ * Like `ask`, but the typed value is NOT echoed to the terminal — so
+ * an API key never lands in shell scrollback / screen-share / tmux
+ * history. (Acts on the v1.39.0 AI-review nit.) Falls back to plain
+ * `ask` when stdin is not a TTY (piped / CI).
+ */
+function askSecret(rl, q) {
+  if (!process.stdin.isTTY) return ask(rl, q);
+  return new Promise((r) => {
+    const onData = (ch) => {
+      const s = ch.toString('utf8');
+      if (s === '\n' || s === '\r' || s === '') process.stdin.removeListener('data', onData);
+      else process.stdout.write('\x1b[2K\x1b[200D' + q + '*'.repeat(rl.line.length));
+    };
+    process.stdin.on('data', onData);
+    rl.question(q, (a) => { process.stdin.removeListener('data', onData); process.stdout.write('\n'); r(a.trim()); });
+  });
+}
+
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   const { PATHS } = await import('../server/lib/paths.mjs');
@@ -67,12 +86,12 @@ async function main() {
       const pick = await ask(rl, 'Provider [1-4, default 4]: ');
       const map = { 1: 'claude', 2: 'gemini', 3: 'auto', 4: 'auto' };
       opts.provider = map[pick] || 'auto';
-      if (pick === '1') opts.anthropic = await ask(rl, 'ANTHROPIC_API_KEY: ');
-      else if (pick === '2') opts.gemini = await ask(rl, 'GEMINI_API_KEY: ');
-      else if (pick === '3') opts.openai = await ask(rl, 'OPENAI_API_KEY (Codex): ');
+      if (pick === '1') opts.anthropic = await askSecret(rl, 'ANTHROPIC_API_KEY: ');
+      else if (pick === '2') opts.gemini = await askSecret(rl, 'GEMINI_API_KEY: ');
+      else if (pick === '3') opts.openai = await askSecret(rl, 'OPENAI_API_KEY (Codex): ');
       else {
-        opts.anthropic = await ask(rl, 'ANTHROPIC_API_KEY (blank to skip): ');
-        opts.gemini = await ask(rl, 'GEMINI_API_KEY (blank to skip): ');
+        opts.anthropic = await askSecret(rl, 'ANTHROPIC_API_KEY (blank to skip): ');
+        opts.gemini = await askSecret(rl, 'GEMINI_API_KEY (blank to skip): ');
       }
     } finally { rl.close(); }
   }
