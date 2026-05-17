@@ -8,6 +8,12 @@
 
 ---
 
+## [1.37.0] — 2026-05-17
+
+**WS7 — git ワークフローの pre-commit AI レビュー。** 決定論フロア(fail-HARD):staged `.env`/シークレット、diff 内キーパターン、staged ビューの `.also(`、`node --check` 失敗をブロック。AI レイヤ(fail-SOFT):CLI があり `AI_REVIEW != off` なら `claude -p`。`.githooks/pre-commit` + `prepare` で `core.hooksPath` を配線。`--no-verify` 禁止。docs/sdd。6 テスト。610 → 616。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.36.0] — 2026-05-17
 
 **WS6.3 — Modes タブ:生の塊 → セクション別エディタ。WS6 完了。** `modes/_profile.md` を `##` セクション単位で編集(見出しごとに折りたたみ textarea)。サーバ `splitProfileSections` はバイト厳密;`PUT { sections }` は指定セクションのみマージ — プリアンブル・他セクション・順序をバイト単位で保持。未知見出し → 400。raw 経路は不変。i18n 5 キー ×8。help §2 ×8。新規テスト 6。604 → 610。WS6 完了。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

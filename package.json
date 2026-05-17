@@ -1,6 +1,6 @@
 {
   "name": "@fighter90/career-ops-ui",
-  "version": "1.36.0",
+  "version": "1.37.0",
   "description": "Clean, docs-style web interface for the career-ops AI job-search pipeline — search, evaluate, deep-dive, apply, track every offer from a single browser tab.",
   "type": "module",
   "license": "MIT",
@@ -56,7 +56,8 @@
     "test:e2e:browser": "node --test tests/playwright-smoke.mjs tests/playwright-full-cycle.mjs",
     "test:ci": "npm test && node scripts/check-no-also-leftovers.mjs && node scripts/check-changelog-parity.mjs",
     "import:trending": "node scripts/import-trending-companies.mjs",
-    "capture:dashboards": "node scripts/capture-dashboard-screenshots.mjs"
+    "capture:dashboards": "node scripts/capture-dashboard-screenshots.mjs",
+    "prepare": "node scripts/install-hooks.mjs"
   },
   "dependencies": {
     "express": "^4.21.0",

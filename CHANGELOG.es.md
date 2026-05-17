@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.37.0] — 2026-05-17
+
+**WS7 — revisión AI pre-commit en el workflow git.** Floor determinista (fail-HARD): bloquea `.env`/secretos staged, patrones de clave en el diff, `.also(` en vistas staged, fallo `node --check`. Capa AI (fail-SOFT): `claude -p` sobre el diff si el CLI está disponible y `AI_REVIEW != off`. `.githooks/pre-commit` + `prepare` cablea `core.hooksPath`. Nunca `--no-verify`. docs/sdd. 6 tests. 610 → 616. Detalle en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.36.0] — 2026-05-17
 
 **WS6.3 — pestaña Modes: blob crudo → editor por secciones. WS6 completo.** `modes/_profile.md` se edita por sección `##` (un textarea plegable por encabezado). Server `splitProfileSections` byte-exacto; `PUT { sections }` fusiona solo las secciones nombradas — preámbulo + secciones ajenas + orden se conservan byte a byte. Encabezado desconocido → 400. Ruta raw `{ markdown }` intacta. i18n 5 claves ×8. help §2 ×8. 6 tests nuevos. 604 → 610. WS6 cerrado (API-keys/Profile-escalares/Profile-arrays/Modes-secciones todo estructurado). Detalle en [`CHANGELOG.md`](CHANGELOG.md).

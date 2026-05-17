@@ -103,6 +103,23 @@ Route reviewers (`web-ui-route-reviewer` agent) flag every miss.
 - CI gates (run via `npm run test:ci`): unit + acceptance + `scripts/check-no-also-leftovers.mjs` (no `.also(` patterns leaking into views) + `scripts/check-changelog-parity.mjs` (all 8 locales at the same version).
 - Current count as of v1.30.0: **567** unit + acceptance tests, **32** Playwright. Run `npm run test:coverage` for the V8 coverage report.
 
+## Pre-commit AI review (v1.37.0, WS7)
+
+`git commit` runs `.githooks/pre-commit` → `scripts/ai-precommit-review.mjs`.
+`npm install` wires `core.hooksPath=.githooks` via the `prepare` script.
+
+- **Deterministic floor — fail-HARD, always:** no `.env`/secret-bearing
+  file staged; no high-confidence secret pattern in the staged diff
+  (`.env.example` placeholders are exempt); no `.also(` leftover in
+  staged `public/js/views/*` (mirrors the CI gate); every staged
+  `.mjs`/`.js` passes `node --check`.
+- **AI layer — advisory, fail-SOFT:** runs `claude -p` over the staged
+  diff when the CLI is on PATH and `AI_REVIEW !== 'off'`. Missing CLI /
+  offline / timeout → prints a notice, never blocks.
+- `AI_REVIEW=off git commit …` skips ONLY the AI layer; the floor
+  always runs. Never `--no-verify` (CLAUDE.md hard rule #7) — fix the
+  cause. CI still runs the full `npm run test:ci` gate regardless.
+
 ## Commits
 
 Conventional commits with types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`. Optional scope: `feat(scan):`, `fix(api):`. Breaking: `feat!:`. Examples:

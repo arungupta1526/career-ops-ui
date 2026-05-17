@@ -8,6 +8,12 @@
 
 ---
 
+## [1.37.0] — 2026-05-17
+
+**WS7 — git 워크플로 pre-commit AI 리뷰.** 결정적 플로어(fail-HARD): staged `.env`/시크릿, diff 내 키 패턴, staged 뷰의 `.also(`, `node --check` 실패 차단. AI 레이어(fail-SOFT): CLI 존재 + `AI_REVIEW != off`면 `claude -p`. `.githooks/pre-commit` + `prepare`로 `core.hooksPath` 연결. `--no-verify` 금지. docs/sdd. 6 테스트. 610 → 616. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.36.0] — 2026-05-17
 
 **WS6.3 — Modes 탭: 원본 덩어리 → 섹션별 편집기. WS6 완료.** `modes/_profile.md`를 `##` 섹션별 편집(헤딩마다 접이식 textarea). 서버 `splitProfileSections` 바이트 정확; `PUT { sections }`는 지정 섹션만 병합 — 프리앰블·타 섹션·순서 바이트 단위 보존. 미지 헤딩 → 400. raw 경로 유지. i18n 5키 ×8. help §2 ×8. 신규 테스트 6. 604 → 610. WS6 종료. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

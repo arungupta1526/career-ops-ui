@@ -8,6 +8,12 @@
 
 ---
 
+## [1.37.0] — 2026-05-17
+
+**WS7 — pre-commit AI-ревью в git-workflow.** Детерминированный floor (fail-HARD): блокирует staged `.env`/секреты, паттерны ключей в diff, `.also(` в staged-вьюхах, провал `node --check`. AI-слой (fail-SOFT): `claude -p` по diff, если CLI есть и `AI_REVIEW != off`. `.githooks/pre-commit` + `prepare` прописывает `core.hooksPath`. Никогда `--no-verify`. docs/sdd. 6 тестов. 610 → 616. Подробно — [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.36.0] — 2026-05-17
 
 **WS6.3 — вкладка Modes: сырой блоб → посекционный редактор. WS6 завершён.** `modes/_profile.md` правится по `##`-секциям (свой сворачиваемый textarea на заголовок). Серверный `splitProfileSections` байт-точен; `PUT { sections }` мёржит только названные секции — преамбула + чужие секции + порядок сохраняются байт-в-байт. Неизвестный заголовок → 400. Raw-путь без изменений. i18n 5 ключей ×8. help §2 ×8. +6 тестов. 604 → 610. WS6 закрыт (API-keys/Profile-скаляры/Profile-массивы/Modes-секции — всё структурировано). Подробно — [`CHANGELOG.md`](CHANGELOG.md).

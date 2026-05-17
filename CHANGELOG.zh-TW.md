@@ -8,6 +8,12 @@
 
 ---
 
+## [1.37.0] — 2026-05-17
+
+**WS7 —— git 工作流 pre-commit AI 審查。** 確定性底線(fail-HARD):攔截 staged `.env`/金鑰、diff 中金鑰模式、staged 視圖中的 `.also(`、`node --check` 失敗。AI 層(fail-SOFT):CLI 可用且 `AI_REVIEW != off` 時跑 `claude -p`。`.githooks/pre-commit` + `prepare` 接 `core.hooksPath`。禁用 `--no-verify`。docs/sdd。6 測試。610 → 616。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.36.0] — 2026-05-17
 
 **WS6.3 —— Modes 分頁:原始區塊 → 分區編輯器。WS6 完成。** `modes/_profile.md` 按 `##` 區塊編輯(每標題一個可折疊 textarea)。伺服端 `splitProfileSections` 位元組精確;`PUT { sections }` 僅合併指定區塊 —— 前言+其他區塊+順序按位元組保留。未知標題 → 400。raw 路徑不變。i18n 5 鍵 ×8。help §2 ×8。新增 6 測試。604 → 610。WS6 收尾。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

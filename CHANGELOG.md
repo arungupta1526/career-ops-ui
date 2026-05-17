@@ -6,6 +6,37 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.37.0] — 2026-05-17
+
+**WS7 — pre-commit AI review in the git workflow.**
+
+Per user request: an AI review before every commit. Two layers — a fast deterministic floor that fails-HARD, and an advisory AI pass that fails-SOFT.
+
+### ✨ Features
+
+- **`feat(workflow): pre-commit AI review`**
+  - [`scripts/ai-precommit-review.mjs`](scripts/ai-precommit-review.mjs) — **deterministic floor (fail-HARD):** rejects a commit that stages a `.env`/secret-bearing file, contains a high-confidence secret pattern in the added diff lines (`.env.example` placeholders exempt), leaves `.also(` in a staged view (mirrors the CI gate), or stages a `.mjs`/`.js` that fails `node --check`. **AI layer (fail-SOFT):** runs `claude -p` over the staged diff when the CLI is on PATH and `AI_REVIEW !== 'off'`; missing CLI / offline / timeout → notice, never blocks.
+  - [`.githooks/pre-commit`](.githooks/pre-commit) + [`scripts/install-hooks.mjs`](scripts/install-hooks.mjs) — `npm install` wires `core.hooksPath=.githooks` via the new `prepare` script. Idempotent; no-op outside a git checkout.
+  - `AI_REVIEW=off git commit …` skips only the AI layer. Never `--no-verify` (CLAUDE.md hard rule #7); CI runs the full gate regardless.
+
+### 📝 Documentation
+
+- `docs/sdd/CONVENTIONS.md` — new "Pre-commit AI review" section (floor vs AI layer, env switch, never-bypass rule).
+
+### 🧪 Tests
+
+- **`test(workflow): tests/ai-precommit-review.test.mjs`** — 6 cases over the exported pure floor functions: blocked-path detection (`.env.example` exempt), secret-pattern hits (added-lines only, placeholders ignored), `.also(` view leftover, aggregate floor, clean-diff pass. 610 → 616.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 616 / 616 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.37.0
+# This very commit was gated by the new hook (live dogfood).
+```
+
+---
+
 ## [1.36.0] — 2026-05-17
 
 **WS6.3 — #/config Modes tab: raw blob → per-section editor. WS6 complete.**
