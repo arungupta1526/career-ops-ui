@@ -53,6 +53,7 @@ O [career-ops](https://github.com/santifer/career-ops) é um sistema poderoso de
 
 O `career-ops-ui` coloca uma UI bem feita por cima:
 
+- **Auto-pipeline** — cole uma URL em `#/auto`, um clique: validar → buscar → avaliar → salvar relatório → adicionar ao tracker, com stepper acessível ao vivo e deep-links dos artefatos.
 - **Navegue** pelo tracker, relatórios e pipeline como em um CRM.
 - **Dispare** scans (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **e** hh.ru / Habr Career / Trudvsem / GetMatch / GeekJob) e acompanhe logs SSE ao vivo.
 - **Avalie** uma JD em tempo real via Anthropic (preferida) ou Gemini; ou receba um prompt pronto para colar no Claude Code, caso nenhuma chave de API esteja configurada.

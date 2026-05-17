@@ -53,6 +53,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 
 `career-ops-ui` добавляет сверху аккуратный UI:
 
+- **Auto-pipeline** — вставьте один URL на `#/auto`, один клик: валидация → загрузка → оценка → сохранение отчёта → добавление в трекер, с живым доступным stepper и deep-link на артефакты.
 - **Просмотр** трекера, отчётов и pipeline в формате CRM.
 - **Запуск** сканов (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **и** hh.ru / Habr Career / Trudvsem / GetMatch / GeekJob) с трансляцией логов через SSE в режиме реального времени.
 - **Оценка** JD в реальном времени через Anthropic (предпочтительно) или Gemini; при отсутствии API-ключей выдаётся готовый промпт для копирования в Claude Code.

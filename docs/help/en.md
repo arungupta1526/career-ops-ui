@@ -283,6 +283,41 @@ acceptance number is right there.
 
 That's it. 21 steps, button-by-button, from zero to offer.
 
+### One-click Auto-pipeline (`#/auto`) — the 21-step shortcut
+
+If you just want to score one specific posting fast, skip the manual
+walkthrough. **Sidebar → ✨ Auto-pipeline** (or the ✨ button on the
+Dashboard) opens a dedicated screen: paste the job URL, press **Enter**
+or click **▶ Run full pipeline**, and the server runs the whole chain
+in one observable pass:
+
+1. **Validating URL** — SSRF-safe check (`isValidJobUrl`); rejects
+   loopback / `file:` / private IPs / script chars.
+2. **Fetching job description** — `safeGet` (DNS-pinned, redirect-
+   revalidated) pulls + sanitizes the JD.
+3. **Evaluating against your CV** — Anthropic (preferred) → Gemini
+   fallback → manual-prompt if no key.
+4. **Saving report** — writes `reports/<slug>.md` with score +
+   legitimacy in the header.
+5. **Adding to tracker** — appends a row to `data/applications.md`.
+
+Live feedback is a vertical **stepper** (each step lights up
+running → done / failed). It is an ordered list with `aria-current`
+on the active step and a polite screen-reader live-region announcing
+every transition. On success the result card deep-links straight to
+the saved report (**View report · N/5**) and the **tracker**. A failed
+step is marked red with its message and the button re-enables so you
+can fix the URL and retry without reloading.
+
+**No API key?** The pipeline runs in **manual mode**: steps 3–5
+collapse and you get a ready-to-paste prompt card (copy into Claude
+Code / Anthropic / Gemini). No live LLM call, no spend.
+
+`#/auto` is linkable: `#/auto?url=<encoded>&go=1` opens the screen and
+auto-starts. The dashboard ✨ button and this sidebar entry both land
+here (single coherent flow — the pre-1.34 transient modal was promoted
+to this page).
+
 ---
 
 ## 2. App settings & API keys (`#/config`)

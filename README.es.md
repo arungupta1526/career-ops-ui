@@ -53,6 +53,7 @@ Esto clona ambos repositorios (career-ops + career-ops-ui), instala las dependen
 
 `career-ops-ui` añade encima una UI pulida:
 
+- **Auto-pipeline** — pega una URL en `#/auto`, un clic: validar → obtener → evaluar → guardar informe → añadir al tracker, con stepper accesible en vivo y enlaces directos a los artefactos.
 - **Explora** el tracker, los reportes y la pipeline como si fuera un CRM.
 - **Lanza** escaneos (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **y** hh.ru / Habr Career / Trudvsem / GetMatch / GeekJob) y observa los logs SSE en vivo.
 - **Evalúa** una oferta en vivo vía Anthropic (preferido) o Gemini, o consigue un prompt copy-paste para Claude Code si no hay API key configurada.

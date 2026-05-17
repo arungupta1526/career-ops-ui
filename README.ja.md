@@ -53,6 +53,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 
 `career-ops-ui` はその上に洗練された UI を被せます。
 
+- **Auto-pipeline** — `#/auto` に URL を 1 つ貼ってワンクリック:検証 → 取得 → 評価 → レポート保存 → トラッカー追加。ライブのアクセシブルなステッパーと成果物ディープリンク付き。
 - **閲覧:** トラッカー、レポート、パイプラインを CRM のように一覧できます。
 - **トリガー:** Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **および** hh.ru / Habr Career のスキャンを起動し、ライブ SSE ログを観察できます。
 - **評価:** Anthropic(優先)または Gemini で JD をライブ評価。API キーが未設定なら、Claude Code 用にコピペできるプロンプトを返します。

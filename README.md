@@ -53,6 +53,7 @@ This clones both repos (career-ops + career-ops-ui), installs deps, and starts t
 
 `career-ops-ui` puts a polished UI on top:
 
+- **Auto-pipeline** — paste one job URL on `#/auto`, click once: validate → fetch → evaluate → save report → add to tracker, with a live a11y stepper and artifact deep-links.
 - **Browse** the tracker, reports, and pipeline like a CRM.
 - **Trigger** scans (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **and** hh.ru / Habr Career / Trudvsem / GetMatch / GeekJob) and watch live SSE logs.
 - **Evaluate** a JD live via Anthropic (preferred) or Gemini, or get a copy-paste prompt for Claude Code if no API key is set.

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.34.0] — 2026-05-17
+
+**WS5 — ワンクリック Auto-pipeline 画面(`#/auto`)。** モーダルを専用・リンク可能ページへ昇格。ワンクリックで検証→取得→評価→レポート保存→トラッカー(SSE)。アクセシブルなステッパー、ディープリンク、キーなし手動モード、`#/auto?url=…&go=1` リンク可。サイドバー項目;ダッシュボード ✨ ボタンはここへ。i18n 14 キー ×8。help §1 ×8 + README ×8。新規テスト 8。589 → 597。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.33.0] — 2026-05-17
 
 **WS4 — career-ops 1.8.0 パリティ監査 + `location_filter`。** 親 `scan.mjs` に `location_filter`(#570)追加;web-ui の in-process スキャナは委譲しないため流れず。新 `server/lib/location-filter.mjs` がセマンティクスを忠実に複製、両スキャナに配線。help §5 ×8。新規テスト 8。581 → 589。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

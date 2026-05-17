@@ -282,6 +282,18 @@ Evaluate → Reports → Deep research → Apply checklist → Outreach
 
 이상입니다. 21단계, 버튼별, 0에서 오퍼까지.
 
+### 원클릭 Auto-pipeline (`#/auto`) — 21단계 단축
+
+특정 공고만 빠르게 평가하려면 수동 절차를 건너뛰세요. **사이드바 → ✨ Auto-pipeline**(또는 대시보드 ✨ 버튼): URL 붙여넣고 **Enter** 또는 **▶ 전체 파이프라인 실행** — 서버가 전체 체인을 한 번에 관찰 가능하게 실행:
+
+1. **URL 검증** — SSRF 안전 검사(`isValidJobUrl`).
+2. **JD 가져오기** — `safeGet`(DNS 고정)로 다운로드 + 정제.
+3. **CV 대조 평가** — Anthropic → Gemini → 키 없으면 수동 프롬프트.
+4. **리포트 저장** — `reports/<slug>.md` 작성(점수 + 신뢰도).
+5. **트래커 추가** — `data/applications.md`에 행 추가.
+
+피드백은 세로 **스테퍼**(순서 목록, 활성 단계에 `aria-current`, 스크린리더 라이브 영역). 완료 시 카드가 리포트(**리포트 보기 · N/5**)와 **트래커**로 딥링크. 실패 단계는 표시되고 버튼이 재활성화되어 새로고침 없이 재시도. **API 키 없음?** 수동 모드: 3–5단계 접힘 + 복사용 프롬프트. 링크 가능: `#/auto?url=<enc>&go=1` 자동 시작.
+
 ---
 
 ## 2. App settings & API 키 (`#/config`)

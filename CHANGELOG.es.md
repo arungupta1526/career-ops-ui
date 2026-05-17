@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.34.0] — 2026-05-17
+
+**WS5 — pantalla Auto-pipeline de un clic (`#/auto`).** El modal de auto-pipeline pasó a una página dedicada y enlazable. Un clic ejecuta validar→obtener→evaluar→guardar informe→tracker vía SSE. Stepper accesible (lista ordenada, `aria-current`, live-region), deep-links a informe/tracker, modo manual sin key, enlazable `#/auto?url=…&go=1`. Entrada en sidebar; botón ✨ del dashboard ahora va aquí. i18n 14 claves ×8. help §1 ×8 + README ×8. 8 tests nuevos. 589 → 597. Detalle en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.33.0] — 2026-05-17
 
 **WS4 — auditoría de paridad con career-ops 1.8.0 + `location_filter`.** El `scan.mjs` del proyecto padre ganó `location_filter` (#570); los scanners in-process de web-ui no delegan en él, así que no fluía. Nuevo `server/lib/location-filter.mjs` replica la semántica verbatim; integrado en ambos scanners. Doc help §5 ×8. 8 tests nuevos. 581 → 589. Resto del delta padre clasificado en PARENT-PARITY.md (FLOW/CLI-ONLY/N/A). Detalle en [`CHANGELOG.md`](CHANGELOG.md).

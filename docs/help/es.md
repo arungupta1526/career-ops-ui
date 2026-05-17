@@ -295,6 +295,18 @@ tu número mínimo de aceptación está justo ahí.
 
 Eso es todo. 21 pasos, botón-por-botón, de cero a oferta.
 
+### Auto-pipeline de un clic (`#/auto`) — el atajo de 21 pasos
+
+Si solo quieres puntuar rápido una vacante concreta, salta el recorrido manual. **Barra lateral → ✨ Auto-pipeline** (o el botón ✨ del Dashboard): pega la URL, pulsa **Enter** o **▶ Ejecutar pipeline completo**, y el servidor corre toda la cadena en una pasada observable:
+
+1. **Validar URL** — comprobación SSRF-segura (`isValidJobUrl`).
+2. **Obtener la descripción** — `safeGet` (DNS fijado) descarga + sanea la JD.
+3. **Evaluar contra tu CV** — Anthropic → Gemini → prompt manual si no hay key.
+4. **Guardar informe** — escribe `reports/<slug>.md` con score + legitimidad.
+5. **Añadir al tracker** — añade una fila a `data/applications.md`.
+
+El feedback es un **stepper** vertical (lista ordenada, `aria-current` en el paso activo, región viva para lectores de pantalla). Al terminar, la tarjeta enlaza al informe (**Ver informe · N/5**) y al **tracker**. Un paso fallido se marca y el botón se rehabilita para reintentar sin recargar. **¿Sin API key?** Modo manual: pasos 3–5 colapsan y obtienes un prompt para copiar. Enlazable: `#/auto?url=<enc>&go=1` autoarranca.
+
 ---
 
 ## 2. App settings & API keys (`#/config`)

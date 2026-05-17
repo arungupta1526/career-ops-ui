@@ -6,6 +6,43 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.34.0] — 2026-05-17
+
+**WS5 — one-click Auto-pipeline screen (`#/auto`).**
+
+The v1.15 dashboard auto-pipeline was a transient modal. Promoted to a dedicated, linkable page with senior-UX scaffolding.
+
+### ✨ Features
+
+- **`feat(auto): dedicated #/auto screen`** ([`public/js/views/auto.js`](public/js/views/auto.js)) — paste one job URL, one click runs the full chain (validate → fetch → evaluate → save report → append tracker) via the existing `POST /api/auto-pipeline` SSE contract. Senior-UX:
+  - Single primary CTA; **Enter** in the URL field also runs it.
+  - Live vertical **stepper** as an ordered list with `aria-current="step"` on the running row + a polite `role="status"` live-region announcing every transition (comprehensible without sight).
+  - On success the result card **deep-links** to the saved report (`#/reports/:slug · N/5`) and the **tracker** — next action one click away.
+  - Failed step marked red with message; CTA re-enables for fix-and-retry without reload.
+  - **No API key → manual mode**: steps collapse to a copy-the-prompt card (no spend).
+  - Linkable: `#/auto?url=<encoded>&go=1` opens + auto-starts.
+  - Sidebar entry (✨ Auto-pipeline, after Pipeline); dashboard ✨ button now routes here (single coherent flow; the `window.AutoPipeline` modal helper stays for backward-compat).
+  - i18n: 14 new keys × 8 locales.
+
+### 📝 Documentation
+
+- help-bundle §1 × 8 locales — new "One-click Auto-pipeline (`#/auto`) — the 21-step shortcut" subsection (full step list + a11y + manual-mode + deep-link behaviour). H2 count unchanged (17) — added as a `###` subsection, no parity-gate churn.
+- README × 8 — Auto-pipeline headline feature bullet.
+
+### 🧪 Tests
+
+- **`test(auto): tests/auto-screen.test.mjs`** — 8 cases: route registration, POST+SSE-drain transport, a11y scaffolding (aria-live + aria-current), manual-mode card, success deep-links, index.html script+nav wiring, dashboard→#/auto routing, 14 i18n keys × 8 locales parity.
+- **589 → 597** unit + acceptance (+8).
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 597 / 597 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.34.0
+```
+
+---
+
 ## [1.33.0] — 2026-05-17
 
 **WS4 — full parent career-ops 1.8.0 feature-parity audit + `location_filter`.**

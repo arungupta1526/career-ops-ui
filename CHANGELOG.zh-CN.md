@@ -8,6 +8,12 @@
 
 ---
 
+## [1.34.0] — 2026-05-17
+
+**WS5 —— 一键 Auto-pipeline 页面(`#/auto`)。** 模态升级为独立可链接页面。一键运行 校验→抓取→评估→保存报告→跟踪器(SSE)。无障碍 stepper、深链、无 key 手动模式、可链接 `#/auto?url=…&go=1`。侧栏入口;dashboard ✨ 按钮改到此处。i18n 14 键 ×8。help §1 ×8 + README ×8。新增 8 测试。589 → 597。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.33.0] — 2026-05-17
 
 **WS4 —— career-ops 1.8.0 对等审计 + `location_filter`。** 父 `scan.mjs` 新增 `location_filter`(#570);web-ui 的进程内 scanner 不委托给它,故未流通。新增 `server/lib/location-filter.mjs` 逐字复制语义,接入两个 scanner。help §5 ×8。新增 8 测试。581 → 589。详见 [`CHANGELOG.md`](CHANGELOG.md)。

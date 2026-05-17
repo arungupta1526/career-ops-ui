@@ -53,6 +53,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 
 `career-ops-ui`는 그 위에 다듬어진 UI 한 겹을 더합니다.
 
+- **Auto-pipeline** — `#/auto`에 URL 하나 붙여넣고 한 번 클릭: 검증 → 가져오기 → 평가 → 리포트 저장 → 트래커 추가, 실시간 접근성 스테퍼와 산출물 딥링크 제공.
 - **탐색** — 트래커, 보고서, 파이프라인을 CRM처럼 살펴봅니다.
 - **트리거** — 스캔(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **및** hh.ru / Habr Career / Trudvsem / GetMatch / GeekJob)을 실행하고 실시간 SSE 로그를 확인합니다.
 - **평가** — Anthropic(우선) 또는 Gemini로 JD를 라이브 평가하거나, API 키가 없을 경우 Claude Code용 복붙 프롬프트를 받습니다.

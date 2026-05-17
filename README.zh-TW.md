@@ -53,6 +53,7 @@ curl -fsSL https://raw.githubusercontent.com/Fighter90/career-ops-ui/main/bin/se
 
 `career-ops-ui` 在其上加上一層精緻 UI:
 
+- **Auto-pipeline** —— 在 `#/auto` 貼上一個 URL,一鍵:驗證 → 擷取 → 評估 → 儲存報告 → 加入追蹤器,帶即時無障礙 stepper 與產物深連。
 - **瀏覽** 追蹤器、報告與流水線,如同 CRM 一般。
 - **觸發** 掃描(Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday **以及** hh.ru / Habr Career / Trudvsem / GetMatch / GeekJob),並即時觀看 SSE 日誌。
 - **評估** JD,優先透過 Anthropic(較佳)或 Gemini;若未設定 API 金鑰,則回傳給 Claude Code 使用的複製貼上 prompt。

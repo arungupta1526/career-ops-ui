@@ -8,6 +8,12 @@
 
 ---
 
+## [1.34.0] — 2026-05-17
+
+**WS5 — 원클릭 Auto-pipeline 화면(`#/auto`).** 모달이 전용·링크 가능 페이지로 승격. 한 번 클릭으로 검증→가져오기→평가→리포트 저장→트래커(SSE). 접근성 스테퍼, 딥링크, 키 없으면 수동 모드, `#/auto?url=…&go=1` 링크 가능. 사이드바 항목; 대시보드 ✨ 버튼이 여기로. i18n 14키 ×8. help §1 ×8 + README ×8. 신규 테스트 8. 589 → 597. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.33.0] — 2026-05-17
 
 **WS4 — career-ops 1.8.0 패리티 감사 + `location_filter`.** 부모 `scan.mjs`에 `location_filter`(#570) 추가; web-ui의 in-process 스캐너는 위임하지 않아 흐르지 않음. 새 `server/lib/location-filter.mjs`가 시맨틱을 그대로 복제, 두 스캐너에 연결. help §5 ×8. 신규 테스트 8개. 581 → 589. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

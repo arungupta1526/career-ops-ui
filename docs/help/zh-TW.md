@@ -257,6 +257,18 @@ JD。輔助器會生成逐步的投遞檢查清單:
 
 就這樣。21 個按鈕對按鈕的步驟,從零到 offer。
 
+### 一鍵 Auto-pipeline(`#/auto`)—— 21 步捷徑
+
+只想快速為某個職缺評分?跳過手動流程。**側欄 → ✨ Auto-pipeline**(或 Dashboard 的 ✨ 按鈕):貼上 URL,按 **Enter** 或 **▶ 執行完整流程** —— 伺服端一趟可觀察地跑完整條鏈:
+
+1. **驗證 URL** —— SSRF 安全檢查(`isValidJobUrl`)。
+2. **擷取 JD** —— `safeGet`(DNS 固定)下載 + 清洗。
+3. **對照 CV 評估** —— Anthropic → Gemini → 無 key 則手動 prompt。
+4. **儲存報告** —— 寫入 `reports/<slug>.md`(分數 + 可信度)。
+5. **加入追蹤器** —— 向 `data/applications.md` 追加一列。
+
+回饋是縱向 **stepper**(有序清單,作用中步驟帶 `aria-current`,螢幕閱讀器即時區域)。完成後卡片深連到報告(**檢視報告 · N/5**)與 **追蹤器**。失敗步驟標紅,按鈕重新啟用,免重新整理即可重試。**無 API key?** 手動模式:3–5 步收合,給出可複製 prompt。可連結:`#/auto?url=<enc>&go=1` 自動開始。
+
 ---
 
 ## 2. App settings 與 API 金鑰(`#/config`)
