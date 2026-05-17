@@ -8,6 +8,12 @@
 
 ---
 
+## [1.40.0] — 2026-05-18
+
+**WS8.3 —— docs 實態化掃描 + `career-ops-ui help` 修正 + `askSecret` 強化。** 修正:`fix(cli): career-ops-ui help no longer leaks shell source` —— 調度器以 `sed -n '2,12p'` 印出其標頭註解,但第 12 行(`set -euo pipefail`)是程式碼而非註解,因此 `career-ops-ui help`(以及未知動詞的用法文字)以一行多餘的 `set -euo pipefail` 結尾;在 `help` 與 `*)` 兩種情形下收窄為 `2,11p`(註解區塊);`help` 以 exit 0 結束,未知動詞以 exit 2 結束 —— 已驗證。`fix(cli): scripts/init.mjs key entry never echoes` —— v1.39.0 的後續將裝飾性的 readline 覆寫遮罩替換為真實的 raw 模式讀取器:`setRawMode(true)` + 帶緩衝的行,使輸入/貼上的金鑰位元組根本不會到達終端機(無 scrollback / tmux / 螢幕分享外洩);完整的 VT 跳脫 FSM 消化每個 CSI/SS3/OSC/DCS/SOS/PM/APC 序列,使方向鍵與功能鍵無法破壞密鑰;`stdin` 透過相依注入,因此非 TTY 退路在不碰觸全域的情況下做單元測試;反覆迭代至 AI 審查乾淨 LGTM。文件:README ×8 —— 舊的「一條命令安裝」章節替換為醒目的 **「一條命令啟動並初始化」** 章節(curl 單行加上顯式的 `career-ops-ui` CLI 鏈:clone → `npm link` → `setup` → `init` → `doctor` → `run` → `help`,供應方精靈說明,CI 形式 `--provider --anthropic-key --yes`,以及 `LLM_PROVIDER` 註記);8 個 README 徽章從陳舊的 v1.22–v1.24 / tests-461–474 實態化為 **v1.40.0 / tests-631**(e2e 徽章改為非數字以避免杜撰計數);help-bundle ×8 §1 —— 在快速上手手冊頂部(「A. Setup」之前)向全部 8 個語言新增「一條命令啟動 & init」標註;H2 章節配平保持(各 17 —— CI 閘門綠)。測試:`test(init): non-TTY askSecret fallback` —— `provider-selector.test.mjs` 新增一個 DI-stdin 案例,斷言 `askSecret` 在非 TTY 下委派給普通 `ask()`(trim 配平)且不更動共享全域;629 → 631。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.39.0] — 2026-05-18
 
 **WS8.2 —— LLM 供應方選擇器 + OpenAI/Codex 金鑰 + 互動式 `init` 精靈。** env-config 新增 `LLM_PROVIDER`(auto|claude|gemini)+`OPENAI_API_KEY`(密鑰)。llm.mjs 全部 6 個 gate-site 經 `_provGate()` 用 `providerOrder()`;auto 行為不變。#/config 新增 select+欄位。`scripts/init.mjs` 現為真實精靈(經驗證路徑寫 parent .env)。7 測試。622 → 629。README ×8/規範文件 fold = WS8.3/WS10。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

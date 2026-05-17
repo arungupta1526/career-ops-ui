@@ -118,6 +118,24 @@ career-ops-ui 的 `#/dashboard` 与 `#/tracker` 会高亮每一条 ≥ 4.0 的
 这是按钮级的权威操作手册。首次使用请按顺序执行。每一步都明确指出
 路由名、按钮名以及成功时你将看到什么。2–16 节会深入展开各阶段细节。
 
+> **一条命令完成启动与初始化。** 在终端中,你无需打开界面即可
+> 完成整个引导流程:
+>
+> ```bash
+> career-ops-ui setup      # 安装依赖 → doctor → 启动服务器
+> career-ops-ui init       # 选择 LLM 提供方 + 粘贴其密钥(不回显)
+> career-ops-ui doctor     # 随时重新校验(退出码 0 ⇔ 所有必需项均为绿色)
+> career-ops-ui run        # 仅在 http://127.0.0.1:4317 启动服务器
+> ```
+>
+> `setup` 会自行执行整条链路。`init` 通过 `#/config` API 密钥
+> 选项卡所用的同一条已验证路径,将密钥写入父级
+> `career-ops/.env`,并设置 `LLM_PROVIDER`
+> (`auto` | `claude` | `gemini`),实时的 evaluate / deep / mode /
+> 自动流水线路由都会遵循它。CI 形式:
+> `career-ops-ui init --provider claude --anthropic-key sk-ant-… --yes`。
+> 更喜欢用界面?继续下面的步骤即可。
+
 ### A. 一次性安装(只需做一次,约 5 分钟)
 
 **第 1 步 — 在 `http://127.0.0.1:4317` 打开应用。** 如果尚未启动,

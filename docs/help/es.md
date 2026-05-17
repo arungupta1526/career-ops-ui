@@ -133,6 +133,25 @@ Este es el playbook canónico botón-por-botón. Síguelo en orden la
 primera vez. Cada paso nombra la ruta exacta, el botón exacto, y qué
 verás al éxito. Las secciones 2–16 entran en profundidad en cada fase.
 
+> **Lanzamiento e inicialización con un solo comando.** Desde una
+> terminal puedes hacer todo el arranque sin tocar la interfaz:
+>
+> ```bash
+> career-ops-ui setup      # instala dependencias → doctor → arranca el servidor
+> career-ops-ui init       # elige el proveedor LLM + pega su clave (eco suprimido)
+> career-ops-ui doctor     # vuelve a verificar cuando quieras (salida 0 ⇔ todo lo requerido en verde)
+> career-ops-ui run        # solo arranca el servidor en http://127.0.0.1:4317
+> ```
+>
+> `setup` ejecuta toda la cadena por sí mismo. `init` escribe la clave
+> en el `career-ops/.env` del proyecto padre a través de la misma ruta
+> validada que usa la pestaña de claves API de `#/config`, y define
+> `LLM_PROVIDER` (`auto` | `claude` | `gemini`), que respetan las rutas
+> en vivo de evaluación / profundo / modo / pipeline automático. Forma
+> para CI:
+> `career-ops-ui init --provider claude --anthropic-key sk-ant-… --yes`.
+> ¿Prefieres la interfaz? Continúa con los pasos de abajo.
+
 ### A. Configuración (haz esto una vez, ~5 minutos)
 
 **Paso 1 — Abre la app en `http://127.0.0.1:4317`.** Si no está

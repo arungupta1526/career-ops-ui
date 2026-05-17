@@ -130,6 +130,24 @@ batch 처리, apply 흐름, Playwright 설정)는
 하십시오. 각 단계는 정확한 경로, 정확한 버튼, 성공 시 보이는
 화면을 명시합니다. 아래 2–16절은 각 단계를 더 깊이 다룹니다.
 
+> **한 번의 명령으로 실행 및 초기화.** 터미널에서 UI를 건드리지
+> 않고 전체 부트스트랩을 수행할 수 있습니다:
+>
+> ```bash
+> career-ops-ui setup      # 의존성 설치 → doctor → 서버 실행
+> career-ops-ui init       # LLM 공급자 선택 + 해당 키 붙여넣기 (에코 숨김)
+> career-ops-ui doctor     # 언제든 재검증 (종료 코드 0 ⇔ 필수 항목 모두 녹색)
+> career-ops-ui run        # http://127.0.0.1:4317 에서 서버만 실행
+> ```
+>
+> `setup`은 전체 체인을 스스로 실행합니다. `init`은 `#/config`의
+> API 키 탭이 사용하는 것과 동일한 검증된 경로를 통해 상위
+> `career-ops/.env`에 키를 기록하고, 라이브 evaluate / deep / mode /
+> 자동 파이프라인 경로가 따르는 `LLM_PROVIDER`
+> (`auto` | `claude` | `gemini`)를 설정합니다. CI 형식:
+> `career-ops-ui init --provider claude --anthropic-key sk-ant-… --yes`.
+> UI가 더 편하신가요? 아래 단계를 계속 진행하세요.
+
 ### A. 설정 (한 번만 수행, 약 5분)
 
 **1단계 — `http://127.0.0.1:4317`에서 앱을 엽니다.** 실행 중이

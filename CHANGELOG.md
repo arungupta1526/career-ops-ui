@@ -6,6 +6,35 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.40.0] — 2026-05-18
+
+**WS8.3 — docs-actualization sweep + `career-ops-ui help` fix + `askSecret` hardening.**
+
+### 🐛 Fixes
+
+- **`fix(cli): career-ops-ui help no longer leaks shell source`** — the dispatcher printed its header comment with `sed -n '2,12p'`, but line 12 (`set -euo pipefail`) is code, not a comment, so `career-ops-ui help` (and the unknown-verb usage text) ended with a stray `set -euo pipefail` line. Narrowed to `2,11p` (the comment block) in both the `help` and `*)` cases. `help` exits 0, unknown verb exits 2 — verified.
+- **`fix(cli): scripts/init.mjs key entry never echoes`** — the v1.39.0 follow-up replaced the cosmetic readline-overwrite mask with a real raw-mode reader: `setRawMode(true)` + a buffered line so typed/pasted key bytes never reach the terminal at all (no scrollback / tmux / screen-share leak). A full VT escape FSM consumes every CSI/SS3/OSC/DCS/SOS/PM/APC sequence so arrow & function keys can't corrupt the secret; `stdin` is dependency-injected so the non-TTY fallback is unit-tested without poking the global. Iterated to a clean AI-review LGTM.
+
+### 📝 Documentation
+
+- **README ×8** — the old "one-command install" section is replaced by a prominent **"Launch & initialize in one command"** section: the curl one-liner plus the explicit `career-ops-ui` CLI chain (clone → `npm link` → `setup` → `init` → `doctor` → `run` → `help`), the provider-wizard explanation, the CI `--provider --anthropic-key --yes` form, and the `LLM_PROVIDER` note. All 8 README badges actualized from the stale v1.22–v1.24 / tests-461–474 to **v1.40.0 / tests-631** (e2e badge made non-numeric to avoid an invented count).
+- **help-bundle ×8 §1** — a "One-command launch & init" blockquote callout added at the top of the Quick-start playbook (before "A. Setup") in all 8 locales. H2-section parity preserved (17 each — CI gate green).
+
+### 🧪 Tests
+
+- **`test(init): non-TTY askSecret fallback`** — `provider-selector.test.mjs` gains a DI-stdin case asserting `askSecret` delegates to plain `ask()` (trim-parity) off a TTY without mutating the shared global. 629 → 631.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 631 / 631 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.40.0
+$ career-ops-ui help     # clean, exit 0 (no `set -euo pipefail` leak)
+$ career-ops-ui doctor   # all required green, exit 0
+```
+
+---
+
 ## [1.39.0] — 2026-05-18
 
 **WS8.2 — LLM provider selector + OpenAI/Codex key + interactive `init` wizard.**

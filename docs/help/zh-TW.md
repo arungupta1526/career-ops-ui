@@ -118,6 +118,24 @@ career-ops-ui 的 `#/dashboard` 與 `#/tracker` 會把分數達 4.0 以上
 指出確切的路由、確切的按鈕,以及成功時你會看到的畫面。第 2–16
 節會深入說明每個階段。
 
+> **一條指令完成啟動與初始化。** 在終端機中,你無需開啟介面即可
+> 完成整個引導流程:
+>
+> ```bash
+> career-ops-ui setup      # 安裝相依套件 → doctor → 啟動伺服器
+> career-ops-ui init       # 選擇 LLM 供應商 + 貼上其金鑰(不回顯)
+> career-ops-ui doctor     # 隨時重新驗證(結束碼 0 ⇔ 所有必要項目皆為綠色)
+> career-ops-ui run        # 僅在 http://127.0.0.1:4317 啟動伺服器
+> ```
+>
+> `setup` 會自行執行整條鏈路。`init` 透過 `#/config` API 金鑰
+> 分頁所用的同一條已驗證路徑,將金鑰寫入父層
+> `career-ops/.env`,並設定 `LLM_PROVIDER`
+> (`auto` | `claude` | `gemini`),即時的 evaluate / deep / mode /
+> 自動流水線路由都會遵循它。CI 形式:
+> `career-ops-ui init --provider claude --anthropic-key sk-ant-… --yes`。
+> 比較喜歡用介面?繼續下面的步驟即可。
+
 ### A. 環境設定(只做一次,約 5 分鐘)
 
 **第 1 步 — 在 `http://127.0.0.1:4317` 開啟應用程式。** 若伺服器

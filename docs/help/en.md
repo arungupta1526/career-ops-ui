@@ -131,6 +131,24 @@ the first time. Every step names the exact route, the exact button,
 and what you'll see on success. Sections 2–16 below dive deeper into
 each phase.
 
+> **One-command launch & init.** From a terminal you can do the whole
+> bootstrap without touching the UI:
+>
+> ```bash
+> career-ops-ui setup      # install deps → doctor → run the server
+> career-ops-ui init       # pick LLM provider + paste its key (echo suppressed)
+> career-ops-ui doctor     # re-verify any time (exit 0 ⇔ all required green)
+> career-ops-ui run        # just launch the server at http://127.0.0.1:4317
+> ```
+>
+> `setup` runs the entire chain itself. `init` writes the key to the
+> parent `career-ops/.env` through the same validated path the
+> `#/config` API-keys tab uses, and sets `LLM_PROVIDER`
+> (`auto` | `claude` | `gemini`) which the live evaluate / deep / mode /
+> auto-pipeline routes honour. CI form:
+> `career-ops-ui init --provider claude --anthropic-key sk-ant-… --yes`.
+> Prefer the UI? Continue with the steps below.
+
 ### A. Setup (do these once, ~5 minutes)
 
 **Step 1 — Open the app at `http://127.0.0.1:4317`.** If it isn't

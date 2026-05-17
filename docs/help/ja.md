@@ -131,6 +131,25 @@ career-ops-ui の `#/dashboard` と `#/tracker` は 4.0 以上の行を
 各ステップは正確なルート、正確なボタン、成功時に表示される内容を
 明示しています。第 2 章以降は各フェーズをより詳しく説明します。
 
+> **ワンコマンドで起動と初期化。** ターミナルから、UI に触れずに
+> ブートストラップ一式を実行できます:
+>
+> ```bash
+> career-ops-ui setup      # 依存関係のインストール → doctor → サーバー起動
+> career-ops-ui init       # LLM プロバイダーを選択し、そのキーを貼り付け (エコーは抑制)
+> career-ops-ui doctor     # いつでも再検証 (終了コード 0 ⇔ 必須項目がすべて緑)
+> career-ops-ui run        # http://127.0.0.1:4317 でサーバーを起動するだけ
+> ```
+>
+> `setup` はチェーン全体を自分で実行します。`init` は `#/config` の
+> API キータブが使うのと同じ検証済みパスを通じて、親の
+> `career-ops/.env` にキーを書き込み、`LLM_PROVIDER`
+> (`auto` | `claude` | `gemini`) を設定します。これはライブの
+> evaluate / deep / mode / 自動パイプラインのルートが従います。CI
+> 形式:
+> `career-ops-ui init --provider claude --anthropic-key sk-ant-… --yes`。
+> UI のほうがよいですか? 以下の手順を続けてください。
+
 ### A. セットアップ (一度のみ、約 5 分)
 
 **ステップ 1 — `http://127.0.0.1:4317` でアプリを開きます。**

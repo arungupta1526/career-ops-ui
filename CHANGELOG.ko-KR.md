@@ -8,6 +8,12 @@
 
 ---
 
+## [1.40.0] — 2026-05-18
+
+**WS8.3 — docs 실태화 스윕 + `career-ops-ui help` 수정 + `askSecret` 강화.** 수정: `fix(cli): career-ops-ui help no longer leaks shell source` — 디스패처가 헤더 주석을 `sed -n '2,12p'`로 출력했으나 12행(`set -euo pipefail`)은 주석이 아니라 코드여서 `career-ops-ui help`(및 알 수 없는 동사 사용법 텍스트)가 떠도는 `set -euo pipefail` 줄로 끝났음; `help`와 `*)` 두 케이스를 `2,11p`(주석 블록)로 좁힘; `help`는 exit 0, 알 수 없는 동사는 exit 2 — 검증 완료. `fix(cli): scripts/init.mjs key entry never echoes` — v1.39.0 후속 작업에서 장식용 readline 덮어쓰기 마스크를 실제 raw 모드 리더로 교체: `setRawMode(true)` + 버퍼 라인으로 입력/붙여넣기된 키 바이트가 터미널에 전혀 도달하지 않음(scrollback / tmux / 화면 공유 누출 없음); 완전한 VT 이스케이프 FSM이 모든 CSI/SS3/OSC/DCS/SOS/PM/APC 시퀀스를 소비해 화살표·기능 키가 시크릿을 손상시키지 못함; `stdin`은 의존성 주입되어 비-TTY 폴백을 공유 전역을 건드리지 않고 단위 테스트; AI 리뷰 LGTM까지 깔끔하게 반복. 문서: README ×8 — 기존 "원커맨드 설치" 섹션을 눈에 띄는 **"한 명령으로 실행 및 초기화"** 섹션으로 교체(curl 원라이너에 더해 명시적 `career-ops-ui` CLI 체인: clone → `npm link` → `setup` → `init` → `doctor` → `run` → `help`, 공급자 마법사 설명, CI 형식 `--provider --anthropic-key --yes`, `LLM_PROVIDER` 노트); 8개 README 배지를 v1.22–v1.24 / tests-461–474에서 **v1.40.0 / tests-631**로 실태화(e2e 배지는 날조 카운트 회피를 위해 비숫자화); help-bundle ×8 §1 — 퀵스타트 플레이북 상단("A. Setup" 앞)에 "한 명령 실행 & init" 콜아웃을 8개 로케일 모두에 추가; H2 섹션 패리티 유지(각 17 — CI 게이트 녹색). 테스트: `test(init): non-TTY askSecret fallback` — `provider-selector.test.mjs`에 DI-stdin 케이스를 추가해 `askSecret`가 비-TTY에서 공유 전역을 변경하지 않고 평범한 `ask()`에 위임(trim 패리티)함을 검증; 629 → 631. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.39.0] — 2026-05-18
 
 **WS8.2 — LLM 공급자 선택 + OpenAI/Codex 키 + 대화형 `init` 마법사.** env-config에 `LLM_PROVIDER`(auto|claude|gemini)+`OPENAI_API_KEY`(시크릿). llm.mjs 6개 gate-site가 `_provGate()`로 `providerOrder()` 참조; auto는 동작 불변. #/config에 select+필드. `scripts/init.mjs`는 실제 마법사(검증된 경로로 parent .env 기록). 7 테스트. 622 → 629. README ×8/정식문서 fold = WS8.3/WS10. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

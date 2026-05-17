@@ -8,6 +8,12 @@
 
 ---
 
+## [1.40.0] — 2026-05-18
+
+**WS8.3 — docs 実態化スイープ + `career-ops-ui help` 修正 + `askSecret` 強化。** 修正: `fix(cli): career-ops-ui help no longer leaks shell source` — ディスパッチャはヘッダコメントを `sed -n '2,12p'` で出力していたが、12 行目(`set -euo pipefail`)はコメントではなくコードのため、`career-ops-ui help`(および未知動詞の使用法テキスト)が余分な `set -euo pipefail` 行で終わっていた;`help` と `*)` の両ケースを `2,11p`(コメントブロック)に絞り込み;`help` は exit 0、未知動詞は exit 2 — 検証済み。`fix(cli): scripts/init.mjs key entry never echoes` — v1.39.0 のフォローアップで装飾的な readline 上書きマスクを実際の raw モードリーダに置換: `setRawMode(true)` + バッファ行により、入力/貼り付けされたキーのバイトが端末に一切届かない(scrollback / tmux / 画面共有への漏洩なし);完全な VT エスケープ FSM が CSI/SS3/OSC/DCS/SOS/PM/APC の全シーケンスを消費し、矢印・ファンクションキーが秘密を破損しない;`stdin` は依存性注入されるため、非 TTY フォールバックはグローバルを触らず単体テスト;AI レビュー LGTM までクリーンに反復。ドキュメント: README ×8 — 旧「ワンコマンドインストール」セクションを目立つ **「ワンコマンドで起動と初期化」** セクションに置換(curl ワンライナーに加え明示的な `career-ops-ui` CLI チェーン: clone → `npm link` → `setup` → `init` → `doctor` → `run` → `help`、プロバイダウィザード説明、CI 形式 `--provider --anthropic-key --yes`、`LLM_PROVIDER` ノート);8 つの README バッジを v1.22–v1.24 / tests-461–474 から **v1.40.0 / tests-631** に実態化(e2e バッジは捏造カウント回避のため非数値化);help-bundle ×8 §1 — クイックスタート手引きの先頭(「A. Setup」の前)に「ワンコマンド起動 & init」コールアウトを 8 ロケール全てに追加;H2 セクションのパリティ維持(各 17 — CI ゲート緑)。テスト: `test(init): non-TTY askSecret fallback` — `provider-selector.test.mjs` に DI-stdin ケースを追加し、`askSecret` が非 TTY で共有グローバルを変更せず素の `ask()` に委譲(trim パリティ)することを検証;629 → 631。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.39.0] — 2026-05-18
 
 **WS8.2 — LLM プロバイダ選択 + OpenAI/Codex キー + 対話型 `init` ウィザード。** env-config に `LLM_PROVIDER`(auto|claude|gemini)+`OPENAI_API_KEY`(秘匿)。llm.mjs の 6 ゲートが `_provGate()` 経由で `providerOrder()` を参照;auto は挙動不変。#/config に select+フィールド。`scripts/init.mjs` は実ウィザード(検証済みパスで parent .env 書込)。7 テスト。622 → 629。README ×8/正規ドキュメント fold = WS8.3/WS10。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
