@@ -308,6 +308,8 @@ Para pontuar rápido uma vaga específica, pule o passo a passo. **Barra lateral
 5. **Adicionar ao tracker** — adiciona uma linha em `data/applications.md`.
 
 Feedback é um **stepper** vertical (lista ordenada, `aria-current` no passo ativo, live-region para leitores de tela). No fim, o cartão linka ao relatório (**Ver relatório · N/5**) e ao **tracker**. Passo falho é marcado e o botão reabilita para retry sem reload. **Sem API key?** Modo manual: passos 3–5 colapsam e você recebe um prompt para copiar. Linkável: `#/auto?url=<enc>&go=1` auto-inicia.
+> **CLI (v1.38.0).** Um comando faz a cadeia: `career-ops-ui setup`. Verbos: `career-ops-ui doctor` (checagem env/chaves/tooling — mesmo motor do Health; exit 1 se falhar algo obrigatório), `career-ops-ui run`, `career-ops-ui init` (assistente provedor+chave, v1.39.0).
+
 
 ---
 

@@ -268,6 +268,8 @@ JD。輔助器會生成逐步的投遞檢查清單:
 5. **加入追蹤器** —— 向 `data/applications.md` 追加一列。
 
 回饋是縱向 **stepper**(有序清單,作用中步驟帶 `aria-current`,螢幕閱讀器即時區域)。完成後卡片深連到報告(**檢視報告 · N/5**)與 **追蹤器**。失敗步驟標紅,按鈕重新啟用,免重新整理即可重試。**無 API key?** 手動模式:3–5 步收合,給出可複製 prompt。可連結:`#/auto?url=<enc>&go=1` 自動開始。
+> **CLI(v1.38.0)。** 一條命令完成整鏈:`career-ops-ui setup`。動詞:`career-ops-ui doctor`(env/金鑰/工具檢查 —— 與 Health 同引擎;必需項失敗 exit 1)、`career-ops-ui run`、`career-ops-ui init`(供應商+金鑰精靈,v1.39.0)。
+
 
 ---
 

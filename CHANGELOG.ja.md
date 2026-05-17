@@ -8,6 +8,12 @@
 
 ---
 
+## [1.38.0] — 2026-05-17
+
+**WS8.1 — 統合 CLI ディスパッチャ + `doctor` 動詞。** `bin/career-ops-ui.sh` が setup/run/doctor/init/help をルーティング。`scripts/doctor.mjs` は `/api/health` エンジンをそのまま再利用(createApp インプロセス → ターミナルレポート);必須チェック全通過時のみ exit 0。docs/sdd + help §1 ×8。6 テスト。616 → 622。README ×8 = WS8.3。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.37.0] — 2026-05-17
 
 **WS7 — git ワークフローの pre-commit AI レビュー。** 決定論フロア(fail-HARD):staged `.env`/シークレット、diff 内キーパターン、staged ビューの `.also(`、`node --check` 失敗をブロック。AI レイヤ(fail-SOFT):CLI があり `AI_REVIEW != off` なら `claude -p`。`.githooks/pre-commit` + `prepare` で `core.hooksPath` を配線。`--no-verify` 禁止。docs/sdd。6 テスト。610 → 616。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

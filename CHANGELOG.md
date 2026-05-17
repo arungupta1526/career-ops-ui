@@ -6,6 +6,35 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.38.0] — 2026-05-17
+
+**WS8.1 — unified CLI dispatcher + `doctor` verb.**
+
+AutoResearchClaw-style one-command workflow. `bin/career-ops-ui.sh` dispatches `setup` / `run` / `doctor` / `init` / `help`; `package.json` `bin.career-ops-ui` points at it.
+
+### ✨ Features
+
+- **`feat(cli): bin/career-ops-ui.sh dispatcher`** — `setup` → `bin/setup.sh` (existing one-command bootstrap), `run` → `bin/start.sh`, `doctor` → `scripts/doctor.mjs`, `init` → `scripts/init.mjs` (WS8.1 stub; interactive provider wizard = WS8.2), `help`. Backward-compat `career-ops-ui-start` bin alias kept.
+- **`feat(cli): scripts/doctor.mjs`** — standalone health check that **reuses the exact `/api/health` engine** (spins `createApp()` in-process on an ephemeral port → renders the JSON to a colorized terminal report). Single source of truth — doctor can never drift from the Health page. **Exit 0 iff every REQUIRED check is green**, exit 1 otherwise, so `setup` / CI can gate on it. No new deps; read-only.
+
+### 📝 Documentation
+
+- `docs/sdd/CONVENTIONS.md` — "CLI dispatcher" section. help-bundle §1 × 8 — CLI quickstart note. (Full README ×8 quickstart block lands in WS8.3, the user-requested final verification step.)
+
+### 🧪 Tests
+
+- **`test(cli): tests/cli-doctor.test.mjs`** — 6 cases: `formatReport` pure logic (all-pass / required-fail / optional-only-fail / empty-tolerant), dispatcher verb-routing canary, `package.json` bin wiring. 616 → 622.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 622 / 622 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.38.0
+$ node scripts/doctor.mjs   # ✓ all required checks pass · exit 0
+```
+
+---
+
 ## [1.37.0] — 2026-05-17
 
 **WS7 — pre-commit AI review in the git workflow.**

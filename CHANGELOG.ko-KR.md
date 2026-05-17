@@ -8,6 +8,12 @@
 
 ---
 
+## [1.38.0] — 2026-05-17
+
+**WS8.1 — 통합 CLI 디스패처 + `doctor` 동사.** `bin/career-ops-ui.sh`가 setup/run/doctor/init/help 라우팅. `scripts/doctor.mjs`는 `/api/health` 엔진을 그대로 재사용(createApp 인프로세스 → 터미널 리포트); 필수 체크 전부 통과 시에만 exit 0. docs/sdd + help §1 ×8. 6 테스트. 616 → 622. README ×8 = WS8.3. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.37.0] — 2026-05-17
 
 **WS7 — git 워크플로 pre-commit AI 리뷰.** 결정적 플로어(fail-HARD): staged `.env`/시크릿, diff 내 키 패턴, staged 뷰의 `.also(`, `node --check` 실패 차단. AI 레이어(fail-SOFT): CLI 존재 + `AI_REVIEW != off`면 `claude -p`. `.githooks/pre-commit` + `prepare`로 `core.hooksPath` 연결. `--no-verify` 금지. docs/sdd. 6 테스트. 610 → 616. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

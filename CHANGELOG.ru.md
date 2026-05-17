@@ -8,6 +8,12 @@
 
 ---
 
+## [1.38.0] — 2026-05-17
+
+**WS8.1 — единый CLI-диспетчер + verb `doctor`.** `bin/career-ops-ui.sh` маршрутизирует setup/run/doctor/init/help. `scripts/doctor.mjs` переиспользует точный движок `/api/health` (createApp in-process → терминальный отчёт); exit 0 только если все ОБЯЗАТЕЛЬНЫЕ проверки зелёные. docs/sdd + help §1 ×8. 6 тестов. 616 → 622. README quickstart ×8 = WS8.3 (финальный шаг). Подробно — [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.37.0] — 2026-05-17
 
 **WS7 — pre-commit AI-ревью в git-workflow.** Детерминированный floor (fail-HARD): блокирует staged `.env`/секреты, паттерны ключей в diff, `.also(` в staged-вьюхах, провал `node --check`. AI-слой (fail-SOFT): `claude -p` по diff, если CLI есть и `AI_REVIEW != off`. `.githooks/pre-commit` + `prepare` прописывает `core.hooksPath`. Никогда `--no-verify`. docs/sdd. 6 тестов. 610 → 616. Подробно — [`CHANGELOG.md`](CHANGELOG.md).

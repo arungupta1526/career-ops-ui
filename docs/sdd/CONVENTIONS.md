@@ -103,6 +103,20 @@ Route reviewers (`web-ui-route-reviewer` agent) flag every miss.
 - CI gates (run via `npm run test:ci`): unit + acceptance + `scripts/check-no-also-leftovers.mjs` (no `.also(` patterns leaking into views) + `scripts/check-changelog-parity.mjs` (all 8 locales at the same version).
 - Current count as of v1.30.0: **567** unit + acceptance tests, **32** Playwright. Run `npm run test:coverage` for the V8 coverage report.
 
+## CLI dispatcher (v1.38.0, WS8.1)
+
+`bin/career-ops-ui.sh` is the unified entrypoint (`package.json`
+`bin.career-ops-ui`). Verbs: `setup` (→ `bin/setup.sh`), `run`
+(→ `bin/start.sh`), `doctor` (→ `scripts/doctor.mjs`), `init`
+(→ `scripts/init.mjs`), `help`.
+
+- `doctor` spins `createApp()` in-process on an ephemeral port and
+  renders `/api/health` to the terminal — **single source of truth**;
+  it never reimplements checks. Exit 0 iff every REQUIRED check is
+  green (so `setup`/CI can gate on it).
+- New verbs go in the `case` in `bin/career-ops-ui.sh` + a thin
+  `scripts/<verb>.mjs`. Keep verbs standalone-usable AND chainable.
+
 ## Pre-commit AI review (v1.37.0, WS7)
 
 `git commit` runs `.githooks/pre-commit` → `scripts/ai-precommit-review.mjs`.

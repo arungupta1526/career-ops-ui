@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.38.0] — 2026-05-17
+
+**WS8.1 — dispatcher CLI unificado + verbo `doctor`.** `bin/career-ops-ui.sh` despacha setup/run/doctor/init/help. `scripts/doctor.mjs` reutiliza el motor `/api/health` exacto (createApp in-process → reporte terminal); exit 0 sólo si todos los checks REQUERIDOS pasan. docs/sdd + help §1 ×8. 6 tests. 616 → 622. README quickstart ×8 = WS8.3 (paso final). Detalle en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.37.0] — 2026-05-17
 
 **WS7 — revisión AI pre-commit en el workflow git.** Floor determinista (fail-HARD): bloquea `.env`/secretos staged, patrones de clave en el diff, `.also(` en vistas staged, fallo `node --check`. Capa AI (fail-SOFT): `claude -p` sobre el diff si el CLI está disponible y `AI_REVIEW != off`. `.githooks/pre-commit` + `prepare` cablea `core.hooksPath`. Nunca `--no-verify`. docs/sdd. 6 tests. 610 → 616. Detalle en [`CHANGELOG.md`](CHANGELOG.md).

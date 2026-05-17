@@ -8,6 +8,12 @@
 
 ---
 
+## [1.38.0] — 2026-05-17
+
+**WS8.1 —— 统一 CLI 调度器 + `doctor` 动词。** `bin/career-ops-ui.sh` 路由 setup/run/doctor/init/help。`scripts/doctor.mjs` 复用确切的 `/api/health` 引擎(createApp 进程内 → 终端报告);仅当所有必需检查通过才 exit 0。docs/sdd + help §1 ×8。6 测试。616 → 622。README ×8 = WS8.3。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.37.0] — 2026-05-17
 
 **WS7 —— git 工作流 pre-commit AI 审查。** 确定性底线(fail-HARD):拦截 staged `.env`/密钥、diff 中密钥模式、staged 视图中的 `.also(`、`node --check` 失败。AI 层(fail-SOFT):CLI 可用且 `AI_REVIEW != off` 时跑 `claude -p`。`.githooks/pre-commit` + `prepare` 接 `core.hooksPath`。禁用 `--no-verify`。docs/sdd。6 测试。610 → 616。详见 [`CHANGELOG.md`](CHANGELOG.md)。
