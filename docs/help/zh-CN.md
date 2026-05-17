@@ -126,7 +126,13 @@ career-ops-ui 的 `#/dashboard` 与 `#/tracker` 会高亮每一条 ≥ 4.0 的
 > career-ops-ui init       # 选择 LLM 提供方 + 粘贴其密钥(不回显)
 > career-ops-ui doctor     # 随时重新校验(退出码 0 ⇔ 所有必需项均为绿色)
 > career-ops-ui run        # 仅在 http://127.0.0.1:4317 启动服务器
+> career-ops-ui open       # 打开并将浏览器中的仪表盘标签页置于最前
 > ```
+>
+> `setup`/`run` 之后,浏览器标签页会自动打开**并被带到最
+> 前面**(v1.43.0);`career-ops-ui open` 可按需执行相同操作,
+> 因此你再也不必去翻找仪表盘标签页。`NO_OPEN=1` 可在
+> headless/CI 启动时禁用自动打开。
 >
 > `setup` 会自行执行整条链路。`init` 通过 `#/config` API 密钥
 > 选项卡所用的同一条已验证路径,将密钥写入父级

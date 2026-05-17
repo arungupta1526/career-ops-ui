@@ -139,7 +139,13 @@ each phase.
 > career-ops-ui init       # pick LLM provider + paste its key (echo suppressed)
 > career-ops-ui doctor     # re-verify any time (exit 0 ⇔ all required green)
 > career-ops-ui run        # just launch the server at http://127.0.0.1:4317
+> career-ops-ui open       # open + RAISE the dashboard tab in your browser
 > ```
+>
+> After `setup`/`run` the browser tab is opened **and brought to the
+> front** automatically (v1.43.0); `career-ops-ui open` does the same on
+> demand so you never have to hunt for the dashboard tab. `NO_OPEN=1`
+> disables auto-open for headless/CI starts.
 >
 > `setup` runs the entire chain itself. `init` writes the key to the
 > parent `career-ops/.env` through the same validated path the

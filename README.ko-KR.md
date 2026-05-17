@@ -58,8 +58,11 @@ career-ops-ui setup      # 부트스트랩: 의존성 설치 → doctor → run 
 career-ops-ui init       # 대화형: LLM 프로바이더 선택 + 해당 키 붙여넣기 → 상위 프로젝트의 .env 에 기록
 career-ops-ui doctor     # Node / 프로젝트 / 키 / Playwright 검증 (exit 0 ⇔ 필수 항목 모두 녹색)
 career-ops-ui run        # http://127.0.0.1:4317 에서 서버 실행
+career-ops-ui open       # 브라우저의 대시보드 탭을 열고 맨 앞으로 가져오기
 career-ops-ui help       # 모든 verb 목록 출력
 ```
+
+`setup`/`run` 이후 대시보드 탭은 자동으로 열리고 **맨 앞으로 가져와집니다**. `career-ops-ui open`은 필요할 때 동일하게 동작하므로 탭을 찾아 헤맬 필요가 없습니다. `NO_OPEN=1`을 설정하면 자동 열기를 비활성화합니다(headless / CI).
 
 `setup`은 전체 체인을 스스로 실행합니다. 다른 verb들도 독립적으로 사용할 수 있습니다. `init`은 프로바이더 마법사로 — **Claude / Claude Code** (`ANTHROPIC_API_KEY`), **Gemini / Gemini CLI** (`GEMINI_API_KEY`), **Codex / OpenCode CLI** (`OPENAI_API_KEY`), 또는 **Auto**(Anthropic → Gemini 폴백) 중에서 선택합니다. 키는 에코를 끈 상태로 입력되며(셸 스크롤백에 아무것도 남지 않습니다) `#/config` API 키 탭이 사용하는 것과 동일한 검증된 경로를 통해 상위 `career-ops/.env` 에 기록됩니다. CI용 비대화형 형식:
 

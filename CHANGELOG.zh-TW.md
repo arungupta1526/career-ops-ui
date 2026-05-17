@@ -8,6 +8,12 @@
 
 ---
 
+## [1.43.0] — 2026-05-18
+
+**使用者要求 —— `career-ops-ui open` + autostart 將瀏覽器帶到前景。** 在 `setup`/`run` 之後,當瀏覽器已在執行時,裸 `open`/`xdg-open` 會讓儀表板分頁停留在背景,使用者得自行尋找。`feat(cli): career-ops-ui open — open AND raise the dashboard tab` —— 新的 `scripts/open-dashboard.mjs` 從 HOST/PORT 建構 URL(將 `0.0.0.0` 綁定改寫為 loopback),可選地等待 `/api/health`,開啟預設瀏覽器,然後**強制將其帶到前景** —— macOS 以 `osascript` 啟用 Chrome/Brave/Edge/Safari/Arc/Firefox 中正在執行的那個,Linux 以 `xdg-open`+`wmctrl`,Windows 以 `start`。作為 `career-ops-ui open` 動詞公開(別名 `dash`、`focus`)。`bin/start.sh` 的 autostart 現委派給它,因此分頁會自動帶到前景;`NO_OPEN=1` 在 headless/CI 啟動時停用 auto-open。README ×8 + help §1 ×8 已更新;測試 +8:`test: tests/open-dashboard.test.mjs`,636 → 644。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.42.0] — 2026-05-18
 
 **WS2 修正 #2 —— 死路由 `#/portals` → config 深層連結。** `#/portals` 是一條未註冊路由,會渲染 404 檢視,儘管它是管理入口來源時合理的書籤/手動輸入 URL(UX 稽核 HIGH 第 2 項)。`fix(router): #/portals 404 → alias to config + Regional-sources deep-link` —— 在 `router.js` 的 `ALIASES` 中新增 `portals: 'config'`(與 `settings→profile` 相同的書籤穩定性模式),現在它解析為 config 檢視且 **config** 導覽項處於啟用狀態。當存在 Regional-sources 群組時,檢視(`config.js`)偵測 `#/portals` 雜湊,強制展開該 `<details>` 群組、捲動至可見區並將焦點移至其 summary(覆寫預設的 h1 焦點),使使用者恰好落在入口來源控制項上;絕不會僅憑別名渲染空的地區群組。help-bundle §5 × 8 新增一條快捷鍵提示;router 測試 +1:`test(router): portals→config alias guarantee` 加入 `router.test.mjs`,635 → 636。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

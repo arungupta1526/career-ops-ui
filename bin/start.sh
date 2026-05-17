@@ -92,17 +92,18 @@ if [ -d "$PROJECT_ROOT/node_modules/playwright" ]; then
   fi
 fi
 
-# 3. open browser when port responds
+# 3. open AND raise the browser when the port responds.
+#    v1.43.0 (user-requested): bare `open`/`xdg-open` left the dashboard
+#    tab in the background when the browser was already running. Delegate
+#    to scripts/open-dashboard.mjs, which opens the URL then force-raises
+#    the browser window (same code path as `career-ops-ui open`). Honors
+#    NO_OPEN=1 for headless / CI starts.
 open_when_ready() {
+  [[ "${NO_OPEN:-}" == "1" ]] && return 0
   for i in {1..30}; do
     sleep 0.4
     if curl -fsS -o /dev/null "http://${HOST}:${PORT}/api/health" 2>/dev/null; then
-      URL="http://${HOST}:${PORT}/"
-      if [[ "$OSTYPE" == "darwin"* ]]; then
-        open "$URL" 2>/dev/null || true
-      elif command -v xdg-open >/dev/null 2>&1; then
-        xdg-open "$URL" 2>/dev/null || true
-      fi
+      PORT="$PORT" HOST="$HOST" node "$WEB_UI/scripts/open-dashboard.mjs" --no-wait 2>/dev/null || true
       return 0
     fi
   done

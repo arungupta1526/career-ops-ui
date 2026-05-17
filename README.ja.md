@@ -58,8 +58,11 @@ career-ops-ui setup      # ブートストラップ: 依存関係インストー
 career-ops-ui init       # 対話式: LLM プロバイダーを選択 + そのキーを貼り付け → 親プロジェクトの .env に書き込み
 career-ops-ui doctor     # Node / プロジェクト / キー / Playwright を検証(exit 0 ⇔ 必須項目がすべてグリーン)
 career-ops-ui run        # http://127.0.0.1:4317 でサーバーを起動
+career-ops-ui open       # ブラウザのダッシュボードタブを開いて最前面に表示
 career-ops-ui help       # すべての verb を一覧表示
 ```
+
+`setup`/`run` の後、ダッシュボードタブは自動的に開かれ**最前面に表示**されます。`career-ops-ui open` はオンデマンドで同じ動作をするので、タブを探し回る必要はありません。`NO_OPEN=1` を設定すると自動オープンを無効化できます(headless / CI)。
 
 `setup` はチェーン全体を自前で実行します。他の verb も単独で利用できます。`init` はプロバイダーウィザードです — **Claude / Claude Code**(`ANTHROPIC_API_KEY`)、**Gemini / Gemini CLI**(`GEMINI_API_KEY`)、**Codex / OpenCode CLI**(`OPENAI_API_KEY`)、または **Auto**(Anthropic → Gemini フォールバック)から選択します。キーはエコーを抑制した状態で入力され(シェルのスクロールバックには何も残りません)、`#/config` の API キータブが使うのと同じ検証済みパスを通じて親の `career-ops/.env` に書き込まれます。CI 向けの非対話形式:
 

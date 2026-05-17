@@ -5,6 +5,7 @@
 #   career-ops-ui init     → choose LLM provider + set its key (interactive)
 #   career-ops-ui doctor   → verify env/tooling/keys (reuses /api/health)
 #   career-ops-ui run      → launch the server (bin/start.sh)
+#   career-ops-ui open     → open + RAISE the dashboard in your browser
 #   career-ops-ui help     → this text
 #
 # One command does the whole chain: `setup` runs install → doctor →
@@ -25,6 +26,7 @@ career-ops-ui — unified CLI dispatcher (AutoResearchClaw-style).
   career-ops-ui init     → choose LLM provider + set its key (interactive)
   career-ops-ui doctor   → verify env/tooling/keys (reuses /api/health)
   career-ops-ui run      → launch the server (bin/start.sh)
+  career-ops-ui open     → open + RAISE the dashboard in your browser
   career-ops-ui help     → this text
 
 One command does the whole chain: `setup` runs install → doctor →
@@ -44,6 +46,9 @@ case "$VERB" in
     ;;
   init)
     node "$WEB_UI/scripts/init.mjs" "$@"
+    ;;
+  open|dash|focus)
+    node "$WEB_UI/scripts/open-dashboard.mjs" "$@"
     ;;
   help|-h|--help)
     usage

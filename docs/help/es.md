@@ -141,7 +141,13 @@ verás al éxito. Las secciones 2–16 entran en profundidad en cada fase.
 > career-ops-ui init       # elige el proveedor LLM + pega su clave (eco suprimido)
 > career-ops-ui doctor     # vuelve a verificar cuando quieras (salida 0 ⇔ todo lo requerido en verde)
 > career-ops-ui run        # solo arranca el servidor en http://127.0.0.1:4317
+> career-ops-ui open       # abre + TRAE AL FRENTE la pestaña del panel en tu navegador
 > ```
+>
+> Tras `setup`/`run` la pestaña del navegador se abre **y se trae al
+> frente** automáticamente (v1.43.0); `career-ops-ui open` hace lo mismo
+> bajo demanda, así nunca tienes que buscar la pestaña del panel.
+> `NO_OPEN=1` desactiva la apertura automática en arranques headless/CI.
 >
 > `setup` ejecuta toda la cadena por sí mismo. `init` escribe la clave
 > en el `career-ops/.env` del proyecto padre a través de la misma ruta

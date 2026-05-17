@@ -58,8 +58,11 @@ career-ops-ui setup      # bootstrap: instala dependências → doctor → run (
 career-ops-ui init       # interativo: escolha o provedor LLM + cole a chave dele → gravado no .env do projeto pai
 career-ops-ui doctor     # verifica Node / projeto / chaves / Playwright (exit 0 ⇔ tudo que é obrigatório no verde)
 career-ops-ui run        # sobe o servidor em http://127.0.0.1:4317
+career-ops-ui open       # abre + TRAZ PARA FRENTE a aba do painel no seu navegador
 career-ops-ui help       # lista todos os verbos
 ```
+
+Após `setup`/`run` a aba do painel é aberta **e trazida para a frente** automaticamente; `career-ops-ui open` faz o mesmo sob demanda, então você nunca precisa procurar a aba. Defina `NO_OPEN=1` para desativar a abertura automática (headless / CI).
 
 O `setup` executa a cadeia inteira sozinho; os demais verbos também podem ser usados de forma independente. O `init` é o assistente de provedor — escolha **Claude / Claude Code** (`ANTHROPIC_API_KEY`), **Gemini / Gemini CLI** (`GEMINI_API_KEY`), **Codex / OpenCode CLI** (`OPENAI_API_KEY`), ou **Auto** (Anthropic → Gemini como fallback). As chaves são digitadas com o eco suprimido (nada fica no scrollback do shell) e gravadas no `career-ops/.env` do projeto pai pelo mesmo caminho validado que a aba de chaves de API do `#/config` usa. Forma não interativa para CI:
 

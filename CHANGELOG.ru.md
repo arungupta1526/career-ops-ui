@@ -8,6 +8,12 @@
 
 ---
 
+## [1.43.0] — 2026-05-18
+
+**По запросу пользователя — `career-ops-ui open` + autostart с подъёмом окна браузера.** После `setup`/`run` голый `open`/`xdg-open` оставлял вкладку дашборда на заднем плане, когда браузер уже был запущен, и пользователю приходилось её искать. `feat(cli): career-ops-ui open — open AND raise the dashboard tab` — новый `scripts/open-dashboard.mjs` строит URL из HOST/PORT (переписывая бинд `0.0.0.0` на loopback), при необходимости ждёт `/api/health`, открывает браузер по умолчанию и затем **принудительно поднимает его на передний план** — macOS через `osascript` активирует тот из Chrome/Brave/Edge/Safari/Arc/Firefox, что запущен, Linux через `xdg-open`+`wmctrl`, Windows через `start`. Представлено как глагол `career-ops-ui open` (алиасы `dash`, `focus`). Autostart в `bin/start.sh` теперь делегирует ему, так что вкладка поднимается автоматически; `NO_OPEN=1` отключает auto-open для headless/CI-запусков. README ×8 + help §1 ×8 обновлены; +8 тестов: `test: tests/open-dashboard.test.mjs`, 636 → 644. Подробно — [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.42.0] — 2026-05-18
 
 **WS2 исправление №2 — мёртвый маршрут `#/portals` → глубокая ссылка на config.** `#/portals` был незарегистрированным маршрутом и рендерил 404-вьюшку, хотя это вполне правдоподобный URL для закладки/ручного ввода при управлении источниками порталов (HIGH №2 из UX-аудита). `fix(router): #/portals 404 → alias to config + Regional-sources deep-link` — в `ALIASES` файла `router.js` добавлено `portals: 'config'` (тот же паттерн стабильности закладок, что и `settings→profile`), так что теперь это резолвится во вьюшку config с активным пунктом навигации **config**. Когда существует группа Regional-sources, вьюшка (`config.js`) обнаруживает хеш `#/portals`, принудительно раскрывает эту `<details>`-группу, прокручивает её в видимую область и переводит фокус на её summary (переопределяя фокус по умолчанию на h1), так что пользователь попадает ровно на элементы управления источниками порталов; никогда не рендерит пустую региональную группу из-за одного лишь алиаса. help-bundle §5 × 8 получил заметку о шорткате; +1 тест роутера: `test(router): portals→config alias guarantee` в `router.test.mjs`, 635 → 636. Подробно — [`CHANGELOG.md`](CHANGELOG.md).

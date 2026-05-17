@@ -6,6 +6,32 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.43.0] — 2026-05-18
+
+**User-requested — `career-ops-ui open` + autostart browser-raise.**
+
+### ✨ Features
+
+- **`feat(cli): career-ops-ui open — open AND raise the dashboard tab`** — after `setup`/`run`, bare `open`/`xdg-open` left the dashboard tab in the background when the browser was already running, so the user had to hunt for it. New `scripts/open-dashboard.mjs` builds the URL from HOST/PORT (rewriting a `0.0.0.0` bind to loopback), optionally waits for `/api/health`, opens the default browser, then **force-raises** it — macOS `osascript` activating whichever of Chrome/Brave/Edge/Safari/Arc/Firefox is running, Linux `xdg-open`+`wmctrl`, Windows `start`. Exposed as the `career-ops-ui open` verb (aliases `dash`, `focus`). `bin/start.sh` autostart now delegates to it so the tab is raised automatically; `NO_OPEN=1` disables auto-open for headless/CI starts. Verified live: `career-ops-ui open` → URL printed, browser raised, exit 0.
+
+### 🧪 Tests
+
+- **`test: tests/open-dashboard.test.mjs`** — 8 cases: `dashboardUrl` (defaults / PORT / `0.0.0.0`→loopback / explicit HOST), `openAndRaise` platform routing (darwin/win32/linux, no real browser), `waitForHealth` bounded-timeout against a dead port, and static guarantees that the dispatcher routes `open|dash|focus` and `start.sh` delegates + honors `NO_OPEN` (old bare-`open` path gone). 636 → 644.
+
+### 📝 Documentation
+
+- README ×8 + help-bundle §1 ×8 — the `open` verb added to the launch block + a note that `setup`/`run` now raises the tab automatically and `NO_OPEN=1` disables it. H2-section parity preserved (17).
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 644 / 644 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.43.0
+$ career-ops-ui open --no-wait    # URL printed, browser raised, exit 0
+```
+
+---
+
 ## [1.42.0] — 2026-05-18
 
 **WS2 fix #2 — `#/portals` dead-route → config deep-link.**

@@ -58,8 +58,11 @@ career-ops-ui setup      # 啟動程序:安裝相依套件 → doctor → run(SK
 career-ops-ui init       # 互動式:選擇 LLM 供應商 + 貼上其金鑰 → 寫入上層專案的 .env
 career-ops-ui doctor     # 驗證 Node / 專案 / 金鑰 / Playwright(exit 0 ⇔ 所有必要項目皆為綠燈)
 career-ops-ui run        # 在 http://127.0.0.1:4317 啟動伺服器
+career-ops-ui open       # 開啟並將瀏覽器中的儀表板分頁帶到最前
 career-ops-ui help       # 列出所有 verb
 ```
+
+`setup`/`run` 之後,儀表板分頁會自動開啟**並被帶到最前面**;`career-ops-ui open` 可隨需執行相同動作,因此你再也不必翻找分頁。設定 `NO_OPEN=1` 可停用自動開啟(headless / CI)。
 
 `setup` 會自行執行整個鏈;其他 verb 也可獨立使用。`init` 是供應商精靈 —— 可選擇 **Claude / Claude Code**(`ANTHROPIC_API_KEY`)、**Gemini / Gemini CLI**(`GEMINI_API_KEY`)、**Codex / OpenCode CLI**(`OPENAI_API_KEY`),或 **Auto**(Anthropic → Gemini 後備)。金鑰於關閉回顯的狀態下輸入(不會留存於 shell 捲動紀錄中),並透過與 `#/config` API 金鑰分頁相同的已驗證路徑寫入上層的 `career-ops/.env`。CI 用的非互動式形式:
 

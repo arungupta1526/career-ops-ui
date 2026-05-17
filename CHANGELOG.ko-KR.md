@@ -8,6 +8,12 @@
 
 ---
 
+## [1.43.0] — 2026-05-18
+
+**사용자 요청 — `career-ops-ui open` + autostart 브라우저 앞으로 가져오기.** `setup`/`run` 이후 브라우저가 이미 떠 있으면 맨손 `open`/`xdg-open`은 대시보드 탭을 뒤에 남겨, 사용자가 직접 찾아야 했음. `feat(cli): career-ops-ui open — open AND raise the dashboard tab` — 새 `scripts/open-dashboard.mjs`가 HOST/PORT에서 URL을 구성하고(`0.0.0.0` 바인드를 loopback으로 재작성), 선택적으로 `/api/health`를 기다린 뒤 기본 브라우저를 열고 이어서 **강제로 앞으로 가져옴** — macOS는 `osascript`로 실행 중인 Chrome/Brave/Edge/Safari/Arc/Firefox 중 하나를 활성화, Linux는 `xdg-open`+`wmctrl`, Windows는 `start`. `career-ops-ui open` 동사로 노출(별칭 `dash`, `focus`). `bin/start.sh`의 autostart가 이제 여기에 위임하여 탭이 자동으로 앞으로 옴; `NO_OPEN=1`은 headless/CI 시작에서 auto-open을 비활성화함. README ×8 + help §1 ×8 갱신; 테스트 +8: `test: tests/open-dashboard.test.mjs`, 636 → 644. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.42.0] — 2026-05-18
 
 **WS2 수정 #2 — 죽은 라우트 `#/portals` → config 딥링크.** `#/portals`는 미등록 라우트로 404 뷰를 렌더링했지만, 포털 소스 관리를 위해 북마크/직접 입력될 수 있는 타당한 URL이었음(UX 감사 HIGH #2). `fix(router): #/portals 404 → alias to config + Regional-sources deep-link` — `router.js`의 `ALIASES`에 `portals: 'config'`를 추가(`settings→profile`과 동일한 북마크 안정성 패턴), 이제 config 뷰로 해석되며 **config** 내비 항목이 활성화됨. Regional-sources 그룹이 존재하면 뷰(`config.js`)가 `#/portals` 해시를 감지해 해당 `<details>` 그룹을 강제로 펼치고 화면에 스크롤한 뒤 그 summary로 포커스를 이동(기본 h1 포커스를 재정의)하므로, 사용자는 포털 소스 컨트롤에 정확히 착지함; 별칭만으로 빈 지역 그룹을 렌더링하지 않음. help-bundle §5 × 8에 단축 경로 안내 추가; 라우터 테스트 +1: `test(router): portals→config alias guarantee`를 `router.test.mjs`에 추가, 635 → 636. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

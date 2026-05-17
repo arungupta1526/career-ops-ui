@@ -8,6 +8,12 @@
 
 ---
 
+## [1.43.0] — 2026-05-18
+
+**ユーザー要望 — `career-ops-ui open` + autostart によるブラウザ前面化。** `setup`/`run` の後、ブラウザが既に起動しているとむき出しの `open`/`xdg-open` ではダッシュボードのタブが背面に残り、ユーザーが探す羽目になっていた。`feat(cli): career-ops-ui open — open AND raise the dashboard tab` — 新しい `scripts/open-dashboard.mjs` が HOST/PORT から URL を構築し(`0.0.0.0` バインドを loopback に書き換え)、必要なら `/api/health` を待ち、既定ブラウザを開いてから**強制的に前面化**する — macOS は `osascript` で起動中の Chrome/Brave/Edge/Safari/Arc/Firefox のいずれかをアクティブ化、Linux は `xdg-open`+`wmctrl`、Windows は `start`。`career-ops-ui open` 動詞として公開(エイリアス `dash`、`focus`)。`bin/start.sh` の autostart はこれに委譲し、タブが自動的に前面化される;`NO_OPEN=1` は headless/CI 起動で auto-open を無効化する。README ×8 + help §1 ×8 を更新;テスト +8:`test: tests/open-dashboard.test.mjs`、636 → 644。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.42.0] — 2026-05-18
 
 **WS2 修正 #2 — デッドルート `#/portals` → config ディープリンク。** `#/portals` は未登録ルートで 404 ビューを描画していたが、ポータルソース管理用にブックマーク/手入力されうる妥当な URL だった(UX 監査 HIGH #2)。`fix(router): #/portals 404 → alias to config + Regional-sources deep-link` — `router.js` の `ALIASES` に `portals: 'config'` を追加(`settings→profile` と同じブックマーク安定化パターン)、これで config ビューに解決され **config** ナビ項目がアクティブになる。Regional-sources グループが存在する場合、ビュー(`config.js`)が `#/portals` ハッシュを検出し、その `<details>` グループを強制展開・スクロール表示し、その summary にフォーカスを移動(既定の h1 フォーカスを上書き)、ユーザーはポータルソース操作部にちょうど着地する;エイリアス単独で空の地域グループを描画することはない。help-bundle §5 × 8 にショートカット注記を追加;router テスト +1:`test(router): portals→config alias guarantee` を `router.test.mjs` に追加、635 → 636。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

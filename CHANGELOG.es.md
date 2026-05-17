@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.43.0] — 2026-05-18
+
+**Solicitado por el usuario — `career-ops-ui open` + autostart que trae el navegador al frente.** Tras `setup`/`run`, un `open`/`xdg-open` pelado dejaba la pestaña del dashboard en segundo plano cuando el navegador ya estaba abierto, obligando al usuario a buscarla. `feat(cli): career-ops-ui open — open AND raise the dashboard tab` — el nuevo `scripts/open-dashboard.mjs` construye la URL desde HOST/PORT (reescribiendo un bind `0.0.0.0` a loopback), opcionalmente espera a `/api/health`, abre el navegador por defecto y luego lo **fuerza al frente** — `osascript` en macOS activando el que esté corriendo de Chrome/Brave/Edge/Safari/Arc/Firefox, `xdg-open`+`wmctrl` en Linux, `start` en Windows. Expuesto como el verbo `career-ops-ui open` (alias `dash`, `focus`). El autostart de `bin/start.sh` ahora delega en él para que la pestaña se traiga al frente automáticamente; `NO_OPEN=1` desactiva el auto-open en arranques headless/CI. README ×8 + help §1 ×8 actualizados; +8 tests: `test: tests/open-dashboard.test.mjs`, 636 → 644. Detalle en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.42.0] — 2026-05-18
 
 **WS2 corrección n.º 2 — ruta muerta `#/portals` → enlace profundo a config.** `#/portals` era una ruta no registrada que renderizaba la vista 404, pese a ser una URL plausible de marcador/tecleo para gestionar fuentes de portales (HIGH n.º 2 de la auditoría UX). `fix(router): #/portals 404 → alias to config + Regional-sources deep-link` — se añadió `portals: 'config'` a `ALIASES` de `router.js` (mismo patrón de estabilidad de marcadores que `settings→profile`), así que ahora resuelve a la vista config con el ítem de navegación **config** activo. Cuando existe un grupo Regional-sources, la vista (`config.js`) detecta el hash `#/portals`, fuerza la apertura de ese grupo `<details>`, lo desplaza a la vista y mueve el foco a su summary (anulando el foco h1 por defecto), de modo que el usuario aterriza justo en los controles de fuentes de portales; nunca renderiza un grupo regional vacío solo por el alias. help-bundle §5 × 8 obtuvo una nota de atajo; +1 test de router: `test(router): portals→config alias guarantee` en `router.test.mjs`, 635 → 636. Detalle en [`CHANGELOG.md`](CHANGELOG.md).

@@ -138,7 +138,13 @@ batch 처리, apply 흐름, Playwright 설정)는
 > career-ops-ui init       # LLM 공급자 선택 + 해당 키 붙여넣기 (에코 숨김)
 > career-ops-ui doctor     # 언제든 재검증 (종료 코드 0 ⇔ 필수 항목 모두 녹색)
 > career-ops-ui run        # http://127.0.0.1:4317 에서 서버만 실행
+> career-ops-ui open       # 브라우저의 대시보드 탭을 열고 맨 앞으로 가져오기
 > ```
+>
+> `setup`/`run` 이후 브라우저 탭은 자동으로 열리고 **맨 앞으로
+> 가져와집니다** (v1.43.0). `career-ops-ui open`은 필요할 때 동일하게
+> 동작하므로 대시보드 탭을 찾아 헤맬 필요가 없습니다. `NO_OPEN=1`은
+> 헤드리스/CI 시작 시 자동 열기를 비활성화합니다.
 >
 > `setup`은 전체 체인을 스스로 실행합니다. `init`은 `#/config`의
 > API 키 탭이 사용하는 것과 동일한 검증된 경로를 통해 상위

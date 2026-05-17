@@ -58,8 +58,11 @@ career-ops-ui setup      # bootstrap: install deps → doctor → run (SKIP_STAR
 career-ops-ui init       # interactive: pick LLM provider + paste its key → written to parent .env
 career-ops-ui doctor     # verify Node / project / keys / Playwright (exit 0 ⇔ all required green)
 career-ops-ui run        # launch the server at http://127.0.0.1:4317
+career-ops-ui open       # open + RAISE the dashboard tab in your browser
 career-ops-ui help       # list every verb
 ```
+
+After `setup`/`run` the dashboard tab is opened **and brought to the front** automatically; `career-ops-ui open` does the same on demand so you never have to hunt for the tab. Set `NO_OPEN=1` to disable auto-open (headless / CI).
 
 `setup` runs the whole chain itself; the other verbs are also usable standalone. `init` is the provider wizard — choose **Claude / Claude Code** (`ANTHROPIC_API_KEY`), **Gemini / Gemini CLI** (`GEMINI_API_KEY`), **Codex / OpenCode CLI** (`OPENAI_API_KEY`), or **Auto** (Anthropic → Gemini fallback). Keys are typed with the echo suppressed (nothing lands in shell scrollback) and written to the parent `career-ops/.env` through the same validated path the `#/config` API-keys tab uses. Non-interactive form for CI:
 
