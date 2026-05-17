@@ -6,7 +6,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { providerOrder, LLM_PROVIDERS, KNOWN_KEYS, SECRET_KEYS } from '../server/lib/env-config.mjs';
-import { parseArgs, buildUpdates } from '../scripts/init.mjs';
+import { parseArgs, buildUpdates, askSecret } from '../scripts/init.mjs';
 
 test('providerOrder: auto/unset/unknown → [anthropic, gemini] (legacy)', () => {
   assert.deepEqual(providerOrder({}), ['anthropic', 'gemini']);
@@ -34,6 +34,20 @@ test('init parseArgs: flag-driven', () => {
   assert.equal(o.provider, 'claude');
   assert.equal(o.anthropic, 'sk-x');
   assert.equal(o.yes, true);
+});
+
+test('init askSecret: off a TTY, delegates to plain ask (no raw mode)', async () => {
+  const realIsTTY = process.stdin.isTTY;
+  Object.defineProperty(process.stdin, 'isTTY', { value: false, configurable: true });
+  try {
+    let asked = '';
+    const fakeRl = { question: (q, cb) => { asked = q; cb('  piped-key  '); } };
+    const v = await askSecret(fakeRl, 'OPENAI_API_KEY: ');
+    assert.equal(asked, 'OPENAI_API_KEY: ');
+    assert.equal(v, 'piped-key'); // trimmed, same contract as ask()
+  } finally {
+    Object.defineProperty(process.stdin, 'isTTY', { value: realIsTTY, configurable: true });
+  }
 });
 
 test('init buildUpdates: provider clamped, only non-empty keys written', () => {

@@ -51,38 +51,48 @@ function ask(rl, q) {
   return new Promise((r) => rl.question(q, (a) => r(a.trim())));
 }
 
-// Like `ask`, but raw-mode reads the key so it NEVER reaches the
-// terminal (no echo at all → safe from scrollback / tmux / screen-share,
-// paste-safe). Falls back to plain `ask` when stdin is not a TTY.
-function askSecret(rl, q) {
+// Like `ask`, but raw-mode reads the key so it never reaches the
+// terminal (no echo → safe from scrollback / tmux / screen-share,
+// paste-safe). ANSI/CSI escape sequences (arrow & function keys) are
+// consumed, not buffered. Falls back to plain `ask` off a TTY.
+// Exported for the non-TTY fallback unit test.
+export function askSecret(rl, q) {
   const stdin = process.stdin;
   if (!stdin.isTTY) return ask(rl, q);
   return new Promise((resolve) => {
     process.stdout.write(q);
     rl.pause();
-    const wasRaw = stdin.isRaw;
+    const wasRaw = Boolean(stdin.isRaw);
     stdin.setRawMode(true);
     stdin.resume();
     let buf = '';
+    let esc = 0; // 0 normal · 1 saw ESC · 2 inside CSI/SS3
+    const finish = () => {
+      stdin.removeListener('data', onData);
+      stdin.setRawMode(wasRaw);
+    };
     const onData = (chunk) => {
-      for (const ch of chunk.toString('utf8')) {
-        if (ch === '\n' || ch === '\r') {
-          stdin.removeListener('data', onData);
-          stdin.setRawMode(wasRaw);
+      for (const c of chunk.toString('utf8')) {
+        const code = c.charCodeAt(0);
+        if (esc === 1) { esc = (code === 91 || code === 79) ? 2 : 0; continue; }
+        if (esc === 2) { if (code >= 64 && code <= 126) esc = 0; continue; }
+        if (code === 27) { esc = 1; continue; }            // ESC → start CSI
+        if (code === 13 || code === 10) {                  // Enter → done
+          finish();
           process.stdout.write('\n');
           rl.resume();
           resolve(buf.trim());
           return;
         }
-        if (ch === '') {                       // Ctrl-C
-          stdin.setRawMode(wasRaw);
+        if (code === 3) {                                  // Ctrl-C
+          finish();
           process.stdout.write('\n');
           process.exit(130);
         }
-        if (ch === '' || ch === '\b') {        // Backspace
+        if (code === 127 || code === 8) {                  // Backspace
           if (buf.length) { buf = buf.slice(0, -1); process.stdout.write('\b \b'); }
-        } else if (ch >= ' ') {                      // printable → mask
-          buf += ch;
+        } else if (code >= 32) {                            // printable → mask
+          buf += c;
           process.stdout.write('*');
         }
       }
