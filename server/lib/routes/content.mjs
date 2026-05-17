@@ -419,17 +419,92 @@ export function registerContentRoutes(app) {
           '',
         ].join('\n');
       }
+      // v1.36.0 (WS6.3) — also expose the parsed section structure so
+      // the Modes tab can render a per-section editor without
+      // re-parsing markdown client-side.
+      const parsed = splitProfileSections(markdown);
       res.json({
         markdown,
         bytes: Buffer.byteLength(markdown),
         scaffolded: !existsSync(PATHS.modesProfile),
+        preamble: parsed.preamble,
+        sections: parsed.sections,
       });
     } catch (e) {
       res.status(500).json({ error: e.message });
     }
   });
 
+  // v1.36.0 (WS6.3) — split `_profile.md` into [preamble, ...sections]
+  // where each section starts at a top-level `## ` heading. Preamble =
+  // everything before the first `## `. Returns { preamble, sections:
+  // [{ heading, body }] } preserving order. `_profile.md` is a
+  // prompt-engineering doc (tables + prose), so section-level editing
+  // (not field decomposition) is the right granularity.
+  // Byte-exact split: a section spans from its `## ` heading LINE
+  // through the char just before the next top-level `## ` (or EOF).
+  // `headingLine` keeps the heading verbatim (incl. trailing newline);
+  // `body` is everything after it. Round-trip = preamble +
+  // Σ(headingLine + body) reproduces the input byte-for-byte, so
+  // editing one body never perturbs another section's whitespace.
+  function splitProfileSections(md) {
+    const src = String(md ?? '');
+    const re = /^##[ \t]+(.+?)[ \t]*\r?\n/gm;
+    const marks = [];
+    let m;
+    while ((m = re.exec(src)) !== null) {
+      marks.push({ heading: m[1], start: m.index, headingEnd: re.lastIndex });
+    }
+    if (marks.length === 0) return { preamble: src, sections: [] };
+    const preamble = src.slice(0, marks[0].start);
+    const sections = marks.map((mk, i) => {
+      const end = i + 1 < marks.length ? marks[i + 1].start : src.length;
+      return {
+        heading: mk.heading,
+        headingLine: src.slice(mk.start, mk.headingEnd),
+        body: src.slice(mk.headingEnd, end),
+      };
+    });
+    return { preamble, sections };
+  }
+  function joinProfileSections(preamble, sections) {
+    return preamble + sections.map((s) =>
+      (s.headingLine ?? `## ${s.heading}\n`) + s.body).join('');
+  }
+
   app.put('/api/modes/_profile', (req, res) => {
+    // ── v1.36.0 — section-merge path: { sections: { "<heading>": "<body>" } } ──
+    if (req.body && req.body.sections && typeof req.body.sections === 'object' && !Array.isArray(req.body.sections)) {
+      const incoming = req.body.sections;
+      let baseMd = '';
+      if (existsSync(PATHS.modesProfile)) baseMd = readFileSync(PATHS.modesProfile, 'utf8');
+      else if (existsSync(PATHS.modesProfileTemplate)) baseMd = readFileSync(PATHS.modesProfileTemplate, 'utf8');
+      const { preamble, sections } = splitProfileSections(baseMd);
+      const known = new Set(sections.map((s) => s.heading));
+      // Reject headings the current file doesn't have — the form only
+      // edits existing sections; adding new ones goes through raw.
+      const bad = Object.keys(incoming).find((h) => !known.has(h));
+      if (bad) {
+        return res.status(400).json({ error: `unknown _profile.md section: "${bad}" — add new sections via the raw editor` });
+      }
+      // Replace ONLY provided sections; every other section + the
+      // preamble + ordering survive untouched (merge-not-replace).
+      const merged = sections.map((s) =>
+        (s.heading in incoming)
+          ? { heading: s.heading, headingLine: s.headingLine, body: String(incoming[s.heading] ?? '') }
+          : s);
+      const rebuilt = joinProfileSections(preamble, merged);
+      const cleaned = stripDangerousMarkdown(rebuilt);
+      if (Buffer.byteLength(cleaned) > 256 * 1024) {
+        return res.status(413).json({ error: 'modes/_profile.md too large (max 256 KB)' });
+      }
+      const d = dirname(PATHS.modesProfile);
+      if (!existsSync(d)) mkdirSync(d, { recursive: true });
+      writeFileSync(PATHS.modesProfile, cleaned);
+      logActivity({ type: 'modes_profile.save', target: 'modes/_profile.md', bytes: Buffer.byteLength(cleaned) });
+      return res.json({ ok: true, mode: 'sections', sanitized: cleaned !== rebuilt, bytes: Buffer.byteLength(cleaned) });
+    }
+
     const md = req.body?.markdown;
     if (typeof md !== 'string') {
       return res.status(400).json({ error: 'markdown body required (string under "markdown" key)' });

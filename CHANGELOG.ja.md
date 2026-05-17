@@ -8,6 +8,12 @@
 
 ---
 
+## [1.36.0] — 2026-05-17
+
+**WS6.3 — Modes タブ:生の塊 → セクション別エディタ。WS6 完了。** `modes/_profile.md` を `##` セクション単位で編集(見出しごとに折りたたみ textarea)。サーバ `splitProfileSections` はバイト厳密;`PUT { sections }` は指定セクションのみマージ — プリアンブル・他セクション・順序をバイト単位で保持。未知見出し → 400。raw 経路は不変。i18n 5 キー ×8。help §2 ×8。新規テスト 6。604 → 610。WS6 完了。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.35.0] — 2026-05-17
 
 **WS6.4 — Profile 配列エディタ + WS6.2 API-keys 監査。** `PUT /api/profile` が `{ arrays }` を受理(`{ fields }` と併用可):Target roles/Superpowers(リスト)、Archetypes(name/level/fit)、Proof points(name/url/hero-metric)。同一 merge-not-replace;空行破棄;空リストはキー削除。#/config に add/remove エディタ 4 つ。i18n 6 キー ×8。監査:KNOWN_KEYS ≡ FIELDS、ギャップなし。新規テスト 7。597 → 604。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

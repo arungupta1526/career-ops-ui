@@ -6,6 +6,40 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.36.0] — 2026-05-17
+
+**WS6.3 — #/config Modes tab: raw blob → per-section editor. WS6 complete.**
+
+`modes/_profile.md` is a prompt-engineering doc (markdown tables + prose), not key→value settings — so section-level editing is the right granularity (not field decomposition). This finishes WS6: every settings surface is now structured.
+
+### ✨ Features
+
+- **`feat(config): per-section _profile.md editor`**
+  - [`server/lib/routes/content.mjs`](server/lib/routes/content.mjs) — byte-exact `splitProfileSections` (preamble + per-`##` `{ heading, headingLine, body }` via string slices, not line-join — round-trip is byte-identical) + `joinProfileSections`. `GET /api/modes/_profile` now also returns `{ preamble, sections }`. `PUT` accepts `{ sections: { "<heading>": "<body>" } }`: replaces only named sections, **preamble + unknown sections + ordering survive byte-for-byte** (merge-not-replace). Unknown heading → 400. Existing `stripDangerousMarkdown` sanitization retained. Legacy `{ markdown }` raw path unchanged.
+  - [`public/js/views/config.js`](public/js/views/config.js) — one collapsible textarea per `##` section (label = `## heading`); Save sends `{ sections }`. Collapsed *Advanced: raw markdown* disclosure retained for add/remove-section + preamble edits.
+  - i18n: 5 keys × 8 (`config.modesSectionHint/modesNoSections/modesRawToggle/modesRawHint/modesRawSave`).
+
+### 📝 Documentation
+
+- help-bundle §2 × 8 locales — Modes tab documented as per-section editor (merge-by-section, byte-exact preservation, Advanced raw disclosure).
+
+### 🧪 Tests
+
+- **`test(config): tests/modes-section-form.test.mjs`** — 6 cases: GET exposes preamble+sections, section-merge preserves preamble/others byte-exact, unknown-heading 400, ordering preserved, legacy raw path, sanitization. 604 → 610.
+
+### WS6 outcome
+
+Every settings surface is now field/section-structured: API-keys (already field-based — WS6.2 audit confirmed `KNOWN_KEYS ≡ FIELDS`, no gap), Profile scalars (WS1 v1.32.0), Profile arrays (WS6.4 v1.35.0), Modes sections (WS6.3 v1.36.0). The raw editors remain as documented escape hatches.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 610 / 610 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.36.0
+```
+
+---
+
 ## [1.35.0] — 2026-05-17
 
 **WS6.4 — #/config Profile structured array editors + WS6.2 API-keys audit.**

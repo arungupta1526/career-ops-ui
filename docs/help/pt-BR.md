@@ -328,6 +328,8 @@ servidor.
 
 > **v1.32.0 — formulário por campos.** A aba Profile não é mais um textarea de YAML bruto: agora é um formulário com seções recolhíveis **Candidato / Narrativa / Remuneração**. Ao salvar envia apenas os 14 caminhos escalares modelados; o servidor faz **merge** em `config/profile.yml`, então seus `archetypes`, `proof_points` e chaves próprias **são preservados intactos**. Trade-off: o save por campos re-serializa o YAML e **perde comentários `#`** — use o disclosure **Advanced: edit raw YAML** no fim da aba para preservá-los ou editar arrays aninhados.
 > **v1.35.0 — editores de arrays.** Editores add/remove para **Target roles** e **Superpowers** (listas de texto), **Archetypes** (name/level/fit) e **Proof points** (name/url/hero-metric). Mesma garantia merge-not-replace; esvaziar uma lista remove a chave de forma limpa.
+> **v1.36.0 — aba Modes por seção.** `modes/_profile.md` agora é editado por seção (`##`): um textarea recolhível por cabeçalho. Salvar **faz merge por seção** — preâmbulo e seções intactas preservados byte a byte. Disclosure *Advanced: raw markdown* para adicionar/remover seções.
+
 
 
 

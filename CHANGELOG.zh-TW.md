@@ -8,6 +8,12 @@
 
 ---
 
+## [1.36.0] — 2026-05-17
+
+**WS6.3 —— Modes 分頁:原始區塊 → 分區編輯器。WS6 完成。** `modes/_profile.md` 按 `##` 區塊編輯(每標題一個可折疊 textarea)。伺服端 `splitProfileSections` 位元組精確;`PUT { sections }` 僅合併指定區塊 —— 前言+其他區塊+順序按位元組保留。未知標題 → 400。raw 路徑不變。i18n 5 鍵 ×8。help §2 ×8。新增 6 測試。604 → 610。WS6 收尾。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.35.0] — 2026-05-17
 
 **WS6.4 —— Profile 陣列編輯器 + WS6.2 API-keys 稽核。** `PUT /api/profile` 接受 `{ arrays }`(可與 `{ fields }` 組合):Target roles/Superpowers(清單)、Archetypes(name/level/fit)、Proof points(name/url/hero-metric)。相同 merge-not-replace;空列丟棄;空清單刪除鍵。#/config 新增 4 個增刪編輯器。i18n 6 鍵 ×8。稽核:KNOWN_KEYS ≡ FIELDS,無 gap。新增 7 測試。597 → 604。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

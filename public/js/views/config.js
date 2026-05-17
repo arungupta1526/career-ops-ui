@@ -453,11 +453,45 @@ Router.register('config', async () => {
   });
   let modesLoaded = false;
   let modesScaffolded = false;
+  // v1.36.0 (WS6.3) — per-section editor. `_profile.md` is a
+  // prompt-engineering doc (markdown tables + prose), so section-level
+  // editing (one focused textarea per `##` heading) is the right
+  // granularity — NOT field decomposition. The server merges by
+  // heading: preamble + unknown sections + order survive untouched.
+  const modesSectionHost = c('div');
+  const modesSectionInputs = {}; // heading → textarea
+
+  function buildSectionEditors(sections) {
+    modesSectionHost.innerHTML = '';
+    for (const k of Object.keys(modesSectionInputs)) delete modesSectionInputs[k];
+    if (!sections || !sections.length) {
+      modesSectionHost.appendChild(c('p', { style: { color: 'var(--foggy)', fontSize: '13px' } },
+        t('config.modesNoSections', 'No ## sections found — use the raw editor below.')));
+      return;
+    }
+    sections.forEach((s) => {
+      const ta = c('textarea', {
+        className: 'textarea',
+        rows: Math.min(16, Math.max(4, (s.body || '').split('\n').length + 1)),
+        style: { width: '100%', fontFamily: 'ui-monospace,monospace', fontSize: '13px' },
+        'aria-label': s.heading,
+      });
+      ta.value = s.body || '';
+      modesSectionInputs[s.heading] = ta;
+      modesSectionHost.appendChild(c('details', { open: false, style: { marginBottom: '12px' } }, [
+        c('summary', { style: { fontSize: '14px', fontWeight: 600, cursor: 'pointer', padding: '6px 0' } },
+          '## ' + s.heading),
+        c('div', { style: { paddingTop: '8px' } }, [ta]),
+      ]));
+    });
+  }
+
   async function loadModesTab() {
     if (modesLoaded) return;
     try {
       const data = await API.get('/api/modes/_profile');
       modesTextarea.value = (data && data.markdown) || '';
+      buildSectionEditors((data && data.sections) || []);
       modesScaffolded = !!(data && data.scaffolded);
       modesLoaded = true;
       if (modesScaffolded) {
@@ -468,7 +502,30 @@ Router.register('config', async () => {
       modesTextarea.value = '# error: ' + (e.message || e);
     }
   }
+
+  // Per-section save → merge path (preamble + unknown sections survive).
   async function saveModes(btn) {
+    const sectionsPayload = {};
+    for (const [h, ta] of Object.entries(modesSectionInputs)) sectionsPayload[h] = ta.value;
+    if (!Object.keys(sectionsPayload).length) {
+      UI.toast(t('config.modesNoSections', 'No ## sections found — use the raw editor below.'), 'error');
+      return;
+    }
+    try {
+      const r = await UI.withSpinner(btn, () =>
+        API.put('/api/modes/_profile', { sections: sectionsPayload }));
+      UI.toast(t('config.modesSaved', 'modes/_profile.md saved') +
+        (r.sanitized ? ` (${t('config.sanitized', 'sanitized')})` : ''), 'success');
+      modesScaffolded = false;
+      modesLoaded = false;
+      await loadModesTab();
+    } catch (e) {
+      UI.toast((e && e.message) || 'failed to save', 'error');
+    }
+  }
+
+  // Raw-markdown escape hatch (add/remove sections, preamble edits).
+  async function saveModesRaw(btn) {
     if (!modesTextarea.value.trim()) {
       UI.toast(t('config.modesEmpty', 'modes/_profile.md is empty'), 'error');
       return;
@@ -479,6 +536,8 @@ Router.register('config', async () => {
       UI.toast(t('config.modesSaved', 'modes/_profile.md saved') +
         (r.sanitized ? ` (${t('config.sanitized', 'sanitized')})` : ''), 'success');
       modesScaffolded = false;
+      modesLoaded = false;
+      await loadModesTab();
     } catch (e) {
       UI.toast((e && e.message) || 'failed to save', 'error');
     }
@@ -488,7 +547,10 @@ Router.register('config', async () => {
     c('p', { style: { color: 'var(--foggy)', fontSize: '13px', margin: '0 0 12px' } },
       t('config.modesHint',
         'modes/_profile.md is your private career framing — never committed to git. Drives every evaluation, deep-research, and outreach prompt.')),
-    modesTextarea,
+    c('p', { style: { color: 'var(--foggy)', fontSize: '12px', margin: '0 0 12px' } },
+      t('config.modesSectionHint',
+        'Each ## section is editable on its own below. Saving merges by section — your preamble and any sections you do not touch are preserved.')),
+    modesSectionHost,
     c('div', { className: 'flex gap-3 mt-3' }, [
       c('button', {
         className: 'btn btn-primary',
@@ -497,6 +559,20 @@ Router.register('config', async () => {
       c('a', { href: 'https://career-ops.org/docs/introduction/what-is-career-ops',
               target: '_blank', rel: 'noopener', className: 'btn btn-ghost' },
         t('config.modesDocsLink', 'Canonical docs ↗')),
+    ]),
+    c('details', { style: { marginTop: '18px' } }, [
+      c('summary', { style: { fontSize: '13px', fontWeight: 600, cursor: 'pointer', color: 'var(--foggy)' } },
+        t('config.modesRawToggle', 'Advanced: edit raw markdown (add/remove sections, preamble)')),
+      c('p', { style: { color: 'var(--foggy)', fontSize: '12px', margin: '8px 0' } },
+        t('config.modesRawHint',
+          'Full-file editor. Use to add or remove ## sections or edit the preamble. Replaces the whole file on save.')),
+      modesTextarea,
+      c('div', { className: 'flex gap-3 mt-3' }, [
+        c('button', {
+          className: 'btn btn-ghost',
+          onClick: (e) => saveModesRaw(e.currentTarget),
+        }, '💾 ' + t('config.modesRawSave', 'Save raw markdown')),
+      ]),
     ]),
   ]);
 

@@ -330,7 +330,13 @@ Three tabs:
 2. **Profile** — **field-by-field form** over `config/profile.yml`
    (web-ui 1.32.0). Save **merges** into the file — your archetypes,
    proof points, and any custom keys are preserved untouched.
-3. **Modes** — free-form markdown editor for `modes/_profile.md`.
+3. **Modes** — **per-section editor** for `modes/_profile.md`
+   (web-ui 1.36.0). Each `##` heading is its own collapsible textarea;
+   Save **merges by section** — the preamble and any sections you
+   don't touch are preserved byte-for-byte (it's a prompt-engineering
+   doc with tables + prose, so section granularity, not field
+   decomposition). An *Advanced: raw markdown* disclosure remains for
+   adding/removing sections or editing the preamble.
 
 A save in any tab propagates immediately — no server restart.
 

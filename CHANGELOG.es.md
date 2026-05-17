@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.36.0] — 2026-05-17
+
+**WS6.3 — pestaña Modes: blob crudo → editor por secciones. WS6 completo.** `modes/_profile.md` se edita por sección `##` (un textarea plegable por encabezado). Server `splitProfileSections` byte-exacto; `PUT { sections }` fusiona solo las secciones nombradas — preámbulo + secciones ajenas + orden se conservan byte a byte. Encabezado desconocido → 400. Ruta raw `{ markdown }` intacta. i18n 5 claves ×8. help §2 ×8. 6 tests nuevos. 604 → 610. WS6 cerrado (API-keys/Profile-escalares/Profile-arrays/Modes-secciones todo estructurado). Detalle en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.35.0] — 2026-05-17
 
 **WS6.4 — editores de arrays del Profile + auditoría WS6.2 de API-keys.** `PUT /api/profile` acepta `{ arrays }` (combinable con `{ fields }`): Target roles/Superpowers (listas), Archetypes (name/level/fit), Proof points (name/url/hero-metric). Misma garantía merge-not-replace; filas vacías descartadas; lista vacía elimina la clave. 4 editores add/remove en #/config. i18n 6 claves ×8. Auditoría: server KNOWN_KEYS ≡ client FIELDS, sin gap. 7 tests nuevos. 597 → 604. Detalle en [`CHANGELOG.md`](CHANGELOG.md).

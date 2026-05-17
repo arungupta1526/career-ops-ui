@@ -8,6 +8,12 @@
 
 ---
 
+## [1.36.0] — 2026-05-17
+
+**WS6.3 — Modes 탭: 원본 덩어리 → 섹션별 편집기. WS6 완료.** `modes/_profile.md`를 `##` 섹션별 편집(헤딩마다 접이식 textarea). 서버 `splitProfileSections` 바이트 정확; `PUT { sections }`는 지정 섹션만 병합 — 프리앰블·타 섹션·순서 바이트 단위 보존. 미지 헤딩 → 400. raw 경로 유지. i18n 5키 ×8. help §2 ×8. 신규 테스트 6. 604 → 610. WS6 종료. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.35.0] — 2026-05-17
 
 **WS6.4 — Profile 배열 에디터 + WS6.2 API-keys 감사.** `PUT /api/profile`가 `{ arrays }` 수용(`{ fields }`와 결합 가능): Target roles/Superpowers(목록), Archetypes(name/level/fit), Proof points(name/url/hero-metric). 동일 merge-not-replace; 빈 행 제거; 빈 목록은 키 삭제. #/config에 add/remove 에디터 4개. i18n 6키 ×8. 감사: KNOWN_KEYS ≡ FIELDS, 갭 없음. 신규 테스트 7. 597 → 604. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

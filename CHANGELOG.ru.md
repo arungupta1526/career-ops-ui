@@ -8,6 +8,12 @@
 
 ---
 
+## [1.36.0] — 2026-05-17
+
+**WS6.3 — вкладка Modes: сырой блоб → посекционный редактор. WS6 завершён.** `modes/_profile.md` правится по `##`-секциям (свой сворачиваемый textarea на заголовок). Серверный `splitProfileSections` байт-точен; `PUT { sections }` мёржит только названные секции — преамбула + чужие секции + порядок сохраняются байт-в-байт. Неизвестный заголовок → 400. Raw-путь без изменений. i18n 5 ключей ×8. help §2 ×8. +6 тестов. 604 → 610. WS6 закрыт (API-keys/Profile-скаляры/Profile-массивы/Modes-секции — всё структурировано). Подробно — [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.35.0] — 2026-05-17
 
 **WS6.4 — редакторы массивов Profile + аудит WS6.2 API-keys.** `PUT /api/profile` принимает `{ arrays }` (комбинируется с `{ fields }`): Target roles/Superpowers (списки), Archetypes (name/level/fit), Proof points (name/url/hero-metric). Та же гарантия merge-not-replace; пустые строки отброшены; пустой список удаляет ключ. 4 add/remove-редактора в #/config. i18n 6 ключей ×8. Аудит: KNOWN_KEYS ≡ FIELDS, гэпа нет. +7 тестов. 597 → 604. Подробно — [`CHANGELOG.md`](CHANGELOG.md).

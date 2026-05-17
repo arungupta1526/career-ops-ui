@@ -327,6 +327,8 @@ reiniciar el servidor.
 
 > **v1.32.0 — formulario por campos.** La pestaña Profile ya no es un textarea de YAML crudo: ahora es un formulario con secciones plegables **Candidato / Narrativa / Compensación**. Al guardar se envían solo las 14 rutas escalares modeladas; el servidor **fusiona** en `config/profile.yml`, así que tus `archetypes`, `proof_points` y claves propias **se conservan intactos**. Compromiso: el guardado por campos re-serializa el YAML y **pierde los comentarios `#`** — usa el desplegable **Advanced: edit raw YAML** al final de la pestaña para preservarlos o editar arrays anidados.
 > **v1.35.0 — editores de arrays.** Editores add/remove para **Target roles** y **Superpowers** (listas de texto), **Archetypes** (name/level/fit) y **Proof points** (name/url/hero-metric). Misma garantía merge-not-replace; vaciar una lista elimina la clave limpiamente.
+> **v1.36.0 — pestaña Modes por secciones.** `modes/_profile.md` ahora se edita por sección (`##`): un textarea plegable por encabezado. Guardar **fusiona por sección** — preámbulo y secciones intactas se conservan byte a byte. Desplegable *Advanced: raw markdown* para añadir/quitar secciones.
+
 
 
 
