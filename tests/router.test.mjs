@@ -25,7 +25,10 @@ test('router: ALIASES maps portals → config (WS2 #2 dead-route fix)', () => {
   // `#/portals` was an unregistered route → 404. It now aliases to the
   // config view, which detects the hash and deep-links to the Regional
   // sources group. Guards against a future refactor regressing it.
-  assert.match(SRC, /ALIASES\s*=\s*\{[^}]*portals\s*:\s*['"]config['"]/s);
+  // Anchored on the entry alone (not `[^}]*`, which a future nested
+  // object / brace in ALIASES would silently break).
+  assert.match(SRC, /\bportals\s*:\s*['"]config['"]/);
+  assert.match(SRC, /const\s+ALIASES\s*=\s*\{/);
 });
 
 test('router: nav highlight handles both alias name and resolved route', () => {

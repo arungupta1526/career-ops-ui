@@ -8,12 +8,9 @@ window.Router = (function () {
   // resolves so existing bookmarks keep working.
   const ALIASES = {
     settings: 'profile',
-    // v1.42.0 (WS2 UX-audit HIGH #2) — `#/portals` was an unregistered
-    // route → dead 404, even though the help docs point users there to
-    // edit portal sources. Portal/source management lives in the config
-    // view's "Regional sources" group, so alias it there (the view
-    // detects the `#/portals` hash and force-opens + scrolls to that
-    // group). Same bookmark-stability pattern as settings→profile.
+    // WS2 #2: #/portals was an unregistered route → 404. Alias it to
+    // config (which deep-links to the Regional-sources group on that
+    // hash); same bookmark-stability pattern as settings→profile.
     portals: 'config',
   };
 

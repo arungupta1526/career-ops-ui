@@ -399,10 +399,8 @@ Router.register('config', async () => {
     runtime: t('config.groupRuntime', 'Runtime'),
     regional: t('config.groupRegional', 'Regional sources'),
   }[g] || g);
-  // v1.42.0 (WS2 #2) — arriving via the `#/portals` alias: if a Regional
-  // sources group exists, force it visible + open and scroll to it after
-  // mount (see end of view). Never render an EMPTY regional group just
-  // because of the alias — the alias alone already kills the old 404.
+  // WS2 #2: via the #/portals alias, force-open Regional sources if it
+  // exists (never render an empty group — the alias alone kills the 404).
   const viaPortals = (window.location.hash || '').toLowerCase().startsWith('#/portals');
   const renderGroup = (g, fields, opts = {}) => {
     if (!fields.length) return null;
@@ -677,12 +675,15 @@ Router.register('config', async () => {
   // (overriding the router's default h1 focus) so a user who typed/
   // bookmarked #/portals lands exactly on the portal-source controls.
   if (viaPortals) {
+    // rAF fires after the router's synchronous focusNewView(h1), so this
+    // override reliably wins. <summary> is natively focusable — do NOT
+    // add tabindex=-1 (that would strip it from the Tab order, a WCAG
+    // regression: the user could no longer Tab back to collapse it).
     requestAnimationFrame(() => {
       const reg = root.querySelector('#cfg-regional');
       if (!reg) return;
       reg.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      const sum = reg.querySelector('summary');
-      if (sum) { sum.setAttribute('tabindex', '-1'); sum.focus({ preventScroll: true }); }
+      reg.querySelector('summary')?.focus({ preventScroll: true });
     });
   }
 
