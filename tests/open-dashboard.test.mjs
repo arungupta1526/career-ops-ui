@@ -22,22 +22,39 @@ test('dashboardUrl: honors PORT', () => {
   assert.equal(dashboardUrl({ PORT: '8080' }), 'http://127.0.0.1:8080/');
 });
 
-test('dashboardUrl: 0.0.0.0 bind → 127.0.0.1 for the browser', () => {
-  // The server may bind 0.0.0.0 (LAN) but a browser cannot open that —
-  // it must be rewritten to loopback.
-  assert.equal(dashboardUrl({ HOST: '0.0.0.0', PORT: '4317' }), 'http://127.0.0.1:4317/');
+test('dashboardUrl: wildcard binds → 127.0.0.1 (0.0.0.0 / :: / [::])', () => {
+  // A server bound to a wildcard is unreachable as a URL — must be
+  // rewritten to loopback so the browser can actually open it.
+  for (const h of ['0.0.0.0', '::', '[::]', '0:0:0:0:0:0:0:0', '']) {
+    assert.equal(dashboardUrl({ HOST: h, PORT: '4317' }), 'http://127.0.0.1:4317/', `HOST=${h}`);
+  }
 });
 
 test('dashboardUrl: explicit HOST is preserved', () => {
   assert.equal(dashboardUrl({ HOST: '192.168.1.50', PORT: '4317' }), 'http://192.168.1.50:4317/');
 });
 
-test('openAndRaise: returns the platform key it routed through', async () => {
-  // spawn() targets (open/osascript/xdg-open) are absent or no-op in CI;
-  // we only assert the platform branch selection, not real activation.
-  assert.equal(await openAndRaise('http://127.0.0.1:4317/', 'darwin'), 'darwin');
-  assert.equal(await openAndRaise('http://127.0.0.1:4317/', 'win32'), 'win32');
-  assert.equal(await openAndRaise('http://127.0.0.1:4317/', 'linux'), 'linux');
+test('openAndRaise: routes per platform with an injected runner (no real spawn)', async () => {
+  // CRITICAL: a bare `npm test` must never pop a browser. The runner is
+  // dependency-injected so we assert routing + the commands that WOULD
+  // run, with zero process spawns.
+  const mk = () => { const calls = []; return [calls, (c, a) => { calls.push([c, a.join(' ')]); return Promise.resolve(true); }]; };
+
+  const [mac, rMac] = mk();
+  assert.equal(await openAndRaise('http://127.0.0.1:4317/', 'darwin', rMac), 'darwin');
+  assert.deepEqual(mac[0], ['open', 'http://127.0.0.1:4317/']);
+  assert.equal(mac[1][0], 'osascript');
+  assert.match(mac[1][1], /Google Chrome[\s\S]*Safari[\s\S]*Firefox/);
+
+  const [win, rWin] = mk();
+  assert.equal(await openAndRaise('http://127.0.0.1:4317/', 'win32', rWin), 'win32');
+  assert.deepEqual(win[0], ['cmd', '/c start  http://127.0.0.1:4317/']);
+
+  const [lin, rLin] = mk();
+  assert.equal(await openAndRaise('http://127.0.0.1:4317/', 'linux', rLin), 'linux');
+  assert.deepEqual(lin[0], ['xdg-open', 'http://127.0.0.1:4317/']);
+  assert.ok(lin.slice(1).every(([c]) => c === 'wmctrl'), 'linux raise tries wmctrl titles');
+  assert.ok(lin.length > 2, 'linux tries multiple browser titles, not just Firefox');
 });
 
 test('waitForHealth: returns false fast against a dead port (bounded)', async () => {

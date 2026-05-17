@@ -1,34 +1,18 @@
 #!/usr/bin/env node
-/**
- * WS8 follow-up (v1.43.0, user-requested) — open AND raise the
- * career-ops-ui dashboard in the default browser.
- *
- * The old `bin/start.sh` autostart just ran `open <url>` / `xdg-open`.
- * When the browser is already running with many tabs, the new tab can
- * land in the background and the browser window is not brought to the
- * front — the user has to hunt for it. This script:
- *
- *   1. Builds the dashboard URL from HOST/PORT (defaults 127.0.0.1:4317).
- *   2. Optionally waits for `/api/health` to answer (so the standalone
- *      `career-ops-ui open` works even while the server is still booting).
- *   3. Opens the URL in the default browser, then BEST-EFFORT activates
- *      (raises to the foreground) whichever common browser is running —
- *      macOS via `osascript`, Linux via `wmctrl`/`xdg-open`, Windows via
- *      `start`. Every raise step is best-effort and never throws.
- *   4. Always prints the URL so the terminal is a reliable fallback.
- *
- * Usage:
- *   node scripts/open-dashboard.mjs           # wait ≤12s for health, then open+raise
- *   node scripts/open-dashboard.mjs --no-wait # open immediately (server assumed up)
- *   career-ops-ui open                        # same, via the CLI dispatcher
- *   PORT=8080 career-ops-ui open
- */
+// v1.43.0 (user-requested) — open AND raise the dashboard browser tab.
+// bare `open`/`xdg-open` left it in the background; rationale + usage in
+// CHANGELOG [1.43.0]. Flags: `--no-wait` skips the /api/health poll.
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const WILDCARD_HOSTS = new Set(['', '0.0.0.0', '::', '[::]', '0:0:0:0:0:0:0:0']);
+
 export function dashboardUrl(env = process.env) {
-  const host = env.HOST && env.HOST !== '0.0.0.0' ? env.HOST : '127.0.0.1';
+  // A server bound to a wildcard (0.0.0.0 / :: / [::]) is unreachable as
+  // a URL — rewrite to loopback so the browser can actually open it.
+  const raw = (env.HOST || '').trim();
+  const host = WILDCARD_HOSTS.has(raw) ? '127.0.0.1' : raw;
   const port = env.PORT || '4317';
   return `http://${host}:${port}/`;
 }
@@ -57,32 +41,28 @@ function run(cmd, args) {
   });
 }
 
-/**
- * Open `url` in the default browser and raise the browser window.
- * Pure side-effect orchestration; returns the platform key used so the
- * behaviour is unit-assertable without launching a real browser.
- */
-export async function openAndRaise(url, platform = process.platform) {
+const RAISE_TITLES = ['Google Chrome', 'Brave Browser', 'Microsoft Edge', 'Safari', 'Arc', 'Firefox', 'Chromium'];
+
+// Open `url` in the default browser and raise its window. `runner` is
+// injected so tests assert platform routing with ZERO real spawns (a
+// bare `npm test` must never pop a browser); returns the platform key.
+export async function openAndRaise(url, platform = process.platform, runner = run) {
   if (platform === 'darwin') {
-    // `open` launches/activates the default browser; the osascript pass
-    // then force-activates whichever browser is actually running so the
-    // window comes to the front even if the tab opened in the back.
-    await run('open', [url]);
-    const browsers = ['Google Chrome', 'Brave Browser', 'Microsoft Edge', 'Safari', 'Arc', 'Firefox'];
-    const osa = browsers
+    await runner('open', [url]);
+    const osa = RAISE_TITLES
       .map((b) => `if application "${b}" is running then tell application "${b}" to activate`)
       .join('\n');
-    await run('osascript', ['-e', osa]);
+    await runner('osascript', ['-e', osa]);
     return 'darwin';
   }
   if (platform === 'win32') {
-    await run('cmd', ['/c', 'start', '', url]);
+    await runner('cmd', ['/c', 'start', '', url]);
     return 'win32';
   }
-  // linux / *nix — xdg-open picks the default browser; wmctrl (if present)
-  // raises the browser window to the active desktop.
-  await run('xdg-open', [url]);
-  await run('wmctrl', ['-a', 'Mozilla Firefox']).catch(() => {});
+  // linux / *nix — xdg-open picks the default browser; wmctrl (if
+  // present) raises whichever common browser window exists, in order.
+  await runner('xdg-open', [url]);
+  for (const title of RAISE_TITLES) await runner('wmctrl', ['-a', title]);
   return 'linux';
 }
 
