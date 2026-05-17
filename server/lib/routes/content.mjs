@@ -200,6 +200,50 @@ export function registerContentRoutes(app) {
     'compensation.minimum', 'compensation.location_flexibility',
   ]);
 
+  // v1.35.0 (WS6.4) — structured array editors. Each path maps to an
+  // item shape: 'string' = a list of trimmed strings; otherwise an
+  // allow-list of object sub-keys (every other key on an incoming row
+  // is dropped — the form is the schema). Same merge-not-replace
+  // contract as the scalar `fields` path: only these array leaves are
+  // touched, everything else in profile.yml survives untouched.
+  const PROFILE_ARRAY_SPECS = {
+    'target_roles.primary':     'string',
+    'narrative.superpowers':    'string',
+    'target_roles.archetypes':  ['name', 'level', 'fit'],
+    'narrative.proof_points':   ['name', 'url', 'hero_metric'],
+  };
+
+  function setArray(obj, path, rawValue, spec) {
+    const parts = path.split('.');
+    const leaf = parts.pop();
+    let node = obj;
+    for (const p of parts) {
+      if (node[p] == null || typeof node[p] !== 'object' || Array.isArray(node[p])) node[p] = {};
+      node = node[p];
+    }
+    const arr = Array.isArray(rawValue) ? rawValue : [];
+    let cleaned;
+    if (spec === 'string') {
+      cleaned = arr.map((v) => String(v ?? '').trim()).filter(Boolean);
+    } else {
+      cleaned = arr
+        .map((row) => {
+          if (!row || typeof row !== 'object' || Array.isArray(row)) return null;
+          const out = {};
+          for (const k of spec) {
+            const v = String(row[k] ?? '').trim();
+            if (v) out[k] = v;
+          }
+          return Object.keys(out).length ? out : null;
+        })
+        .filter(Boolean);
+    }
+    // Empty list → remove the leaf so a cleared editor round-trips
+    // cleanly (no `superpowers: []` residue).
+    if (cleaned.length === 0) delete node[leaf];
+    else node[leaf] = cleaned;
+  }
+
   function setDotted(obj, path, value) {
     const parts = path.split('.');
     const leaf = parts.pop();
@@ -220,11 +264,18 @@ export function registerContentRoutes(app) {
 
   app.put('/api/profile', (req, res) => {
     // ── v1.32.0 — field-form merge path: { fields: { "candidate.full_name": … } } ──
-    if (req.body && req.body.fields && typeof req.body.fields === 'object' && !Array.isArray(req.body.fields)) {
-      const incoming = req.body.fields;
+    const hasFields = req.body && req.body.fields && typeof req.body.fields === 'object' && !Array.isArray(req.body.fields);
+    const hasArrays = req.body && req.body.arrays && typeof req.body.arrays === 'object' && !Array.isArray(req.body.arrays);
+    if (hasFields || hasArrays) {
+      const incoming = hasFields ? req.body.fields : {};
+      const incomingArrays = hasArrays ? req.body.arrays : {};
       const badPath = Object.keys(incoming).find((k) => !PROFILE_FIELD_PATHS.has(k));
       if (badPath) {
         return res.status(400).json({ error: `unknown profile field path: ${badPath}` });
+      }
+      const badArrayPath = Object.keys(incomingArrays).find((k) => !(k in PROFILE_ARRAY_SPECS));
+      if (badArrayPath) {
+        return res.status(400).json({ error: `unknown profile array path: ${badArrayPath}` });
       }
       let base = {};
       if (existsSync(PATHS.profile)) {
@@ -242,6 +293,9 @@ export function registerContentRoutes(app) {
         }
       }
       for (const [path, value] of Object.entries(incoming)) setDotted(base, path, value);
+      for (const [path, value] of Object.entries(incomingArrays)) {
+        setArray(base, path, value, PROFILE_ARRAY_SPECS[path]);
+      }
       // Same identity gate as the raw path.
       const okCandidate = base.candidate && typeof base.candidate === 'object'
         && typeof base.candidate.full_name === 'string' && base.candidate.full_name.trim();

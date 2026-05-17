@@ -6,6 +6,37 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.35.0] — 2026-05-17
+
+**WS6.4 — #/config Profile structured array editors + WS6.2 API-keys audit.**
+
+WS1 (v1.32.0) gave the 14 scalar profile fields a form. WS6.4 finishes the job: the list-shaped fields get add/remove-row editors, so the raw-YAML hatch is now truly last-resort.
+
+### ✨ Features
+
+- **`feat(config): profile array editors`**
+  - [`server/lib/routes/content.mjs`](server/lib/routes/content.mjs) — `PUT /api/profile` now also accepts an `{ arrays: { … } }` payload (alongside / combinable with `{ fields }`). Allow-listed paths: `target_roles.primary` + `narrative.superpowers` (string lists), `target_roles.archetypes` (name/level/fit), `narrative.proof_points` (name/url/hero_metric). Object rows keep ONLY allow-listed sub-keys (injected keys dropped); empty rows dropped; an emptied list deletes the leaf. **Same merge-not-replace invariant** — scalars, unknown keys, and untouched arrays survive.
+  - [`public/js/views/config.js`](public/js/views/config.js) — 4 collapsible add/remove-row editors (string-list rows; object rows with per-sub-key inputs). Save sends `{ fields, arrays }` in one request.
+  - i18n: 6 new keys × 8 (`config.pfPrimaryRoles/Superpowers/Archetypes/ProofPoints/AddRow/RemoveRow`).
+- **`audit(config): WS6.2 API-keys tab`** — verified server `KNOWN_KEYS` (ANTHROPIC_API_KEY/MODEL, GEMINI_API_KEY/MODEL, PORT, HOST) ≡ client `FIELDS`. Every recognized `.env` key already has its own labeled input. **No gap — no code change.**
+
+### 📝 Documentation
+
+- help-bundle §2 × 8 locales — Profile-tab section documents the array editors (add/remove rows, drop-empty, merge-not-replace).
+
+### 🧪 Tests
+
+- **`test(config): tests/profile-array-editors.test.mjs`** — 7 cases: string-array merge preserves scalars+unknown-keys, object-array allow-list+drop-empty, empty→leaf-removed, proof_points round-trip, unknown-array-path 400, combined fields+arrays, arrays-only request. 597 → 604.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 604 / 604 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.35.0
+```
+
+---
+
 ## [1.34.0] — 2026-05-17
 
 **WS5 — one-click Auto-pipeline screen (`#/auto`).**

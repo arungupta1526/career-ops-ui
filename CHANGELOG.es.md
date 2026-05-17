@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.35.0] — 2026-05-17
+
+**WS6.4 — editores de arrays del Profile + auditoría WS6.2 de API-keys.** `PUT /api/profile` acepta `{ arrays }` (combinable con `{ fields }`): Target roles/Superpowers (listas), Archetypes (name/level/fit), Proof points (name/url/hero-metric). Misma garantía merge-not-replace; filas vacías descartadas; lista vacía elimina la clave. 4 editores add/remove en #/config. i18n 6 claves ×8. Auditoría: server KNOWN_KEYS ≡ client FIELDS, sin gap. 7 tests nuevos. 597 → 604. Detalle en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.34.0] — 2026-05-17
 
 **WS5 — pantalla Auto-pipeline de un clic (`#/auto`).** El modal de auto-pipeline pasó a una página dedicada y enlazable. Un clic ejecuta validar→obtener→evaluar→guardar informe→tracker vía SSE. Stepper accesible (lista ordenada, `aria-current`, live-region), deep-links a informe/tracker, modo manual sin key, enlazable `#/auto?url=…&go=1`. Entrada en sidebar; botón ✨ del dashboard ahora va aquí. i18n 14 claves ×8. help §1 ×8 + README ×8. 8 tests nuevos. 589 → 597. Detalle en [`CHANGELOG.md`](CHANGELOG.md).

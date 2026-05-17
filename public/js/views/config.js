@@ -223,13 +223,100 @@ Router.register('config', async () => {
 
   const pfFormHost = c('div');
 
+  // ── v1.35.0 (WS6.4) — structured array editors ──
+  // path → { spec: 'string' | [obj-keys], titleKey, title }. Mirrors
+  // the server PROFILE_ARRAY_SPECS allow-list exactly.
+  const PROFILE_ARRAYS = [
+    { path: 'target_roles.primary', spec: 'string',
+      titleKey: 'config.pfPrimaryRoles', title: 'Target roles' },
+    { path: 'narrative.superpowers', spec: 'string',
+      titleKey: 'config.pfSuperpowers', title: 'Superpowers' },
+    { path: 'target_roles.archetypes', spec: ['name', 'level', 'fit'],
+      titleKey: 'config.pfArchetypes', title: 'Archetypes' },
+    { path: 'narrative.proof_points', spec: ['name', 'url', 'hero_metric'],
+      titleKey: 'config.pfProofPoints', title: 'Proof points' },
+  ];
+  const pfArrayReaders = {}; // path → () => current rows
+
+  function makeArrayEditor(arrSpec, profileObj) {
+    const { path, spec } = arrSpec;
+    const cur = getDotted(profileObj, path);
+    const initial = Array.isArray(cur) ? cur : [];
+    const rowsHost = c('div');
+    const rowEls = []; // {read: () => value|null}
+
+    function addRow(seed) {
+      let read;
+      let rowEl;
+      const rm = c('button', {
+        className: 'btn btn-ghost btn-sm',
+        type: 'button',
+        'aria-label': t('config.pfRemoveRow', 'Remove row'),
+        onClick: () => {
+          const i = rowEls.indexOf(holder);
+          if (i >= 0) rowEls.splice(i, 1);
+          rowsHost.removeChild(rowEl);
+        },
+      }, '✕');
+      if (spec === 'string') {
+        const inp = c('input', {
+          className: 'input', type: 'text',
+          'aria-label': t(arrSpec.titleKey, arrSpec.title),
+          style: { flex: '1' },
+        });
+        inp.value = (seed == null) ? '' : String(seed);
+        read = () => inp.value.trim() || null;
+        rowEl = c('div', { className: 'flex gap-3', style: { marginBottom: '8px', alignItems: 'center' } }, [inp, rm]);
+      } else {
+        const inps = {};
+        const cells = spec.map((k) => {
+          const inp = c('input', {
+            className: 'input', type: 'text',
+            'aria-label': `${t(arrSpec.titleKey, arrSpec.title)} — ${k}`,
+            placeholder: k, style: { flex: '1', minWidth: '90px' },
+          });
+          inp.value = (seed && seed[k] != null) ? String(seed[k]) : '';
+          inps[k] = inp;
+          return inp;
+        });
+        read = () => {
+          const o = {};
+          for (const k of spec) { const v = inps[k].value.trim(); if (v) o[k] = v; }
+          return Object.keys(o).length ? o : null;
+        };
+        rowEl = c('div', { className: 'flex gap-3', style: { marginBottom: '8px', flexWrap: 'wrap', alignItems: 'center' } }, [...cells, rm]);
+      }
+      const holder = { read };
+      rowEls.push(holder);
+      rowsHost.appendChild(rowEl);
+    }
+
+    initial.forEach((v) => addRow(v));
+
+    pfArrayReaders[path] = () => rowEls.map((r) => r.read()).filter((v) => v != null);
+
+    return c('details', { open: false, style: { marginBottom: '14px' } }, [
+      c('summary', { style: { fontSize: '14px', fontWeight: 600, cursor: 'pointer', padding: '6px 0' } },
+        t(arrSpec.titleKey, arrSpec.title)),
+      c('div', { style: { paddingTop: '8px' } }, [
+        rowsHost,
+        c('button', {
+          className: 'btn btn-ghost btn-sm', type: 'button',
+          onClick: () => addRow(spec === 'string' ? '' : {}),
+        }, '+ ' + t('config.pfAddRow', 'Add')),
+      ]),
+    ]);
+  }
+
   async function loadProfileTab() {
     if (profileLoaded) return;
     try {
       const data = await API.get('/api/profile');
       const obj = (data && data.profile && typeof data.profile === 'object') ? data.profile : {};
       pfFormHost.innerHTML = '';
+      for (const k of Object.keys(pfArrayReaders)) delete pfArrayReaders[k];
       buildProfileForm(obj).forEach((n) => pfFormHost.appendChild(n));
+      PROFILE_ARRAYS.forEach((a) => pfFormHost.appendChild(makeArrayEditor(a, obj)));
       profileTextarea.value = (data && data.raw) || '';
       profileLoaded = true;
     } catch (e) {
@@ -249,9 +336,11 @@ Router.register('config', async () => {
       pfInputs['candidate.full_name']?.focus();
       return;
     }
+    const arraysPayload = {};
+    for (const [path, read] of Object.entries(pfArrayReaders)) arraysPayload[path] = read();
     try {
       const r = await UI.withSpinner(btn, () =>
-        API.put('/api/profile', { fields: fieldsPayload }));
+        API.put('/api/profile', { fields: fieldsPayload, arrays: arraysPayload }));
       UI.toast(t('config.profileSaved', 'Profile saved') +
         (r.candidate ? ` · ${r.candidate}` : ''), 'success');
       // Re-read so arrays / unknown keys the form doesn't model are

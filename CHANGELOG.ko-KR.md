@@ -8,6 +8,12 @@
 
 ---
 
+## [1.35.0] — 2026-05-17
+
+**WS6.4 — Profile 배열 에디터 + WS6.2 API-keys 감사.** `PUT /api/profile`가 `{ arrays }` 수용(`{ fields }`와 결합 가능): Target roles/Superpowers(목록), Archetypes(name/level/fit), Proof points(name/url/hero-metric). 동일 merge-not-replace; 빈 행 제거; 빈 목록은 키 삭제. #/config에 add/remove 에디터 4개. i18n 6키 ×8. 감사: KNOWN_KEYS ≡ FIELDS, 갭 없음. 신규 테스트 7. 597 → 604. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.34.0] — 2026-05-17
 
 **WS5 — 원클릭 Auto-pipeline 화면(`#/auto`).** 모달이 전용·링크 가능 페이지로 승격. 한 번 클릭으로 검증→가져오기→평가→리포트 저장→트래커(SSE). 접근성 스테퍼, 딥링크, 키 없으면 수동 모드, `#/auto?url=…&go=1` 링크 가능. 사이드바 항목; 대시보드 ✨ 버튼이 여기로. i18n 14키 ×8. help §1 ×8 + README ×8. 신규 테스트 8. 589 → 597. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

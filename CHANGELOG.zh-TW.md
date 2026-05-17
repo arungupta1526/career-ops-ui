@@ -8,6 +8,12 @@
 
 ---
 
+## [1.35.0] — 2026-05-17
+
+**WS6.4 —— Profile 陣列編輯器 + WS6.2 API-keys 稽核。** `PUT /api/profile` 接受 `{ arrays }`(可與 `{ fields }` 組合):Target roles/Superpowers(清單)、Archetypes(name/level/fit)、Proof points(name/url/hero-metric)。相同 merge-not-replace;空列丟棄;空清單刪除鍵。#/config 新增 4 個增刪編輯器。i18n 6 鍵 ×8。稽核:KNOWN_KEYS ≡ FIELDS,無 gap。新增 7 測試。597 → 604。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.34.0] — 2026-05-17
 
 **WS5 —— 一鍵 Auto-pipeline 頁面(`#/auto`)。** 模態升級為獨立可連結頁面。一鍵執行 驗證→擷取→評估→儲存報告→追蹤器(SSE)。無障礙 stepper、深連、無 key 手動模式、可連結 `#/auto?url=…&go=1`。側欄入口;dashboard ✨ 按鈕改到此處。i18n 14 鍵 ×8。help §1 ×8 + README ×8。新增 8 測試。589 → 597。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

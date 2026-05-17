@@ -345,6 +345,13 @@ form, fields grouped into three collapsible sections:
 - **Narrative** — Headline, Exit story.
 - **Compensation** — Target range, Currency, Walk-away minimum,
   Location flexibility.
+- **Structured array editors** (web-ui 1.35.0) — add/remove-row
+  editors for the list-shaped fields, so even these no longer need
+  the raw YAML: **Target roles** + **Superpowers** (string lists);
+  **Archetypes** (name / level / fit rows); **Proof points** (name /
+  url / hero-metric rows). Empty rows are dropped; an emptied list
+  removes the key cleanly. Same merge-not-replace guarantee — every
+  array you don't touch survives untouched.
 
 How the save is safe:
 

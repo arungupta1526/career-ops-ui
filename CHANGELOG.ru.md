@@ -8,6 +8,12 @@
 
 ---
 
+## [1.35.0] — 2026-05-17
+
+**WS6.4 — редакторы массивов Profile + аудит WS6.2 API-keys.** `PUT /api/profile` принимает `{ arrays }` (комбинируется с `{ fields }`): Target roles/Superpowers (списки), Archetypes (name/level/fit), Proof points (name/url/hero-metric). Та же гарантия merge-not-replace; пустые строки отброшены; пустой список удаляет ключ. 4 add/remove-редактора в #/config. i18n 6 ключей ×8. Аудит: KNOWN_KEYS ≡ FIELDS, гэпа нет. +7 тестов. 597 → 604. Подробно — [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.34.0] — 2026-05-17
 
 **WS5 — экран Auto-pipeline в один клик (`#/auto`).** Модалка повышена до отдельной линкуемой страницы. Один клик: валидация→загрузка→оценка→сохранение отчёта→трекер (SSE). Доступный stepper (`aria-current`, live-region), deep-link на отчёт/трекер, ручной режим без ключа, линкуется `#/auto?url=…&go=1`. Пункт в сайдбаре; кнопка ✨ дашборда ведёт сюда. i18n 14 ключей ×8. help §1 ×8 + README ×8. +8 тестов. 589 → 597. Подробно — [`CHANGELOG.md`](CHANGELOG.md).

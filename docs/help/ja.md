@@ -319,6 +319,8 @@ Save 先は `interview-prep/<company>-<role>.md`。
 ### Profile タブ
 
 > **v1.32.0 — 項目別フォーム。** Profile タブは生 YAML の textarea ではなく、**候補者 / ナラティブ / 報酬** の折りたたみセクションを持つフォームになりました。保存時はモデル化された 14 のスカラーパスのみ送信し、サーバが `config/profile.yml` に **マージ** するため、`archetypes`・`proof_points`・独自キーは **そのまま保持** されます。トレードオフ: 項目保存は YAML を再シリアライズするため **`#` コメントは失われます** — 保持や入れ子配列の編集にはタブ下部の **Advanced: edit raw YAML** を使用してください。
+> **v1.35.0 — 配列エディタ。** **Target roles**・**Superpowers**(文字列リスト)、**Archetypes**(name/level/fit)、**Proof points**(name/url/hero-metric)の add/remove エディタを追加。merge-not-replace は同一保証;リストを空にするとキーがクリーンに削除されます。
+
 
 
 - テキストエリアには現在の `config/profile.yml` がそのまま表示

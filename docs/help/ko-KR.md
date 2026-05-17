@@ -310,6 +310,8 @@ Evaluate → Reports → Deep research → Apply checklist → Outreach
 ### Profile 탭
 
 > **v1.32.0 — 항목별 폼.** Profile 탭은 더 이상 원본 YAML textarea가 아니라 **지원자 / 내러티브 / 보상** 접이식 섹션 폼입니다. 저장 시 모델링된 14개 스칼라 경로만 전송하며, 서버가 `config/profile.yml`에 **병합**하므로 `archetypes`·`proof_points`·커스텀 키가 **그대로 보존**됩니다. 트레이드오프: 항목 저장은 YAML을 재직렬화하여 **`#` 주석이 사라집니다** — 보존하거나 중첩 배열을 편집하려면 탭 하단의 **Advanced: edit raw YAML** 디스클로저를 사용하세요.
+> **v1.35.0 — 배열 에디터.** **Target roles**·**Superpowers**(문자열 목록), **Archetypes**(name/level/fit), **Proof points**(name/url/hero-metric)용 add/remove 에디터 추가. 동일한 merge-not-replace 보장; 목록을 비우면 키가 깔끔히 제거됩니다.
+
 
 
 - 텍스트 영역은 현재 `config/profile.yml`을 그대로 보여줍니다.
