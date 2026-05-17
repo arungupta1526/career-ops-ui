@@ -65,6 +65,8 @@ O `setup` executa a cadeia inteira sozinho; os demais verbos também podem ser u
 
 ```bash
 career-ops-ui init --provider claude --anthropic-key sk-ant-… --yes
+career-ops-ui init --provider gemini --gemini-key …       --yes
+career-ops-ui init --provider auto   --openai-key sk-…    --yes   # Codex/OpenCode side
 ```
 
 O provedor que você escolher define `LLM_PROVIDER` (`auto` | `claude` | `gemini`); as rotas ao vivo de evaluate / deep-dive / mode / auto-pipeline do servidor o respeitam. Você pode trocá-lo a qualquer momento em **`#/config` → chaves de API** sem reiniciar.

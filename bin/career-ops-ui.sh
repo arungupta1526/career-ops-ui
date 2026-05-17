@@ -14,6 +14,24 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 WEB_UI="$( cd "$SCRIPT_DIR/.." && pwd )"
 VERB="${1:-help}"; shift || true
 
+# Single source of truth for the usage text — a heredoc, so it can never
+# leak surrounding shell source the way the old `sed -n` line-scrape did
+# (v1.40.0 fix; an off-by-one had printed `set -euo pipefail`).
+usage() {
+  cat <<'USAGE'
+career-ops-ui — unified CLI dispatcher (AutoResearchClaw-style).
+
+  career-ops-ui setup    → one-command bootstrap (bin/setup.sh)
+  career-ops-ui init     → choose LLM provider + set its key (interactive)
+  career-ops-ui doctor   → verify env/tooling/keys (reuses /api/health)
+  career-ops-ui run      → launch the server (bin/start.sh)
+  career-ops-ui help     → this text
+
+One command does the whole chain: `setup` runs install → doctor →
+(unless SKIP_START=1) run. Every verb is also usable standalone.
+USAGE
+}
+
 case "$VERB" in
   setup)
     bash "$SCRIPT_DIR/setup.sh" "$@"
@@ -28,11 +46,11 @@ case "$VERB" in
     node "$WEB_UI/scripts/init.mjs" "$@"
     ;;
   help|-h|--help)
-    sed -n '2,11p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+    usage
     ;;
   *)
     echo "unknown verb: $VERB" >&2
-    sed -n '2,11p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
+    usage >&2
     exit 2
     ;;
 esac

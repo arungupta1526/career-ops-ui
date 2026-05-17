@@ -65,6 +65,8 @@ career-ops-ui help       # 列出所有 verb
 
 ```bash
 career-ops-ui init --provider claude --anthropic-key sk-ant-… --yes
+career-ops-ui init --provider gemini --gemini-key …       --yes
+career-ops-ui init --provider auto   --openai-key sk-…    --yes   # Codex/OpenCode side
 ```
 
 你所选的提供方会设置 `LLM_PROVIDER`(`auto` | `claude` | `gemini`);服务器的实时 evaluate / deep-dive / mode / auto-pipeline 路由都会遵循它。你随时可从 **`#/config` → API 密钥** 更改,无需重启。

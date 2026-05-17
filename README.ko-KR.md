@@ -65,6 +65,8 @@ career-ops-ui help       # 모든 verb 목록 출력
 
 ```bash
 career-ops-ui init --provider claude --anthropic-key sk-ant-… --yes
+career-ops-ui init --provider gemini --gemini-key …       --yes
+career-ops-ui init --provider auto   --openai-key sk-…    --yes   # Codex/OpenCode side
 ```
 
 선택한 프로바이더는 `LLM_PROVIDER`(`auto` | `claude` | `gemini`)를 설정합니다. 서버의 라이브 evaluate / deep-dive / mode / auto-pipeline 라우트가 이를 따릅니다. 재시작 없이 **`#/config` → API 키**에서 언제든 변경할 수 있습니다.

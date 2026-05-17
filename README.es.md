@@ -65,6 +65,8 @@ career-ops-ui help       # lista todos los verbos
 
 ```bash
 career-ops-ui init --provider claude --anthropic-key sk-ant-… --yes
+career-ops-ui init --provider gemini --gemini-key …       --yes
+career-ops-ui init --provider auto   --openai-key sk-…    --yes   # Codex/OpenCode side
 ```
 
 El proveedor que elijas define `LLM_PROVIDER` (`auto` | `claude` | `gemini`); las rutas en vivo de evaluación / deep-dive / mode / auto-pipeline del servidor lo respetan. Puedes cambiarlo en cualquier momento desde **`#/config` → claves API** sin reiniciar.
