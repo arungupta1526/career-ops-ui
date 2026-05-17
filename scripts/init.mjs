@@ -51,22 +51,43 @@ function ask(rl, q) {
   return new Promise((r) => rl.question(q, (a) => r(a.trim())));
 }
 
-/**
- * Like `ask`, but the typed value is NOT echoed to the terminal — so
- * an API key never lands in shell scrollback / screen-share / tmux
- * history. (Acts on the v1.39.0 AI-review nit.) Falls back to plain
- * `ask` when stdin is not a TTY (piped / CI).
- */
+// Like `ask`, but raw-mode reads the key so it NEVER reaches the
+// terminal (no echo at all → safe from scrollback / tmux / screen-share,
+// paste-safe). Falls back to plain `ask` when stdin is not a TTY.
 function askSecret(rl, q) {
-  if (!process.stdin.isTTY) return ask(rl, q);
-  return new Promise((r) => {
-    const onData = (ch) => {
-      const s = ch.toString('utf8');
-      if (s === '\n' || s === '\r' || s === '') process.stdin.removeListener('data', onData);
-      else process.stdout.write('\x1b[2K\x1b[200D' + q + '*'.repeat(rl.line.length));
+  const stdin = process.stdin;
+  if (!stdin.isTTY) return ask(rl, q);
+  return new Promise((resolve) => {
+    process.stdout.write(q);
+    rl.pause();
+    const wasRaw = stdin.isRaw;
+    stdin.setRawMode(true);
+    stdin.resume();
+    let buf = '';
+    const onData = (chunk) => {
+      for (const ch of chunk.toString('utf8')) {
+        if (ch === '\n' || ch === '\r') {
+          stdin.removeListener('data', onData);
+          stdin.setRawMode(wasRaw);
+          process.stdout.write('\n');
+          rl.resume();
+          resolve(buf.trim());
+          return;
+        }
+        if (ch === '') {                       // Ctrl-C
+          stdin.setRawMode(wasRaw);
+          process.stdout.write('\n');
+          process.exit(130);
+        }
+        if (ch === '' || ch === '\b') {        // Backspace
+          if (buf.length) { buf = buf.slice(0, -1); process.stdout.write('\b \b'); }
+        } else if (ch >= ' ') {                      // printable → mask
+          buf += ch;
+          process.stdout.write('*');
+        }
+      }
     };
-    process.stdin.on('data', onData);
-    rl.question(q, (a) => { process.stdin.removeListener('data', onData); process.stdout.write('\n'); r(a.trim()); });
+    stdin.on('data', onData);
   });
 }
 
