@@ -8,6 +8,12 @@
 
 ---
 
+## [1.42.0] — 2026-05-18
+
+**WS2 修正 #2 — デッドルート `#/portals` → config ディープリンク。** `#/portals` は未登録ルートで 404 ビューを描画していたが、ポータルソース管理用にブックマーク/手入力されうる妥当な URL だった(UX 監査 HIGH #2)。`fix(router): #/portals 404 → alias to config + Regional-sources deep-link` — `router.js` の `ALIASES` に `portals: 'config'` を追加(`settings→profile` と同じブックマーク安定化パターン)、これで config ビューに解決され **config** ナビ項目がアクティブになる。Regional-sources グループが存在する場合、ビュー(`config.js`)が `#/portals` ハッシュを検出し、その `<details>` グループを強制展開・スクロール表示し、その summary にフォーカスを移動(既定の h1 フォーカスを上書き)、ユーザーはポータルソース操作部にちょうど着地する;エイリアス単独で空の地域グループを描画することはない。help-bundle §5 × 8 にショートカット注記を追加;router テスト +1:`test(router): portals→config alias guarantee` を `router.test.mjs` に追加、635 → 636。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.41.0] — 2026-05-18
 
 **WS2 — シニア UX/ユーザビリティ監査 + 横断的フォーカス管理修正。** 10 年以上のヒューリスティック監査(Nielsen × WCAG 2.2 AA × プロジェクト規約)で全 17 ルートを精査し、重大度順の 40 件キューを生成(`.planning/.../UX-AUDIT.md`);HIGH→MEDIUM→LOW をリリースごとに 1 修正ずつ出荷。本リリースは横断的 HIGH の第 1 位に着地。修正: `fix(a11y): move focus to the new view on every route change` — `router.js render()` は hashchange ごとに `#content` を差し替えるがフォーカスを移動しなかったため、キーボード/スクリーンリーダー利用者が破棄されたノードに取り残され位置を失っていた(WCAG 2.4.3 Focus Order / 4.1.3 Status Messages — 横断的で全 17 画面に影響);新しい `focusNewView(content)` が新ビュー先頭の `h1`/`.page-title` にフォーカス(簡潔な SR アナウンス + 正しいフォーカス順)、必要なら見出しをフォーカス可能化(`tabindex=-1`)し `#content` にフォールバック;skip-link と競合しないよう初回描画はスキップ;成功・エラー両レンダパスに配線;ライブ検証済み:遷移後 `document.activeElement` は新ビューの `H1.page-title`。テスト: `test(router): focus-management static guarantees` — `router.test.mjs` に 4 ケース(ヘルパ定義、見出しターゲット + content フォールバック、初回描画スキップガード、≥2 呼び出し箇所);631 → 635。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

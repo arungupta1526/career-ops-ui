@@ -21,6 +21,13 @@ test('router: ALIASES table maps settings → profile (v1.10.0 rename)', () => {
   assert.match(SRC, /ALIASES\s*=\s*\{[^}]*settings\s*:\s*['"]profile['"]/s);
 });
 
+test('router: ALIASES maps portals → config (WS2 #2 dead-route fix)', () => {
+  // `#/portals` was an unregistered route → 404. It now aliases to the
+  // config view, which detects the hash and deep-links to the Regional
+  // sources group. Guards against a future refactor regressing it.
+  assert.match(SRC, /ALIASES\s*=\s*\{[^}]*portals\s*:\s*['"]config['"]/s);
+});
+
 test('router: nav highlight handles both alias name and resolved route', () => {
   // The nav-active toggle should compare against EITHER `name` or `rawName`,
   // otherwise #/profile would not light up the Profile sidebar item.

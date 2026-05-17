@@ -440,6 +440,10 @@ SPA 的三个章节与
 [scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
 中 career-ops.org 的权威 schema 一一对应。
 
+> **快捷方式:** `#/portals` URL 现在会直接解析到 **App settings**,
+> 并且(在配置了地区来源时)跳转到 **Regional sources** 分组 —
+> 因此收藏或手动输入的 `#/portals` 链接不再返回 404(v1.42.0)。
+
 ### `title_filter`
 
 ```yaml

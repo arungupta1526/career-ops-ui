@@ -479,6 +479,11 @@ Health 페이지는 `full_name`이 알려진 자리표시자 이름과 일치하
 [scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
 의 career-ops.org 정식 스키마와 1:1로 일치합니다.
 
+> **단축 경로:** 이제 `#/portals` URL은 곧바로 **App settings**로
+> 해석되며, (지역 소스가 구성된 경우) **Regional sources** 그룹으로
+> 점프합니다 — 그래서 북마크했거나 직접 입력한 `#/portals` 링크가
+> 더 이상 404가 나지 않습니다 (v1.42.0).
+
 ### `title_filter`
 
 ```yaml

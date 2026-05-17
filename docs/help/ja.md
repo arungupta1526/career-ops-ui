@@ -493,6 +493,11 @@ Health ページは **Profile customized** チェックを表示し、
 [scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
 の正規スキーマと 1:1 で対応します。
 
+> **ショートカット:** `#/portals` URL は **App settings** に直接
+> 解決されるようになり、(地域ソースが設定されている場合は)
+> **Regional sources** グループへジャンプします — ブックマークや
+> 手入力した `#/portals` リンクはもう 404 になりません (v1.42.0)。
+
 ### `title_filter`
 
 ```yaml

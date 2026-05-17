@@ -399,12 +399,19 @@ Router.register('config', async () => {
     runtime: t('config.groupRuntime', 'Runtime'),
     regional: t('config.groupRegional', 'Regional sources'),
   }[g] || g);
+  // v1.42.0 (WS2 #2) — arriving via the `#/portals` alias: if a Regional
+  // sources group exists, force it visible + open and scroll to it after
+  // mount (see end of view). Never render an EMPTY regional group just
+  // because of the alias — the alias alone already kills the old 404.
+  const viaPortals = (window.location.hash || '').toLowerCase().startsWith('#/portals');
   const renderGroup = (g, fields, opts = {}) => {
     if (!fields.length) return null;
-    if (g === 'regional' && !regionalActive && !opts.forceVisible) return null;
+    const portalsFocus = g === 'regional' && viaPortals;
+    if (g === 'regional' && !regionalActive && !opts.forceVisible && !portalsFocus) return null;
     return c('details', {
-      open: g !== 'regional',
+      open: g !== 'regional' || portalsFocus,
       style: { marginBottom: '16px' },
+      ...(g === 'regional' ? { id: 'cfg-regional' } : {}),
     }, [
       c('summary', { style: { fontSize: '14px', fontWeight: 600, cursor: 'pointer', padding: '6px 0' } },
         groupTitle(g)),
@@ -663,6 +670,20 @@ Router.register('config', async () => {
                 : want === profileLabel ? profilePanel
                 : apiPanel;
     activate(want, panel);
+  }
+
+  // v1.42.0 (WS2 #2) — when reached via the `#/portals` alias, scroll
+  // the Regional sources group into view and move focus to its summary
+  // (overriding the router's default h1 focus) so a user who typed/
+  // bookmarked #/portals lands exactly on the portal-source controls.
+  if (viaPortals) {
+    requestAnimationFrame(() => {
+      const reg = root.querySelector('#cfg-regional');
+      if (!reg) return;
+      reg.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const sum = reg.querySelector('summary');
+      if (sum) { sum.setAttribute('tabindex', '-1'); sum.focus({ preventScroll: true }); }
+    });
   }
 
   return root;

@@ -501,6 +501,11 @@ padre. Tres secciones importan. Las tres secciones del SPA (abajo)
 coinciden 1:1 con el schema canónico de career-ops.org de
 [scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals).
 
+> **Atajo:** la URL `#/portals` ahora resuelve directamente a **App
+> settings** y (cuando hay una fuente regional configurada) salta al
+> grupo **Regional sources** — así un enlace `#/portals` marcado o
+> tecleado ya no da 404 (v1.42.0).
+
 ### `title_filter`
 
 ```yaml

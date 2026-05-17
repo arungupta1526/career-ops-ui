@@ -503,6 +503,11 @@ o schema canônico de career-ops.org de
 [scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
 1:1.
 
+> **Atalho:** a URL `#/portals` agora resolve direto para **App
+> settings** e (quando há uma fonte regional configurada) salta para
+> o grupo **Regional sources** — então um link `#/portals` salvo nos
+> favoritos ou digitado não dá mais 404 (v1.42.0).
+
 ### `title_filter`
 
 ```yaml

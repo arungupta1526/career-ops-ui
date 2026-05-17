@@ -532,6 +532,11 @@ career-ops.org schema from
 [scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
 1:1.
 
+> **Shortcut:** the `#/portals` URL now resolves straight to **App
+> settings** and (when a regional source is configured) jumps to the
+> **Regional sources** group — so a bookmarked or typed `#/portals`
+> link no longer 404s (v1.42.0).
+
 ### `title_filter`
 
 ```yaml

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.42.0] — 2026-05-18
+
+**WS2 수정 #2 — 죽은 라우트 `#/portals` → config 딥링크.** `#/portals`는 미등록 라우트로 404 뷰를 렌더링했지만, 포털 소스 관리를 위해 북마크/직접 입력될 수 있는 타당한 URL이었음(UX 감사 HIGH #2). `fix(router): #/portals 404 → alias to config + Regional-sources deep-link` — `router.js`의 `ALIASES`에 `portals: 'config'`를 추가(`settings→profile`과 동일한 북마크 안정성 패턴), 이제 config 뷰로 해석되며 **config** 내비 항목이 활성화됨. Regional-sources 그룹이 존재하면 뷰(`config.js`)가 `#/portals` 해시를 감지해 해당 `<details>` 그룹을 강제로 펼치고 화면에 스크롤한 뒤 그 summary로 포커스를 이동(기본 h1 포커스를 재정의)하므로, 사용자는 포털 소스 컨트롤에 정확히 착지함; 별칭만으로 빈 지역 그룹을 렌더링하지 않음. help-bundle §5 × 8에 단축 경로 안내 추가; 라우터 테스트 +1: `test(router): portals→config alias guarantee`를 `router.test.mjs`에 추가, 635 → 636. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.41.0] — 2026-05-18
 
 **WS2 — 시니어 UX/사용성 감사 + 횡단 포커스 관리 수정.** 10년 이상의 휴리스틱 감사(Nielsen × WCAG 2.2 AA × 프로젝트 규약)로 전체 17개 라우트를 점검해 심각도 순 40건 큐를 생성(`.planning/.../UX-AUDIT.md`); HIGH→MEDIUM→LOW를 릴리스마다 한 건씩 수정 출시. 이번 릴리스는 횡단 HIGH 1순위에 착지. 수정: `fix(a11y): move focus to the new view on every route change` — `router.js render()`가 hashchange마다 `#content`를 교체했지만 포커스를 옮기지 않아, 키보드/스크린 리더 사용자가 파괴된 노드에 남아 위치를 잃었음(WCAG 2.4.3 Focus Order / 4.1.3 Status Messages — 횡단적이며 17개 화면 모두에 영향); 새 `focusNewView(content)`가 새 뷰의 첫 `h1`/`.page-title`에 포커스(간결한 SR 안내 + 올바른 포커스 순서), 필요 시 헤딩을 포커스 가능하게(`tabindex=-1`) 만들고 `#content`로 폴백; skip-link와 충돌하지 않도록 첫 페인트는 건너뜀; 성공·오류 양 렌더 경로에 배선; 라이브 검증 완료: 내비 후 `document.activeElement`는 새 뷰의 `H1.page-title`. 테스트: `test(router): focus-management static guarantees` — `router.test.mjs`에 4개 케이스(헬퍼 정의, 헤딩 타깃 + content 폴백, 첫 페인트 스킵 가드, ≥2 호출 지점); 631 → 635. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

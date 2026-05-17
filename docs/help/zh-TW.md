@@ -443,6 +443,10 @@ SPA 的三個區塊(下方)與
 [scan-job-portals](https://career-ops.org/docs/introduction/guides/scan-job-portals)
 中 career-ops.org 的正式 schema 一一對應。
 
+> **捷徑:** `#/portals` URL 現在會直接解析到 **App settings**,
+> 並且(在已設定區域來源時)跳轉到 **Regional sources** 群組 —
+> 因此書籤或手動輸入的 `#/portals` 連結不再回傳 404(v1.42.0)。
+
 ### `title_filter`
 
 ```yaml

@@ -6,6 +6,32 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.42.0] — 2026-05-18
+
+**WS2 fix #2 — `#/portals` dead-route → config deep-link.**
+
+### 🐛 Fixes
+
+- **`fix(router): #/portals 404 → alias to config + Regional-sources deep-link`** — `#/portals` was an unregistered route that rendered the 404 view, even though it is a plausible bookmarked/typed URL for portal-source management (UX-audit HIGH #2). Added `portals: 'config'` to `router.js` `ALIASES` (same bookmark-stability pattern as `settings→profile`), so it now resolves to the config view with the **config** nav item active. When a Regional-sources group exists, the view (`config.js`) detects the `#/portals` hash, force-opens that `<details>` group, scrolls it into view, and moves focus to its summary (overriding the default h1 focus) so the user lands exactly on the portal-source controls. Never renders an empty regional group from the alias alone. Verified live: `#/portals` → config view, `is404:false`, active nav = config, 0 console errors.
+
+### 🧪 Tests
+
+- **`test(router): portals→config alias guarantee`** — `router.test.mjs` static assertion guarding the new ALIASES entry against future-refactor regression. 635 → 636.
+
+### 📝 Documentation
+
+- help-bundle §5 × 8 — a "Shortcut" blockquote noting `#/portals` now resolves to App settings / Regional sources instead of 404ing. H2-section parity preserved (17 each).
+
+### Verification
+
+```bash
+$ npm test
+# 636 / 636
+# Playwright: #/portals → {h1:"App settings", is404:false, activeNav:"config"} · 0 console errors
+```
+
+---
+
 ## [1.41.0] — 2026-05-18
 
 **WS2 — senior UX/usability audit + cross-cutting focus-management fix.**

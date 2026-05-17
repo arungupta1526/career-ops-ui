@@ -8,6 +8,12 @@
 
 ---
 
+## [1.42.0] — 2026-05-18
+
+**WS2 修复 #2 —— 死路由 `#/portals` → config 深链。** `#/portals` 是一条未注册路由,会渲染 404 视图,尽管它是用于管理门户来源时合理的书签/手输 URL(UX 审计 HIGH 第 2 项)。`fix(router): #/portals 404 → alias to config + Regional-sources deep-link` —— 在 `router.js` 的 `ALIASES` 中新增 `portals: 'config'`(与 `settings→profile` 相同的书签稳定性模式),现在它解析为 config 视图且 **config** 导航项处于激活态。当存在 Regional-sources 分组时,视图(`config.js`)检测 `#/portals` 哈希,强制展开该 `<details>` 分组、滚动至可见区并将焦点移至其 summary(覆盖默认的 h1 焦点),使用户恰好落在门户来源控件上;绝不会仅凭别名渲染空的地区分组。help-bundle §5 × 8 新增一条快捷方式提示;router 测试 +1:`test(router): portals→config alias guarantee` 加入 `router.test.mjs`,635 → 636。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.41.0] — 2026-05-18
 
 **WS2 —— 资深 UX/可用性审计 + 横切焦点管理修复。** 一次 10 年以上经验的启发式审计(Nielsen × WCAG 2.2 AA × 项目约定)审查了全部 17 条路由,产出一份按严重度排序的 40 项发现队列(`.planning/.../UX-AUDIT.md`);HIGH→MEDIUM→LOW 现按每个发布一项修复逐一交付。本次发布落地横切 HIGH 第 1 名。修复:`fix(a11y): move focus to the new view on every route change` —— `router.js render()` 在每次 hashchange 替换 `#content` 却从不移动焦点,因此键盘/屏幕阅读器用户停留在被销毁的节点上而丢失位置(WCAG 2.4.3 Focus Order / 4.1.3 Status Messages —— 横切,影响全部 17 个屏幕);新的 `focusNewView(content)` 聚焦新视图首个 `h1`/`.page-title`(简洁的 SR 播报 + 正确的焦点顺序),必要时令标题可聚焦(`tabindex=-1`)并回退到 `#content`;跳过最初一次绘制以免与 skip-link 冲突;在成功与错误两条渲染路径均接线;已实时验证:导航后 `document.activeElement` 为新视图的 `H1.page-title`。测试:`test(router): focus-management static guarantees` —— `router.test.mjs` 新增 4 个用例(辅助函数已定义、标题目标 + content 回退、首绘跳过守卫、≥2 个调用点);631 → 635。详见 [`CHANGELOG.md`](CHANGELOG.md)。
