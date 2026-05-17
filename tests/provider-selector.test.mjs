@@ -37,17 +37,14 @@ test('init parseArgs: flag-driven', () => {
 });
 
 test('init askSecret: off a TTY, delegates to plain ask (no raw mode)', async () => {
-  const realIsTTY = process.stdin.isTTY;
-  Object.defineProperty(process.stdin, 'isTTY', { value: false, configurable: true });
-  try {
-    let asked = '';
-    const fakeRl = { question: (q, cb) => { asked = q; cb('  piped-key  '); } };
-    const v = await askSecret(fakeRl, 'OPENAI_API_KEY: ');
-    assert.equal(asked, 'OPENAI_API_KEY: ');
-    assert.equal(v, 'piped-key'); // trimmed, same contract as ask()
-  } finally {
-    Object.defineProperty(process.stdin, 'isTTY', { value: realIsTTY, configurable: true });
-  }
+  // stdin is injected (DI) — no mutation of the shared global, so this
+  // is safe under concurrent `node --test`.
+  let asked = '';
+  const fakeRl = { question: (q, cb) => { asked = q; cb('  piped-key  '); } };
+  const fakeStdin = { isTTY: false };
+  const v = await askSecret(fakeRl, 'OPENAI_API_KEY: ', fakeStdin);
+  assert.equal(asked, 'OPENAI_API_KEY: ');
+  assert.equal(v, 'piped-key'); // trimmed, same contract as ask()
 });
 
 test('init buildUpdates: provider clamped, only non-empty keys written', () => {

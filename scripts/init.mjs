@@ -53,11 +53,11 @@ function ask(rl, q) {
 
 // Like `ask`, but raw-mode reads the key so it never reaches the
 // terminal (no echo → safe from scrollback / tmux / screen-share,
-// paste-safe). ANSI/CSI escape sequences (arrow & function keys) are
-// consumed, not buffered. Falls back to plain `ask` off a TTY.
-// Exported for the non-TTY fallback unit test.
-export function askSecret(rl, q) {
-  const stdin = process.stdin;
+// paste-safe). A full VT escape FSM consumes every CSI/SS3/OSC/
+// DCS/SOS/PM/APC sequence so arrow & function keys never corrupt the
+// secret. `stdin` is injectable so the non-TTY fallback is unit-tested
+// without poking the global. Falls back to plain `ask` off a TTY.
+export function askSecret(rl, q, stdin = process.stdin) {
   if (!stdin.isTTY) return ask(rl, q);
   return new Promise((resolve) => {
     process.stdout.write(q);
@@ -66,32 +66,51 @@ export function askSecret(rl, q) {
     stdin.setRawMode(true);
     stdin.resume();
     let buf = '';
-    let esc = 0; // 0 normal · 1 saw ESC · 2 inside CSI/SS3
+    // esc: 0 normal · 1 saw ESC · 2 in CSI/SS3 (end on final 0x40-0x7E)
+    //      · 3 in OSC (end on BEL or ST) · 4 in DCS/SOS/PM/APC (end ST)
+    //      · 5 saw ESC inside a string seq (ST = ESC \)
+    let esc = 0;
     const finish = () => {
       stdin.removeListener('data', onData);
       stdin.setRawMode(wasRaw);
     };
     const onData = (chunk) => {
-      for (const c of chunk.toString('utf8')) {
+      const s = chunk.toString('utf8');
+      for (let i = 0; i < s.length; i++) {
+        const c = s[i];
         const code = c.charCodeAt(0);
-        if (esc === 1) { esc = (code === 91 || code === 79) ? 2 : 0; continue; }
+        if (esc === 1) {
+          if (code === 91 || code === 79) esc = 2;            // CSI / SS3
+          else if (code === 93) esc = 3;                      // OSC
+          else if (code === 80 || code === 88 || code === 94 || code === 95) esc = 4;
+          else { esc = 0; i--; }                              // bare/Alt: reprocess
+          continue;
+        }
         if (esc === 2) { if (code >= 64 && code <= 126) esc = 0; continue; }
-        if (code === 27) { esc = 1; continue; }            // ESC → start CSI
-        if (code === 13 || code === 10) {                  // Enter → done
+        if (esc === 3) {                                      // OSC
+          if (code === 7) esc = 0;                            // BEL
+          else if (code === 27) esc = 5;                      // maybe ST
+          continue;
+        }
+        if (esc === 4) { if (code === 27) esc = 5; continue; } // string seq
+        if (esc === 5) { esc = 0; continue; }                  // consume ST tail
+        if (code === 27) { esc = 1; continue; }                // ESC → seq start
+        if (code === 13 || code === 10) {                      // Enter → done
           finish();
           process.stdout.write('\n');
           rl.resume();
           resolve(buf.trim());
           return;
         }
-        if (code === 3) {                                  // Ctrl-C
+        if (code === 3) {                                      // Ctrl-C
           finish();
           process.stdout.write('\n');
+          resolve('');
           process.exit(130);
         }
-        if (code === 127 || code === 8) {                  // Backspace
+        if (code === 127 || code === 8) {                      // Backspace
           if (buf.length) { buf = buf.slice(0, -1); process.stdout.write('\b \b'); }
-        } else if (code >= 32) {                            // printable → mask
+        } else if (code >= 32) {                                // printable → mask
           buf += c;
           process.stdout.write('*');
         }
