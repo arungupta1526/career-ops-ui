@@ -8,6 +8,12 @@
 
 ---
 
+## [1.31.0] — 2026-05-17
+
+**Синхронизация с career-ops 1.8.0 — `#/batch` отдаёт `--model` + `--start-from`.** Родительский проект 1.7.1 → 1.8.0; в `batch-runner.sh` добавлены `--model NAME` (#504) и `--start-from N`. web-ui выводит их в `#/batch` (поля **Модель** и **Старт с #**) с серверной defense-in-depth валидацией (charset для model, целое 1..100000 для start-from). i18n ×8. +7 тестов. 567 → 574. Полностью — в [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.30.0] — 2026-05-14
 
 **Paginator на `#/scan` — заменяет truncation «первые 200 из N» из v1.12.**

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.31.0] — 2026-05-17
+
+**與 career-ops 1.8.0 同步 — `#/batch` 暴露 `--model` + `--start-from`。** 父專案 1.7.1 → 1.8.0;`batch-runner.sh` 新增 `--model NAME`(#504)與 `--start-from N`。web-ui 在 `#/batch` 暴露(**模型**、**起始 #** 輸入)並在伺服端做 defense-in-depth 驗證。i18n ×8。新增 7 個測試。567 → 574。完整詳情見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.30.0] — 2026-05-14
 
 **`#/scan` 結果分頁器 — 取代 v1.12 的「顯示前 200(共 N)」截斷。**

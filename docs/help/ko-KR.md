@@ -1185,6 +1185,8 @@ SPA의 체크리스트는 Playwright를 호출하지 않고 손으로 폼을 채
 - `--retry-failed` — 이전 실행에서 오류 난 오퍼(네트워크 실패,
   레이트 리밋)만 재처리.
 - `--max-retries N` — 실패한 오퍼를 최대 N번 재시도 (기본 2).
+- `--model NAME` — `claude -p --model`에 전달되는 Claude 모델 (career-ops 1.8.0, #504). 미설정 = Claude Max 구독 기본 모델. 대량 배치에는 더 저렴한 모델 사용, 예: `claude-sonnet-4-6`. `#/batch`에서 **모델** 입력으로 노출 (web-ui 1.31.0).
+- `--start-from N` — N 미만의 오퍼 ID 건너뛰기 (부분 처리된 배치 재개). `#/batch`에서 **시작 #** 입력으로 노출 (web-ui 1.31.0).
 
 **표준 시퀀스:**
 

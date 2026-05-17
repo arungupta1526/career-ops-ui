@@ -1103,6 +1103,8 @@ SPA 清单适合不想调用 Playwright、希望手工填表的用户。覆盖:
 - `--retry-failed` — 仅重新处理上一次出错的 offer(网络错误、速率
   限制等)。
 - `--max-retries N` — 失败的 offer 最多尝试 N 次(默认 2)。
+- `--model NAME` — 传给 `claude -p --model` 的 Claude 模型(career-ops 1.8.0,#504)。未设置 = Claude Max 订阅默认模型。大批量用更便宜的,如 `claude-sonnet-4-6`。在 `#/batch` 中显示为 **模型** 输入(web-ui 1.31.0)。
+- `--start-from N` — 跳过低于 N 的 offer ID(继续部分处理的批次)。在 `#/batch` 中显示为 **起始 #** 输入(web-ui 1.31.0)。
 
 **标准操作序列:**
 

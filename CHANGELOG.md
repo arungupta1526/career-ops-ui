@@ -6,6 +6,44 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.31.0] — 2026-05-17
+
+**Parent career-ops 1.8.0 sync — `#/batch` exposes `--model` + `--start-from`.**
+
+The parent project bumped 1.7.1 → 1.8.0. The user-relevant code delta: `batch-runner.sh` gained `--model NAME` (#504) and `--start-from N`. web-ui surfaces both on `#/batch`, completing flag parity (the runner's full surface — `--parallel --dry-run --retry-failed --start-from --max-retries --min-score --model` — is now reachable from the browser).
+
+### ✨ Features
+
+- **`feat(batch): surface --model + --start-from`**
+  - [`public/js/views/batch.js`](public/js/views/batch.js) — new **Model** text input (optional; placeholder "Claude Max default") and **Start from #** numeric input (optional; min 1). Appended to the run-control row next to Max retries.
+  - [`server/lib/routes/batch.mjs`](server/lib/routes/batch.mjs) — `GET /api/stream/batch?model=…&startFrom=…`. Defense-in-depth (same posture as v1.28.0 `--max-retries`): `model` accepted only if it matches `^[A-Za-z0-9.\-]{1,60}$` (rejects shell-meta even though `spawn()` is arg-array — belt-and-suspenders); `startFrom` accepted only as an integer 1..100000. Bad values silently dropped, not 400'd — the UI input is the soft contract.
+  - i18n: `batch.modelLbl`, `batch.modelAria`, `batch.startFromLbl`, `batch.startFromAria` × 8 locales.
+
+### 📝 Documentation
+
+- help-bundle §14 (Batch evaluate) × 8 locales — `--model` + `--start-from` documented in the flag list with the `#/batch` field-name mapping.
+- Parent career-ops 1.8.0 analysis recorded. Other parent deltas assessed as **no web-ui code change required**: interview-prep audience split (#489) flows through `bundleProjectContext` automatically; `dashboard/` is the parent's Go/Bubble-Tea terminal TUI (browser equivalent is our SPA — not integrated by design); `modes/tr/` Turkish templates are parent-side (a 9th web-ui UI locale is a separate deferred decision); `parentVersion` auto-reports 1.8.0 via `health.mjs` runtime read.
+
+### 🧪 Tests
+
+- **`test(batch): tests/batch-model-startfrom.test.mjs`** — 7 cases: model pass-through, shell-meta charset rejection (injection guard), empty-model drop, startFrom pass-through, out-of-range drop (`< 1`), non-integer drop, combined-with-other-flags coexistence.
+- **567 → 574** unit + acceptance (+7).
+
+### 🔄 Migration
+
+No user action. The next `🌐 Batch` run with the Model / Start-from fields blank behaves exactly as before (Claude Max default, start at offer #1).
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 574 / 574 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.31.0
+$ curl -sN 'http://127.0.0.1:4317/api/stream/batch?model=claude-sonnet-4-6&startFrom=5' | grep -m1 '"args"'
+# data: {"script":"batch-runner.sh","args":["--model","claude-sonnet-4-6","--start-from","5"]}
+```
+
+---
+
 ## [1.30.0] — 2026-05-14
 
 **`#/scan` results paginator — replaces the v1.12.0 "first 200 of N" truncation.**

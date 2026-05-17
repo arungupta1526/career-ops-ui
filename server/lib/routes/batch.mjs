@@ -110,6 +110,24 @@ export function registerBatchRoutes(app) {
         args.push('--max-retries', String(n));
       }
     }
+    // v1.31.0 — parent career-ops 1.8.0 batch-runner.sh flags (#504 +
+    // --start-from). Same defense-in-depth as --max-retries: UI is the
+    // soft contract, the server validates and silently drops bad input.
+    // --model: allow only a conservative model-id charset (alnum, dot,
+    // dash) so a crafted query string can't smuggle extra shell args
+    // even though spawn() is arg-array (belt-and-suspenders).
+    if (req.query.model) {
+      const m = String(req.query.model).trim();
+      if (m && /^[A-Za-z0-9.\-]{1,60}$/.test(m)) {
+        args.push('--model', m);
+      }
+    }
+    if (req.query.startFrom) {
+      const n = parseInt(req.query.startFrom, 10);
+      if (Number.isInteger(n) && n >= 1 && n <= 100000) {
+        args.push('--start-from', String(n));
+      }
+    }
 
     send('start', { script: 'batch-runner.sh', args });
     // v1.22.0 (L-2) — --noprofile --norc skips ~/.bashrc / ~/.bash_profile

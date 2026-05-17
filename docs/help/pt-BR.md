@@ -1246,6 +1246,8 @@ Linha de exemplo:
 - `--retry-failed` — Reprocessa apenas as ofertas que erraram na
   execução anterior (falhas de rede, limitação de taxa).
 - `--max-retries N` — Tenta ofertas falhas até N vezes (default: 2).
+- `--model NAME` — Modelo Claude passado para `claude -p --model` (career-ops 1.8.0, #504). Sem valor = o modelo padrão da sua assinatura Claude Max. Use um mais barato para lotes grandes, ex. `claude-sonnet-4-6`. Em `#/batch` aparece como o campo **Modelo** (web-ui 1.31.0).
+- `--start-from N` — Pula IDs de vaga abaixo de N (retoma um lote parcialmente processado). Em `#/batch` aparece como o campo **A partir de #** (web-ui 1.31.0).
 
 **Sequência padrão:**
 

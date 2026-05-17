@@ -88,6 +88,25 @@ Router.register('batch', async () => {
     maxRetriesIn.disabled = !retry.checked;
     if (!retry.checked) maxRetriesIn.value = '';
   });
+  // v1.31.0 — parent career-ops 1.8.0 added batch-runner.sh --model
+  // (#504) + --start-from. Surface both for parity (same defensive
+  // server-side validation as --max-retries).
+  const modelIn = c('input', {
+    id: 'batch-model',
+    'aria-label': t('batch.modelAria', 'Claude model passed to batch-runner --model (optional)'),
+    className: 'input',
+    placeholder: '(Claude Max default)',
+    style: { maxWidth: '210px' },
+  });
+  const startFromIn = c('input', {
+    id: 'batch-start-from',
+    type: 'number',
+    min: '1',
+    'aria-label': t('batch.startFromAria', 'Skip offer IDs below this number (optional)'),
+    className: 'input',
+    placeholder: '(from #1)',
+    style: { maxWidth: '110px' },
+  });
 
   const consoleEl = c('pre', { className: 'console', style: { maxHeight: '480px', overflow: 'auto' } });
 
@@ -98,6 +117,8 @@ Router.register('batch', async () => {
     if (minScoreIn.value.trim()) params.set('minScore', minScoreIn.value.trim());
     if (retry.checked) params.set('retry', '1');
     if (retry.checked && maxRetriesIn.value.trim()) params.set('maxRetries', maxRetriesIn.value.trim());
+    if (modelIn.value.trim()) params.set('model', modelIn.value.trim());
+    if (startFromIn.value.trim()) params.set('startFrom', startFromIn.value.trim());
     consoleEl.textContent = '';
     UI.toast(t('batch.running', 'Running batch evaluator…'));
     API.stream('/api/stream/batch?' + params.toString(), async (event, data) => {
@@ -224,6 +245,14 @@ Router.register('batch', async () => {
         c('div', { className: 'field', style: { marginBottom: 0 } }, [
           c('label', { htmlFor: 'batch-max-retries' }, t('batch.maxRetriesLbl', 'Max retries')),
           maxRetriesIn,
+        ]),
+        c('div', { className: 'field', style: { marginBottom: 0 } }, [
+          c('label', { htmlFor: 'batch-model' }, t('batch.modelLbl', 'Model')),
+          modelIn,
+        ]),
+        c('div', { className: 'field', style: { marginBottom: 0 } }, [
+          c('label', { htmlFor: 'batch-start-from' }, t('batch.startFromLbl', 'Start from #')),
+          startFromIn,
         ]),
         c('button', { className: 'btn btn-primary', onClick: runRunner },
           '▶ ' + t('batch.runBtn', 'Run batch')),

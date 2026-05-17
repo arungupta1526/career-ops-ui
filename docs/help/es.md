@@ -1246,6 +1246,8 @@ Fila de ejemplo:
   la ejecución anterior (fallos de red, rate limits).
 - `--max-retries N` — Reintenta las ofertas fallidas hasta N veces
   (default: 2).
+- `--model NAME` — Modelo Claude pasado a `claude -p --model` (career-ops 1.8.0, #504). Sin valor = el modelo por defecto de tu suscripción Claude Max. Usa uno más barato para lotes grandes, p. ej. `claude-sonnet-4-6`. En `#/config` → no; en `#/batch` aparece como el campo **Model** (web-ui 1.31.0).
+- `--start-from N` — Omite los IDs de oferta por debajo de N (reanuda un lote parcialmente procesado). En `#/batch` aparece como el campo **Desde #** (web-ui 1.31.0).
 
 **Secuencia estándar:**
 

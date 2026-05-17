@@ -8,6 +8,12 @@
 
 ---
 
+## [1.31.0] — 2026-05-17
+
+**career-ops 1.8.0 동기화 — `#/batch`가 `--model` + `--start-from` 노출.** 부모 프로젝트가 1.7.1 → 1.8.0; `batch-runner.sh`에 `--model NAME`(#504) + `--start-from N` 추가. web-ui가 `#/batch`에 노출(**모델**, **시작 #** 입력) + 서버 측 defense-in-depth 검증. i18n ×8. 신규 테스트 7개. 567 → 574. 자세한 내용은 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.30.0] — 2026-05-14
 
 **`#/scan` 결과 페이지네이션 — v1.12의 「처음 200개 표시 / 총 N」 트렁케이션 대체.**

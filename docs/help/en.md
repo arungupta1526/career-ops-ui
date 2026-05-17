@@ -1180,6 +1180,8 @@ Example row:
 - `--retry-failed` — Reprocess only the offers that errored on the
   previous run (network failures, rate limits).
 - `--max-retries N` — Attempt failed offers up to N times (default: 2).
+- `--model NAME` — Claude model passed to `claude -p --model` (parent career-ops 1.8.0, #504). Unset = your Claude Max subscription default. Use a cheaper model for large batches, e.g. `claude-sonnet-4-6`. Surfaced in `#/batch` as the **Model** input (web-ui 1.31.0).
+- `--start-from N` — Skip offer IDs below N (resume a partially-processed batch). Surfaced in `#/batch` as the **Start from #** input (web-ui 1.31.0).
 
 **Standard sequence:**
 
