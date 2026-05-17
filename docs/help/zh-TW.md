@@ -272,6 +272,9 @@ JD。輔助器會生成逐步的投遞檢查清單:
 
 ### Profile 分頁
 
+> **v1.32.0 —— 逐欄位表單。** Profile 分頁不再是原始 YAML 文字框,而是帶 **候選人 / 敘述 / 薪酬** 可折疊分區的表單。儲存時僅送出建模的 14 個純量路徑;伺服端**合併**進 `config/profile.yml`,因此 `archetypes`、`proof_points` 與自訂鍵**原樣保留**。權衡:逐欄位儲存會重新序列化 YAML 並**遺失 `#` 註解** —— 如需保留或編輯巢狀陣列,請用分頁底部的 **Advanced: edit raw YAML** 折疊區。
+
+
 - 文字區會原樣顯示目前的 `config/profile.yml`。
 - 編輯完點 **💾 Save**。伺服器會驗證 YAML(必須是 mapping、必須
   包含 `candidate`)後寫入檔案。

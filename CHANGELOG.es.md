@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.32.0] — 2026-05-17
+
+**Pestaña Profile de `#/config` — blob YAML crudo → formulario por campos (WS1).** 3 secciones plegables (Candidato / Narrativa / Compensación), 14 rutas escalares. El guardado por campos hace **merge** en `config/profile.yml`: arquetipos, proof points y claves propias se conservan intactos. Escape-hatch raw-YAML retenido en *Advanced* (preserva comentarios). 23 claves i18n ×8. 7 tests nuevos (incl. invariante de supervivencia de claves desconocidas). 574 → 581. Detalle en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.31.0] — 2026-05-17
 
 **Sync con career-ops 1.8.0 — `#/batch` expone `--model` + `--start-from`.** El proyecto padre subió 1.7.1 → 1.8.0; `batch-runner.sh` ganó `--model NAME` (#504) y `--start-from N`. web-ui los expone en `#/batch` (campos **Model** y **Desde #**) con validación defense-in-depth en el servidor (charset para model, entero 1..100000 para start-from). i18n ×8. 7 tests nuevos. 567 → 574. Detalle completo en [`CHANGELOG.md`](CHANGELOG.md).

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.32.0] — 2026-05-17
+
+**`#/config` Profile 탭 — 원본 YAML 덩어리 → 항목별 폼 (WS1).** 접이식 3개 섹션(지원자/내러티브/보상), 14개 스칼라 경로. 항목 저장은 `config/profile.yml`에 **병합** — 아키타입·프루프포인트·커스텀 키 그대로 보존. *Advanced*에 raw-YAML 이스케이프 해치 유지(주석 보존). i18n 23키 ×8. 신규 테스트 7개. 574 → 581. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.31.0] — 2026-05-17
 
 **career-ops 1.8.0 동기화 — `#/batch`가 `--model` + `--start-from` 노출.** 부모 프로젝트가 1.7.1 → 1.8.0; `batch-runner.sh`에 `--model NAME`(#504) + `--start-from N` 추가. web-ui가 `#/batch`에 노출(**모델**, **시작 #** 입력) + 서버 측 defense-in-depth 검증. i18n ×8. 신규 테스트 7개. 567 → 574. 자세한 내용은 [`CHANGELOG.md`](CHANGELOG.md).

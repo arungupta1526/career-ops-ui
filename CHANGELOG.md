@@ -6,6 +6,42 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.32.0] — 2026-05-17
+
+**`#/config` Profile tab — raw-YAML blob → field-by-field form (WS1).**
+
+Before v1.32.0 the Profile tab was a single monospace textarea where name, email, location, archetypes, compensation and every custom key lived in one undifferentiated YAML blob — the exact pain the user called out ("всё в одной куче"). It is now a structured form.
+
+### ✨ Features
+
+- **`feat(config): Profile field-form with merge-not-replace save`**
+  - [`public/js/views/config.js`](public/js/views/config.js) — 14 modeled scalar paths grouped into 3 collapsible sections: **Candidate** (full_name/email/phone/location/linkedin/github/portfolio_url/twitter), **Narrative** (headline/exit_story), **Compensation** (target_range/currency/minimum/location_flexibility). Full-name client-side required-check before save.
+  - [`server/lib/routes/content.mjs`](server/lib/routes/content.mjs) — `PUT /api/profile` gains a `{ fields: { "candidate.full_name": … } }` payload. Server **reads the existing `config/profile.yml`, sets/clears only the allow-listed leaves, re-serializes the whole object**. Arrays the form doesn't model (`target_roles.archetypes`, `narrative.proof_points`, `narrative.superpowers`) and any custom keys **survive the round-trip untouched** — the load-bearing invariant (PLAN R1). Empty field → leaf deleted (no `phone: ""` residue). Allow-list rejects unknown dotted paths; identity gate (full name required) preserved; corrupt existing YAML → 409 (refuses to clobber, routes user to raw editor).
+  - **Raw-YAML escape hatch retained** as a collapsed *Advanced* `<details>` — the pre-1.32 full-file editor, unchanged (`{ yaml }` path, replaces whole file, preserves comments). For nested-array edits or comment preservation.
+  - i18n: 23 new `config.pf*` / `config.profile*` keys × 8 locales.
+
+### 📝 Documentation
+
+- help-bundle §2 (App settings) + §3 (Profile) × 8 locales — rewritten for the 3-tab layout + field-form description + the comment-loss tradeoff + Advanced raw-YAML disclosure.
+
+### 🧪 Tests
+
+- **`test(config): tests/profile-field-form.test.mjs`** — 7 cases: arrays + unknown-key survival across a field-merge round-trip (the R1 gate), empty-field leaf-deletion, unknown-path rejection, no-full-name rejection, corrupt-YAML 409 guard, legacy raw `{ yaml }` path still works, value trimming.
+- **574 → 581** unit + acceptance (+7).
+
+### 🔄 Migration
+
+No user action. First Profile-tab save after upgrade merges into the existing file; comments are dropped on a *field* save (use the Advanced raw editor to keep them). All data keys preserved.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 581 / 581 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.32.0
+```
+
+---
+
 ## [1.31.0] — 2026-05-17
 
 **Parent career-ops 1.8.0 sync — `#/batch` exposes `--model` + `--start-from`.**

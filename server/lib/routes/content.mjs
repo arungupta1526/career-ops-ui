@@ -185,7 +185,89 @@ export function registerContentRoutes(app) {
     }
   });
 
+  // v1.32.0 (WS1) — allow-list of scalar dotted paths the #/config
+  // Profile field-form models. Editing any of these via the form does
+  // a server-side MERGE: read → parse → set/delete only these leaves →
+  // re-serialize. Every other key (target_roles, archetypes,
+  // proof_points, superpowers, unknown keys) survives untouched —
+  // tests/profile-field-form.test.mjs locks that invariant.
+  const PROFILE_FIELD_PATHS = new Set([
+    'candidate.full_name', 'candidate.email', 'candidate.phone',
+    'candidate.location', 'candidate.linkedin', 'candidate.github',
+    'candidate.portfolio_url', 'candidate.twitter',
+    'narrative.headline', 'narrative.exit_story',
+    'compensation.target_range', 'compensation.currency',
+    'compensation.minimum', 'compensation.location_flexibility',
+  ]);
+
+  function setDotted(obj, path, value) {
+    const parts = path.split('.');
+    const leaf = parts.pop();
+    let node = obj;
+    for (const p of parts) {
+      if (node[p] == null || typeof node[p] !== 'object' || Array.isArray(node[p])) node[p] = {};
+      node = node[p];
+    }
+    const v = String(value ?? '').trim();
+    if (v === '') {
+      // Empty field → remove the leaf so a cleared input round-trips
+      // cleanly instead of writing `phone: ''`.
+      delete node[leaf];
+    } else {
+      node[leaf] = v;
+    }
+  }
+
   app.put('/api/profile', (req, res) => {
+    // ── v1.32.0 — field-form merge path: { fields: { "candidate.full_name": … } } ──
+    if (req.body && req.body.fields && typeof req.body.fields === 'object' && !Array.isArray(req.body.fields)) {
+      const incoming = req.body.fields;
+      const badPath = Object.keys(incoming).find((k) => !PROFILE_FIELD_PATHS.has(k));
+      if (badPath) {
+        return res.status(400).json({ error: `unknown profile field path: ${badPath}` });
+      }
+      let base = {};
+      if (existsSync(PATHS.profile)) {
+        try {
+          const parsedBase = yaml.load(readFileSync(PATHS.profile, 'utf8'));
+          if (parsedBase && typeof parsedBase === 'object' && !Array.isArray(parsedBase)) {
+            base = parsedBase;
+          }
+        } catch {
+          // Corrupt existing file → don't silently nuke it; force the
+          // user through the raw editor to see the parse error first.
+          return res.status(409).json({
+            error: 'existing profile.yml is not valid YAML — fix it via the Raw YAML editor before using the field form',
+          });
+        }
+      }
+      for (const [path, value] of Object.entries(incoming)) setDotted(base, path, value);
+      // Same identity gate as the raw path.
+      const okCandidate = base.candidate && typeof base.candidate === 'object'
+        && typeof base.candidate.full_name === 'string' && base.candidate.full_name.trim();
+      const okCanonical = typeof base.full_name === 'string' && base.full_name.trim();
+      if (!okCandidate && !okCanonical) {
+        return res.status(400).json({ error: 'full name is required (candidate.full_name)' });
+      }
+      let serialized;
+      try {
+        serialized = yaml.dump(base, { lineWidth: 100, noRefs: true });
+      } catch (e) {
+        return res.status(500).json({ error: 'failed to serialize profile: ' + e.message });
+      }
+      const hdr = '# Career-Ops Profile Configuration\n';
+      const out = hdr + serialized;
+      if (out.length > 256 * 1024) {
+        return res.status(413).json({ error: 'profile too large (max 256 KB)' });
+      }
+      const d = dirname(PATHS.profile);
+      if (!existsSync(d)) mkdirSync(d, { recursive: true });
+      writeFileSync(PATHS.profile, out);
+      const sum = summarizeProfile(base);
+      return res.json({ ok: true, mode: 'fields', bytes: out.length, candidate: sum?.full_name || null, summary: sum });
+    }
+
+    // ── Raw-YAML escape-hatch path (unchanged — power users / comment preservation) ──
     const raw = (req.body?.yaml ?? '').toString();
     if (!raw.trim()) {
       return res.status(400).json({ error: 'yaml body required (string under "yaml" key)' });

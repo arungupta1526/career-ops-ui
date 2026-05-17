@@ -314,6 +314,9 @@ servidor.
 
 ### Aba Profile
 
+> **v1.32.0 — formulário por campos.** A aba Profile não é mais um textarea de YAML bruto: agora é um formulário com seções recolhíveis **Candidato / Narrativa / Remuneração**. Ao salvar envia apenas os 14 caminhos escalares modelados; o servidor faz **merge** em `config/profile.yml`, então seus `archetypes`, `proof_points` e chaves próprias **são preservados intactos**. Trade-off: o save por campos re-serializa o YAML e **perde comentários `#`** — use o disclosure **Advanced: edit raw YAML** no fim da aba para preservá-los ou editar arrays aninhados.
+
+
 - A área de texto mostra o `config/profile.yml` atual verbatim.
 - Edite e clique em **💾 Save**. O servidor valida o YAML (precisa
   ser um mapping, precisa conter `candidate`) e grava o arquivo.

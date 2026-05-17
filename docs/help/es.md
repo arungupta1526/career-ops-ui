@@ -313,6 +313,9 @@ reiniciar el servidor.
 
 ### Pestaña Profile
 
+> **v1.32.0 — formulario por campos.** La pestaña Profile ya no es un textarea de YAML crudo: ahora es un formulario con secciones plegables **Candidato / Narrativa / Compensación**. Al guardar se envían solo las 14 rutas escalares modeladas; el servidor **fusiona** en `config/profile.yml`, así que tus `archetypes`, `proof_points` y claves propias **se conservan intactos**. Compromiso: el guardado por campos re-serializa el YAML y **pierde los comentarios `#`** — usa el desplegable **Advanced: edit raw YAML** al final de la pestaña para preservarlos o editar arrays anidados.
+
+
 - El textarea muestra el `config/profile.yml` actual verbatim.
 - Edita y haz clic en **💾 Save**. El servidor valida el YAML (debe
   ser un mapping, debe contener `candidate`) y escribe el archivo.

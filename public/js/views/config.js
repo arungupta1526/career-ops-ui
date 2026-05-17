@@ -159,26 +159,112 @@ Router.register('config', async () => {
     }
   }
 
-  // ─── Profile tab — direct editor for config/profile.yml ───
+  // ─── Profile tab — v1.32.0 (WS1): field-by-field form ───
+  // Replaces the bare-YAML textarea. 14 scalar paths grouped into
+  // Candidate / Narrative / Compensation. Save sends `{ fields: {…} }`
+  // → server MERGES (read→set/delete leaf→re-serialize), so arrays
+  // (archetypes, proof_points) + unknown keys survive untouched. The
+  // raw textarea is retained as a collapsed "Advanced" escape hatch
+  // for comment-preservation / complex-array edits.
+  const PROFILE_SECTIONS = [
+    { titleKey: 'config.pfCandidate', titleFallback: 'Candidate', fields: [
+      { path: 'candidate.full_name', lblKey: 'config.pfFullName', lbl: 'Full name' },
+      { path: 'candidate.email', lblKey: 'config.pfEmail', lbl: 'Email', type: 'email' },
+      { path: 'candidate.phone', lblKey: 'config.pfPhone', lbl: 'Phone' },
+      { path: 'candidate.location', lblKey: 'config.pfLocation', lbl: 'Location' },
+      { path: 'candidate.linkedin', lblKey: 'config.pfLinkedin', lbl: 'LinkedIn' },
+      { path: 'candidate.github', lblKey: 'config.pfGithub', lbl: 'GitHub' },
+      { path: 'candidate.portfolio_url', lblKey: 'config.pfPortfolio', lbl: 'Portfolio URL' },
+      { path: 'candidate.twitter', lblKey: 'config.pfTwitter', lbl: 'X / Twitter' },
+    ] },
+    { titleKey: 'config.pfNarrative', titleFallback: 'Narrative', fields: [
+      { path: 'narrative.headline', lblKey: 'config.pfHeadline', lbl: 'Headline' },
+      { path: 'narrative.exit_story', lblKey: 'config.pfExitStory', lbl: 'Exit story', area: true },
+    ] },
+    { titleKey: 'config.pfComp', titleFallback: 'Compensation', fields: [
+      { path: 'compensation.target_range', lblKey: 'config.pfTargetRange', lbl: 'Target range' },
+      { path: 'compensation.currency', lblKey: 'config.pfCurrency', lbl: 'Currency' },
+      { path: 'compensation.minimum', lblKey: 'config.pfMinimum', lbl: 'Walk-away minimum' },
+      { path: 'compensation.location_flexibility', lblKey: 'config.pfLocFlex', lbl: 'Location flexibility' },
+    ] },
+  ];
+  const pfInputs = {}; // path → input element
+  function getDotted(obj, path) {
+    return path.split('.').reduce((o, k) => (o && typeof o === 'object' ? o[k] : undefined), obj);
+  }
   const profileTextarea = c('textarea', {
     className: 'textarea',
-    rows: 22,
-    style: { minHeight: '420px', fontFamily: 'ui-monospace,monospace', fontSize: '13px' },
+    rows: 18,
+    style: { minHeight: '340px', fontFamily: 'ui-monospace,monospace', fontSize: '13px' },
   });
   let profileLoaded = false;
+
+  function buildProfileForm(profileObj) {
+    return PROFILE_SECTIONS.map((sec) =>
+      c('details', { open: true, style: { marginBottom: '14px' } }, [
+        c('summary', { style: { fontSize: '14px', fontWeight: 600, cursor: 'pointer', padding: '6px 0' } },
+          t(sec.titleKey, sec.titleFallback)),
+        c('div', { style: { paddingTop: '8px' } }, sec.fields.map((f) => {
+          const id = 'pf-' + f.path.replace(/\./g, '-');
+          const cur = getDotted(profileObj, f.path);
+          const val = (cur == null) ? '' : String(cur);
+          const input = f.area
+            ? c('textarea', { id, className: 'textarea', rows: 3 })
+            : c('input', { id, className: 'input', type: f.type || 'text' });
+          input.value = val;
+          pfInputs[f.path] = input;
+          return c('div', { className: 'field', style: { marginBottom: '12px' } }, [
+            c('label', { htmlFor: id, style: { fontWeight: 600, fontSize: '14px' } }, t(f.lblKey, f.lbl)),
+            input,
+          ]);
+        })),
+      ]));
+  }
+
+  const pfFormHost = c('div');
 
   async function loadProfileTab() {
     if (profileLoaded) return;
     try {
       const data = await API.get('/api/profile');
+      const obj = (data && data.profile && typeof data.profile === 'object') ? data.profile : {};
+      pfFormHost.innerHTML = '';
+      buildProfileForm(obj).forEach((n) => pfFormHost.appendChild(n));
       profileTextarea.value = (data && data.raw) || '';
       profileLoaded = true;
     } catch (e) {
-      profileTextarea.value = '# error: ' + (e.message || e);
+      pfFormHost.innerHTML = '';
+      pfFormHost.appendChild(c('p', { style: { color: 'var(--err, #c00)' } },
+        t('config.profileLoadErr', 'Could not load profile: ') + (e.message || e)));
     }
   }
 
+  // Field-form save → merge path.
   async function saveProfile(btn) {
+    const fieldsPayload = {};
+    for (const [path, el] of Object.entries(pfInputs)) fieldsPayload[path] = el.value;
+    const fullName = (fieldsPayload['candidate.full_name'] || '').trim();
+    if (!fullName) {
+      UI.toast(t('config.pfNameRequired', 'Full name is required'), 'error');
+      pfInputs['candidate.full_name']?.focus();
+      return;
+    }
+    try {
+      const r = await UI.withSpinner(btn, () =>
+        API.put('/api/profile', { fields: fieldsPayload }));
+      UI.toast(t('config.profileSaved', 'Profile saved') +
+        (r.candidate ? ` · ${r.candidate}` : ''), 'success');
+      // Re-read so arrays / unknown keys the form doesn't model are
+      // reflected back into the raw escape-hatch textarea.
+      profileLoaded = false;
+      await loadProfileTab();
+    } catch (e) {
+      UI.toast(e.message || 'save failed', 'error');
+    }
+  }
+
+  // Raw-YAML escape hatch save (advanced).
+  async function saveProfileRaw(btn) {
     if (!profileTextarea.value.trim()) {
       UI.toast(t('config.profileEmpty', 'Profile YAML is empty'), 'error');
       return;
@@ -188,9 +274,8 @@ Router.register('config', async () => {
         API.put('/api/profile', { yaml: profileTextarea.value }));
       UI.toast(t('config.profileSaved', 'Profile saved') +
         (r.candidate ? ` · ${r.candidate}` : ''), 'success');
-      // Re-read so the user sees the canonical "# Career-Ops…" header.
-      const data = await API.get('/api/profile');
-      profileTextarea.value = data.raw || profileTextarea.value;
+      profileLoaded = false;
+      await loadProfileTab();
     } catch (e) {
       UI.toast(e.message || 'save failed', 'error');
     }
@@ -238,9 +323,9 @@ Router.register('config', async () => {
 
   const profilePanel = c('div', { className: 'card' }, [
     c('p', { style: { color: 'var(--foggy)', fontSize: '13px', margin: '0 0 12px' } },
-      t('config.profileHint',
-        'Edits write to config/profile.yml in the parent project. Header is added automatically.')),
-    profileTextarea,
+      t('config.profileHintForm',
+        'Edit your profile field by field. Saves merge into config/profile.yml — your archetypes, proof points, and any custom keys are preserved untouched.')),
+    pfFormHost,
     c('div', { className: 'flex gap-3 mt-3' }, [
       c('button', {
         className: 'btn btn-primary',
@@ -248,6 +333,21 @@ Router.register('config', async () => {
       }, '💾 ' + t('common.save', 'Save')),
       c('a', { href: '#/profile', className: 'btn btn-ghost' },
         t('config.viewProfile', 'View read-only summary →')),
+    ]),
+    // ── Advanced: raw YAML escape hatch (arrays, comments, custom keys) ──
+    c('details', { style: { marginTop: '18px' } }, [
+      c('summary', { style: { fontSize: '13px', fontWeight: 600, cursor: 'pointer', color: 'var(--foggy)' } },
+        t('config.profileRawToggle', 'Advanced: edit raw YAML (archetypes, proof points, comments)')),
+      c('p', { style: { color: 'var(--foggy)', fontSize: '12px', margin: '8px 0' } },
+        t('config.profileRawHint',
+          'Full YAML editor. Use for nested arrays the field form does not model, or to preserve comments. Replaces the whole file on save.')),
+      profileTextarea,
+      c('div', { className: 'flex gap-3 mt-3' }, [
+        c('button', {
+          className: 'btn btn-ghost',
+          onClick: (e) => saveProfileRaw(e.currentTarget),
+        }, '💾 ' + t('config.profileRawSave', 'Save raw YAML')),
+      ]),
     ]),
   ]);
 

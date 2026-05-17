@@ -8,6 +8,12 @@
 
 ---
 
+## [1.32.0] — 2026-05-17
+
+**`#/config` Profile タブ — 生 YAML 塊 → 項目別フォーム (WS1)。** 折りたたみ 3 セクション(候補者/ナラティブ/報酬)、14 スカラーパス。項目保存は `config/profile.yml` に **マージ** — アーキタイプ・プルーフポイント・独自キーをそのまま保持。*Advanced* に raw-YAML エスケープハッチ維持(コメント保持)。i18n 23 キー ×8。新規テスト 7。574 → 581。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.31.0] — 2026-05-17
 
 **career-ops 1.8.0 同期 — `#/batch` が `--model` + `--start-from` を公開。** 親プロジェクトが 1.7.1 → 1.8.0 に。`batch-runner.sh` に `--model NAME`(#504)+ `--start-from N` 追加。web-ui は `#/batch` で公開(**モデル**・**開始 #** 入力)+ サーバ側 defense-in-depth 検証。i18n ×8。新規テスト 7。567 → 574。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

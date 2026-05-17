@@ -8,6 +8,12 @@
 
 ---
 
+## [1.32.0] — 2026-05-17
+
+**`#/config` Profile 分頁 —— 原始 YAML 區塊 → 逐欄位表單(WS1)。** 3 個可折疊分區(候選人/敘述/薪酬),14 個純量路徑。逐欄位儲存**合併**進 `config/profile.yml`:archetype、proof point 與自訂鍵原樣保留。*Advanced* 保留 raw-YAML 退路(保留註解)。23 個 i18n 鍵 ×8。新增 7 測試。574 → 581。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.31.0] — 2026-05-17
 
 **與 career-ops 1.8.0 同步 — `#/batch` 暴露 `--model` + `--start-from`。** 父專案 1.7.1 → 1.8.0;`batch-runner.sh` 新增 `--model NAME`(#504)與 `--start-from N`。web-ui 在 `#/batch` 暴露(**模型**、**起始 #** 輸入)並在伺服端做 defense-in-depth 驗證。i18n ×8。新增 7 個測試。567 → 574。完整詳情見 [`CHANGELOG.md`](CHANGELOG.md)。

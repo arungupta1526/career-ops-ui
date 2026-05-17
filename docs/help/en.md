@@ -287,21 +287,47 @@ That's it. 21 steps, button-by-button, from zero to offer.
 
 ## 2. App settings & API keys (`#/config`)
 
-Two tabs:
+Three tabs:
 
-1. **API keys & runtime** — edit the parent project's `.env` from
-   the browser (same file the career-ops Node scripts read on startup).
-2. **Profile** — direct YAML editor for `config/profile.yml`. Save
-   stamps the canonical `# Career-Ops Profile Configuration` header.
+1. **API keys & runtime** — structured field form over the parent
+   project's `.env` (same file the career-ops Node scripts read on
+   startup). Grouped: API keys / Runtime / Regional sources.
+2. **Profile** — **field-by-field form** over `config/profile.yml`
+   (web-ui 1.32.0). Save **merges** into the file — your archetypes,
+   proof points, and any custom keys are preserved untouched.
+3. **Modes** — free-form markdown editor for `modes/_profile.md`.
 
-A save in either tab propagates immediately — no server restart.
+A save in any tab propagates immediately — no server restart.
 
-### Profile tab
+### Profile tab (field form — v1.32.0)
 
-- The textarea shows the current `config/profile.yml` verbatim.
-- Edit and click **💾 Save**. The server validates the YAML
-  (must be a mapping, must contain `candidate`) and writes the file.
-- A `# Career-Ops Profile Configuration` header is added if missing.
+Before v1.32.0 this tab was a single raw-YAML textarea where every
+setting lived in one undifferentiated blob. It is now a structured
+form, fields grouped into three collapsible sections:
+
+- **Candidate** — Full name (required), Email, Phone, Location,
+  LinkedIn, GitHub, Portfolio URL, X / Twitter.
+- **Narrative** — Headline, Exit story.
+- **Compensation** — Target range, Currency, Walk-away minimum,
+  Location flexibility.
+
+How the save is safe:
+
+- The form sends only the 14 modeled scalar paths as
+  `{ fields: { "candidate.full_name": … } }`. The server **reads the
+  existing `config/profile.yml`, sets/clears only those leaves, and
+  re-serializes the whole object** — so nested arrays the form does
+  not model (`target_roles.archetypes`, `narrative.proof_points`,
+  `narrative.superpowers`) and any custom keys you added by hand
+  **survive the round-trip untouched**. Clearing a field removes that
+  key cleanly (no `phone: ""` residue).
+- Validation still requires a full name; the `# Career-Ops Profile
+  Configuration` header is stamped automatically.
+- One tradeoff: a field-form save **re-serializes the YAML, so inline
+  `#` comments are lost**. To preserve comments or to edit nested
+  arrays, use the **Advanced: edit raw YAML** disclosure at the
+  bottom of the tab — it is the pre-1.32 full-file editor, unchanged
+  (replaces the whole file on save).
 - The read-only summary at `#/profile` is the visual companion.
 
 ### Recognized keys
@@ -338,8 +364,10 @@ nothing while confirming the key is wired up correctly. Returns a
 ## 3. Profile (`#/profile` — also reachable as `#/settings`)
 
 A read-only summary card view of `config/profile.yml`. **To edit**,
-go to **App settings → Profile tab** (`#/config` → Profile). Saves
-land in the same file; this page re-parses on reload.
+go to **App settings → Profile tab** (`#/config` → Profile) — since
+web-ui 1.32.0 that is a field-by-field form (Candidate / Narrative /
+Compensation), not a raw-YAML blob. Saves merge into the same file;
+this page re-parses on reload.
 
 The fields that matter most:
 
