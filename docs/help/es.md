@@ -483,6 +483,30 @@ Ajusta para que coincida con cómo se titulan tus roles objetivo.
 
 Empieza con 3–5 keywords positivas por claridad; amplía después.
 
+### `location_filter` (opcional — web-ui 1.33.0, parent #570)
+
+```yaml
+location_filter:
+  allow:
+    - "Remote"
+    - "United States"
+    - "Atlanta"
+  block:
+    - "India"
+    - "London"
+    - "Germany"
+```
+
+Filtra las vacantes escaneadas por su **ubicación** (subcadena, sin distinguir mayúsculas), aplicado por el barrido ATS y el regional. Semántica idéntica al `scan.mjs` canónico de career-ops:
+
+- Sin `location_filter` → todas las ubicaciones pasan (por defecto).
+- Ubicación vacía/ausente → pasa (no se penaliza el dato faltante).
+- Coincidencia en `block` → **rechazada** (block tiene prioridad sobre allow).
+- `allow` vacío → pasa (block ya filtró).
+- `allow` no vacío → debe coincidir con **al menos una** palabra clave.
+
+Clave de nivel superior en `portals.yml` (hermana de `title_filter`, no anidada en `russian_portals`).
+
 ### `search_queries`
 
 ```yaml

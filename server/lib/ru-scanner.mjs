@@ -28,6 +28,7 @@ import { searchGeekJob } from './sources/geekjob.mjs';
 import { RU_CONFIG_KEYS } from './sources/registry.mjs';
 import { addPipelineUrl } from './parsers.mjs';
 import { saveLastScan } from './en-scanner.mjs';
+import { buildLocationFilter } from './location-filter.mjs';
 
 /**
  * v1.29.0 — dispatch table from `russian_portals.sources[*]` key to its
@@ -98,6 +99,9 @@ export function loadConfig() {
     area: ru.area ?? 113, // Russia
     perPage: ru.per_page ?? 50,
     onlyRemote: ru.only_remote ?? false,
+    // v1.33.0 (WS4 / parent #570) — optional portals.yml location_filter.
+    // Top-level key (same as parent scan.mjs), not under russian_portals.
+    locationFilter: portals.location_filter || null,
     warnings,
   };
 }
@@ -222,11 +226,12 @@ export async function runRuScan(opts = {}) {
   for (const j of allFound) uniq.set(j.url, j);
   const flat = [...uniq.values()];
 
-  // Apply negative-filter first, then stamp boost flags. Boost is
-  // informational only — it doesn't change which rows are returned,
-  // only marks the boosted ones so the SPA can render a "⬆ boosted"
-  // badge on them.
-  const filteredRaw = flat.filter((j) => passesNegative(j.title, cfg.negative));
+  // Apply negative-filter + location-filter (parent #570 parity),
+  // then stamp boost flags. Boost is informational only — it doesn't
+  // change which rows are returned, only marks the boosted ones so the
+  // SPA can render a "⬆ boosted" badge on them.
+  const locOk = buildLocationFilter(cfg.locationFilter);
+  const filteredRaw = flat.filter((j) => passesNegative(j.title, cfg.negative) && locOk(j.location));
   const filtered = applyBoostStamps(filteredRaw, cfg.boosts);
   const removedNeg = flat.length - filtered.length;
   const fresh = filtered.filter((j) => !seen.has(j.url));

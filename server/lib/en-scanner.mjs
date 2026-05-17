@@ -14,6 +14,7 @@ import { readFileSync, existsSync, writeFileSync, appendFileSync, mkdirSync } fr
 import yaml from 'js-yaml';
 import { PATHS } from './paths.mjs';
 import { addPipelineUrl } from './parsers.mjs';
+import { buildLocationFilter } from './location-filter.mjs';
 import { fetchGreenhouse } from './sources/greenhouse.mjs';
 import { fetchAshby } from './sources/ashby.mjs';
 import { fetchLever } from './sources/lever.mjs';
@@ -145,12 +146,18 @@ export async function runEnScan(opts = {}) {
   }, CONCURRENCY);
 
   const allRaw = fetchedPerCo.flat();
+  // v1.33.0 (WS4 / parent #570) — optional portals.yml location_filter.
+  // Mirrors the parent scan.mjs semantics exactly. No key → pass-all.
+  const locOk = buildLocationFilter(portals.location_filter);
   // Apply title filter (positive must match, negative must NOT match)
-  // and stamp `_boosted` for any title containing a seniority_boost keyword.
-  // The boost stamp is INFORMATIONAL — it doesn't filter; the SPA uses it
-  // to surface a badge so users see why a row is ranked higher.
+  // + location filter, and stamp `_boosted` for any title containing a
+  // seniority_boost keyword. The boost stamp is INFORMATIONAL — it
+  // doesn't filter; the SPA uses it to surface a badge so users see why
+  // a row is ranked higher.
   const filtered = allRaw
-    .filter((j) => passesPositive(j.title, positives) && passesNegative(j.title, negatives))
+    .filter((j) => passesPositive(j.title, positives)
+      && passesNegative(j.title, negatives)
+      && locOk(j.location))
     .map((j) => {
       if (!boosts.length || !j.title) return j;
       const t = j.title.toLowerCase();

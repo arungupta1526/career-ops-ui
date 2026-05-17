@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.33.0] — 2026-05-17
+
+**WS4 — auditoría de paridad con career-ops 1.8.0 + `location_filter`.** El `scan.mjs` del proyecto padre ganó `location_filter` (#570); los scanners in-process de web-ui no delegan en él, así que no fluía. Nuevo `server/lib/location-filter.mjs` replica la semántica verbatim; integrado en ambos scanners. Doc help §5 ×8. 8 tests nuevos. 581 → 589. Resto del delta padre clasificado en PARENT-PARITY.md (FLOW/CLI-ONLY/N/A). Detalle en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.32.0] — 2026-05-17
 
 **Pestaña Profile de `#/config` — blob YAML crudo → formulario por campos (WS1).** 3 secciones plegables (Candidato / Narrativa / Compensación), 14 rutas escalares. El guardado por campos hace **merge** en `config/profile.yml`: arquetipos, proof points y claves propias se conservan intactos. Escape-hatch raw-YAML retenido en *Advanced* (preserva comentarios). 23 claves i18n ×8. 7 tests nuevos (incl. invariante de supervivencia de claves desconocidas). 574 → 581. Detalle en [`CHANGELOG.md`](CHANGELOG.md).

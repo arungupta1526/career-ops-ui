@@ -463,6 +463,30 @@ title_filter:
 명확성을 위해 positive 키워드 3–5개로 시작하고 나중에
 넓히십시오.
 
+### `location_filter` (선택 — web-ui 1.33.0, parent #570)
+
+```yaml
+location_filter:
+  allow:
+    - "Remote"
+    - "United States"
+    - "Atlanta"
+  block:
+    - "India"
+    - "London"
+    - "Germany"
+```
+
+스캔된 채용 공고를 **위치** 문자열(대소문자 구분 없는 부분 문자열)로 필터링하며, ATS 스윕과 지역 스윕 모두에 적용됩니다. 정식 career-ops `scan.mjs`와 동일한 의미:
+
+- `location_filter` 없음 → 모든 위치 통과(기본값).
+- 위치가 비어 있음/없음 → 통과(누락 데이터는 불이익 없음).
+- `block` 일치 → **거부**(block이 allow보다 우선).
+- `allow` 비어 있음 → 통과(block이 이미 거름).
+- `allow` 비어 있지 않음 → **최소 한 개** 키워드와 일치해야 함.
+
+`portals.yml`의 최상위 키(`title_filter`의 형제, `russian_portals` 하위 아님).
+
 ### `search_queries`
 
 ```yaml

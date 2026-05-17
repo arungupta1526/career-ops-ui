@@ -425,6 +425,30 @@ Backend Engineer」排在「Engineer」之前。預設值:
 
 一開始用 3–5 個 positive 關鍵字以保持清晰;之後再擴展。
 
+### `location_filter`(可選 —— web-ui 1.33.0,parent #570)
+
+```yaml
+location_filter:
+  allow:
+    - "Remote"
+    - "United States"
+    - "Atlanta"
+  block:
+    - "India"
+    - "London"
+    - "Germany"
+```
+
+依職缺**地點**字串(不分大小寫的子字串)過濾掃描結果,ATS 掃描與區域掃描皆生效。語義與正規的 career-ops `scan.mjs` 完全一致:
+
+- 無 `location_filter` → 所有地點通過(預設)。
+- 地點為空/缺失 → 通過(缺失資料不懲罰)。
+- 命中 `block` → **拒絕**(block 優先於 allow)。
+- `allow` 為空 → 通過(block 已過濾)。
+- `allow` 非空 → 必須符合**至少一個**關鍵字。
+
+`portals.yml` 頂層鍵(與 `title_filter` 平級,不巢狀於 `russian_portals` 下)。
+
 ### `search_queries`
 
 ```yaml

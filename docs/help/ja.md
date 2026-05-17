@@ -476,6 +476,30 @@ title_filter:
 
 明確化のため、最初は 3–5 個のポジティブキーワードで始め、後で広げます。
 
+### `location_filter` (任意 — web-ui 1.33.0, parent #570)
+
+```yaml
+location_filter:
+  allow:
+    - "Remote"
+    - "United States"
+    - "Atlanta"
+  block:
+    - "India"
+    - "London"
+    - "Germany"
+```
+
+スキャンした求人を **勤務地** 文字列(大文字小文字を区別しない部分一致)でフィルタし、ATS スイープと地域スイープの両方に適用されます。正規の career-ops `scan.mjs` と同一のセマンティクス:
+
+- `location_filter` なし → すべての勤務地が通過(既定)。
+- 勤務地が空/欠落 → 通過(欠損データは不利にしない)。
+- `block` 一致 → **却下**(block が allow より優先)。
+- `allow` 空 → 通過(block で既に除去済み)。
+- `allow` 非空 → **少なくとも 1 つ** のキーワードに一致が必要。
+
+`portals.yml` のトップレベルキー(`title_filter` の兄弟、`russian_portals` の下ではない)。
+
 ### `search_queries`
 
 ```yaml

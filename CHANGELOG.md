@@ -6,6 +6,39 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.33.0] — 2026-05-17
+
+**WS4 — full parent career-ops 1.8.0 feature-parity audit + `location_filter`.**
+
+Audited every user-facing parent commit v1.7.0→v1.8.0 (see `.planning/.../PARENT-PARITY.md`). One real GAP found and closed; everything else is FLOW (parent script we shell out to / inline via bundleProjectContext), CLI-ONLY (parent Go TUI), or N/A.
+
+### ✨ Features
+
+- **`feat(scan): portals.yml location_filter parity (parent #570)`** — parent's `scan.mjs` gained an optional `location_filter` block; web-ui runs its OWN in-process `en-scanner`/`ru-scanner` (they do NOT shell out to parent `scan.mjs`), so it did not flow through. New [`server/lib/location-filter.mjs`](server/lib/location-filter.mjs) mirrors the parent `buildLocationFilter` semantics **verbatim** (no key → pass-all; empty location → pass; `block` precedence over `allow`; `allow` empty → pass; `allow` non-empty → match ≥ 1; case-insensitive substring). Wired into both scanners' post-fetch filter step (after title/negative, before dedup/persist). Config-driven via `portals.yml` top-level `location_filter:` — no UI needed.
+
+### 📝 Documentation
+
+- help-bundle §5 (Portals) × 8 locales — new `location_filter` subsection with the worked allow/block example + exact semantics + the "top-level key, sibling of title_filter" note.
+- `.planning/.../PARENT-PARITY.md` — full classification table of the 20+ parent commits (GAP / FLOW / CLI-ONLY / DOCS / N/A) with rationale per row.
+
+### 🧪 Tests
+
+- **`test(scan): tests/location-filter.test.mjs`** — 8 cases: no-filter pass-all, empty-location pass, block precedence, allow-empty pass, allow-match-required, case-insensitivity, malformed-config safe-pass, exact parity with parent's `portals.example.yml` worked example. Scanner-integration regression: 51 en/ru/scan tests green (wiring didn't regress).
+- **581 → 589** unit + acceptance (+8).
+
+### Parity outcome
+
+career-ops v1.8.0 feature-parity **complete** as of web-ui v1.33.0. Deferred (PLAN R4 scope-guard): #341 Turkish as a 9th UI locale — parent added TR *mode templates* (template-side); a 9th web-ui locale is a dedicated future phase. Optional/LOW backlog: #602 explicit Greenhouse hostname allowlist (already covered by web-ui's `safe-fetch` + `isValidJobUrl` envelope; slug-based URL construction, not raw hostname).
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 589 / 589 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.33.0
+```
+
+---
+
 ## [1.32.0] — 2026-05-17
 
 **`#/config` Profile tab — raw-YAML blob → field-by-field form (WS1).**

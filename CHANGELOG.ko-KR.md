@@ -8,6 +8,12 @@
 
 ---
 
+## [1.33.0] — 2026-05-17
+
+**WS4 — career-ops 1.8.0 패리티 감사 + `location_filter`.** 부모 `scan.mjs`에 `location_filter`(#570) 추가; web-ui의 in-process 스캐너는 위임하지 않아 흐르지 않음. 새 `server/lib/location-filter.mjs`가 시맨틱을 그대로 복제, 두 스캐너에 연결. help §5 ×8. 신규 테스트 8개. 581 → 589. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.32.0] — 2026-05-17
 
 **`#/config` Profile 탭 — 원본 YAML 덩어리 → 항목별 폼 (WS1).** 접이식 3개 섹션(지원자/내러티브/보상), 14개 스칼라 경로. 항목 저장은 `config/profile.yml`에 **병합** — 아키타입·프루프포인트·커스텀 키 그대로 보존. *Advanced*에 raw-YAML 이스케이프 해치 유지(주석 보존). i18n 23키 ×8. 신규 테스트 7개. 574 → 581. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

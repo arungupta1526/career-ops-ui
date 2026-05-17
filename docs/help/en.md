@@ -483,6 +483,38 @@ target roles are titled.
 
 Start with 3–5 positive keywords for clarity; broaden later.
 
+### `location_filter` (optional — web-ui 1.33.0, parent #570)
+
+```yaml
+location_filter:
+  allow:
+    - "Remote"
+    - "United States"
+    - "Atlanta"
+  block:
+    - "India"
+    - "London"
+    - "Germany"
+```
+
+Filters scanned vacancies by their **location** string (case-insensitive
+substring), applied by both the ATS sweep and the regional sweep.
+Semantics, identical to the canonical career-ops `scan.mjs`:
+
+- No `location_filter` key → every location passes (default).
+- A vacancy with an **empty/missing** location → passes (missing data
+  is not penalized).
+- A `block` keyword match → **rejected** (block takes precedence over
+  allow).
+- `allow` empty → passes (block already cleared it).
+- `allow` non-empty → must match **at least one** keyword.
+
+Top-level key in `portals.yml` (a sibling of `title_filter`, not nested
+under `russian_portals`). Use it to drop jobs that survived the
+title filter but are in a region you can't take.
+
+Start with 3–5 positive keywords for clarity; broaden later.
+
 ### `search_queries`
 
 ```yaml

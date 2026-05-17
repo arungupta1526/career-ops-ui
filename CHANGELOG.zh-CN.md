@@ -8,6 +8,12 @@
 
 ---
 
+## [1.33.0] — 2026-05-17
+
+**WS4 —— career-ops 1.8.0 对等审计 + `location_filter`。** 父 `scan.mjs` 新增 `location_filter`(#570);web-ui 的进程内 scanner 不委托给它,故未流通。新增 `server/lib/location-filter.mjs` 逐字复制语义,接入两个 scanner。help §5 ×8。新增 8 测试。581 → 589。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.32.0] — 2026-05-17
 
 **`#/config` Profile 选项卡 —— 原始 YAML 块 → 逐字段表单(WS1)。** 3 个可折叠分区(候选人/叙述/薪酬),14 个标量路径。逐字段保存**合并**进 `config/profile.yml`:archetype、proof point 与自定义键原样保留。*Advanced* 保留 raw-YAML 退路(保留注释)。23 个 i18n 键 ×8。新增 7 测试。574 → 581。详见 [`CHANGELOG.md`](CHANGELOG.md)。

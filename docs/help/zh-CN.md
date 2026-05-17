@@ -422,6 +422,30 @@ title_filter:
 
 刚开始时先用 3–5 个 positive 关键词以保持清晰;之后再扩大。
 
+### `location_filter`(可选 —— web-ui 1.33.0,parent #570)
+
+```yaml
+location_filter:
+  allow:
+    - "Remote"
+    - "United States"
+    - "Atlanta"
+  block:
+    - "India"
+    - "London"
+    - "Germany"
+```
+
+按职位**地点**字符串(不区分大小写的子串)过滤扫描结果,ATS 扫描与区域扫描均生效。语义与规范的 career-ops `scan.mjs` 完全一致:
+
+- 无 `location_filter` → 所有地点通过(默认)。
+- 地点为空/缺失 → 通过(缺失数据不惩罚)。
+- 命中 `block` → **拒绝**(block 优先于 allow)。
+- `allow` 为空 → 通过(block 已过滤)。
+- `allow` 非空 → 必须匹配**至少一个**关键词。
+
+`portals.yml` 顶层键(与 `title_filter` 平级,不嵌套在 `russian_portals` 下)。
+
 ### `search_queries`
 
 ```yaml

@@ -485,6 +485,30 @@ para combinar com como seus papéis-alvo são titulados.
 
 Comece com 3–5 palavras-chave positivas para clareza; amplie depois.
 
+### `location_filter` (opcional — web-ui 1.33.0, parent #570)
+
+```yaml
+location_filter:
+  allow:
+    - "Remote"
+    - "United States"
+    - "Atlanta"
+  block:
+    - "India"
+    - "London"
+    - "Germany"
+```
+
+Filtra as vagas escaneadas pela **localização** (substring, sem diferenciar maiúsculas), aplicado pela varredura ATS e pela regional. Semântica idêntica ao `scan.mjs` canônico do career-ops:
+
+- Sem `location_filter` → todas as localizações passam (padrão).
+- Localização vazia/ausente → passa (dado faltante não é penalizado).
+- Match em `block` → **rejeitada** (block tem precedência sobre allow).
+- `allow` vazio → passa (block já filtrou).
+- `allow` não vazio → precisa casar **ao menos uma** palavra-chave.
+
+Chave de nível superior em `portals.yml` (irmã de `title_filter`, não aninhada em `russian_portals`).
+
 ### `search_queries`
 
 ```yaml

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.33.0] — 2026-05-17
+
+**WS4 — career-ops 1.8.0 パリティ監査 + `location_filter`。** 親 `scan.mjs` に `location_filter`(#570)追加;web-ui の in-process スキャナは委譲しないため流れず。新 `server/lib/location-filter.mjs` がセマンティクスを忠実に複製、両スキャナに配線。help §5 ×8。新規テスト 8。581 → 589。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.32.0] — 2026-05-17
 
 **`#/config` Profile タブ — 生 YAML 塊 → 項目別フォーム (WS1)。** 折りたたみ 3 セクション(候補者/ナラティブ/報酬)、14 スカラーパス。項目保存は `config/profile.yml` に **マージ** — アーキタイプ・プルーフポイント・独自キーをそのまま保持。*Advanced* に raw-YAML エスケープハッチ維持(コメント保持)。i18n 23 キー ×8。新規テスト 7。574 → 581。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
