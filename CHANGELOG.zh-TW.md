@@ -8,6 +8,12 @@
 
 ---
 
+## [1.41.0] — 2026-05-18
+
+**WS2 —— 資深 UX/可用性稽核 + 橫切焦點管理修正。** 一次 10 年以上經驗的啟發式稽核(Nielsen × WCAG 2.2 AA × 專案慣例)檢視全部 17 條路由,產出一份依嚴重度排序的 40 項發現佇列(`.planning/.../UX-AUDIT.md`);HIGH→MEDIUM→LOW 現按每次發行一項修正逐一交付。本次發行落地橫切 HIGH 第 1 名。修正:`fix(a11y): move focus to the new view on every route change` —— `router.js render()` 在每次 hashchange 替換 `#content` 卻從不移動焦點,因此鍵盤/螢幕閱讀器使用者停留在被銷毀的節點上而失去位置(WCAG 2.4.3 Focus Order / 4.1.3 Status Messages —— 橫切,影響全部 17 個畫面);新的 `focusNewView(content)` 聚焦新檢視首個 `h1`/`.page-title`(簡潔的 SR 播報 + 正確的焦點順序),必要時令標題可聚焦(`tabindex=-1`)並回退到 `#content`;跳過最初一次繪製以免與 skip-link 衝突;在成功與錯誤兩條渲染路徑皆接線;已即時驗證:導覽後 `document.activeElement` 為新檢視的 `H1.page-title`。測試:`test(router): focus-management static guarantees` —— `router.test.mjs` 新增 4 個案例(輔助函式已定義、標題目標 + content 回退、首繪跳過守衛、≥2 個呼叫點);631 → 635。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.40.0] — 2026-05-18
 
 **WS8.3 —— docs 實態化掃描 + `career-ops-ui help` 修正 + `askSecret` 強化。** 修正:`fix(cli): career-ops-ui help no longer leaks shell source` —— 調度器以 `sed -n '2,12p'` 印出其標頭註解,但第 12 行(`set -euo pipefail`)是程式碼而非註解,因此 `career-ops-ui help`(以及未知動詞的用法文字)以一行多餘的 `set -euo pipefail` 結尾;在 `help` 與 `*)` 兩種情形下收窄為 `2,11p`(註解區塊);`help` 以 exit 0 結束,未知動詞以 exit 2 結束 —— 已驗證。`fix(cli): scripts/init.mjs key entry never echoes` —— v1.39.0 的後續將裝飾性的 readline 覆寫遮罩替換為真實的 raw 模式讀取器:`setRawMode(true)` + 帶緩衝的行,使輸入/貼上的金鑰位元組根本不會到達終端機(無 scrollback / tmux / 螢幕分享外洩);完整的 VT 跳脫 FSM 消化每個 CSI/SS3/OSC/DCS/SOS/PM/APC 序列,使方向鍵與功能鍵無法破壞密鑰;`stdin` 透過相依注入,因此非 TTY 退路在不碰觸全域的情況下做單元測試;反覆迭代至 AI 審查乾淨 LGTM。文件:README ×8 —— 舊的「一條命令安裝」章節替換為醒目的 **「一條命令啟動並初始化」** 章節(curl 單行加上顯式的 `career-ops-ui` CLI 鏈:clone → `npm link` → `setup` → `init` → `doctor` → `run` → `help`,供應方精靈說明,CI 形式 `--provider --anthropic-key --yes`,以及 `LLM_PROVIDER` 註記);8 個 README 徽章從陳舊的 v1.22–v1.24 / tests-461–474 實態化為 **v1.40.0 / tests-631**(e2e 徽章改為非數字以避免杜撰計數);help-bundle ×8 §1 —— 在快速上手手冊頂部(「A. Setup」之前)向全部 8 個語言新增「一條命令啟動 & init」標註;H2 章節配平保持(各 17 —— CI 閘門綠)。測試:`test(init): non-TTY askSecret fallback` —— `provider-selector.test.mjs` 新增一個 DI-stdin 案例,斷言 `askSecret` 在非 TTY 下委派給普通 `ask()`(trim 配平)且不更動共享全域;629 → 631。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

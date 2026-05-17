@@ -29,6 +29,24 @@ window.Router = (function () {
     return { name, rawName, params: rest };
   }
 
+  // v1.41.0 (WS2 UX-audit HIGH, cross-cutting) — SPA focus management.
+  // `render()` replaces #content on every hashchange but never moved
+  // focus, so keyboard / screen-reader users stayed on the destroyed
+  // node and lost their place (WCAG 2.4.3 Focus Order / 4.1.3 Status
+  // Messages). After a route render we move focus to the new view's
+  // first heading (concise SR announcement + correct focus order).
+  // Skipped on the very first paint so it doesn't fight the skip-link.
+  let firstPaintDone = false;
+  function focusNewView(content) {
+    if (!firstPaintDone) { firstPaintDone = true; return; }
+    const target =
+      content.querySelector('h1, .page-title, [data-autofocus]') || content;
+    if (target !== content && !target.hasAttribute('tabindex')) {
+      target.setAttribute('tabindex', '-1');
+    }
+    try { target.focus({ preventScroll: false }); } catch { /* jsdom */ }
+  }
+
   async function render() {
     const { name, rawName, params } = current();
 
@@ -54,6 +72,7 @@ window.Router = (function () {
       } else if (typeof result === 'string') {
         content.innerHTML = result;
       }
+      focusNewView(content);
     } catch (err) {
       console.error(err);
       const isNet = err && err.network;
@@ -68,6 +87,7 @@ window.Router = (function () {
         <button class="btn btn-ghost mt-3" data-action="router-retry">${retryStr}</button>
       </div>`;
       content.querySelector('[data-action="router-retry"]')?.addEventListener('click', () => render());
+      focusNewView(content);
       if (!isNet) window.UI?.toast(err.message || 'Render error', 'error');
     }
   }

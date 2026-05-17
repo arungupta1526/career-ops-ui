@@ -6,6 +6,37 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.41.0] — 2026-05-18
+
+**WS2 — senior UX/usability audit + cross-cutting focus-management fix.**
+
+A 10+ yr heuristic audit (Nielsen × WCAG 2.2 AA × project conventions) of
+all 17 routes produced a 40-finding, severity-ranked queue
+(`.planning/.../UX-AUDIT.md`); HIGH→MEDIUM→LOW are now shipped one fix per
+release. This release lands the #1 cross-cutting HIGH.
+
+### 🐛 Fixes
+
+- **`fix(a11y): move focus to the new view on every route change`** — `router.js render()` replaced `#content` on each hashchange but never moved focus, so keyboard / screen-reader users stayed on the destroyed node and lost their place (WCAG 2.4.3 Focus Order / 4.1.3 Status Messages — cross-cutting, affected all 17 screens). New `focusNewView(content)` focuses the new view's first `h1`/`.page-title` (concise SR announcement + correct focus order), making the heading focusable (`tabindex=-1`) if needed and falling back to `#content`. The very first paint is skipped so it never fights the skip-link. Wired on both the success and error render paths. Verified live: after nav, `document.activeElement` is the new view's `H1.page-title`.
+
+### 🧪 Tests
+
+- **`test(router): focus-management static guarantees`** — 4 cases in `router.test.mjs` (helper defined, heading-target + content fallback, first-paint skip guard, ≥2 call sites). 631 → 635.
+
+### 📝 Documentation
+
+- `.planning/.../UX-AUDIT.md` — full 40-finding audit + prioritized fix queue + per-release ship grouping (v1.42 → v1.51). Drives the remaining WS2 iterations.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 635 / 635 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.41.0
+# Playwright: #/dashboard → #/config → #/tracker · activeElement = new H1.page-title · 0 console errors
+```
+
+---
+
 ## [1.40.0] — 2026-05-18
 
 **WS8.3 — docs-actualization sweep + `career-ops-ui help` fix + `askSecret` hardening.**

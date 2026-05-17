@@ -8,6 +8,12 @@
 
 ---
 
+## [1.41.0] — 2026-05-18
+
+**WS2 — 시니어 UX/사용성 감사 + 횡단 포커스 관리 수정.** 10년 이상의 휴리스틱 감사(Nielsen × WCAG 2.2 AA × 프로젝트 규약)로 전체 17개 라우트를 점검해 심각도 순 40건 큐를 생성(`.planning/.../UX-AUDIT.md`); HIGH→MEDIUM→LOW를 릴리스마다 한 건씩 수정 출시. 이번 릴리스는 횡단 HIGH 1순위에 착지. 수정: `fix(a11y): move focus to the new view on every route change` — `router.js render()`가 hashchange마다 `#content`를 교체했지만 포커스를 옮기지 않아, 키보드/스크린 리더 사용자가 파괴된 노드에 남아 위치를 잃었음(WCAG 2.4.3 Focus Order / 4.1.3 Status Messages — 횡단적이며 17개 화면 모두에 영향); 새 `focusNewView(content)`가 새 뷰의 첫 `h1`/`.page-title`에 포커스(간결한 SR 안내 + 올바른 포커스 순서), 필요 시 헤딩을 포커스 가능하게(`tabindex=-1`) 만들고 `#content`로 폴백; skip-link와 충돌하지 않도록 첫 페인트는 건너뜀; 성공·오류 양 렌더 경로에 배선; 라이브 검증 완료: 내비 후 `document.activeElement`는 새 뷰의 `H1.page-title`. 테스트: `test(router): focus-management static guarantees` — `router.test.mjs`에 4개 케이스(헬퍼 정의, 헤딩 타깃 + content 폴백, 첫 페인트 스킵 가드, ≥2 호출 지점); 631 → 635. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.40.0] — 2026-05-18
 
 **WS8.3 — docs 실태화 스윕 + `career-ops-ui help` 수정 + `askSecret` 강화.** 수정: `fix(cli): career-ops-ui help no longer leaks shell source` — 디스패처가 헤더 주석을 `sed -n '2,12p'`로 출력했으나 12행(`set -euo pipefail`)은 주석이 아니라 코드여서 `career-ops-ui help`(및 알 수 없는 동사 사용법 텍스트)가 떠도는 `set -euo pipefail` 줄로 끝났음; `help`와 `*)` 두 케이스를 `2,11p`(주석 블록)로 좁힘; `help`는 exit 0, 알 수 없는 동사는 exit 2 — 검증 완료. `fix(cli): scripts/init.mjs key entry never echoes` — v1.39.0 후속 작업에서 장식용 readline 덮어쓰기 마스크를 실제 raw 모드 리더로 교체: `setRawMode(true)` + 버퍼 라인으로 입력/붙여넣기된 키 바이트가 터미널에 전혀 도달하지 않음(scrollback / tmux / 화면 공유 누출 없음); 완전한 VT 이스케이프 FSM이 모든 CSI/SS3/OSC/DCS/SOS/PM/APC 시퀀스를 소비해 화살표·기능 키가 시크릿을 손상시키지 못함; `stdin`은 의존성 주입되어 비-TTY 폴백을 공유 전역을 건드리지 않고 단위 테스트; AI 리뷰 LGTM까지 깔끔하게 반복. 문서: README ×8 — 기존 "원커맨드 설치" 섹션을 눈에 띄는 **"한 명령으로 실행 및 초기화"** 섹션으로 교체(curl 원라이너에 더해 명시적 `career-ops-ui` CLI 체인: clone → `npm link` → `setup` → `init` → `doctor` → `run` → `help`, 공급자 마법사 설명, CI 형식 `--provider --anthropic-key --yes`, `LLM_PROVIDER` 노트); 8개 README 배지를 v1.22–v1.24 / tests-461–474에서 **v1.40.0 / tests-631**로 실태화(e2e 배지는 날조 카운트 회피를 위해 비숫자화); help-bundle ×8 §1 — 퀵스타트 플레이북 상단("A. Setup" 앞)에 "한 명령 실행 & init" 콜아웃을 8개 로케일 모두에 추가; H2 섹션 패리티 유지(각 17 — CI 게이트 녹색). 테스트: `test(init): non-TTY askSecret fallback` — `provider-selector.test.mjs`에 DI-stdin 케이스를 추가해 `askSecret`가 비-TTY에서 공유 전역을 변경하지 않고 평범한 `ask()`에 위임(trim 패리티)함을 검증; 629 → 631. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

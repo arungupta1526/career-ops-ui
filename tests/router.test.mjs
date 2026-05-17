@@ -46,3 +46,27 @@ test('router: unknown routes fall back to __not_found__, NOT dashboard', () => {
 test('router: 404 view links back to dashboard', () => {
   assert.match(SRC, /href\s*=\s*['"]#\/dashboard['"]/);
 });
+
+// ───────── WS2 UX-audit HIGH: SPA route-change focus management ─────────
+
+test('router: focusNewView helper is defined (WCAG 2.4.3 focus order)', () => {
+  // The cross-cutting UX-audit HIGH: render() swapped #content without
+  // moving focus, stranding keyboard/SR users on the destroyed node.
+  assert.match(SRC, /function\s+focusNewView\s*\(\s*content\s*\)/);
+});
+
+test('router: focusNewView targets the new view heading, falls back to content', () => {
+  assert.match(SRC, /querySelector\(\s*['"]h1,\s*\.page-title,\s*\[data-autofocus\]['"]\s*\)\s*\|\|\s*content/);
+  assert.match(SRC, /\.focus\(\s*\{\s*preventScroll:\s*false\s*\}\s*\)/);
+});
+
+test('router: first paint is skipped so focus does not fight the skip-link', () => {
+  assert.match(SRC, /firstPaintDone/);
+  assert.match(SRC, /if\s*\(\s*!firstPaintDone\s*\)\s*\{\s*firstPaintDone\s*=\s*true;\s*return;\s*\}/);
+});
+
+test('router: focusNewView is invoked on BOTH the success and error render paths', () => {
+  // Two call sites: after appendChild/string render, and in the catch block.
+  const calls = SRC.match(/focusNewView\(content\)/g) || [];
+  assert.ok(calls.length >= 2, `expected ≥2 focusNewView(content) call sites, found ${calls.length}`);
+});

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.41.0] — 2026-05-18
+
+**WS2 — シニア UX/ユーザビリティ監査 + 横断的フォーカス管理修正。** 10 年以上のヒューリスティック監査(Nielsen × WCAG 2.2 AA × プロジェクト規約)で全 17 ルートを精査し、重大度順の 40 件キューを生成(`.planning/.../UX-AUDIT.md`);HIGH→MEDIUM→LOW をリリースごとに 1 修正ずつ出荷。本リリースは横断的 HIGH の第 1 位に着地。修正: `fix(a11y): move focus to the new view on every route change` — `router.js render()` は hashchange ごとに `#content` を差し替えるがフォーカスを移動しなかったため、キーボード/スクリーンリーダー利用者が破棄されたノードに取り残され位置を失っていた(WCAG 2.4.3 Focus Order / 4.1.3 Status Messages — 横断的で全 17 画面に影響);新しい `focusNewView(content)` が新ビュー先頭の `h1`/`.page-title` にフォーカス(簡潔な SR アナウンス + 正しいフォーカス順)、必要なら見出しをフォーカス可能化(`tabindex=-1`)し `#content` にフォールバック;skip-link と競合しないよう初回描画はスキップ;成功・エラー両レンダパスに配線;ライブ検証済み:遷移後 `document.activeElement` は新ビューの `H1.page-title`。テスト: `test(router): focus-management static guarantees` — `router.test.mjs` に 4 ケース(ヘルパ定義、見出しターゲット + content フォールバック、初回描画スキップガード、≥2 呼び出し箇所);631 → 635。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.40.0] — 2026-05-18
 
 **WS8.3 — docs 実態化スイープ + `career-ops-ui help` 修正 + `askSecret` 強化。** 修正: `fix(cli): career-ops-ui help no longer leaks shell source` — ディスパッチャはヘッダコメントを `sed -n '2,12p'` で出力していたが、12 行目(`set -euo pipefail`)はコメントではなくコードのため、`career-ops-ui help`(および未知動詞の使用法テキスト)が余分な `set -euo pipefail` 行で終わっていた;`help` と `*)` の両ケースを `2,11p`(コメントブロック)に絞り込み;`help` は exit 0、未知動詞は exit 2 — 検証済み。`fix(cli): scripts/init.mjs key entry never echoes` — v1.39.0 のフォローアップで装飾的な readline 上書きマスクを実際の raw モードリーダに置換: `setRawMode(true)` + バッファ行により、入力/貼り付けされたキーのバイトが端末に一切届かない(scrollback / tmux / 画面共有への漏洩なし);完全な VT エスケープ FSM が CSI/SS3/OSC/DCS/SOS/PM/APC の全シーケンスを消費し、矢印・ファンクションキーが秘密を破損しない;`stdin` は依存性注入されるため、非 TTY フォールバックはグローバルを触らず単体テスト;AI レビュー LGTM までクリーンに反復。ドキュメント: README ×8 — 旧「ワンコマンドインストール」セクションを目立つ **「ワンコマンドで起動と初期化」** セクションに置換(curl ワンライナーに加え明示的な `career-ops-ui` CLI チェーン: clone → `npm link` → `setup` → `init` → `doctor` → `run` → `help`、プロバイダウィザード説明、CI 形式 `--provider --anthropic-key --yes`、`LLM_PROVIDER` ノート);8 つの README バッジを v1.22–v1.24 / tests-461–474 から **v1.40.0 / tests-631** に実態化(e2e バッジは捏造カウント回避のため非数値化);help-bundle ×8 §1 — クイックスタート手引きの先頭(「A. Setup」の前)に「ワンコマンド起動 & init」コールアウトを 8 ロケール全てに追加;H2 セクションのパリティ維持(各 17 — CI ゲート緑)。テスト: `test(init): non-TTY askSecret fallback` — `provider-selector.test.mjs` に DI-stdin ケースを追加し、`askSecret` が非 TTY で共有グローバルを変更せず素の `ask()` に委譲(trim パリティ)することを検証;629 → 631。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
