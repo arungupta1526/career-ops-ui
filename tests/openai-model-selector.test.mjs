@@ -41,10 +41,16 @@ test('config.js defines an OPENAI_MODELS list defaulting to gpt-5-codex', () => 
 
 test('config.js wires an OPENAI_MODEL select FIELD after OPENAI_API_KEY', () => {
   const src = read('public', 'js', 'views', 'config.js');
-  assert.match(src,
-    /key: 'OPENAI_MODEL', secret: false, kind: 'select',\s*\n\s*options: OPENAI_MODELS, defaultValue: 'gpt-5-codex',/,
-    'OPENAI_MODEL select field missing or malformed');
-  assert.match(src, /labelKey: 'config\.openaiModel'/, 'OPENAI_MODEL labelKey missing');
+  // Tokenized substring set (not a single whitespace-pinned regex) so a
+  // reformat / trailing-comma change can't break the test without the
+  // field contract actually changing.
+  for (const tok of [
+    "key: 'OPENAI_MODEL'", 'secret: false', "kind: 'select'",
+    'options: OPENAI_MODELS', "defaultValue: 'gpt-5-codex'",
+    "labelKey: 'config.openaiModel'",
+  ]) {
+    assert.ok(src.includes(tok), `OPENAI_MODEL field missing token: ${tok}`);
+  }
   // appears after the OPENAI_API_KEY field, before the HH_USER_AGENT comment
   const iKey = src.indexOf("key: 'OPENAI_API_KEY'");
   const iModel = src.indexOf("key: 'OPENAI_MODEL'");
