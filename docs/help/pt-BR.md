@@ -346,7 +346,9 @@ Duas abas:
 
 1. **API keys & runtime** — edita o `.env` do projeto pai a partir
    do navegador (mesmo arquivo que os scripts Node do career-ops leem
-   na inicialização).
+   na inicialização). A aba também oferece seletores de modelo por
+   provedor — `OPENAI_MODEL` (OpenAI/Codex) ao lado de
+   `ANTHROPIC_MODEL` e `GEMINI_MODEL`.
 2. **Profile** — editor YAML direto de `config/profile.yml`. Save
    carimba o cabeçalho canônico `# Career-Ops Profile Configuration`.
 
@@ -357,7 +359,7 @@ servidor.
 
 > **v1.32.0 — formulário por campos.** A aba Profile não é mais um textarea de YAML bruto: agora é um formulário com seções recolhíveis **Candidato / Narrativa / Remuneração**. Ao salvar envia apenas os 14 caminhos escalares modelados; o servidor faz **merge** em `config/profile.yml`, então seus `archetypes`, `proof_points` e chaves próprias **são preservados intactos**. Trade-off: o save por campos re-serializa o YAML e **perde comentários `#`** — use o disclosure **Advanced: edit raw YAML** no fim da aba para preservá-los ou editar arrays aninhados.
 > **v1.35.0 — editores de arrays.** Editores add/remove para **Target roles** e **Superpowers** (listas de texto), **Archetypes** (name/level/fit) e **Proof points** (name/url/hero-metric). Mesma garantia merge-not-replace; esvaziar uma lista remove a chave de forma limpa.
-> **v1.36.0 — aba Modes por seção.** `modes/_profile.md` agora é editado por seção (`##`): um textarea recolhível por cabeçalho. Salvar **faz merge por seção** — preâmbulo e seções intactas preservados byte a byte. Disclosure *Advanced: raw markdown* para adicionar/remover seções.
+> **v1.54.3 — aba Modes como formulário estruturado.** `modes/_profile.md` não é mais um editor de markdown por seção: agora é um formulário derivado do esquema documentado. Seções de lista — **Target Roles / Adaptive Framing / Comp Targets** — são campos de linha repetíveis (adicionar/remover linhas); seções de prosa — **Exit Narrative / Location Policy** — são textareas rotuladas; qualquer seção desconhecida ou não-lista cai para um textarea rotulado verbatim. Salvar **continua fazendo merge por seção** — preâmbulo, seções intactas e seções próprias preservados byte a byte. Permanece o disclosure *Advanced: raw markdown* para editar o arquivo inteiro: adicionar/remover seções ou editar o preâmbulo.
 
 
 

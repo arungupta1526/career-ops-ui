@@ -302,7 +302,9 @@ JD。輔助器會生成逐步的投遞檢查清單:
 兩個分頁:
 
 1. **API keys & runtime** — 從瀏覽器編輯父專案的 `.env`(就是
-   career-ops 的 Node 腳本啟動時讀取的同一份檔案)。
+   career-ops 的 Node 腳本啟動時讀取的同一份檔案)。此分頁也提供
+   按供應方的模型選擇器 —— 在 `ANTHROPIC_MODEL`、`GEMINI_MODEL`
+   旁新增 `OPENAI_MODEL`(OpenAI/Codex)。
 2. **Profile** — `config/profile.yml` 的直接 YAML 編輯器。儲存
    時會蓋上正式的 `# Career-Ops Profile Configuration` 標頭。
 
@@ -312,7 +314,7 @@ JD。輔助器會生成逐步的投遞檢查清單:
 
 > **v1.32.0 —— 逐欄位表單。** Profile 分頁不再是原始 YAML 文字框,而是帶 **候選人 / 敘述 / 薪酬** 可折疊分區的表單。儲存時僅送出建模的 14 個純量路徑;伺服端**合併**進 `config/profile.yml`,因此 `archetypes`、`proof_points` 與自訂鍵**原樣保留**。權衡:逐欄位儲存會重新序列化 YAML 並**遺失 `#` 註解** —— 如需保留或編輯巢狀陣列,請用分頁底部的 **Advanced: edit raw YAML** 折疊區。
 > **v1.35.0 —— 陣列編輯器。** 為 **Target roles**、**Superpowers**(字串清單)、**Archetypes**(name/level/fit)、**Proof points**(name/url/hero-metric)新增增刪列編輯器。相同的 merge-not-replace 保證;清空清單會乾淨地移除該鍵。
-> **v1.36.0 —— Modes 分頁分區。** `modes/_profile.md` 現按區塊(`##`)編輯 —— 每個標題一個可折疊 textarea。儲存**按區塊合併** —— 前言與未更動區塊按位元組保留。*Advanced: raw markdown* 折疊區用於增刪區塊。
+> **v1.54.3 —— Modes 分頁結構化表單。** `modes/_profile.md` 不再是按區塊的原始 markdown 編輯器,而是從已文件化的 schema 衍生的欄位表單。清單型區塊 —— **Target Roles / Adaptive Framing / Comp Targets** —— 渲染為可重複的逐列輸入(增刪列);散文區塊 —— **Exit Narrative / Location Policy** —— 渲染為帶標籤的 textarea;任何未知或非清單區塊回退為帶標籤的逐字 textarea。儲存**仍按區塊合併** —— 前言、未更動區塊與自訂區塊按位元組保留。*Advanced: raw markdown* 折疊區保留,用於整檔編輯:增刪區塊或編輯前言。
 > **供應方(v1.39.0)。** API-keys 分頁新增 `LLM_PROVIDER` 選擇(`auto`=Anthropic→Gemini · `claude` · `gemini`)與 `OPENAI_API_KEY` 欄位(Codex/OpenCode CLI 端)。`career-ops-ui init` 為互動精靈。
 
 

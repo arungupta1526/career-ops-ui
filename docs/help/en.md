@@ -354,17 +354,23 @@ Three tabs:
 
 1. **API keys & runtime** — structured field form over the parent
    project's `.env` (same file the career-ops Node scripts read on
-   startup). Grouped: API keys / Runtime / Regional sources.
+   startup). Grouped: API keys / Runtime / Regional sources. The tab
+   also exposes per-provider model selectors — `OPENAI_MODEL`
+   (OpenAI/Codex) alongside `ANTHROPIC_MODEL` and `GEMINI_MODEL`.
 2. **Profile** — **field-by-field form** over `config/profile.yml`
    (web-ui 1.32.0). Save **merges** into the file — your archetypes,
    proof points, and any custom keys are preserved untouched.
-3. **Modes** — **per-section editor** for `modes/_profile.md`
-   (web-ui 1.36.0). Each `##` heading is its own collapsible textarea;
-   Save **merges by section** — the preamble and any sections you
-   don't touch are preserved byte-for-byte (it's a prompt-engineering
-   doc with tables + prose, so section granularity, not field
-   decomposition). An *Advanced: raw markdown* disclosure remains for
-   adding/removing sections or editing the preamble.
+3. **Modes** — **structured field-form** for `modes/_profile.md`
+   (web-ui 1.54.3), derived from the documented schema. List-type
+   sections — **Target Roles / Adaptive Framing / Comp Targets** —
+   render as repeatable line-item inputs (add/remove rows); prose
+   sections — **Exit Narrative / Location Policy** — render as
+   labelled textareas; any unknown or non-list section falls back to
+   a labelled verbatim textarea. Save still **merges by section** —
+   the preamble, untouched sections, and any custom sections are
+   preserved byte-for-byte. An *Advanced: raw markdown* disclosure
+   remains for full-file edits — adding/removing sections or editing
+   the preamble.
 
 A save in any tab propagates immediately — no server restart.
 

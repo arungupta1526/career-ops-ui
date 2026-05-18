@@ -340,6 +340,8 @@ Save 先は `interview-prep/<company>-<role>.md`。
 
 1. **API keys & runtime** — ブラウザから親プロジェクトの `.env` を
    編集 (career-ops の Node スクリプトが起動時に読むのと同じファイル)。
+   このタブはプロバイダ別のモデルセレクタも提供します — `ANTHROPIC_MODEL`・
+   `GEMINI_MODEL` と並んで `OPENAI_MODEL`(OpenAI/Codex)。
 2. **Profile** — `config/profile.yml` の直接 YAML エディタ。Save 時に
    正規の `# Career-Ops Profile Configuration` ヘッダを刻印します。
 
@@ -349,7 +351,7 @@ Save 先は `interview-prep/<company>-<role>.md`。
 
 > **v1.32.0 — 項目別フォーム。** Profile タブは生 YAML の textarea ではなく、**候補者 / ナラティブ / 報酬** の折りたたみセクションを持つフォームになりました。保存時はモデル化された 14 のスカラーパスのみ送信し、サーバが `config/profile.yml` に **マージ** するため、`archetypes`・`proof_points`・独自キーは **そのまま保持** されます。トレードオフ: 項目保存は YAML を再シリアライズするため **`#` コメントは失われます** — 保持や入れ子配列の編集にはタブ下部の **Advanced: edit raw YAML** を使用してください。
 > **v1.35.0 — 配列エディタ。** **Target roles**・**Superpowers**(文字列リスト)、**Archetypes**(name/level/fit)、**Proof points**(name/url/hero-metric)の add/remove エディタを追加。merge-not-replace は同一保証;リストを空にするとキーがクリーンに削除されます。
-> **v1.36.0 — Modes タブのセクション別編集。** `modes/_profile.md` をセクション(`##`)単位で編集 — 見出しごとに折りたたみ textarea。保存は **セクション単位でマージ** — プリアンブル・未編集セクションをバイト単位で保持。セクション追加/削除用 *Advanced: raw markdown* あり。
+> **v1.54.3 — Modes タブの構造化フォーム。** `modes/_profile.md` はセクション別の生 markdown エディタではなくなり、文書化されたスキーマから派生したフィールドフォームになりました。リスト型セクション — **Target Roles / Adaptive Framing / Comp Targets** — は繰り返し可能な行項目入力(行の追加/削除)、散文セクション — **Exit Narrative / Location Policy** — はラベル付き textarea としてレンダリングされ、未知または非リストのセクションはラベル付きの逐語 textarea にフォールバックします。保存は **依然としてセクション単位でマージ** — プリアンブル・未編集セクション・カスタムセクションをバイト単位で保持。ファイル全体の編集(セクション追加/削除・プリアンブル編集)用の *Advanced: raw markdown* はそのまま残ります。
 
 
 

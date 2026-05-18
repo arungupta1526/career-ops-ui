@@ -330,6 +330,8 @@ Evaluate → Reports → Deep research → Apply checklist → Outreach
 
 1. **API keys & runtime** — 부모 프로젝트의 `.env`를 브라우저에서
    편집합니다 (career-ops Node 스크립트가 시작 시 읽는 동일 파일).
+   이 탭은 공급자별 모델 선택기도 제공합니다 — `ANTHROPIC_MODEL`·
+   `GEMINI_MODEL` 옆에 `OPENAI_MODEL`(OpenAI/Codex).
 2. **Profile** — `config/profile.yml`의 직접 YAML 에디터. 저장
    시 정식 헤더 `# Career-Ops Profile Configuration`가 찍힙니다.
 
@@ -339,7 +341,7 @@ Evaluate → Reports → Deep research → Apply checklist → Outreach
 
 > **v1.32.0 — 항목별 폼.** Profile 탭은 더 이상 원본 YAML textarea가 아니라 **지원자 / 내러티브 / 보상** 접이식 섹션 폼입니다. 저장 시 모델링된 14개 스칼라 경로만 전송하며, 서버가 `config/profile.yml`에 **병합**하므로 `archetypes`·`proof_points`·커스텀 키가 **그대로 보존**됩니다. 트레이드오프: 항목 저장은 YAML을 재직렬화하여 **`#` 주석이 사라집니다** — 보존하거나 중첩 배열을 편집하려면 탭 하단의 **Advanced: edit raw YAML** 디스클로저를 사용하세요.
 > **v1.35.0 — 배열 에디터.** **Target roles**·**Superpowers**(문자열 목록), **Archetypes**(name/level/fit), **Proof points**(name/url/hero-metric)용 add/remove 에디터 추가. 동일한 merge-not-replace 보장; 목록을 비우면 키가 깔끔히 제거됩니다.
-> **v1.36.0 — Modes 탭 섹션별.** `modes/_profile.md`를 이제 섹션(`##`)별로 편집 — 헤딩마다 접이식 textarea. 저장 시 **섹션 단위 병합** — 프리앰블·미변경 섹션 바이트 단위 보존. 섹션 추가/삭제용 *Advanced: raw markdown* 디스클로저.
+> **v1.54.3 — Modes 탭 구조화 폼.** `modes/_profile.md`는 더 이상 섹션별 원본 markdown 에디터가 아니라, 문서화된 스키마에서 파생된 필드 폼입니다. 목록형 섹션 — **Target Roles / Adaptive Framing / Comp Targets** — 은 반복 가능한 라인 항목 입력(행 추가/삭제)으로, 산문 섹션 — **Exit Narrative / Location Policy** — 은 레이블된 textarea로 렌더링되며, 알 수 없거나 비목록 섹션은 레이블된 verbatim textarea로 폴백합니다. 저장은 **여전히 섹션 단위로 병합** — 프리앰블·미변경 섹션·커스텀 섹션이 바이트 단위로 보존됩니다. 전체 파일 편집(섹션 추가/삭제·프리앰블 편집)용 *Advanced: raw markdown* 디스클로저는 그대로 유지됩니다.
 
 
 

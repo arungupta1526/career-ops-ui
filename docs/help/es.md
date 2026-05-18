@@ -344,7 +344,9 @@ Dos pestañas:
 
 1. **API keys & runtime** — edita el `.env` del proyecto padre desde
    el navegador (el mismo archivo que los scripts Node de career-ops
-   leen al arrancar).
+   leen al arrancar). La pestaña también ofrece selectores de modelo
+   por proveedor — `OPENAI_MODEL` (OpenAI/Codex) junto a
+   `ANTHROPIC_MODEL` y `GEMINI_MODEL`.
 2. **Profile** — editor YAML directo para `config/profile.yml`. El
    guardado estampa el encabezado canónico
    `# Career-Ops Profile Configuration`.
@@ -356,7 +358,7 @@ reiniciar el servidor.
 
 > **v1.32.0 — formulario por campos.** La pestaña Profile ya no es un textarea de YAML crudo: ahora es un formulario con secciones plegables **Candidato / Narrativa / Compensación**. Al guardar se envían solo las 14 rutas escalares modeladas; el servidor **fusiona** en `config/profile.yml`, así que tus `archetypes`, `proof_points` y claves propias **se conservan intactos**. Compromiso: el guardado por campos re-serializa el YAML y **pierde los comentarios `#`** — usa el desplegable **Advanced: edit raw YAML** al final de la pestaña para preservarlos o editar arrays anidados.
 > **v1.35.0 — editores de arrays.** Editores add/remove para **Target roles** y **Superpowers** (listas de texto), **Archetypes** (name/level/fit) y **Proof points** (name/url/hero-metric). Misma garantía merge-not-replace; vaciar una lista elimina la clave limpiamente.
-> **v1.36.0 — pestaña Modes por secciones.** `modes/_profile.md` ahora se edita por sección (`##`): un textarea plegable por encabezado. Guardar **fusiona por sección** — preámbulo y secciones intactas se conservan byte a byte. Desplegable *Advanced: raw markdown* para añadir/quitar secciones.
+> **v1.54.3 — pestaña Modes como formulario estructurado.** `modes/_profile.md` ya no es un editor de markdown por sección: ahora es un formulario derivado del esquema documentado. Las secciones de lista — **Target Roles / Adaptive Framing / Comp Targets** — son campos de línea repetibles (añadir/quitar filas); las secciones de prosa — **Exit Narrative / Location Policy** — son textareas etiquetadas; cualquier sección desconocida o no-lista cae a un textarea etiquetado verbatim. Guardar **sigue fusionando por sección** — preámbulo, secciones intactas y secciones propias se conservan byte a byte. Persiste el desplegable *Advanced: raw markdown* para editar el archivo completo: añadir/quitar secciones o editar el preámbulo.
 
 
 
