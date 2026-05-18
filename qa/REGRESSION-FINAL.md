@@ -88,15 +88,30 @@ reader / the accessibility tree:
   HTTP-fail surfaces an actionable message both inline AND as a
   toast; clipboard has an async fallback; eval result is `role=status`.
 
-## §3 — Config: API-keys & model selectors
+## §3 — Config: API-keys, providers & the "OR" model (v1.55.0)
 
 `#/config` → API-keys tab: structured field-form over the parent
-`.env`. Per-provider model `<select>`s for **Anthropic, Gemini, and
-OpenAI/Codex** (`OPENAI_MODEL`, default `gpt-5-codex`, after
-`OPENAI_API_KEY`). `OPENAI_MODEL` ∈ `KNOWN_KEYS`/`KEY_GROUPS.core`,
-**not** `SECRET_KEYS` (model id ≠ credential — never masked). Saving a
-key applies live; the new value is honoured **without a server
-restart** (see §6).
+`.env`, opening with a note explaining career-ops is CLI-agnostic
+(Claude Code · Codex · Gemini · OpenCode · Qwen · Copilot · Kimi)
+while the web-ui ⚡ eval is headless and key-driven.
+
+- `LLM_PROVIDER` select MUST offer `auto · claude · gemini · openai ·
+  qwen`. `auto` = first provider whose key is set, preferring
+  **Anthropic → Gemini → OpenAI → Qwen** (`providerOrder()`); an
+  explicit value pins exactly one; forced + no key ⇒ manual prompt.
+- Per-provider model `<select>`s for Anthropic, Gemini, OpenAI
+  (`OPENAI_MODEL`, default `gpt-5-codex`) and Qwen (`QWEN_MODEL`,
+  default `qwen-max`). `*_API_KEY` ∈ `SECRET_KEYS` (masked, never
+  logged); `*_MODEL` and `LLM_PROVIDER` are **not** secret.
+- `KNOWN_KEYS` includes `ANTHROPIC_*`, `GEMINI_*`, `OPENAI_*`,
+  `QWEN_*`, `LLM_PROVIDER`, `PORT`, `HOST`; all LLM keys are
+  `KEY_GROUPS.core`. Saving applies live — honoured **without a
+  server restart** (see §6).
+- The "works via OR" contract: with ONLY one of the four keys set,
+  `#/evaluate` ⚡ run-live MUST succeed via that provider; the result
+  header reports which (`anthropic`/`gemini`/`openai`/`qwen`). Same
+  for `#/deep`, `#/mode/:slug`, and the `#/auto` pipeline. No key
+  anywhere ⇒ the copy-paste manual prompt, never a hard error.
 
 ## §4 — Config: Modes canonical-schema field-form
 
@@ -126,14 +141,18 @@ beyond loopback) excludes `'unsafe-inline'`/`'unsafe-eval'`,
 
 ## §6 — LLM routing honours the live parent `.env`
 
-With `ANTHROPIC_API_KEY` ONLY in the parent `.env` (NOT in the
-server's boot `process.env`) and Gemini unset/invalid: `#/evaluate`
-run-live MUST route to **Anthropic** — never error "Gemini API key
-not valid". `effectiveEnv()` resolves keys/model as: non-empty
-`process.env` wins, else current parent `.env`; detection
-(`hasAnthropicKey`/`hasGeminiKey`) matches the key actually sent; no
-restart needed after a `.env` / `POST /api/config` change. Keys are
-never logged or echoed (REVIEW-B4 canary green).
+With a key ONLY in the parent `.env` (NOT in the server's boot
+`process.env`): `#/evaluate` run-live MUST route to that provider —
+never error on a different/stale one. `effectiveEnv()` resolves
+keys/model as: non-empty `process.env` wins, else current parent
+`.env`; detection (`hasAnthropicKey`/`hasGeminiKey`/`hasOpenAIKey`/
+`hasQwenKey`) matches the key actually sent; no restart needed after
+a `.env` / `POST /api/config` change. Walk the OR matrix: for each of
+the 4 providers, set ONLY its key in `.env` and confirm a live eval
+runs via exactly that provider (`anthropic`/`gemini`/`openai`/`qwen`
+in the response). Keys are never logged or echoed — the no-leak
+canary is green in `tests/anthropic.test.mjs` and
+`tests/openai.test.mjs`.
 
 ## §7 — Streaming / disconnect hygiene
 

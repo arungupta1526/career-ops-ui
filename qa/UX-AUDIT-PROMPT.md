@@ -53,7 +53,7 @@ concept it serves:
 | Screen | Doc concept | Judge |
 |---|---|---|
 | `#/dashboard` | entry / overview | Does a new user know what to do next? |
-| `#/config` (API keys / Profile / Modes) | Quick Start Steps 3–5 | Is the §Step-5 schema legible *as fields*? Do field descriptions match the docs' wording? Is "what do I put here" answered in-context? |
+| `#/config` (API keys / Profile / Modes) | Quick Start Steps 3–5 | Is the §Step-5 schema legible *as fields*? Do field descriptions match the docs' wording? Is "what do I put here" answered in-context? Is the provider model honest — does the user understand the CLI-agnostic parent (Claude Code · Codex · Gemini · OpenCode · Qwen · Copilot · Kimi) vs the headless web-ui eval that runs on **any one** of the Anthropic/Gemini/OpenAI/Qwen API keys ("OR", auto-ordered)? Can a user with only ONE provider key tell it will work, pick it, save, and succeed without reading code? |
 | `#/auto`, Cmd+K | the auto-pipeline promise ("paste a URL → full report in 1–2 min") | Is the 1-click promise visible, trustworthy, and honest about progress/cost? |
 | `#/scan` | Scan Job Portals guide | Is a multi-minute crawl legible (progress, stop, results)? |
 | `#/pipeline` | pipeline reference | Triage clarity at 100s of rows. |
@@ -106,9 +106,12 @@ concept it serves:
 1. Read the docs → write the intended-user/outcome statement.
 2. Run two end-to-end task scenarios *as the user*, narrating
    friction at each step:
-   - **Scenario A — cold start:** empty parent files → configure →
-     first auto-pipeline on a real job URL → read the report → find
-     the PDF. Note every moment you'd consult the docs or terminal.
+   - **Scenario A — cold start:** empty parent files → set up exactly
+     ONE provider key (try each of Anthropic / Gemini / OpenAI / Qwen
+     in separate passes — the "OR" promise) → configure profile +
+     Modes fields → first auto-pipeline on a real job URL → read the
+     report → find the PDF. Note every moment you'd consult the docs
+     or terminal, and whether the UI made the single-key path obvious.
    - **Scenario B — returning power user:** refine Modes fields, batch-
      evaluate several offers, triage `#/pipeline`, check `#/tracker`.
 3. Sweep every screen through the 12 lenses.

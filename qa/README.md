@@ -25,12 +25,15 @@ historical diff only.
 |---|---|---|
 | **[`REGRESSION-FINAL.md`](./REGRESSION-FINAL.md)** | **CURRENT** | Perennial full-project regression — run on every release. |
 | **[`UX-AUDIT-PROMPT.md`](./UX-AUDIT-PROMPT.md)** | **CURRENT** | Perennial Senior-UX-designer audit vs career-ops.org/docs. |
-| [`REGRESSION-v1.54.9.md`](./REGRESSION-v1.54.9.md) | Historical | v1.54.1→v1.54.9 cycle spec. Superseded by FINAL; diff-only. |
-| [`REGRESSION-v1.54.md`](./REGRESSION-v1.54.md) | Historical | v1.54.0 FINAL end-to-end spec (P-31 WS0–WS10). Diff-only. |
-| [`REGRESSION-v1.29.2.md`](./REGRESSION-v1.29.2.md) | Historical | Prior bottom-up spec (baseline v1.6.0→v1.29.2). Diff-only. |
-| [`DOCS-COVERAGE-v1.29.md`](./DOCS-COVERAGE-v1.29.md) | Historical | Prior top-down docs-coverage. Diff-only. |
-| `REGRESSION-v1.27.md`, `DOCS-COVERAGE-v1.28.md` | Historical | Older frozen specs. |
+| [`archive/REGRESSION-v1.54.9.md`](./archive/REGRESSION-v1.54.9.md) | Archived | v1.54.1→v1.54.9 cycle spec. Superseded by FINAL; diff-only. |
+| [`archive/REGRESSION-v1.54.md`](./archive/REGRESSION-v1.54.md) | Archived | v1.54.0 FINAL end-to-end spec (P-31 WS0–WS10). Diff-only. |
+| [`archive/REGRESSION-v1.29.2.md`](./archive/REGRESSION-v1.29.2.md) | Archived | Prior bottom-up spec (baseline v1.6.0→v1.29.2). Diff-only. |
+| [`archive/DOCS-COVERAGE-v1.29.md`](./archive/DOCS-COVERAGE-v1.29.md) | Archived | Prior top-down docs-coverage. Diff-only. |
+| `archive/REGRESSION-v1.27.md`, `archive/DOCS-COVERAGE-v1.28.md` | Archived | Older frozen specs. |
 | `v{14,24,26,27,28,29}-regression/`, `docs-coverage-runs/` | Historical | Live-run evidence per past cycle. Read-only. |
+
+> Only the two **CURRENT** perennial prompts live at `qa/` root; all
+> version-pinned specs were moved to `qa/archive/` (v1.55.0).
 
 ## P-31 program — shipped (v1.31 → v1.54)
 
@@ -43,7 +46,8 @@ AI-review to LGTM:
 | WS0 parent-sync | v1.31 | batch `--model`/`--start-from` parity |
 | WS1 #/config field-forms | v1.32 | per-field profile/config editors, merge-not-replace invariant |
 | WS4 parity · WS5 #/auto · WS6 settings-decomposition · WS7 pre-commit AI-review · WS8 CLI (setup/init/doctor/run/open + provider selector) | v1.33–1.40 | feature parity + bootstrap |
-| **WS2 senior UX-audit** | **v1.41–v1.52** | **40 findings (HIGH→LOW) all fixed**, one ship each, every screen Playwright-verified — see `REGRESSION-v1.54.md §2` |
+| **WS2 senior UX-audit** | **v1.41–v1.52** | **40 findings (HIGH→LOW) all fixed**, one ship each, every screen Playwright-verified — see `REGRESSION-FINAL.md §2` |
+| Post-final hardening + multi-provider | v1.54.1–v1.55.0 | 3 MEDIUM regression fixes, Modes canonical-schema field-form, deploy-hygiene, SSE disconnect hygiene, LLM-key live-`.env` routing, **headless OR eval (Anthropic\|Gemini\|OpenAI\|Qwen)** |
 | WS9 test pyramid | v1.53 | shell-surface tests (`bin/*.sh` + `.githooks`); 717 `node --test` + 4 E2E + TESTING.md |
 | WS10 canonical re-validation | v1.54 | help-bundle H3-parity closed (all 8 → 17 H2 / 70 H3) + gate; `docs/sdd/` refreshed |
 
@@ -68,11 +72,14 @@ are shipped and each regression-locked by a `tests/*.test.mjs`.
 ```text
 qa/
 ├── README.md                 ← you are here
-├── REGRESSION-v1.54.md       ← CURRENT end-to-end spec (run this)
-├── REGRESSION-v1.29.2.md     ← prior bottom-up (historical, diff-only)
-├── DOCS-COVERAGE-v1.29.md    ← prior top-down (historical, diff-only)
-├── REGRESSION-v1.27.md · DOCS-COVERAGE-v1.28.md   ← older frozen
-├── v54-regression/           ← NEW: live run reports for the current spec
+├── REGRESSION-FINAL.md       ← CURRENT perennial regression (run this)
+├── UX-AUDIT-PROMPT.md        ← CURRENT perennial Senior-UX audit
+├── G-005-closure-kit.md      ← single open backlog item
+├── archive/                  ← all version-pinned specs (diff-only)
+│   ├── REGRESSION-v1.54.9.md · REGRESSION-v1.54.md
+│   ├── REGRESSION-v1.29.2.md · REGRESSION-v1.27.md
+│   └── DOCS-COVERAGE-v1.29.md · DOCS-COVERAGE-v1.28.md
+├── v54-regression/           ← live run reports for the current spec
 ├── v{14,24,26,27,28,29}-regression/   ← historical evidence (read-only)
 ├── docs-coverage-runs/       ← historical top-down run reports
 ├── conformance-vs-docs/ · functional-vs-docs/   ← reserved for new runs
