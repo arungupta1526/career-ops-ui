@@ -39,17 +39,62 @@ Router.register('tracker', async () => {
     return out;
   }
 
+  // v1.49.0 (WS2 #11) — client-side sort on date / score / status.
+  let sortKey = null;       // 'date' | 'score' | 'status' | null
+  let sortDir = 'asc';      // 'asc' | 'desc'
+  function sorted(arr) {
+    if (!sortKey) return arr;
+    const dir = sortDir === 'asc' ? 1 : -1;
+    const val = (r) => sortKey === 'score' ? (r.scoreNum ?? -1)
+      : sortKey === 'date' ? (r.date || '')
+      : (r.status || '');
+    return [...arr].sort((a, b) => {
+      const x = val(a); const y = val(b);
+      if (typeof x === 'number') return (x - y) * dir;
+      return String(x).localeCompare(String(y)) * dir;
+    });
+  }
+
   function applyFilters() {
-    const all = filtered();
+    const all = sorted(filtered());
     const page = pager.slice(all);
     tbody.innerHTML = '';
     pgWrap.innerHTML = '';
     if (all.length === 0) {
-      tbody.appendChild(c('tr', null, c('td', { colspan: 9, style: { textAlign: 'center', padding: '40px', color: 'var(--foggy)' } }, t('track.noMatch'))));
+      // WS2 #26 — distinguish first-run (no data at all) from a filter
+      // that excluded everything; the former gets an actionable CTA.
+      const emptyCell = rows.length === 0
+        ? c('td', { colspan: 9, style: { textAlign: 'center', padding: '40px', color: 'var(--foggy)' } }, [
+            c('strong', null, t('track.emptyTitle', 'No applications yet')),
+            c('p', { style: { margin: '8px 0 0' } }, t('track.emptyBody', 'Run the pipeline or evaluate a JD to populate this tracker.')),
+            c('a', { href: '#/pipeline', className: 'btn btn-primary btn-sm', style: { marginTop: '12px' } }, t('track.emptyCta', 'Open pipeline')),
+          ])
+        : c('td', { colspan: 9, style: { textAlign: 'center', padding: '40px', color: 'var(--foggy)' } }, t('track.noMatch'));
+      tbody.appendChild(c('tr', null, emptyCell));
       return;
     }
     for (const r of page) tbody.appendChild(row(r));
     pgWrap.appendChild(pager.controls(page.length, all.length));
+  }
+
+  // WS2 #11 — a sortable column header: a button inside the th so it's
+  // keyboard-operable; aria-sort reflects state; click toggles dir.
+  function sortableTh(label, key) {
+    const th = c('th', { scope: 'col', 'aria-sort': 'none' });
+    const btn = c('button', {
+      className: 'tbl-sort',
+      style: { background: 'none', border: 0, font: 'inherit', cursor: 'pointer', color: 'inherit', padding: 0 },
+      onClick: () => {
+        if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+        else { sortKey = key; sortDir = 'asc'; }
+        pager.reset();
+        for (const h of th.parentElement.children) h.setAttribute('aria-sort', 'none');
+        th.setAttribute('aria-sort', sortDir === 'asc' ? 'ascending' : 'descending');
+        applyFilters();
+      },
+    }, label + ' ⇅');
+    th.appendChild(btn);
+    return th;
   }
   // Resetting the pager when filter inputs change keeps page-1 sticky.
   ;[filterStatus, filterScore, filterText].forEach((el) =>
@@ -71,7 +116,11 @@ Router.register('tracker', async () => {
         ? c('span', { className: 'badge ' + legitimacyClass(r.legitimacy) }, r.legitimacy)
         : c('span', { style: { color: 'var(--foggy)' } }, '—')),
       c('td', null, r.pdfReady ? '✓' : '—'),
-      c('td', null, r.reportPath ? c('button', { className: 'btn btn-ghost btn-sm', onClick: () => Router.go('/reports/' + r.reportPath.replace(/^reports\//, '').replace(/\.md$/, '')) }, t('track.report')) : ''),
+      c('td', null, r.reportPath ? c('button', {
+        className: 'btn btn-ghost btn-sm',
+        'aria-label': t('track.report') + ' — ' + (r.company || r.role || ''),
+        onClick: () => Router.go('/reports/' + r.reportPath.replace(/^reports\//, '').replace(/\.md$/, '')),
+      }, t('track.report')) : ''),
     ]);
   }
 
@@ -84,9 +133,9 @@ Router.register('tracker', async () => {
         c('p', { className: 'page-subtitle' }, `${rows.length} ${t('track.entriesIn')} data/applications.md`),
       ]),
       c('div', { className: 'flex gap-3' }, [
-        c('button', { className: 'btn btn-ghost', onClick: (e) => runFix(e.currentTarget, '/api/run/normalize', t) }, t('track.normalize')),
-        c('button', { className: 'btn btn-ghost', onClick: (e) => runFix(e.currentTarget, '/api/run/dedup', t) }, t('track.dedup')),
-        c('button', { className: 'btn btn-ghost', onClick: (e) => runFix(e.currentTarget, '/api/run/merge', t) }, t('track.merge')),
+        c('button', { className: 'btn btn-ghost', title: t('track.fixHint', 'Rewrites data/applications.md in place'), onClick: (e) => runFix(e.currentTarget, '/api/run/normalize', t) }, t('track.normalize')),
+        c('button', { className: 'btn btn-ghost', title: t('track.fixHint', 'Rewrites data/applications.md in place'), onClick: (e) => runFix(e.currentTarget, '/api/run/dedup', t) }, t('track.dedup')),
+        c('button', { className: 'btn btn-ghost', title: t('track.fixHint', 'Rewrites data/applications.md in place'), onClick: (e) => runFix(e.currentTarget, '/api/run/merge', t) }, t('track.merge')),
       ]),
     ]),
 
@@ -98,9 +147,17 @@ Router.register('tracker', async () => {
 
     c('div', { className: 'table-wrap' },
       c('table', { className: 'tbl' }, [
-        c('thead', null, c('tr', null,
-          ['#', t('track.col.date'), t('scan.col.company'), t('scan.col.role'), 'Score', t('track.col.status'), t('track.col.legitimacy', 'Legitimacy'), 'PDF', ''].map((h) => c('th', null, h))
-        )),
+        c('thead', null, c('tr', null, [
+          c('th', { scope: 'col' }, '#'),
+          sortableTh(t('track.col.date'), 'date'),
+          c('th', { scope: 'col' }, t('scan.col.company')),
+          c('th', { scope: 'col' }, t('scan.col.role')),
+          sortableTh(t('track.col.score', 'Score'), 'score'),
+          sortableTh(t('track.col.status'), 'status'),
+          c('th', { scope: 'col' }, t('track.col.legitimacy', 'Legitimacy')),
+          c('th', { scope: 'col' }, t('track.col.pdf', 'PDF')),
+          c('th', { scope: 'col' }, t('track.col.actions', 'Actions')),
+        ])),
         tbody,
       ])
     ),

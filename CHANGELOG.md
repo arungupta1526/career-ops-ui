@@ -6,6 +6,35 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.49.0] — 2026-05-18
+
+**WS2 #10 + #11 + #25 + #26 — tracker table accessibility & sort.**
+
+### 🐛 Fixes
+
+- **`fix(a11y): tracker headers, sortable table, localized fix labels, empty state`** — four `#/tracker` findings:
+  - **#10** the action column header was an empty string and the per-row Report button had no context. Every `<th>` now has `scope="col"`; the action header is `t('track.col.actions')`; `Score`/`PDF` headers are i18n-keyed (were hardcoded English); the Report button gains an `aria-label` (`<report> — <company>`).
+  - **#11** a job tracker with no way to sort. Date / Score / Status headers are now keyboard-operable sort buttons inside the `<th>` with `aria-sort` (`none`/`ascending`/`descending`); a `sorted()` comparator (numeric for score, locale-compare for date/status) runs before pagination; clicking toggles direction and resets the pager.
+  - **#25** `track.normalize/dedup/merge` were identical English in all 8 locales despite being the highest-stakes destructive controls — now properly localized, plus a `title` tooltip (`Rewrites data/applications.md in place`).
+  - **#26** a zero-row first run showed the same "no match" message as an over-filtered list. `rows.length === 0` now renders a distinct empty state (title + body + "Open pipeline" CTA); the filter-excluded-everything case keeps `track.noMatch`.
+
+### 🌐 i18n
+
+- 7 new keys × 8 locales (`track.col.score/pdf/actions`, `track.fixHint`, `track.emptyTitle/Body/Cta`) + 3 re-localized (`track.normalize/dedup/merge`). `i18n-coverage` gate green.
+
+### 🧪 Tests
+
+- **`test: tests/tracker-a11y-sort.test.mjs`** — 6 cases (scope + i18n headers, Report aria-label, sortable th/aria-sort/comparator, localized destructive labels + title, distinct empty state, 7 i18n keys ×8). 677 → 683. Playwright-verified: 9 th all scope=col, 3 sortable, action header localized, aria-sort none→ascending on click, 0 console errors.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 683 / 683 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.49.0
+```
+
+---
+
 ## [1.48.0] — 2026-05-18
 
 **WS2 #8 + #22 — pipeline: focus-trapped confirm + preview a11y.**

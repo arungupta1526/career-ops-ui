@@ -8,6 +8,12 @@
 
 ---
 
+## [1.49.0] — 2026-05-18
+
+**WS2 #10 + #11 + #25 + #26 —— tracker 表格无障碍与排序。** `#/tracker` 上 UX 审计的四项发现,在 `tracker.js` 中修复。`fix(a11y): tracker headers, sortable table, localized fix labels, empty state` —— #10:动作列表头是空字符串,每行的 Report 按钮缺少上下文;现每个 `<th>` 均带 `scope=col`,动作表头与 `Score`/`PDF` 表头改为 i18n 键(原先为空或硬编码英文),Report 按钮获得带公司名的 `aria-label`(`<report> — <company>`)。#11:tracker 没有排序方式;Date / Score / Status 表头现为 `<th>` 内可键盘操作的排序按钮,带 `aria-sort`(`none`/`ascending`/`descending`);`sorted()` 比较器(score 按数值,date/status 按 locale 比较)在分页前运行,点击切换方向并重置分页器。#25:`track.normalize/dedup/merge` 是风险最高的破坏性控件,却在全部 8 个语言区为同一英文(原地重写 `data/applications.md`)—— 现已正确本地化,并新增 `title` 提示。#26:零行首次运行显示与过度筛选列表相同的「no match」消息;`rows.length === 0` 现渲染独立的空状态(标题 + 正文 +「Open pipeline」CTA)。新增 7 个 i18n 键 × 8 个语言区 + 3 个重新本地化;测试 +6:`test: tests/tracker-a11y-sort.test.mjs`。677 → 683。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.48.0] — 2026-05-18
 
 **WS2 #8 + #22 —— pipeline:焦点陷阱确认 + 预览无障碍。** `#/pipeline` 上 UX 审计的两项发现,在 `pipeline.js` 中修复。`fix(a11y): pipeline UI.confirm() + live preview region` —— #8:`#/pipeline` 的三个动作均使用原生 `confirm()`(未做焦点陷阱):预览面板的 Delete、每行的 `✕` 删除、以及「Evaluate first」;现全部改走带焦点陷阱的 `UI.confirm()`(v1.44.0 基础设施)—— 两个删除 `danger:true`(Cancel 为默认),「Evaluate first」`danger:false`;`pipeline.js` 中已无任何原生 `confirm()`。#22:`previewPane` 没有 live 角色,且 fetch 失败被塞进 `previewBody`,渲染成误导性的 `<pre>`「preview」;现为带 `aria-label` 的 `role=region` `aria-live=polite`,失败时另设 `previewError` 并渲染为独立的 `role=alert` 区块((重新)选择时及删除当前行时清除)。新增 4 个 i18n 键 × 8 个语言区;测试 +5:`test: tests/pipeline-confirm-preview.test.mjs`。672 → 677。详见 [`CHANGELOG.md`](CHANGELOG.md)。

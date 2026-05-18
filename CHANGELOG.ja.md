@@ -8,6 +8,12 @@
 
 ---
 
+## [1.49.0] — 2026-05-18
+
+**WS2 #10 + #11 + #25 + #26 — tracker テーブルのアクセシビリティとソート。** `#/tracker` における UX 監査の 4 件の指摘を `tracker.js` で修正。`fix(a11y): tracker headers, sortable table, localized fix labels, empty state` — #10:アクション列のヘッダーは空文字列で、行ごとの Report ボタンには文脈が無かった;今はすべての `<th>` が `scope=col` を持ち、アクションヘッダーと `Score`/`PDF` ヘッダーは i18n キー化され(空またはハードコードされた英語だった)、Report ボタンは会社名付きの `aria-label`(`<report> — <company>`)を得る。#11:ソート手段の無い tracker;Date / Score / Status ヘッダーは今や `<th>` 内のキーボード操作可能なソートボタンで `aria-sort`(`none`/`ascending`/`descending`)を持つ;`sorted()` コンパレータ(score は数値、date/status はロケール比較)がページネーションの前に走り、クリックで方向をトグルしページャをリセットする。#25:`track.normalize/dedup/merge` は最もリスクの高い破壊的コントロールであるにもかかわらず 8 ロケールすべてで同一の英語だった(`data/applications.md` をその場で書き換える)— 今は適切にローカライズされ、さらに `title` ツールチップを追加。#26:ゼロ行の初回実行が過剰フィルタのリストと同じ「no match」メッセージを表示していた;`rows.length === 0` は今や独立した空状態(タイトル + 本文 +「Open pipeline」CTA)をレンダリングする。新規 i18n キー 7 件 × 8 ロケール + 3 件を再ローカライズ;テスト +6:`test: tests/tracker-a11y-sort.test.mjs`。677 → 683。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.48.0] — 2026-05-18
 
 **WS2 #8 + #22 — pipeline:フォーカストラップされた確認 + プレビューのアクセシビリティ。** `#/pipeline` における UX 監査の 2 件の指摘を `pipeline.js` で修正。`fix(a11y): pipeline UI.confirm() + live preview region` — #8:`#/pipeline` の 3 つのアクションはネイティブ `confirm()` を使用していた(フォーカストラップされない):プレビューペインの Delete、行ごとの `✕` 削除、「Evaluate first」。いずれもフォーカストラップされる `UI.confirm()`(v1.44.0 のインフラ)を経由するようになった — 2 つの削除は `danger:true`(Cancel がデフォルト)、「Evaluate first」は `danger:false`;`pipeline.js` にネイティブ `confirm()` はもう残っていない。#22:`previewPane` にはライブロールが無く、fetch 失敗が `previewBody` に詰め込まれて誤解を招く `<pre>`「preview」としてレンダリングされていた;今は `aria-label` 付きの `role=region` `aria-live=polite` となり、失敗時は別の `previewError` を設定して独立した `role=alert` ブロックとしてレンダリングする((再)選択時およびアクティブ行の削除時にクリア)。新規 i18n キー 4 件 × 8 ロケール;テスト +5:`test: tests/pipeline-confirm-preview.test.mjs`。672 → 677。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

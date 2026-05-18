@@ -8,6 +8,12 @@
 
 ---
 
+## [1.49.0] — 2026-05-18
+
+**WS2 #10 + #11 + #25 + #26 — tracker 테이블 접근성 및 정렬.** `#/tracker`의 UX 감사 지적 4건을 `tracker.js`에서 수정. `fix(a11y): tracker headers, sortable table, localized fix labels, empty state` — #10: 액션 열 헤더가 빈 문자열이었고 행별 Report 버튼에 맥락이 없었음; 이제 모든 `<th>`가 `scope=col`을 가지며, 액션 헤더와 `Score`/`PDF` 헤더는 i18n 키화되었고(비어 있거나 하드코딩된 영어였음), Report 버튼은 회사명이 담긴 `aria-label`(`<report> — <company>`)을 얻음. #11: 정렬 수단이 없던 tracker; Date / Score / Status 헤더는 이제 `<th>` 안의 키보드 조작 가능한 정렬 버튼이며 `aria-sort`(`none`/`ascending`/`descending`)를 가짐; `sorted()` 비교자(score는 숫자, date/status는 로케일 비교)가 페이지네이션 전에 실행되고, 클릭 시 방향을 토글하고 페이저를 리셋함. #25: `track.normalize/dedup/merge`는 가장 위험도가 높은 파괴적 컨트롤임에도 8개 로케일 모두에서 동일한 영어였음(`data/applications.md`를 제자리에서 다시 씀) — 이제 제대로 현지화되었고, `title` 툴팁도 추가. #26: 0행 첫 실행이 과도하게 필터링된 목록과 동일한 "no match" 메시지를 보였음; `rows.length === 0`은 이제 독립적인 빈 상태(제목 + 본문 + "Open pipeline" CTA)를 렌더링함. 신규 i18n 키 7개 × 8개 로케일 + 3개 재현지화; 테스트 +6: `test: tests/tracker-a11y-sort.test.mjs`. 677 → 683. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.48.0] — 2026-05-18
 
 **WS2 #8 + #22 — pipeline: 포커스 트랩 확인 + 미리보기 접근성.** `#/pipeline`의 UX 감사 지적 2건을 `pipeline.js`에서 수정. `fix(a11y): pipeline UI.confirm() + live preview region` — #8: `#/pipeline`의 세 가지 액션이 네이티브 `confirm()`을 사용했음(포커스 트랩 안 됨): 미리보기 창의 Delete, 행별 `✕` 삭제, "Evaluate first". 이제 모두 포커스 트랩되는 `UI.confirm()`(v1.44.0 인프라)를 거침 — 두 삭제는 `danger:true`(Cancel 기본값), "Evaluate first"는 `danger:false`; `pipeline.js`에 네이티브 `confirm()`은 더 이상 남아 있지 않음. #22: `previewPane`에 라이브 역할이 없었고 fetch 실패가 `previewBody`에 채워져 오해를 주는 `<pre>` "preview"로 렌더링되었음; 이제 `aria-label`을 갖춘 `role=region` `aria-live=polite`이며, 실패 시 별도의 `previewError`를 설정해 독립적인 `role=alert` 블록으로 렌더링함((재)선택 시 및 활성 행 삭제 시 지워짐). 신규 i18n 키 4개 × 8개 로케일; 테스트 +5: `test: tests/pipeline-confirm-preview.test.mjs`. 672 → 677. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
