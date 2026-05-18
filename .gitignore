@@ -55,7 +55,10 @@ interview-prep/
 # ── GSD / SDD scratch (per-developer, not part of the public contract) ──
 .planning/
 
-# ── Per-user agent settings (tracked file is settings.json; *.local.json is private) ──
+# ── Per-user agent settings — untracked: the permission allow-list
+# auto-appends every novel ad-hoc Bash command, so committing it churns
+# git every session (see CHANGELOG/loop notes). Each clone keeps its own. ──
+.claude/settings.json
 .claude/settings.local.json
 .claude/cache/
 .claude/state/
