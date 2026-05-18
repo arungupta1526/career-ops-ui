@@ -127,9 +127,14 @@ async function run() {
     await page.locator('#global-search').press('Shift+Enter');
     await page.waitForTimeout(800);
     if (!(await page.content()).includes(url)) throw new Error('not visible after add');
-    page.on('dialog', (d) => d.accept());
-    await page.locator(`.pipeline-row[data-url="${url}"] .pipeline-row-delete`).click();
-    await page.waitForTimeout(500);
+    // v1.48.0 (WS2 #8) — native confirm() → focus-trapped UI.confirm()
+    // modal; page.on('dialog') no longer fires. Tear the row down via
+    // the API (robust; avoids leaving a modal backdrop that would block
+    // later steps).
+    await page.evaluate(async (u) => {
+      await fetch('/api/pipeline?url=' + encodeURIComponent(u), { method: 'DELETE' });
+    }, url);
+    await page.waitForTimeout(200);
   });
 
   await step('Pipeline: invalid URL is rejected with 400 not silently accepted', async () => {

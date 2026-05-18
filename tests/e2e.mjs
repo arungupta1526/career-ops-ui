@@ -131,10 +131,15 @@ async function run() {
     if (!txt.includes(testUrl)) throw new Error('URL not visible after add');
     console.log('  ✓ url added & visible');
 
-    // cleanup — find the row by its data-url (stable across UI refactors)
-    page.on('dialog', (d) => d.accept());
-    await page.locator(`.pipeline-row[data-url="${testUrl}"] .pipeline-row-delete`).click();
-    await page.waitForTimeout(400);
+    // cleanup via the API (this flow's intent is "add via search"; the
+    // delete is just teardown). v1.48.0 (WS2 #8) replaced native
+    // confirm() with a focus-trapped UI.confirm() modal — driving that
+    // UI here coupled teardown to the modal and could leave a backdrop
+    // that blocks every later flow. An API DELETE is robust and matches
+    // how the full-cycle suite tears pipeline rows down.
+    await page.evaluate(async (u) => {
+      await fetch('/api/pipeline?url=' + encodeURIComponent(u), { method: 'DELETE' });
+    }, testUrl);
     passed++;
   } catch (err) {
     failed++;
