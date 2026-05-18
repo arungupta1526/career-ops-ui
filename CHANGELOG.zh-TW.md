@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.5] — 2026-05-18
+
+**fix(a11y): F-V54-C — `#/batch` TSV 編輯器擁有可存取名稱。** `#/batch` 的 TSV `<textarea>` 此前有一個透過 `aria-describedby` 接線的提示,但**沒有可存取名稱** —— 無 `<label htmlFor>`,無 `aria-label`/`aria-labelledby`(回歸執行 F-V54-C;WCAG 1.3.1 Info & Relationships / 4.1.2 Name, Role, Value)。`aria-describedby` 提供的是*描述*而非*名稱*,因此螢幕閱讀器讀出的是無標籤的「edit text」。該 textarea 現在透過新增 i18n 鍵 `batch.tsvAria` 攜帶 `aria-label`,與已使用 `*Aria` 鍵的同級執行控制輸入保持一致;既有的 describedby 提示得以保留。已線上驗證:`aria-label` 存在且已本地化,`aria-describedby` 完整,0 主控台錯誤。新增 i18n 鍵 `batch.tsvAria` 於全部 8 個語言區。新增 1 個測試檔 `tests/batch-tsv-accessible-name.test.mjs`(2 個案例:`batch-tsv` 區塊在保留其 describedby 提示的同時透過 `t(batch.tsvAria)` 擁有 `aria-label`;`batch.tsvAria` 在全部 8 個語言區中定義);736 → 738。`fix(a11y)` · `test: tests/batch-tsv-accessible-name.test.mjs`。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.54.4] — 2026-05-18
 
 **fix(a11y): F-V54-B — `#/pipeline` 列操作按鈕擁有可存取名稱。** `#/pipeline` 上每列的 `▶`(評估)和 `✕`(刪除)按鈕此前是僅含 `title` 屬性的純圖示按鈕(回歸執行 F-V54-B;WCAG 4.1.2 Name, Role, Value)。`title` 不是可靠的可存取名稱,因此螢幕閱讀器使用者聽到的是一長串無法區分的「button」,無法判斷刪除會命中哪一列。兩個按鈕現在都帶有明確的 `aria-label`,透過新增的 `shortUrl()` 輔助函式以精簡 URL 消歧(`host` + `…/` + 最後 2 個路徑區段;不可剖析輸入回退為尾端切片),因此 a11y 樹讀出如 *「Delete: hh.ru/…/vacancy/12345」*。無新增 i18n 鍵 —— 重用 `common.delete` / `pipe.evaluateBtn` + URL。已線上驗證:1385 列,每個按鈕名稱按列唯一,0 主控台錯誤。新增 1 個測試檔 `tests/pipeline-row-action-names.test.mjs`(4 個案例:兩個按鈕均以 `shortUrl(url)` 接線 + 恰好兩個此類標籤,`shortUrl` 在使用前宣告,同主機不同職缺的 URL 不會合併,裸主機 / 不可剖析 / 空回退);732 → 736。`fix(a11y)` · `test: tests/pipeline-row-action-names.test.mjs`。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

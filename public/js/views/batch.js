@@ -29,8 +29,14 @@ Router.register('batch', async () => {
   // ── editor ──
   // v1.20.0 — WCAG 1.3.1 / 3.3.2: TSV textarea + run-control inputs
   // associated with hint paragraphs via aria-describedby.
+  // F-V54-C (v1.54.5) — the TSV editor had a hint via aria-describedby
+  // but NO accessible NAME (no <label>, no aria-label), so a screen
+  // reader announced an unlabelled "edit text". aria-describedby is a
+  // description, not a name. Add aria-label like the sibling
+  // run-control inputs (WCAG 1.3.1 / 4.1.2).
   const textarea = c('textarea', {
     id: 'batch-tsv',
+    'aria-label': t('batch.tsvAria', 'Batch TSV — one offer per line: id, url, source, notes (tab-separated)'),
     'aria-describedby': 'batch-tsv-hint',
     className: 'textarea',
     rows: 14,

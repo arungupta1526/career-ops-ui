@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.5] — 2026-05-18
+
+**fix(a11y): F-V54-C — `#/batch` TSV 编辑器拥有可访问名称。** `#/batch` 的 TSV `<textarea>` 此前有一个通过 `aria-describedby` 接线的提示,但**没有可访问名称** —— 无 `<label htmlFor>`,无 `aria-label`/`aria-labelledby`(回归运行 F-V54-C;WCAG 1.3.1 Info & Relationships / 4.1.2 Name, Role, Value)。`aria-describedby` 提供的是*描述*而非*名称*,因此屏幕阅读器读出的是无标签的“edit text”。该 textarea 现在通过新增 i18n 键 `batch.tsvAria` 携带 `aria-label`,与已使用 `*Aria` 键的同级运行控制输入保持一致;既有的 describedby 提示得以保留。已在线验证:`aria-label` 存在且已本地化,`aria-describedby` 完整,0 控制台错误。新增 i18n 键 `batch.tsvAria` 于全部 8 个语言区。新增 1 个测试文件 `tests/batch-tsv-accessible-name.test.mjs`(2 个用例:`batch-tsv` 块在保留其 describedby 提示的同时通过 `t(batch.tsvAria)` 拥有 `aria-label`;`batch.tsvAria` 在全部 8 个语言区中定义);736 → 738。`fix(a11y)` · `test: tests/batch-tsv-accessible-name.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.54.4] — 2026-05-18
 
 **fix(a11y): F-V54-B — `#/pipeline` 行操作按钮拥有可访问名称。** `#/pipeline` 上每行的 `▶`(评估)和 `✕`(删除)按钮此前是仅含 `title` 属性的纯图标按钮(回归运行 F-V54-B;WCAG 4.1.2 Name, Role, Value)。`title` 不是可靠的可访问名称,因此屏幕阅读器用户听到的是一长串无法区分的“button”,无法判断删除会命中哪一行。两个按钮现在都带有显式 `aria-label`,通过新增的 `shortUrl()` 帮助函数以紧凑 URL 消歧(`host` + `…/` + 最后 2 个路径段;不可解析输入回退为尾部切片),因此 a11y 树读出如 *“Delete: hh.ru/…/vacancy/12345”*。无新增 i18n 键 —— 复用 `common.delete` / `pipe.evaluateBtn` + URL。已在线验证:1385 行,每个按钮名称按行唯一,0 控制台错误。新增 1 个测试文件 `tests/pipeline-row-action-names.test.mjs`(4 个用例:两个按钮均以 `shortUrl(url)` 接线 + 恰好两个此类标签,`shortUrl` 在使用前声明,同主机不同职位的 URL 不会合并,裸主机 / 不可解析 / 空回退);732 → 736。`fix(a11y)` · `test: tests/pipeline-row-action-names.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。

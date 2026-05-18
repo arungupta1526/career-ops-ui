@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.5] — 2026-05-18
+
+**fix(a11y): F-V54-C — `#/batch` の TSV エディターにアクセシブルな名前がある。** `#/batch` の TSV `<textarea>` は `aria-describedby` 経由で配線されたヒントはあったが**アクセシブルな名前がなかった** — `<label htmlFor>` なし、`aria-label`/`aria-labelledby` なし(回帰ラン F-V54-C; WCAG 1.3.1 Info & Relationships / 4.1.2 Name, Role, Value)。`aria-describedby` は*名前*ではなく*説明*を供給するため、スクリーンリーダーはラベルのない "edit text" を読み上げた。textarea は今や新しい i18n キー `batch.tsvAria` 経由の `aria-label` を持ち、すでに `*Aria` キーを使う兄弟のラン制御入力と一貫する;既存の describedby ヒントは保持される。ライブ検証済み:`aria-label` 存在 + ローカライズ、`aria-describedby` 維持、コンソールエラー 0。新しい i18n キー `batch.tsvAria` を 8 ロケール全体に追加。テストファイル `tests/batch-tsv-accessible-name.test.mjs`(2 ケース:`batch-tsv` ブロックが describedby ヒントを保ちつつ `t(batch.tsvAria)` 経由の `aria-label` を持つ;`batch.tsvAria` が 8 ロケールで定義)を +1;736 → 738。`fix(a11y)` · `test: tests/batch-tsv-accessible-name.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.54.4] — 2026-05-18
 
 **fix(a11y): F-V54-B — `#/pipeline` の行アクションボタンにアクセシブルな名前がある。** `#/pipeline` の行ごとの `▶`(評価)および `✕`(削除)ボタンは `title` 属性のみのアイコン専用だった(回帰ラン F-V54-B; WCAG 4.1.2 Name, Role, Value)。`title` は信頼できるアクセシブルな名前ではないため、スクリーンリーダーユーザーは区別のつかない "button" の長い連なりを聞き、削除がどの行に当たるか判別できなかった。両ボタンは今や、新しい `shortUrl()` ヘルパー経由のコンパクトな URL(`host` + `…/` + 末尾 2 つのパスセグメント;パース不能な入力には末尾スライスのフォールバック)で曖昧さを解消した明示的な `aria-label` を持ち、a11y ツリーは例えば *"Delete: hh.ru/…/vacancy/12345"* と読み上げる。新しい i18n キーなし — `common.delete` / `pipe.evaluateBtn` + URL を再利用。ライブ検証済み:1385 行、各ボタン名が行ごとに一意、コンソールエラー 0。テストファイル `tests/pipeline-row-action-names.test.mjs`(4 ケース:両ボタンが `shortUrl(url)` で配線 + ちょうど 2 つのそのラベル、`shortUrl` が使用前に宣言、同一ホスト別求人の URL は collapse しない、ベアホスト / パース不能 / 空のフォールバック)を +1;732 → 736。`fix(a11y)` · `test: tests/pipeline-row-action-names.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

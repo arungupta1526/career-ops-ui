@@ -6,6 +6,21 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.54.5] — 2026-05-18
+
+**fix(a11y): F-V54-C — `#/batch` TSV editor has an accessible name.**
+
+### 🐛 Fixes
+
+- The `#/batch` TSV textarea had a hint wired via `aria-describedby` but **no accessible name** — no `<label htmlFor>`, no `aria-label`/`aria-labelledby` (regression run F-V54-C; WCAG 1.3.1 Info & Relationships / 4.1.2 Name, Role, Value). `aria-describedby` supplies a *description*, not a *name*, so a screen reader announced an unlabelled "edit text". The textarea now carries an `aria-label` via the new i18n key `batch.tsvAria`, consistent with the sibling run-control inputs that already use `*Aria` keys; the existing describedby hint is preserved. Verified live: `aria-label` present + localized, `aria-describedby` intact, 0 console errors.
+- New i18n key `batch.tsvAria` across all 8 locales.
+
+### 🧪 Tests
+
+- **`test: tests/batch-tsv-accessible-name.test.mjs`** — 2 cases (the `batch-tsv` block has an `aria-label` via `t(batch.tsvAria)` while keeping its describedby hint; `batch.tsvAria` defined in all 8 locales). 736 → 738.
+
+---
+
 ## [1.54.4] — 2026-05-18
 
 **fix(a11y): F-V54-B — `#/pipeline` row-action buttons have accessible names.**

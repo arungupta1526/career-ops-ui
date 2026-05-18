@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.5] — 2026-05-18
+
+**fix(a11y): F-V54-C — `#/batch` TSV 편집기에 접근 가능한 이름이 있음.** `#/batch`의 TSV `<textarea>`는 `aria-describedby`로 연결된 힌트는 있었으나 **접근 가능한 이름이 없었음** — `<label htmlFor>` 없음, `aria-label`/`aria-labelledby` 없음(회귀 런 F-V54-C; WCAG 1.3.1 Info & Relationships / 4.1.2 Name, Role, Value). `aria-describedby`는 *이름*이 아니라 *설명*을 제공하므로, 스크린 리더가 레이블 없는 "edit text"를 안내했음. 이제 textarea는 새 i18n 키 `batch.tsvAria`를 통한 `aria-label`을 가지며, 이미 `*Aria` 키를 쓰는 형제 런-컨트롤 입력과 일관됨; 기존 describedby 힌트는 보존됨. 라이브 검증됨: `aria-label` 존재 + 현지화, `aria-describedby` 유지, 콘솔 오류 0. 새 i18n 키 `batch.tsvAria`를 8개 로케일 전반에 추가. 테스트 파일 `tests/batch-tsv-accessible-name.test.mjs`(2개 케이스: `batch-tsv` 블록이 describedby 힌트를 유지하면서 `t(batch.tsvAria)`를 통한 `aria-label`을 가짐; `batch.tsvAria`가 8개 로케일에 정의됨) +1; 736 → 738. `fix(a11y)` · `test: tests/batch-tsv-accessible-name.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.54.4] — 2026-05-18
 
 **fix(a11y): F-V54-B — `#/pipeline` 행 액션 버튼에 접근 가능한 이름이 있음.** `#/pipeline`의 행별 `▶`(평가) 및 `✕`(삭제) 버튼은 `title` 속성만 있는 아이콘 전용이었음(회귀 런 F-V54-B; WCAG 4.1.2 Name, Role, Value). `title`은 신뢰할 수 있는 접근 가능한 이름이 아니므로, 스크린 리더 사용자는 구별 불가능한 "button"의 긴 나열을 들었고 삭제가 어느 행에 적용될지 알 수 없었음. 이제 두 버튼 모두 새 `shortUrl()` 헬퍼를 통한 압축 URL(`host` + `…/` + 마지막 2개 경로 세그먼트; 파싱 불가 입력에는 후행 슬라이스 폴백)로 명확화된 명시적 `aria-label`을 가지므로, a11y 트리가 예컨대 *"Delete: hh.ru/…/vacancy/12345"*로 읽힘. 새 i18n 키 없음 — `common.delete` / `pipe.evaluateBtn` + URL을 재사용. 라이브 검증됨: 1385개 행, 각 버튼 이름이 행마다 고유, 콘솔 오류 0. 테스트 파일 `tests/pipeline-row-action-names.test.mjs`(4개 케이스: 두 버튼 모두 `shortUrl(url)`로 연결 + 정확히 두 개의 그런 레이블, `shortUrl`이 사용 전에 선언됨, 동일 호스트 다른 채용 URL은 합쳐지지 않음, 베어 호스트 / 파싱 불가 / 빈 폴백) +1; 732 → 736. `fix(a11y)` · `test: tests/pipeline-row-action-names.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
