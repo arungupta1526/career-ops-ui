@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import {
   KNOWN_KEYS, SECRET_KEYS,
-  parseEnv, maskSecret, validateConfig, updateEnvFile,
+  parseEnv, maskSecret, validateConfig, updateEnvFile, effectiveEnv,
 } from '../server/lib/env-config.mjs';
 
 // ────────────────────── parseEnv ──────────────────────
@@ -174,4 +174,52 @@ test('SECRET_KEYS only contains the actual secrets', () => {
   assert.ok(!SECRET_KEYS.has('HH_USER_AGENT'));
   assert.ok(!SECRET_KEYS.has('PORT'));
   assert.ok(!SECRET_KEYS.has('HOST'));
+});
+
+// ────────────────────── effectiveEnv (v1.54.9) ──────────────────────
+
+test('effectiveEnv: live process.env value wins over the .env file', () => {
+  const dir = mkdtempSync(resolve(tmpdir(), 'effenv-'));
+  const f = resolve(dir, '.env');
+  writeFileSync(f, 'EE_X=from-file\n');
+  const prev = process.env.EE_X;
+  process.env.EE_X = 'from-proc';
+  try {
+    assert.equal(effectiveEnv('EE_X', f), 'from-proc');
+  } finally {
+    if (prev === undefined) delete process.env.EE_X; else process.env.EE_X = prev;
+  }
+});
+
+test('effectiveEnv: falls back to the parent .env when process.env unset/empty', () => {
+  const dir = mkdtempSync(resolve(tmpdir(), 'effenv-'));
+  const f = resolve(dir, '.env');
+  writeFileSync(f, 'EE_Y=from-file\n');
+  const prev = process.env.EE_Y;
+  delete process.env.EE_Y;
+  try {
+    assert.equal(effectiveEnv('EE_Y', f), 'from-file');
+    // empty-string process.env is treated as unset → still reads .env
+    process.env.EE_Y = '';
+    assert.equal(effectiveEnv('EE_Y', f), 'from-file');
+  } finally {
+    if (prev === undefined) delete process.env.EE_Y; else process.env.EE_Y = prev;
+  }
+});
+
+test('effectiveEnv: undefined when set nowhere, missing file, or empty in .env', () => {
+  const dir = mkdtempSync(resolve(tmpdir(), 'effenv-'));
+  const missing = resolve(dir, 'nope.env');
+  const f = resolve(dir, '.env');
+  writeFileSync(f, 'EE_Z=\n');
+  const prev = process.env.EE_Z;
+  delete process.env.EE_Z;
+  try {
+    assert.equal(effectiveEnv('EE_Z', missing), undefined, 'missing file → undefined');
+    assert.equal(effectiveEnv('EE_Z', f), undefined, 'empty value in .env → undefined');
+    assert.equal(effectiveEnv('EE_NEVER', f), undefined, 'absent key → undefined');
+    assert.equal(effectiveEnv('EE_Z', undefined), undefined, 'no path arg → undefined');
+  } finally {
+    if (prev !== undefined) process.env.EE_Z = prev;
+  }
 });

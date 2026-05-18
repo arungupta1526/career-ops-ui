@@ -6,6 +6,21 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.54.9] — 2026-05-18
+
+**fix(llm): honour the parent `.env` LLM keys at request time — stop mis-routing to a stale/invalid provider.**
+
+### 🐛 Fixes
+
+- Live evaluation could fail with *"Gemini API error: API key not valid"* even when `ANTHROPIC_API_KEY` was the configured provider. Root cause: `hasAnthropicKey()` / `hasGeminiKey()` (and `runAnthropic`'s key/model lookup) read **only the boot-time `process.env` snapshot**. If the Anthropic key was added to the parent `.env` after the server started, the running process never saw it → Anthropic detection was false, and evaluation fell through to whatever stale key *was* in `process.env` (often an old, invalid `GEMINI_API_KEY`). The Gemini exec path (a parent Node subprocess) already read the live parent `.env`, so the two providers resolved keys inconsistently.
+- New `effectiveEnv(key, envFilePath)` in `env-config.mjs`: a non-empty `process.env` value wins (covers shell exports and the live-apply in `POST /api/config`); otherwise the **current parent `.env` file** is consulted. `anthropic.mjs` now resolves `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, and the Gemini-key check through it, so a key set in the parent `.env` is honoured **without a server restart** and key DETECTION always matches the key the request actually SENDS. Provider order is unchanged (`auto` → Anthropic-then-Gemini); this only fixes detection. Keys are never logged or returned (the REVIEW-B4 no-leak test still passes).
+
+### 🧪 Tests
+
+- **`test: tests/anthropic.test.mjs`** rewritten to be CI-isolated (temp `CAREER_OPS_ROOT`, dynamic import) with 2 new cases reproducing the exact bug (key only in parent `.env` → detected; `runAnthropic` sends the parent-`.env` key + model when `process.env` is unset). **`test: tests/env-config.test.mjs`** +3 `effectiveEnv` cases (process.env precedence, `.env` fallback incl. empty-string-as-unset, missing-file / absent-key / no-path → undefined) — 100% of the new branch. 742 → 747.
+
+---
+
 ## [1.54.8] — 2026-05-18
 
 **feat(config): Modes field-form always renders the canonical schema (even on an empty/stub file) with career-ops.org field guidance.**

@@ -95,6 +95,38 @@ export function parseEnv(text) {
 }
 
 /**
+ * v1.54.9 — effective value of an env key for runtime LLM routing.
+ *
+ * The server reads keys from `process.env`, which is a SNAPSHOT taken
+ * at boot. If the user later sets `ANTHROPIC_API_KEY` in the parent
+ * `.env` (or it was added after the server started) the running
+ * process never sees it → `hasAnthropicKey()` is false, evaluation
+ * silently falls through to whatever stale key IS in process.env
+ * (often an old/invalid `GEMINI_API_KEY`) and the user gets a
+ * "Gemini API key not valid" error despite Anthropic being set.
+ *
+ * Resolution order, matching user expectation ("use whichever keys
+ * are actually set"): a non-empty `process.env` value wins (covers
+ * shell exports and the live-apply in POST /api/config), otherwise
+ * the current parent `.env` file is consulted. This also removes the
+ * asymmetry where the Gemini path (a parent Node subprocess) already
+ * read the parent `.env` while the in-process Anthropic path did not.
+ *
+ * Never throws; returns undefined when the key is set nowhere.
+ */
+export function effectiveEnv(key, envFilePath) {
+  const live = process.env[key];
+  if (live !== undefined && live !== '') return live;
+  try {
+    if (envFilePath && existsSync(envFilePath)) {
+      const v = parseEnv(readFileSync(envFilePath, 'utf8'))[key];
+      if (v !== undefined && v !== '') return v;
+    }
+  } catch { /* unreadable .env → treat as unset */ }
+  return undefined;
+}
+
+/**
  * Mask secret values: keep first 4 + last 4 chars, hide middle.
  * Returns null when the value is unset, the empty string, or a literal
  * placeholder like "your_*_here".
