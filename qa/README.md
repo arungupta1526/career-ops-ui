@@ -2,21 +2,22 @@
 
 Tracks regressions, fix-prompts, and live evidence across releases.
 
-## CURRENT (v1.54.0 — FINAL, post P-31 WS0–WS10)
+## CURRENT (v1.54.9 — post-cycle, v1.54.1→v1.54.9 hardening)
 
-**One authoritative spec.** [`REGRESSION-v1.54.md`](./REGRESSION-v1.54.md)
-fuses the bottom-up (regressions in working code) and top-down (drift
-vs the 5 canonical career-ops.org/docs guides) perspectives into a
-single runnable end-to-end QA progress prompt. Run §0→§9 on every
-release; §0 gates the rest. Save run reports under
-`qa/v54-regression/<date>-REGRESSION.md`.
+**One authoritative spec.** [`REGRESSION-v1.54.9.md`](./REGRESSION-v1.54.9.md)
+carries forward every P-31 invariant and adds the nine ships landed
+after the v1.54.0 final (3 MEDIUM regression findings, 2 config
+features, the Modes canonical-schema field-form, deploy-hygiene, the
+LLM-key routing fix). Run §0→§11 on every release; §0 gates the rest.
+Save run reports under `qa/v54-regression/<date>-REGRESSION.md`.
 
-It supersedes the prior split specs (`REGRESSION-v1.29.2.md` +
-`DOCS-COVERAGE-v1.29.md`), which stay for historical diff only.
+It supersedes `REGRESSION-v1.54.md` (and the prior split specs), which
+stay for historical diff only.
 
 | File | Status | Purpose |
 |---|---|---|
-| **[`REGRESSION-v1.54.md`](./REGRESSION-v1.54.md)** | **CURRENT** | End-to-end regression + canonical conformance. Pre-flight, 17 routes, the 40 WS2 a11y invariants, 8-locale parity, security envelope, SSE, CLI/shell surface, canonical-docs map, parent-sync, backlog. |
+| **[`REGRESSION-v1.54.9.md`](./REGRESSION-v1.54.9.md)** | **CURRENT** | End-to-end regression + canonical conformance for the v1.54.1→v1.54.9 cycle. §0 pre-flight, 17 routes, 40 WS2 a11y invariants, the 9 post-final ships (§3–§10), docs/context conformance (§11). |
+| [`REGRESSION-v1.54.md`](./REGRESSION-v1.54.md) | Historical | v1.54.0 FINAL end-to-end spec (P-31 WS0–WS10). Superseded; diff-only. |
 | [`REGRESSION-v1.29.2.md`](./REGRESSION-v1.29.2.md) | Historical | Prior bottom-up spec (baseline v1.6.0→v1.29.2). Diff-only. |
 | [`DOCS-COVERAGE-v1.29.md`](./DOCS-COVERAGE-v1.29.md) | Historical | Prior top-down docs-coverage. Diff-only. |
 | `REGRESSION-v1.27.md`, `DOCS-COVERAGE-v1.28.md` | Historical | Older frozen specs. |
