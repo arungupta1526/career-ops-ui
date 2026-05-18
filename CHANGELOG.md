@@ -6,6 +6,20 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.55.2] — 2026-05-18
+
+**fix(cv): give the `#/cv` markdown editor a descriptive, self-contained accessible name (F-V55-H / UX-5).**
+
+### 🐛 Bug Fixes
+
+- The `#/cv` primary editor `<textarea id="cv-editor">` now carries a descriptive `aria-label` via the new `cv.editorAria` key — *"CV markdown editor — your professional resume in markdown format"* — instead of the terse name it inherited from the visible "Markdown" section heading. Note: contrary to the F-V55-H symptom (which only inspected `aria-label`/`labels`), the field was **not** nameless — v1.47.0 (WS2 #16) had already bound it via `aria-labelledby` → the `<h3 id="cv-md-heading">Markdown</h3>`, so a screen reader announced "Markdown, edit, multiline". v1.55.2 upgrades that terse "Markdown" to a self-contained label so a screen-reader user lands and immediately knows what the field is. The redundant `aria-labelledby` is removed (a leftover would be dead markup — `aria-label` wins per ARIA precedence); the visible `<h3>Markdown</h3>` stays on screen for sighted users. WCAG 1.3.1 + 4.1.2; parallels the v1.54.5 batch-tsv fix (F-V54-C).
+
+### 🧪 Tests
+
+- **`test: tests/cv-editor-a11y.test.mjs`** (new, 3 cases, CI-isolated, source-static like `auto-stepper-prerender.test.mjs`): `#cv-editor` names itself via `t('cv.editorAria', …)` with a non-empty fallback; `cv.editorAria` is present and non-empty in all 8 locales; no redundant `aria-labelledby` remains on the element. 761 → 764.
+
+---
+
 ## [1.55.1] — 2026-05-18
 
 **fix(auto): pre-render the 5-stage pipeline stepper on `#/auto` mount (F-V55-E / UX-1, senior obs S-4 reopened).**

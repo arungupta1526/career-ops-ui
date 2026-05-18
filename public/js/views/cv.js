@@ -18,12 +18,18 @@ Router.register('cv', async () => {
     .replace(/<h2\b/g, '<h3').replace(/<\/h2>/g, '</h3>')
     .replace(/<h1\b/g, '<h2').replace(/<\/h1>/g, '</h2>');
   const data = await API.get('/api/cv');
-  // v1.47.0 (WS2 #16) — the primary editor had no accessible name.
-  // Bind it to the visible "Markdown" heading via aria-labelledby
-  // (no new i18n key; the SR name matches what's on screen).
+  // v1.47.0 (WS2 #16) gave the editor an accessible name via
+  // aria-labelledby → the "Markdown" section heading. v1.55.2
+  // (F-V55-H / UX-5) upgrades that terse "Markdown" name to a
+  // descriptive, self-contained aria-label so a screen-reader user
+  // landing on the field hears what it is, not just "Markdown". The
+  // visible <h3 id="cv-md-heading">Markdown</h3> stays on screen for
+  // sighted users; aria-label takes ARIA precedence over the now-
+  // removed aria-labelledby (avoids dead, ignored markup).
   const ta = c('textarea', {
     className: 'textarea', rows: 30, style: { minHeight: '60vh' },
-    id: 'cv-editor', 'aria-labelledby': 'cv-md-heading',
+    id: 'cv-editor',
+    'aria-label': t('cv.editorAria', 'CV markdown editor — your professional resume in markdown format'),
   }, data.markdown || '');
   const pdfBox = c('div');
 

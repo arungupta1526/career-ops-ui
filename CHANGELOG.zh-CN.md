@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.2] — 2026-05-18
+
+**fix(cv):为 `#/cv` markdown 编辑器赋予描述性、自包含的可访问名称(F-V55-H / UX-5)。** `#/cv` 主编辑器 `<textarea id="cv-editor">` 现在通过新键 `cv.editorAria` 携带描述性 `aria-label` —— *"CV Markdown 编辑器 —— 你的 markdown 格式专业简历"* —— 取代它从可见的"Markdown"区段标题继承的简略名称。注:与 F-V55-H 症状(仅检查 `aria-label`/`labels`)相反,该字段**并非**无名 —— v1.47.0(WS2 #16)早已通过 `aria-labelledby` → `<h3 id="cv-md-heading">Markdown</h3>` 绑定,故屏幕阅读器播报"Markdown,编辑,多行"。v1.55.2 将该简略"Markdown"升级为自包含标签。冗余的 `aria-labelledby` 被移除(否则即死标记 —— 按 ARIA 优先级 `aria-label` 胜出);可见的 `<h3>Markdown</h3>` 为视力正常用户保留。WCAG 1.3.1 + 4.1.2;与 v1.54.5 batch-tsv 修复(F-V54-C)平行。**`test: tests/cv-editor-a11y.test.mjs`**(新增,3 个用例,CI 隔离,如 `auto-stepper-prerender.test.mjs` 的源静态):`#cv-editor` 通过 `t('cv.editorAria', …)` 自命名且回退非空;`cv.editorAria` 在全部 8 个语言存在且非空;元素上无冗余 `aria-labelledby`。761 → 764。`fix(cv)` · `test: tests/cv-editor-a11y.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.55.1] — 2026-05-18
 
 **fix(auto):在 `#/auto` 挂载时预渲染 5 阶段流水线步进器(F-V55-E / UX-1,资深观察 S-4 重新打开)。** `#/auto` 现在在屏幕挂载的那一刻就显示文档化的五阶段概要 —— **校验 → 抓取 → 评估 → 保存报告 → 加入跟踪器** —— 而不再在首个 SSE 事件前保持空白。此前 `<ol class="auto-stepper">` 以 `display:none` 创建,且 `renderStepper()` 仅从 `setStep()` / `run()` 到达,因此冷启动用户在点击 Run 之前从未见过文档承诺的流水线。步进器现在在挂载时即可见,五个阶段均为 `pending` 状态,并带有 `aria-label`(`auto.stepperAria`)以便辅助技术朗读该区域。关闭 F-V55-E(a11y/静态保证视角)与 UX-1(承诺保真视角)—— 同一修复,两个视角。**`test: tests/auto-stepper-prerender.test.mjs`**(新增,4 个用例,CI 隔离,如 `router.test.mjs` 的源静态):`STEPS` 数组恰好是 5 个规范阶段且按序;`stepperEl` 挂载时非 `display:none` 且带 `auto.stepperAria`;挂载作用域的 `renderStepper()` 调用先于 `function setStep(`;`auto.stepperAria` 存在于全部 8 个语言。757 → 761。`fix(auto)` · `test: tests/auto-stepper-prerender.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。

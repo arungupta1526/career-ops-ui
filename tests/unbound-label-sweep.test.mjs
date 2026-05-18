@@ -39,9 +39,16 @@ test('#31 apply: url + jd bound to their labels', () => {
   assert.match(s, /c\('label',\s*\{ htmlFor: 'apply-jd' \}/);
 });
 
-test('#16 cv: editor textarea named via aria-labelledby → visible heading', () => {
+test('#16 cv: editor textarea named via descriptive aria-label (v1.55.2 F-V55-H)', () => {
   const s = read('cv.js');
-  assert.match(s, /id: 'cv-editor', 'aria-labelledby': 'cv-md-heading'/);
+  // v1.55.2 supersedes the v1.47.0 aria-labelledby → "Markdown"
+  // binding with a self-contained descriptive aria-label so a
+  // screen-reader user hears what the field is, not just "Markdown".
+  assert.match(s, /id: 'cv-editor'/);
+  assert.match(s, /'aria-label':\s*t\('cv\.editorAria'/);
+  assert.ok(!/'aria-labelledby': 'cv-md-heading'/.test(s),
+    'redundant aria-labelledby must be gone (aria-label wins per ARIA)');
+  // The visible heading stays on screen for sighted users.
   assert.match(s, /c\('h3',\s*\{ className: 'section-title', id: 'cv-md-heading' \}/);
 });
 

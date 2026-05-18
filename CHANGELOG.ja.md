@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.2] — 2026-05-18
+
+**fix(cv): `#/cv` マークダウンエディタに記述的で自己完結したアクセシブル名を付与(F-V55-H / UX-5)。** `#/cv` の主エディタ `<textarea id="cv-editor">` は今や新キー `cv.editorAria` 経由で記述的な `aria-label` — *"CV マークダウンエディタ — マークダウン形式のプロフェッショナル履歴書"* — を持ち、可視の「Markdown」セクション見出しから継いでいた簡素な名前を置き換える。注:F-V55-H の症状(`aria-label`/`labels` のみ検査)と異なり、このフィールドは名前が**無かったわけではない** — v1.47.0(WS2 #16)が既に `aria-labelledby` → `<h3 id="cv-md-heading">Markdown</h3>` で結び付けており、スクリーンリーダーは「Markdown、編集、複数行」と読み上げていた。v1.55.2 はその簡素な「Markdown」を自己完結ラベルへ改善する。冗長な `aria-labelledby` は削除(残れば死んだマークアップ — ARIA 優先順位で `aria-label` が勝つ);可視の `<h3>Markdown</h3>` は晴眼ユーザー向けに残る。WCAG 1.3.1 + 4.1.2;v1.54.5 の batch-tsv 修正(F-V54-C)と並行。**`test: tests/cv-editor-a11y.test.mjs`**(新規、3 ケース、CI 隔離、`auto-stepper-prerender.test.mjs` 流のソース静的):`#cv-editor` は空でないフォールバックと共に `t('cv.editorAria', …)` で自己命名;`cv.editorAria` は 8 ロケール全てに存在し空でない;要素に冗長な `aria-labelledby` なし。761 → 764。`fix(cv)` · `test: tests/cv-editor-a11y.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.55.1] — 2026-05-18
 
 **fix(auto): `#/auto` マウント時に 5 段階パイプラインのステッパーを事前レンダリング(F-V55-E / UX-1、シニア観察 S-4 再オープン)。** `#/auto` は今や、文書化された 5 段階の概要 — **検証 → 取得 → 評価 → レポート保存 → トラッカー追加** — を画面マウントの瞬間に表示する。以前は最初の SSE イベントまで空白だった。従来は `<ol class="auto-stepper">` が `display:none` で生成され、`renderStepper()` は `setStep()` / `run()` からのみ到達したため、コールドスタートのユーザーは Run をクリックする前にドキュメントが約束するパイプラインを決して見られなかった。ステッパーは今やマウント時に 5 段階すべてが `pending` 状態で可視となり、`aria-label`(`auto.stepperAria`)を持つため支援技術がその領域を読み上げる。F-V55-E(a11y/静的保証レンズ)と UX-1(約束忠実度レンズ)をクローズ — 同一修正、両レンズ。**`test: tests/auto-stepper-prerender.test.mjs`**(新規、4 ケース、CI 隔離、`router.test.mjs` 流のソース静的):`STEPS` 配列は正確に 5 つの正準段階が順序どおり;`stepperEl` はマウント時に `display:none` ではなく `auto.stepperAria` を持つ;マウントスコープの `renderStepper()` 呼び出しが `function setStep(` に先行する;`auto.stepperAria` は 8 ロケール全てに存在。757 → 761。`fix(auto)` · `test: tests/auto-stepper-prerender.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

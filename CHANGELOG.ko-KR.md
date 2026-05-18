@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.2] — 2026-05-18
+
+**fix(cv): `#/cv` 마크다운 편집기에 서술적이고 자체 완결된 접근 가능 이름 부여 (F-V55-H / UX-5).** `#/cv` 의 기본 편집기 `<textarea id="cv-editor">` 는 이제 새 `cv.editorAria` 키를 통해 서술적 `aria-label` — *"CV 마크다운 편집기 — 마크다운 형식의 전문 이력서"* — 을 가지며, 보이는 "Markdown" 섹션 제목에서 물려받던 간결한 이름을 대체함. 참고: F-V55-H 증상(`aria-label`/`labels` 만 검사)과 달리 이 필드는 이름이 **없지 않았음** — v1.47.0(WS2 #16)이 이미 `aria-labelledby` → `<h3 id="cv-md-heading">Markdown</h3>` 로 바인딩하여 스크린 리더가 "Markdown, 편집, 여러 줄" 로 안내했음. v1.55.2 는 그 간결한 "Markdown" 을 자체 완결 레이블로 개선함. 중복 `aria-labelledby` 는 제거됨(남으면 죽은 마크업 — ARIA 우선순위상 `aria-label` 이 이김); 보이는 `<h3>Markdown</h3>` 은 비장애 사용자를 위해 유지됨. WCAG 1.3.1 + 4.1.2; v1.54.5 batch-tsv 수정(F-V54-C)과 평행. **`test: tests/cv-editor-a11y.test.mjs`**(신규, 3 케이스, CI-격리, `auto-stepper-prerender.test.mjs` 식 소스-정적): `#cv-editor` 는 비어있지 않은 폴백과 함께 `t('cv.editorAria', …)` 로 자신을 명명; `cv.editorAria` 는 8개 로케일 전부에 존재하고 비어있지 않음; 요소에 중복 `aria-labelledby` 없음. 761 → 764. `fix(cv)` · `test: tests/cv-editor-a11y.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.55.1] — 2026-05-18
 
 **fix(auto): `#/auto` 마운트 시 5단계 파이프라인 스테퍼를 사전 렌더 (F-V55-E / UX-1, 시니어 관찰 S-4 재개).** `#/auto` 는 이제 문서화된 다섯 단계 개요 — **검증 → 가져오기 → 평가 → 리포트 저장 → 트래커 추가** — 를 화면이 마운트되는 순간에 보여줌. 이전에는 첫 SSE 이벤트 전까지 빈 상태였음. 예전에는 `<ol class="auto-stepper">` 가 `display:none` 으로 생성되고 `renderStepper()` 가 `setStep()` / `run()` 에서만 도달되어, 콜드 스타트 사용자는 Run 클릭 전에 문서가 약속한 파이프라인을 결코 보지 못했음. 스테퍼는 이제 마운트 시 다섯 단계 모두 `pending` 상태로 표시되며 `aria-label`(`auto.stepperAria`)을 가져 보조 기술이 해당 영역을 안내함. F-V55-E(a11y/정적 보장 렌즈)와 UX-1(약속 충실도 렌즈)을 닫음 — 동일 수정, 두 렌즈. **`test: tests/auto-stepper-prerender.test.mjs`**(신규, 4 케이스, CI-격리, `router.test.mjs` 식 소스-정적): `STEPS` 배열은 정확히 5개 표준 단계가 순서대로; `stepperEl` 은 마운트 시 `display:none` 이 아니고 `auto.stepperAria` 를 가짐; 마운트 범위 `renderStepper()` 호출이 `function setStep(` 보다 앞섬; `auto.stepperAria` 는 8개 로케일 전부에 존재. 757 → 761. `fix(auto)` · `test: tests/auto-stepper-prerender.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
