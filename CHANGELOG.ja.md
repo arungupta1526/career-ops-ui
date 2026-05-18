@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.1] — 2026-05-18
+
+**fix(a11y): F-V54-A — `#/cv` を単一の `<h1>` に。** CV markdown 自身の `# Name` が、ページタイトルの `<h1>CV</h1>` の隣に **2 つ目** のトップレベル `<h1>` としてレンダリングされていた(回帰実行 F-V54-A;WCAG 1.3.1 情報と関係性 / 2.4.6 見出し)。`cv.js` は今や CV プレビューの全注入ポイント(初期レンダー、ファイルインポート時の更新、エディタのライブ同期)を、見出しを 1 レベル下げる(h1→h2 … h6→`role="heading" aria-level="7"`)スコープ付きの `cvMd()` を通すようになり、ページは正確に 1 つの `<h1>` を保つ。`cv.js` に意図的にスコープ — `UI.md` は help/reports/deep/evaluate で共有され、それぞれが見出しを独自に管理するため。テストファイル `tests/cv-single-h1.test.mjs`(4 ケース)を +1;717 → 721。ライブ検証済み:`#/cv` → `<h1>` 1 個、ユーザーの `# Name` は今や `<h2>`、コンソールエラー 0。`fix(a11y): F-V54-A` · `test: tests/cv-single-h1.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.54.0] — 2026-05-18
 
 **WS10 — canonical-docs 再検証 + help バンドルの H3 パリティ(最終の収束リリース)。** CHANGELOG/構造の CI ゲートは H2 しか検査していなかったため、`docs/help/en.md` は静かに 70 個の H3 サブセクションへ漂流した一方、7 つのローカライズ済みバンドルは 68 のままだった — ギャップは §17(「Reference adapters」テーブル + 「Common pitfalls」リスト、英語のみ)。両方が今や 7 言語すべてに翻訳され(アダプタのファイル名 / リンク / 識別子はバイト同一に保持);8 バンドルすべてが今 17 H2 / 70 H3。`help-ru-config-section.test.mjs` の新しい H3 パリティゲートがこれをロックする(716 → 717)。`canonical-docs-coverage.test.mjs` 7/7 が、help が依然として `career-ops.org/docs` の 5 ガイドすべてを反映していることを確認;WS2 の UX 監査(v1.41→v1.52 の 40 件)が各画面を docs と照合 — 乖離なし。`docs/sdd/CONVENTIONS.md` を v1.54.0 に更新(テスト合計、H3 パリティゲート、ファイルサイズの外れ値、新しいアクセシビリティ規約セクション)。WS0–WS10 完了;残るは WS11 のみ。`fix(docs): WS10 canonical re-validation + H3 parity` · `test(help): H3-parity gate`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

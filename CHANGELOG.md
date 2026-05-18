@@ -6,6 +6,28 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.54.1] — 2026-05-18
+
+**fix(a11y): F-V54-A — `#/cv` single `<h1>`.**
+
+### 🐛 Fixes
+
+- The CV markdown's own `# Name` rendered as a **second** top-level `<h1>` next to the page-title `<h1>CV</h1>` (regression run F-V54-A; WCAG 1.3.1 Info & Relationships / 2.4.6 Headings). `cv.js` now feeds every preview-injection point (initial render, file-import refresh, live editor sync) through a scoped `cvMd()` that shifts headings down one level (h1→h2 … h5→h6, h6→`role="heading" aria-level="7"`), so the page keeps exactly one `<h1>`. Scoped to `cv.js` on purpose — `UI.md` is shared by help/reports/deep/evaluate, which manage headings their own way (help strips article h1s + builds its TOC from h2). Verified live: `#/cv` → 1 page `<h1>` ("CV"), the user's `# Name` is now `<h2>`, 0 console errors.
+
+### 🧪 Tests
+
+- **`test: tests/cv-single-h1.test.mjs`** — 4 cases (cvMd shift chain, every preview site uses cvMd not raw UI.md, single page-title h1, the transform re-derived + proven to map every level down). 717 → 721.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 721 / 721 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.54.1
+# Playwright #/cv: 1 <h1> ("CV"), preview h1=0/h2=1, 0 console errors
+```
+
+---
+
 ## [1.54.0] — 2026-05-18
 
 **WS10 — canonical-docs re-validation + help-bundle H3 parity (final convergence release).**

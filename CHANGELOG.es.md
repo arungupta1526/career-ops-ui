@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.54.1] — 2026-05-18
+
+**fix(a11y): F-V54-A — un único `<h1>` en `#/cv`.** El propio `# Name` del markdown del CV se renderizaba como un **segundo** `<h1>` de nivel superior junto al `<h1>CV</h1>` del título de página (corrida de regresión F-V54-A; WCAG 1.3.1 Información y relaciones / 2.4.6 Encabezados). Ahora `cv.js` canaliza cada punto de inyección de la vista previa del CV (render inicial, refresco al importar archivo, sincronización en vivo del editor) a través de un `cvMd()` con alcance acotado que baja los encabezados un nivel (h1→h2 … h6→`role="heading" aria-level="7"`), de modo que la página conserva exactamente un `<h1>`. Acotado a `cv.js` a propósito — `UI.md` lo comparten help/reports/deep/evaluate, que gestionan sus encabezados a su manera. +1 archivo de pruebas `tests/cv-single-h1.test.mjs` (4 casos); 717 → 721. Verificado en vivo: `#/cv` → 1 `<h1>`, el `# Name` del usuario ahora es `<h2>`, 0 errores de consola. `fix(a11y): F-V54-A` · `test: tests/cv-single-h1.test.mjs`. Detalle en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.54.0] — 2026-05-18
 
 **WS10 — re-validación de docs canónicos + paridad H3 del paquete de ayuda (la versión final de convergencia).** El gate de CI de CHANGELOG/estructura solo comprobaba H2, así que `docs/help/en.md` había derivado en silencio hasta 70 subsecciones H3 mientras los 7 paquetes localizados se quedaban en 68 — la brecha era §17 (la tabla «Reference adapters» + la lista «Common pitfalls», solo en inglés). Ambas están ahora traducidas a los 7 idiomas (nombres de archivo / enlaces / identificadores de adaptadores mantenidos byte a byte idénticos); los 8 paquetes ahora suman 17 H2 / 70 H3. Un nuevo gate de paridad H3 en `help-ru-config-section.test.mjs` lo fija (716 → 717). `canonical-docs-coverage.test.mjs` 7/7 confirma que la ayuda sigue reflejando las 5 guías de `career-ops.org/docs`; la auditoría UX de WS2 (40 hallazgos v1.41→v1.52) validó cada pantalla frente a los docs — sin divergencia. `docs/sdd/CONVENTIONS.md` actualizado a v1.54.0 (totales de pruebas, gate de paridad H3, archivos atípicos por tamaño, nueva sección de convenciones de Accesibilidad). WS0–WS10 completos; solo queda WS11. `fix(docs): WS10 canonical re-validation + H3 parity` · `test(help): H3-parity gate`. Detalle en [`CHANGELOG.md`](CHANGELOG.md).

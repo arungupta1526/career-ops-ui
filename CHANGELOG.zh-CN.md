@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.1] — 2026-05-18
+
+**fix(a11y): F-V54-A —— `#/cv` 单一 `<h1>`。** CV markdown 自身的 `# Name` 渲染成了页面标题 `<h1>CV</h1>` 旁的**第二个**顶级 `<h1>`(回归运行 F-V54-A;WCAG 1.3.1 信息与关系 / 2.4.6 标题)。`cv.js` 现将 CV 预览的每个注入点(初次渲染、文件导入时刷新、编辑器实时同步)经由作用域受限的 `cvMd()` 统一处理,将标题下移一级(h1→h2 … h6→`role="heading" aria-level="7"`),使页面恰好保留一个 `<h1>`。有意将作用域限定于 `cv.js` —— `UI.md` 由 help/reports/deep/evaluate 共享,各自以自有方式管理标题。新增 1 个测试文件 `tests/cv-single-h1.test.mjs`(4 个用例);717 → 721。已在线验证:`#/cv` → 1 个 `<h1>`,用户的 `# Name` 现为 `<h2>`,0 控制台错误。`fix(a11y): F-V54-A` · `test: tests/cv-single-h1.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.54.0] — 2026-05-18
 
 **WS10 —— canonical-docs 再验证 + help 包 H3 对等(最终收敛版本)。** CHANGELOG/结构 CI 闸门只检查 H2,因此 `docs/help/en.md` 已悄然漂移至 70 个 H3 子节,而 7 个本地化包仍停在 68 —— 差距在 §17(「Reference adapters」表 + 「Common pitfalls」列表,仅英文)。两者现已译入全部 7 种语言(适配器文件名 / 链接 / 标识符保持逐字节一致);8 个包现均为 17 H2 / 70 H3。`help-ru-config-section.test.mjs` 中新的 H3 对等闸门锁定之(716 → 717)。`canonical-docs-coverage.test.mjs` 7/7 确认 help 仍镜像 `career-ops.org/docs` 的全部 5 篇指南;WS2 的 UX 审计(v1.41→v1.52 的 40 项)对每个屏幕与 docs 进行校验 —— 无背离。`docs/sdd/CONVENTIONS.md` 更新至 v1.54.0(测试合计、H3 对等闸门、文件尺寸离群项、新增无障碍约定章节)。WS0–WS10 完成;仅余 WS11。`fix(docs): WS10 canonical re-validation + H3 parity` · `test(help): H3-parity gate`。详见 [`CHANGELOG.md`](CHANGELOG.md)。

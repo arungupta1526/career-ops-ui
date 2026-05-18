@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.1] — 2026-05-18
+
+**fix(a11y): F-V54-A — `#/cv`를 단일 `<h1>`로.** CV markdown 자체의 `# Name`이 페이지 제목 `<h1>CV</h1>` 옆에 **두 번째** 최상위 `<h1>`로 렌더링되었음(회귀 실행 F-V54-A; WCAG 1.3.1 정보와 관계 / 2.4.6 제목). 이제 `cv.js`는 CV 미리보기의 모든 주입 지점(초기 렌더, 파일 가져오기 시 새로고침, 에디터 라이브 동기화)을 제목을 한 단계 낮추는(h1→h2 … h6→`role="heading" aria-level="7"`) 범위 한정 `cvMd()`를 통과시켜 페이지가 정확히 하나의 `<h1>`을 유지함. `cv.js`로 의도적으로 범위 한정 — `UI.md`는 help/reports/deep/evaluate가 공유하며 각자 제목을 자기 방식으로 관리하기 때문. 테스트 파일 `tests/cv-single-h1.test.mjs`(4개 케이스) +1; 717 → 721. 라이브 검증됨: `#/cv` → `<h1>` 1개, 사용자의 `# Name`은 이제 `<h2>`, 콘솔 오류 0. `fix(a11y): F-V54-A` · `test: tests/cv-single-h1.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.54.0] — 2026-05-18
 
 **WS10 — canonical-docs 재검증 + help 번들 H3 패리티(최종 수렴 릴리스).** CHANGELOG/구조 CI 게이트가 H2만 검사했기에 `docs/help/en.md`는 조용히 70개 H3 하위 섹션으로 표류한 반면 7개 로컬라이즈 번들은 68에 머물렀음 — 격차는 §17(「Reference adapters」 테이블 + 「Common pitfalls」 목록, 영어 전용). 둘 다 이제 7개 언어 모두로 번역됨(어댑터 파일명 / 링크 / 식별자는 바이트 동일하게 유지); 8개 번들 모두 이제 17 H2 / 70 H3. `help-ru-config-section.test.mjs`의 새로운 H3 패리티 게이트가 이를 잠금(716 → 717). `canonical-docs-coverage.test.mjs` 7/7이 help가 여전히 `career-ops.org/docs`의 5개 가이드를 모두 반영함을 확인; WS2의 UX 감사(v1.41→v1.52의 40건)가 각 화면을 docs와 대조 — 괴리 없음. `docs/sdd/CONVENTIONS.md`를 v1.54.0으로 갱신(테스트 합계, H3 패리티 게이트, 파일 크기 이상치, 새 접근성 규약 섹션). WS0–WS10 완료; WS11만 남음. `fix(docs): WS10 canonical re-validation + H3 parity` · `test(help): H3-parity gate`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

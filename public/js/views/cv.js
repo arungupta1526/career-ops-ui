@@ -2,6 +2,21 @@
 Router.register('cv', async () => {
   const c = UI.el;
   const t = (k, f) => I18n.t(k, f);
+  // F-V54-A (v1.54.1) — a CV markdown's own `# Name` rendered as a
+  // SECOND top-level <h1> beside the page-title <h1>CV</h1> (WCAG 1.3.1
+  // Info & Relationships / 2.4.6 Headings). Shift every preview heading
+  // down one level (h1→h2 … h5→h6, h6→role=heading aria-level=7) so the
+  // page keeps exactly one <h1>. Scoped to cv.js on purpose: UI.md is
+  // shared by help/reports/deep/evaluate which each manage headings
+  // their own way (help strips article h1s + builds its TOC from h2).
+  const cvMd = (src) => UI.md(src || '')
+    .replace(/<h6\b([^>]*)>/g, '<div role="heading" aria-level="7"$1>')
+    .replace(/<\/h6>/g, '</div>')
+    .replace(/<h5\b/g, '<h6').replace(/<\/h5>/g, '</h6>')
+    .replace(/<h4\b/g, '<h5').replace(/<\/h4>/g, '</h5>')
+    .replace(/<h3\b/g, '<h4').replace(/<\/h3>/g, '</h4>')
+    .replace(/<h2\b/g, '<h3').replace(/<\/h2>/g, '</h3>')
+    .replace(/<h1\b/g, '<h2').replace(/<\/h1>/g, '</h2>');
   const data = await API.get('/api/cv');
   // v1.47.0 (WS2 #16) — the primary editor had no accessible name.
   // Bind it to the visible "Markdown" heading via aria-labelledby
@@ -131,7 +146,7 @@ Router.register('cv', async () => {
         }
         ta.value = payload.markdown;
         const p = document.getElementById('cv-preview');
-        if (p) p.innerHTML = UI.md(payload.markdown);
+        if (p) p.innerHTML = cvMd(payload.markdown);
         UI.toast(t('cv.uploadDone', 'Loaded') +
           ` ${file.name} (${payload.converter}) — ` + t('cv.reviewSave', 'review, then Save'),
           'success');
@@ -186,7 +201,7 @@ Router.register('cv', async () => {
       ]),
       c('div', null, [
         c('h3', { className: 'section-title' }, t('cv.preview')),
-        c('div', { className: 'card md', id: 'cv-preview', html: UI.md(data.markdown || '') }),
+        c('div', { className: 'card md', id: 'cv-preview', html: cvMd(data.markdown || '') }),
       ]),
     ]),
 
@@ -197,7 +212,7 @@ Router.register('cv', async () => {
   // prototype (would conflict with any future library defining `.also`).
   ta.addEventListener('input', () => {
     const p = root.querySelector('#cv-preview');
-    p.innerHTML = UI.md(ta.value);
+    p.innerHTML = cvMd(ta.value);
   });
   // Lazy-load the PDF list so the page first paint isn't blocked.
   loadPdfList();
