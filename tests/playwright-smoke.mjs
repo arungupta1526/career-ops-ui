@@ -342,24 +342,26 @@ test('Playwright smoke: pipeline preview proxy strips scripts', { skip: SKIP }, 
   await page.close();
 });
 
-// v1.17.0 — Auto-pipeline modal scenarios (G-007 follow-up).
-// Exercises the AutoPipeline.open() flow surface end-to-end through
-// the real Chromium. No LLM key in fixture → step 3 errors cleanly.
+// Auto-pipeline scenarios. v1.34.0 (WS5) promoted the dashboard CTA
+// from a transient modal to the dedicated, linkable #/auto screen
+// (Router.go('/auto')); the window.AutoPipeline.open() modal helper is
+// retained for the Cmd+K backward-compat path. These were rewritten in
+// v1.44.x — the pre-v1.34 tests still asserted the removed modal and
+// had been red on the Playwright-e2e job since v1.34.0. No LLM key in
+// the fixture → step 3 errors cleanly.
 
-test('Playwright smoke: ✨ Auto-pipeline button on dashboard opens modal', { skip: SKIP }, async () => {
+test('Playwright smoke: dashboard ✨ Auto-pipeline button → #/auto screen with URL input', { skip: SKIP }, async () => {
   const page = await context.newPage();
   const consoleErrors = [];
   page.on('console', (msg) => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
   await page.goto(baseUrl + '/#/dashboard');
   await page.waitForSelector('#content', { timeout: 5000 });
-  // Click the auto-pipeline CTA in the page-header buttons row.
+  // The CTA in the page-header now navigates to the dedicated screen.
   await page.locator('button:has-text("Auto-pipeline")').click();
-  // Modal opens and renders the URL input.
-  await page.waitForSelector('#modal input.input', { timeout: 3000 });
-  const placeholder = await page.locator('#modal input.input').getAttribute('placeholder');
+  await page.waitForSelector('#auto-url', { timeout: 5000 });
+  await page.waitForFunction(() => location.hash === '#/auto', { timeout: 3000 });
+  const placeholder = await page.locator('#auto-url').getAttribute('placeholder');
   assert.match(placeholder || '', /greenhouse|workable|workday|https/i, 'input should hint at a URL paste');
-  // Close modal so subsequent tests can interact with the page.
-  await page.locator('#modal .modal-close').click();
   assert.deepEqual(consoleErrors, [], 'dashboard auto-pipeline console errors: ' + consoleErrors.join(' | '));
   await page.close();
 });
@@ -378,32 +380,28 @@ test('Playwright smoke: Cmd+K + URL + Enter triggers auto-pipeline modal', { ski
   await page.close();
 });
 
-test('Playwright smoke: Auto-pipeline invalid URL → step 1 fails inline', { skip: SKIP }, async () => {
+test('Playwright smoke: #/auto invalid URL → step 1 fails inline', { skip: SKIP }, async () => {
   const page = await context.newPage();
-  await page.goto(baseUrl + '/#/dashboard');
-  await page.waitForSelector('#content');
-  await page.locator('button:has-text("Auto-pipeline")').click();
-  await page.waitForSelector('#modal input.input');
-  await page.locator('#modal input.input').fill('not-a-real-url');
-  // Avoid locator ambiguity (the dashboard CTA + the modal's run button
-  // both contain "Auto-pipeline" text). Use a programmatic click on the
-  // first primary button inside the modal — the only one that exists is
-  // startBtn.
+  await page.goto(baseUrl + '/#/auto');
+  await page.waitForSelector('#auto-url', { timeout: 5000 });
+  await page.locator('#auto-url').fill('not-a-real-url');
+  // Click the run CTA inside the #/auto content (the only primary
+  // button there is the "▶ Run full pipeline" trigger).
   await page.evaluate(() => {
-    const modal = document.getElementById('modal');
-    const btn = modal && modal.querySelector('.btn-primary');
+    const root = document.getElementById('content');
+    const btn = root && root.querySelector('.btn-primary');
     if (btn) btn.click();
   });
-  // Step 1 timeline row should report failure within a second — the
-  // step text is rendered as a "[✗]" icon. Locale-agnostic.
+  // The inline stepper marks step 1 (validate) failed with a "✗" glyph;
+  // locale-agnostic. The screen, not a modal, owns the timeline now.
   await page.waitForFunction(
     () => {
-      const m = document.querySelector('#modal');
-      if (!m) return false;
-      const txt = m.textContent || '';
-      return txt.includes('invalid URL') || txt.includes('[✗]');
+      const root = document.getElementById('content');
+      if (!root) return false;
+      const txt = root.textContent || '';
+      return txt.includes('✗') || /invalid url/i.test(txt);
     },
-    { timeout: 5000 }
+    { timeout: 8000 }
   );
   await page.close();
 });
