@@ -49,11 +49,13 @@ on:
     branches: [main]
 
 permissions:
-  contents: read          # checkout + diff
+  contents: write         # checkout + diff AND create commit comments
+                          # (POST /repos/:o/:r/commits/:sha/comments is
+                          # a write op under the Contents permission —
+                          # contents:read is NOT enough for the push
+                          # path; caught by the pre-commit AI reviewer).
   pull-requests: write    # PR review comment
   issues: write           # fallback comment surface
-  # `contents: write` is NOT granted: commit comments use the default
-  # GITHUB_TOKEN which can comment on commits with `contents: read`.
 
 concurrency:
   # PRs: one in-flight review per PR (cancel stale). Pushes: one per
@@ -127,8 +129,16 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          direct_prompt: |
+          # `prompt` is the correct @v1 input (NOT `direct_prompt` —
+          # the legacy workflow used that, but it never ran so the
+          # invalid input was never surfaced). Verified against the
+          # action's action.yml input schema.
+          prompt: |
             ${{ env.REVIEW_RUBRIC }}
+
+            Review the diff of this pull request against the bar above
+            and post your findings as a PR review comment.
+          track_progress: true
 
   # ── Push-to-main path (the one this repo actually uses) ──────────
   push-review:
