@@ -326,6 +326,8 @@ Evaluate → Reports → Deep research → Apply checklist → Outreach
 
 ## 2. App settings & API 키 (`#/config`)
 
+> **v1.55 → v1.56 새 기능.** LLM 키가 없으면 모든 화면의 빨간 배너가 ⚡ 라이브 실행이 수동 프롬프트 모드임을 알리고 여기로 연결합니다; 키가 있으면 활성 제공자를 표시하는 조용한 칩이 됩니다. 모든 ⚡ 라이브 실행 버튼(`#/auto`, `#/evaluate`, `#/deep`, 모드) 앞에 정직한 예상 비용이 표시됩니다(예: "예상 비용: OpenAI gpt-5-codex · ~$0.04/eval", 수동 모드는 API 비용 없음). `#/scan`은 보조 필터를 **고급 필터** 디스클로저 뒤로, `#/tracker`는 클릭형 퍼널 칩 + 선택적 서버 페이지네이션, `#/pipeline`은 1000행 초과 시 가상화.
+
 두 탭:
 
 1. **API keys & runtime** — 부모 프로젝트의 `.env`를 브라우저에서

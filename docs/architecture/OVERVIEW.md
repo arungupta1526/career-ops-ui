@@ -72,7 +72,7 @@
 - **`lib/routes/activity.mjs`** *(P-2 phase 2)* — `registerActivityRoutes(app)` for `GET /api/activity`.
 - **`lib/routes/config.mjs`** *(P-2 phase 2)* — `registerConfigRoutes(app)` for `GET/POST /api/config` (parent .env round-trip).
 - **`lib/routes/content.mjs`** *(P-2)* — `registerContentRoutes(app)` for CV / Profile / Portals / Modes.
-- **`lib/routes/health.mjs`** *(P-2 phase 2)* — `registerHealthRoutes(app)` for `/api/health` and `/api/dashboard`.
+- **`lib/routes/health.mjs`** *(P-2 phase 2)* — `registerHealthRoutes(app)` for `/api/health`, `/api/dashboard`, and **`/api/status/providers`** *(v1.55.3)* — read-only LLM-provider readiness (`{ activeProvider, activeModel, keysConfigured }`, no secrets) for the SPA onboarding banner/chip + the ⚡ Run-live cost hint; `activeProvider` from `env-config.mjs::selectActiveProvider()`.
 - **`lib/routes/help.mjs`** *(P-2 phase 2)* — `registerHelpRoutes(app)` for `/api/help/:lang`.
 - **`lib/routes/jds.mjs`** *(P-2 phase 2)* — `registerJdsRoutes(app)` for the `/api/jds*` CRUD.
 - **`lib/routes/llm.mjs`** *(P-2 phase 2)* — `registerLlmRoutes(app)` for `/api/evaluate`, `/api/evaluate/test-{gemini,anthropic}`, `/api/deep`, `/api/mode/:slug`, `/api/apply-helper`, `/api/interview-prep*`. **P-7** added the Anthropic branch in `/api/evaluate` (preferred over Gemini when both keys present) and `/api/evaluate/test-anthropic` smoke endpoint.
@@ -80,7 +80,7 @@
 - **`lib/routes/reports.mjs`** *(P-2 phase 2)* — `registerReportsRoutes(app)` for `/api/reports*`.
 - **`lib/routes/runners.mjs`** *(P-2)* — buffered `/api/run/*` table, streaming `/api/stream/{scan,liveness,pdf}`, generated-PDF list/download.
 - **`lib/routes/scan.mjs`** *(P-2)* — `registerScanRoutes(app)` for the consolidated `/api/stream/scan?source=ats|regional|both` SSE endpoint, `/api/scan/regional/config`, `/api/scan-results`. v1.18.0 retired the `/api/stream/scan-{en,ru}` split aliases; v1.20.0 retired the `/api/scan-ru/config` legacy alias.
-- **`lib/routes/tracker.mjs`** *(P-2 phase 2)* — `registerTrackerRoutes(app)` for `/api/tracker` GET + POST (dedup-aware).
+- **`lib/routes/tracker.mjs`** *(P-2 phase 2)* — `registerTrackerRoutes(app)` for `/api/tracker` GET + POST (dedup-aware). *(v1.55.8)* GET gains **optional** `?page=&pageSize=&status=` server-side pagination + a whole-history `funnel` count; with no params the response is byte-for-byte the legacy `{ rows }` (strict back-compat).
 - **`lib/env-config.mjs`** — `KNOWN_KEYS`, `SECRET_KEYS`, `parseEnv`, `maskSecret`, `validateConfig`, `updateEnvFile`. Backs the `/api/config` endpoint that powers the App Settings page.
 - **`lib/dotenv.mjs`** — minimal dotenv loader (no quoting edge cases beyond what the parent's `.env` actually uses). Called once at server start.
 - **`lib/activity-log.mjs`** — Express middleware that records every state-changing request to `data/activity.jsonl`. Redacts secret keys.

@@ -340,6 +340,8 @@ El feedback es un **stepper** vertical (lista ordenada, `aria-current` en el pas
 
 ## 2. App settings & API keys (`#/config`)
 
+> **Novedades v1.55 → v1.56.** Sin clave LLM, un banner rojo en cada pantalla explica que ⚡ Ejecutar en vivo está en modo prompt manual y enlaza aquí; con una clave se vuelve un chip discreto con el proveedor activo. Antes de cada botón ⚡ Ejecutar en vivo (`#/auto`, `#/evaluate`, `#/deep`, modos) se muestra un coste estimado honesto (p. ej. "Coste estimado: OpenAI gpt-5-codex · ~$0.04/eval", o sin coste de API en modo manual). `#/scan` oculta filtros secundarios tras un desplegable **Filtros avanzados**; `#/tracker` añade chips de embudo clicables + paginación de servidor opcional; `#/pipeline` virtualiza más de 1000 filas.
+
 Dos pestañas:
 
 1. **API keys & runtime** — edita el `.env` del proyecto padre desde

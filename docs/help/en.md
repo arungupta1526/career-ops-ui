@@ -350,6 +350,8 @@ to this page).
 
 ## 2. App settings & API keys (`#/config`)
 
+> **New in v1.55 → v1.56.** With **no** LLM key set, a red banner on every screen explains that ⚡ Run-live is in manual-prompt mode and links here; once a key is set it becomes a quiet chip naming the active provider. Before any ⚡ Run-live button (`#/auto`, `#/evaluate`, `#/deep`, modes) an honest cost ballpark shows (e.g. "Estimated cost: OpenAI gpt-5-codex · ~$0.04/eval", or a no-API-cost note in manual mode). `#/scan` tucks secondary filters behind an **Advanced filters** disclosure; `#/tracker` adds clickable funnel chips + optional server-side pagination; `#/pipeline` virtualizes past 1000 rows.
+
 Three tabs:
 
 1. **API keys & runtime** — structured field form over the parent

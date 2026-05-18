@@ -137,6 +137,37 @@ concept it serves:
   implement here — this prompt only produces the audit; fixes are
   separate ships.
 
+## Baseline — already-closed findings (do NOT re-file these)
+
+The 2026-05-14→18 audit cycle produced 12 UX findings + 2 a11y
+findings; **all shipped and regression-locked** (v1.55.1→v1.56.0).
+A fresh audit must treat these as the *current* baseline — only
+re-open one with concrete live evidence that it regressed:
+
+| Finding | Closed in | Locked by |
+|---|---|---|
+| F-V55-E / UX-1 — `#/auto` stepper pre-render | v1.55.1 | `auto-stepper-prerender.test.mjs` |
+| F-V55-H / UX-5 — `#/cv` editor accessible name | v1.55.2 | `cv-editor-a11y.test.mjs` |
+| UX-2 — 4-provider OR onboarding banner/chip | v1.55.3 | `onboarding-key-banner.test.mjs` |
+| UX-6 — `#/auto` ETA + `#/scan` Stop prominence | v1.55.4 | `auto-eta-stop.test.mjs` |
+| UX-3 — `#/dashboard` hero-CTA + focal hint | v1.55.5 | `dashboard-hero.test.mjs` |
+| UX-4 — `#/scan` Advanced-filters disclosure | v1.55.6 | `scan-advanced-disclosure.test.mjs` |
+| UX-7 — `#/pipeline` >1000-row virtualization | v1.55.7 | `pipeline-virtualize.test.mjs` |
+| UX-8 — `#/tracker` server pagination + funnel | v1.55.8 | `tracker-server-paged.test.mjs` |
+| UX-9 — `#/cv` breadcrumb title | v1.56.0 | `cv-breadcrumb.test.mjs` |
+| UX-10 — ⚡ Run-live cost hint | v1.56.0 | `run-cost-line.test.mjs` |
+| UX-11 — `#/help` TOC 1-match autoscroll | v1.56.0 | `help-toc-autoscroll.test.mjs` |
+| UX-12 — `#/dashboard` first-paint a11y | v1.56.0 | `dashboard-initial-focus.test.mjs` |
+
+Senior-obs ledger: S-7→v1.54.6, W-001→v1.54.7, S-1→UX-3, S-2→UX-7,
+S-3→UX-4, S-4→UX-1, S-5→UX-9, S-6→UX-8. The **only open backlog
+item** is **G-005** (cross-repo nomenclature, MINOR): the parent
+`santifer/career-ops :: modes/oferta.md` still emits the legacy
+7-block A-G report vs the canonical 6-block A-F; the renderer is
+schema-tolerant so both display correctly. It is blocked on a
+parent commit (see `qa/G-005-closure-kit.md`) — not a web-ui UX
+defect; do not re-file it as one.
+
 ### Guardrails
 
 Read-only. Never edit parent career-ops files. Never weaken the

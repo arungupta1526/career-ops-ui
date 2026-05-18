@@ -2,21 +2,30 @@
 
 Tracks regressions, fix-prompts, and live evidence across releases.
 
-## CURRENT — two perennial, version-agnostic prompts
+## CURRENT — three perennial, version-agnostic prompts
 
-Run **both** on every release; each reads `package.json::version` and
+Run on every release; each reads `package.json::version` and
 validates the current `HEAD`. Save run reports under
-`qa/v54-regression/<date>-{REGRESSION,UX-AUDIT}.md`.
+`qa/v54-regression/<date>-{REGRESSION,UX-AUDIT,FUNCTIONALITY}.md`.
 
 1. **[`REGRESSION-FINAL.md`](./REGRESSION-FINAL.md)** — the single
-   authoritative full-project regression prompt (§0 hard-gate → §10:
+   authoritative full-project regression prompt (§0 hard-gate → §11:
    routes, a11y, config/model selectors, the Modes canonical-schema
    field-form, deploy-hygiene, LLM-key routing, SSE disconnect
-   hygiene, SSRF, i18n/docs parity, the test pyramid).
+   hygiene, SSRF, i18n/docs parity, the test pyramid, and §11 the
+   consolidated v1.55.x→v1.56.0 UX-fix invariants + CLOSED-IN ledger).
 2. **[`UX-AUDIT-PROMPT.md`](./UX-AUDIT-PROMPT.md)** — a Senior
    UX-designer heuristic + task-based audit judged against the
    canonical product intent at <https://career-ops.org/docs> (12
-   lenses, 2 task scenarios, promise-fidelity ledger).
+   lenses, 2 task scenarios, promise-fidelity ledger, and a baseline
+   ledger of already-closed findings — do not re-file those).
+3. **[`FUNCTIONALITY-CHECK.md`](./FUNCTIONALITY-CHECK.md)** — an
+   exhaustive functional-correctness walkthrough: every route + the
+   7 `#/<mode>` pages, every API contract, the 4-provider OR matrix,
+   SSE/SSRF/sanitizer gates, the parent read-only write-through
+   contract, deploy hygiene, and the pre-commit→CI→push AI-review
+   pipeline. Pass/fail per item; "does the whole app work, correctly
+   and clearly?".
 
 They supersede the version-pinned specs below, which stay for
 historical diff only.
@@ -25,15 +34,18 @@ historical diff only.
 |---|---|---|
 | **[`REGRESSION-FINAL.md`](./REGRESSION-FINAL.md)** | **CURRENT** | Perennial full-project regression — run on every release. |
 | **[`UX-AUDIT-PROMPT.md`](./UX-AUDIT-PROMPT.md)** | **CURRENT** | Perennial Senior-UX-designer audit vs career-ops.org/docs. |
+| **[`FUNCTIONALITY-CHECK.md`](./FUNCTIONALITY-CHECK.md)** | **CURRENT** | Perennial exhaustive functional-correctness walkthrough. |
 | [`archive/REGRESSION-v1.54.9.md`](./archive/REGRESSION-v1.54.9.md) | Archived | v1.54.1→v1.54.9 cycle spec. Superseded by FINAL; diff-only. |
 | [`archive/REGRESSION-v1.54.md`](./archive/REGRESSION-v1.54.md) | Archived | v1.54.0 FINAL end-to-end spec (P-31 WS0–WS10). Diff-only. |
 | [`archive/REGRESSION-v1.29.2.md`](./archive/REGRESSION-v1.29.2.md) | Archived | Prior bottom-up spec (baseline v1.6.0→v1.29.2). Diff-only. |
 | [`archive/DOCS-COVERAGE-v1.29.md`](./archive/DOCS-COVERAGE-v1.29.md) | Archived | Prior top-down docs-coverage. Diff-only. |
 | `archive/REGRESSION-v1.27.md`, `archive/DOCS-COVERAGE-v1.28.md` | Archived | Older frozen specs. |
-| `v{14,24,26,27,28,29}-regression/`, `docs-coverage-runs/` | Historical | Live-run evidence per past cycle. Read-only. |
+| `archive/v{24,26,27,28,29}-regression/`, `archive/docs-coverage-runs/` | Archived (v1.56.0) | Past-cycle live-run evidence. Read-only. |
+| `v14-regression/`, `v54-regression/` | Historical / current | v14 = old evidence; v54 = the active v1.54→v1.56 run-report dir. |
 
-> Only the two **CURRENT** perennial prompts live at `qa/` root; all
-> version-pinned specs were moved to `qa/archive/` (v1.55.0).
+> Only the three **CURRENT** perennial prompts + `G-005-closure-kit.md`
+> live at `qa/` root; every version-pinned spec and past-cycle
+> run-dir is under `qa/archive/` (consolidated v1.55.0 → v1.56.0).
 
 ## P-31 program — shipped (v1.31 → v1.54)
 
@@ -50,6 +62,7 @@ AI-review to LGTM:
 | Post-final hardening + multi-provider | v1.54.1–v1.55.0 | 3 MEDIUM regression fixes, Modes canonical-schema field-form, deploy-hygiene, SSE disconnect hygiene, LLM-key live-`.env` routing, **headless OR eval (Anthropic\|Gemini\|OpenAI\|Qwen)** |
 | WS9 test pyramid | v1.53 | shell-surface tests (`bin/*.sh` + `.githooks`); 717 `node --test` + 4 E2E + TESTING.md |
 | WS10 canonical re-validation | v1.54 | help-bundle H3-parity closed (all 8 → 17 H2 / 70 H3) + gate; `docs/sdd/` refreshed |
+| **Consolidated UX fix-prompt** | **v1.55.1 → v1.56.0** | **all 12 UX findings + F-V55-E/F-V55-H shipped** one-per-release, each test-locked + CI-green + AI-review-LGTM; AI-reviewer workflow rebuilt to run on push→main; `docs/` + `qa/` actualized. 757 → **813** `node --test` / 110 files. See `REGRESSION-FINAL.md §11`. |
 
 ## Open backlog
 
@@ -57,44 +70,54 @@ AI-review to LGTM:
 |---|---|---|---|
 | G-005 | Minor (cross-repo) | `oferta.md` report blocks A-G vs canonical career-ops.org A-F | [`G-005-closure-kit.md`](./G-005-closure-kit.md) |
 
-**Single open item**, unchanged since v1.27. The full ready-to-apply
-plan is in **[`G-005-closure-kit.md`](./G-005-closure-kit.md)**:
-Step 1 = a parent `santifer/career-ops` commit rewriting
-`modes/oferta.md` to A-F; Step 2 = a one-line web-ui `prompts.mjs`
-follow-up (help §9 ×8 is already canonical A-F since v1.15.0 — no
-change); Step 3 = a lock test. The renderer is schema-tolerant, so
-this is nomenclature drift, not a functional break. All
-other findings — 31 from the v1.10 baseline + 40 from the WS2 UX-audit —
-are shipped and each regression-locked by a `tests/*.test.mjs`.
+**The single open item** across the whole project, unchanged since
+v1.27 and **blocked on a cross-repo parent commit** (CLAUDE.md hard
+rule #1 forbids editing the parent from here). The full
+ready-to-apply plan is in
+**[`G-005-closure-kit.md`](./G-005-closure-kit.md)**: STEP 1 = a
+parent `santifer/career-ops` commit rewriting `modes/oferta.md`
+A-G → A-F; STEP 2 = a one-line web-ui `prompts.mjs` follow-up
+(help §9 ×8 already canonical A-F since v1.15.0 — no change);
+STEP 3 = a lock test. STEP 2/3 must land **only after** STEP 1, or
+`prompts.mjs` (which says "A-G per modes/oferta.md") and the parent
+mode file contradict each other — strictly worse drift (kit §
+"Why it isn't shipped pre-emptively"). The renderer is
+schema-tolerant, so this is nomenclature drift, not a functional
+break. Every other finding — 31 from the v1.10 baseline, 40 from
+the WS2 UX-audit, and all 14 from the v1.55.x→v1.56.0 consolidated
+fix-prompt — is shipped and regression-locked by a `tests/*.test.mjs`.
 
 ## Folder layout
 
 ```text
 qa/
 ├── README.md                 ← you are here
-├── REGRESSION-FINAL.md       ← CURRENT perennial regression (run this)
+├── REGRESSION-FINAL.md       ← CURRENT perennial regression (§0→§11)
 ├── UX-AUDIT-PROMPT.md        ← CURRENT perennial Senior-UX audit
-├── G-005-closure-kit.md      ← single open backlog item
-├── archive/                  ← all version-pinned specs (diff-only)
-│   ├── REGRESSION-v1.54.9.md · REGRESSION-v1.54.md
-│   ├── REGRESSION-v1.29.2.md · REGRESSION-v1.27.md
-│   └── DOCS-COVERAGE-v1.29.md · DOCS-COVERAGE-v1.28.md
+├── FUNCTIONALITY-CHECK.md    ← CURRENT perennial functional-correctness
+├── G-005-closure-kit.md      ← the single open backlog item (cross-repo)
 ├── v54-regression/           ← live run reports for the current spec
-├── v{14,24,26,27,28,29}-regression/   ← historical evidence (read-only)
-├── docs-coverage-runs/       ← historical top-down run reports
+├── v14-regression/           ← old historical evidence (read-only)
 ├── conformance-vs-docs/ · functional-vs-docs/   ← reserved for new runs
 └── archive/                  ← closed; do not act on without checking HEAD
-    ├── v1.10-fixes/ · v1.14-reports/ · v1.15-fix-prompts/
-    └── v1.25-fix-prompts/ · v1.26-fix-prompts/
+    ├── REGRESSION-v1.54.9.md · REGRESSION-v1.54.md
+    ├── REGRESSION-v1.29.2.md · REGRESSION-v1.27.md
+    ├── DOCS-COVERAGE-v1.29.md · DOCS-COVERAGE-v1.28.md
+    ├── v{24,26,27,28,29}-regression/ · docs-coverage-runs/  (v1.56.0)
+    └── v1.10-fixes/ · v1.14-reports/ · v1.15-fix-prompts/
+        · v1.25-fix-prompts/ · v1.26-fix-prompts/
 ```
 
 ## How to use this folder
 
 **Running the next regression cycle:** walk
-[`REGRESSION-v1.54.md`](./REGRESSION-v1.54.md) §0→§9. §0 (`npm run
+[`REGRESSION-FINAL.md`](./REGRESSION-FINAL.md) §0→§11. §0 (`npm run
 test:ci` + e2e + sh-files + doctor) gates everything. §2 is the WS2
-a11y matrix — every row has a static test plus a live spot-check. Save
-the report under `qa/v54-regression/<YYYY-MM-DD>-REGRESSION.md`.
+a11y matrix and §11 the consolidated v1.55.x→v1.56.0 UX-fix
+invariants — every row has a static test plus a live spot-check.
+Then run [`UX-AUDIT-PROMPT.md`](./UX-AUDIT-PROMPT.md) and
+[`FUNCTIONALITY-CHECK.md`](./FUNCTIONALITY-CHECK.md). Save reports
+under `qa/v54-regression/<YYYY-MM-DD>-{REGRESSION,UX-AUDIT,FUNCTIONALITY}.md`.
 
 **Filing a finding:** one finding = one fix-ship (bump + CHANGELOG ×8 +
 test + Playwright-verify + pre-commit AI-review to LGTM). Never batch

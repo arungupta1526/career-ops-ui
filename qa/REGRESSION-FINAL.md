@@ -198,12 +198,88 @@ non-allowed binary envelopes (415).
 non-trivial logic (`npm run test:coverage`). unit → integration →
 acceptance → e2e all green.
 
+## §11 — v1.55.x→v1.56.0 consolidated UX-fix invariants (regression-locked)
+
+The 2026-05-14→18 audit's 12 UX findings + 2 v1.55.0 a11y findings
+all shipped one-fix-per-release (v1.55.1→v1.56.0). Each has a
+dedicated `tests/*.test.mjs` static guarantee — none may regress.
+Spot-verify the ★ ones live.
+
+- ★ **`#/auto` stepper pre-render** (F-V55-E/UX-1, **CLOSED v1.55.1**):
+  `<ol.auto-stepper>` shows the 5 documented stages (validate → fetch
+  → evaluate → save report → add tracker) in `pending` state **on
+  mount**, before any Run click; labelled `auto.stepperAria`.
+  `tests/auto-stepper-prerender.test.mjs`.
+- ★ **`#/cv` editor accessible name** (F-V55-H/UX-5, **CLOSED
+  v1.55.2**): `#cv-editor` has a descriptive `aria-label`
+  (`cv.editorAria` ×8); no redundant `aria-labelledby`.
+  `tests/cv-editor-a11y.test.mjs`.
+- ★ **4-provider OR onboarding** (UX-2, **CLOSED v1.55.3**):
+  `GET /api/status/providers` → `{activeProvider, activeModel,
+  keysConfigured}`; SPA `#onboarding-banner` shows a red banner (0
+  keys, CTA → `#/config?tab=api-keys`) or a quiet active-provider
+  chip (≥1). `selectActiveProvider()` honors the `LLM_PROVIDER` pin.
+  `tests/onboarding-key-banner.test.mjs`.
+- **`#/auto` ETA + `#/scan` Stop prominence** (UX-6, **CLOSED
+  v1.55.4**): `.auto-eta` "~1–2 min" next to Run; `setScanRunning`
+  flips Stop `btn-ghost`↔`btn-danger` while `aria-busy`.
+  `tests/auto-eta-stop.test.mjs`.
+- **`#/dashboard` hero** (UX-3, **CLOSED v1.55.5**): `.dash-hero`
+  with the 2 P0 CTAs (`.btn-hero`) + a focal last-eval hint precedes
+  the Quick-actions grid; status buckets are `.dash-chip`.
+  `tests/dashboard-hero.test.mjs`.
+- **`#/scan` Advanced-filters disclosure** (UX-4, **CLOSED
+  v1.55.6**): free-text + remote stay visible; scope + source + the
+  post-scan facet chips collapse behind a `<details.scan-advanced>`.
+  `tests/scan-advanced-disclosure.test.mjs`.
+- **`#/pipeline` virtualization** (UX-7, **CLOSED v1.55.7**): at
+  `>VIRTUALIZE_THRESHOLD` (1000) rows the list is a 70vh scroll
+  viewport with a `flex:0 0 auto` spacer (full scroll range) +
+  rAF-throttled window (≤threshold keeps the simple render
+  byte-for-byte); rows keep URL-disambiguated ▶/✕ aria-labels.
+  `tests/pipeline-virtualize.test.mjs`.
+- **`#/tracker` server-side pagination + funnel** (UX-8, **CLOSED
+  v1.55.8**): `GET /api/tracker` with no params ⇒ exactly `{rows}`
+  (back-compat); `?page&pageSize&status` ⇒ `{rows,total,page,
+  pageSize,funnel}` (pageSize≤500, whole-history funnel); clickable
+  `.tracker-chip` funnel bar drives the Status filter.
+  `tests/tracker-server-paged.test.mjs`.
+- **LOW polish bundle** (**CLOSED v1.56.0**): UX-9 `#/cv` title is a
+  single-`<h1>` `.cv-breadcrumb` chip (F-V54-A intact);
+  UX-10 shared `UI.providerCostHint(t)` cost ballpark next to ⚡ Run
+  live on auto/evaluate/deep/`<mode>` (reuses
+  `/api/status/providers`; `cost.estimate`/`cost.manual` ×8);
+  UX-11 `#/help` TOC filter → exactly-1-match 300ms-debounced
+  autoscroll; UX-12 first-paint `<h1>` is `tabindex=-1` + `#content`
+  `aria-live=polite` **without** stealing focus (v1.41.0 skip-link
+  contract preserved). `tests/{cv-breadcrumb,run-cost-line,
+  help-toc-autoscroll,dashboard-initial-focus}.test.mjs`.
+- **Pipeline AI-review** (workflow, regression-locked by file): the
+  `.github/workflows/ai-review.yml` `push-review` job runs on every
+  push to `main` and posts an advisory commit comment (fail-soft;
+  needs the `ANTHROPIC_API_KEY` repo secret to post — without it it
+  logs a clear skip and stays green). ci.yml remains the hard gate;
+  `scripts/ai-precommit-review.mjs` is the local advisory layer.
+- **Senior obs ledger:** S-7 closed v1.54.6 · W-001 closed v1.54.7 ·
+  S-1→UX-3 (v1.55.5) · S-2→UX-7 (v1.55.7) · S-3→UX-4 (v1.55.6) ·
+  S-4→F-V55-E/UX-1 (v1.55.1) · S-5→UX-9 (v1.56.0) · S-6→UX-8
+  (v1.55.8).
+- **G-005** (cross-repo, **OPEN — blocked on parent**): the only
+  remaining backlog item. `server/lib/prompts.mjs` still references
+  the A-G `modes/oferta.md` schema *because the parent still emits
+  A-G*; the web-ui A-F flip must land **after** the parent
+  `santifer/career-ops` commit (see `qa/G-005-closure-kit.md`
+  STEP 1) or the model gets contradictory instructions. Renderer is
+  schema-tolerant; help §9 ×8 already canonical A-F (v1.15.0).
+
 ---
 
 ### Exit criteria
 
-§0 gate green · §1–§10 every MUST satisfied · `git status` clean ·
+§0 gate green · §1–§11 every MUST satisfied · `git status` clean ·
 tag `vX` on `origin/main` with the latest CI green on all 4 jobs · no
-open MEDIUM/HIGH finding. New findings → one-fix ships
+open MEDIUM/HIGH finding (the consolidated v1.55.x→v1.56.0 fix-prompt
+is fully closed; **G-005** is the sole open item, MINOR, cross-repo,
+blocked on the parent commit). New findings → one-fix ships
 (HIGH→MEDIUM→LOW), each fully shipped (bump + CHANGELOG ×8 + test +
 Playwright-verify + AI-review LGTM + CI-watch) before the next.

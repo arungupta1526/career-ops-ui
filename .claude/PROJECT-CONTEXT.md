@@ -8,9 +8,12 @@
 > **Audience.** Claude Code subagents, Cursor / Codex / Aider sessions,
 > any IDE assistant that doesn't auto-load CLAUDE.md.
 >
-> **Repo state.** v1.54.9 (2026-05-18). 747 `node --test` cases across
-> 97 files, 32 Playwright smoke,
-> 7-finding code-review remediation cycle complete.
+> **Repo state.** v1.56.0 (2026-05-19). 813 `node --test` cases across
+> 110 files, 32 Playwright smoke,
+> the v1.55.1→v1.56.0 consolidated UX fix-prompt complete (all 12 UX
+> findings + F-V55-E/F-V55-H shipped one-per-release, AI-reviewer
+> rebuilt to run on push→main, docs/ + qa/ actualized). Sole open
+> item: G-005 (cross-repo, blocked on the parent oferta.md commit).
 
 ---
 
@@ -40,7 +43,7 @@ data files (`cv.md`, `data/applications.md`, `reports/`,
 | Build | None | Files served as-is from `public/` |
 | CI | GitHub Actions, Node 18/20/22 | `.github/workflows/{ci,release,publish-package,ai-review,dashboard-screenshots}.yml` |
 
-**Test baseline (v1.54.9):** 747/747 unit · 32/32 Playwright · 20/20 smoke E2E · 23/23 comprehensive E2E.
+**Test baseline (v1.56.0):** 813/813 unit · 32/32 Playwright · 20/20 smoke E2E · 23/23 comprehensive E2E.
 
 ---
 
@@ -116,7 +119,7 @@ career-ops-ui/
 │  ├─ css/app.css                              # design tokens, WCAG 2.2 AA + 1.4.1 redundant cues
 │  └─ js/{app,router,api}.js + js/lib/* + js/views/*
 ├─ tests/
-│  ├─ *.test.mjs                               # 747 unit + integration
+│  ├─ *.test.mjs                               # 813 unit + integration
 │  ├─ playwright-{smoke,full-cycle}.mjs        # 32 browser flows
 │  ├─ e2e{,-comprehensive}.mjs                 # 43 E2E
 │  └─ fixtures/                                # CI-isolated test data
