@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.4] — 2026-05-19
+
+**feat(ux): Run の隣に正直な auto-pipeline ETA + スキャン中の目立つ Stop(UX-6)。** `#/auto`:新しい `.auto-eta` ヒント — *"⏱ 約1〜2分"*(キー `auto.eta`、`title` は `auto.etaTitle`)— が Run ボタンの隣に表示され、ワンクリックの約束が所要時間について *コミット前に* 正直になる;文言は career-ops.org/docs(「URL を貼る → 1〜2 分で完全レポート」)と一致。`#/scan`:数分のクロールが実行中(`aria-busy`)の間、**Stop** を低コントラストのゴーストボタンから目立つ破壊的ボタンへ昇格(新しい `.btn-danger` — 塗りつぶし、高コントラストの白文字 on コーラル、太さ 600)。`setScanRunning(running)` が `scan-stop-btn` を `btn-danger`(実行中)と `btn-ghost`(アイドル、どのみち非表示)で切り替え、負荷時でもユーザーが Stop を見つけ信頼できるようにする。8 ロケールの新 i18n キー `auto.eta`、`auto.etaTitle`;新しい `.btn-danger`/`.auto-eta` CSS。**`test: tests/auto-eta-stop.test.mjs`**(新規、4 ケース、CI 隔離、ソース静的):`#/auto` が `runBtn` の隣に `.auto-eta` クラスで `t('auto.eta')` を描画;`auto.eta` ×8;`setScanRunning(running)` が Stop を `btn-danger` に昇格;`.btn-danger` が高コントラストの白文字で存在。773 → 777。`feat(ux)` · `test: tests/auto-eta-stop.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.55.3] — 2026-05-19
 
 **feat(onboarding): 画面上の 4 プロバイダ OR ステータス — コールドスタート・バナー + アクティブ・プロバイダ・チップ(UX-2、HIGH)。** 新しい読み取り専用エンドポイント **`GET /api/status/providers`** → `{ activeProvider, activeModel, keysConfigured }`。`keysConfigured` は `llm.mjs` のゲートと同じ実効 env ビュー(process.env ∨ 親 `.env`);`activeProvider` は OR ルーターが実際に選ぶもの — `env-config.mjs` の新しい純粋ヘルパー `selectActiveProvider()` が `providerOrder()` を走査(キーのない `LLM_PROVIDER` ピンは `null`)。秘密は返さない — プロバイダ名 + モデル id のみ。SPA シェルがグローバルなオンボーディング領域(`#onboarding-banner`、`app.js` が描画、CSP 安全な DOM のみ)を表示:**0 キー → 赤いバナー** + `#/config?tab=api-keys` への CTA;**≥1 キー → 控えめなチップ** にアクティブなプロバイダ+モデル。看板の差別化要因(「Anthropic / Gemini / OpenAI / Qwen のいずれかが自動順で動く」)を試行錯誤ではなく画面上で発見可能にする。8 ロケールの `onboarding.*` i18n キー;新しい `.onboarding-warn`/`.onboarding-ok` CSS。**`test: tests/onboarding-key-banner.test.mjs`**(新規、9 ケース、CI 隔離):`selectActiveProvider` の意味論;`GET /api/status/providers` のインプロセス(エフェメラルポート + 一時 `CAREER_OPS_ROOT` `.env` で実際の親キーを決して読まない — CLAUDE.md #2/#8);静的 SPA 配線 + `onboarding.*` ×8 カバレッジ。764 → 773。`feat(onboarding)` · `test: tests/onboarding-key-banner.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.4] — 2026-05-19
+
+**feat(ux): Run 옆 정직한 auto-pipeline ETA + 스캔 중 눈에 띄는 Stop (UX-6).** `#/auto`: 새 `.auto-eta` 힌트 — *"⏱ ~1–2분"*(키 `auto.eta`, `title`은 `auto.etaTitle`) — 이제 Run 버튼 옆에 표시되어, 사용자가 누르기 *전에* 원클릭 약속이 소요 시간에 대해 정직하도록 함; 문구는 career-ops.org/docs("URL 붙여넣기 → 1–2분 내 전체 리포트")와 일치. `#/scan`: 수 분짜리 크롤이 실행 중(`aria-busy`)일 때 **Stop** 을 저대비 고스트 버튼에서 눈에 띄는 파괴적 버튼으로 승격(새 `.btn-danger` — 채움, 고대비 흰색 온 코랄, 굵기 600). `setScanRunning(running)` 이 `scan-stop-btn` 을 `btn-danger`(실행 중)와 `btn-ghost`(유휴, 어차피 숨김) 사이에서 전환하여, 부하 상황에서도 사용자가 Stop 을 찾고 신뢰하게 함. 8개 로케일 새 i18n 키 `auto.eta`, `auto.etaTitle`; 새 `.btn-danger`/`.auto-eta` CSS. **`test: tests/auto-eta-stop.test.mjs`**(신규, 4 케이스, CI-격리, 소스-정적): `#/auto` 가 `runBtn` 옆에 `.auto-eta` 클래스로 `t('auto.eta')` 렌더; `auto.eta` ×8; `setScanRunning(running)` 이 Stop 을 `btn-danger` 로 승격; `.btn-danger` 가 고대비 흰색 텍스트로 존재. 773 → 777. `feat(ux)` · `test: tests/auto-eta-stop.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.55.3] — 2026-05-19
 
 **feat(onboarding): 화면상 4-제공자 OR 상태 — 콜드 스타트 배너 + 활성 제공자 칩 (UX-2, HIGH).** 새 읽기 전용 엔드포인트 **`GET /api/status/providers`** → `{ activeProvider, activeModel, keysConfigured }`. `keysConfigured` 는 `llm.mjs` 게이트와 동일한 effective-env 뷰(process.env ∨ 부모 `.env`); `activeProvider` 는 OR-라우터가 실제로 고를 값 — `env-config.mjs` 의 새 순수 헬퍼 `selectActiveProvider()` 가 `providerOrder()` 를 순회(키 없는 `LLM_PROVIDER` 핀은 `null`). 비밀은 반환 안 함 — 제공자 이름 + 모델 id 만. SPA 셸이 전역 온보딩 영역(`#onboarding-banner`, `app.js` 가 채움, CSP 안전 DOM)을 렌더: **0 키 → 빨간 배너** + `#/config?tab=api-keys` CTA; **≥1 키 → 은은한 칩** 활성 제공자+모델. 대표 차별점("Anthropic / Gemini / OpenAI / Qwen 중 하나, 자동 순서")을 시행착오 대신 화면에서 발견 가능하게 함. 8개 로케일 `onboarding.*` i18n 키; 새 `.onboarding-warn`/`.onboarding-ok` CSS. **`test: tests/onboarding-key-banner.test.mjs`**(신규, 9 케이스, CI-격리): `selectActiveProvider` 의미; `GET /api/status/providers` 인프로세스(임시 포트 + 임시 `CAREER_OPS_ROOT` `.env` 로 실제 부모 키 비참조 — CLAUDE.md #2/#8); 정적 SPA 배선 + `onboarding.*` ×8 커버리지. 764 → 773. `feat(onboarding)` · `test: tests/onboarding-key-banner.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

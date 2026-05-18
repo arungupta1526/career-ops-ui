@@ -6,6 +6,22 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.55.4] — 2026-05-19
+
+**feat(ux): honest auto-pipeline ETA next to Run + prominent Stop during a scan (UX-6).**
+
+### ✨ Features
+
+- `#/auto`: a new `.auto-eta` hint — *"⏱ ~1–2 min"* (key `auto.eta`, `title` via `auto.etaTitle`) — now sits directly next to the Run button, so the one-click promise is honest about duration *before* the user commits. The wording matches career-ops.org/docs ("paste a URL → full report in 1–2 minutes"). Feedback & system-status lens.
+- `#/scan`: while the multi-minute crawl is running (`aria-busy`), the **Stop** control is promoted from a low-contrast ghost button to a prominent destructive button (new `.btn-danger` — filled, high-contrast white-on-coral, weight 600). `setScanRunning(running)` flips `scan-stop-btn` between `btn-danger` (running) and `btn-ghost` (idle, when it is hidden anyway), so the user can find and trust Stop under load. Error-recovery lens.
+- New i18n keys `auto.eta`, `auto.etaTitle` across all 8 locales; new token-based `.btn-danger` / `.auto-eta` CSS.
+
+### 🧪 Tests
+
+- **`test: tests/auto-eta-stop.test.mjs`** (new, 4 cases, CI-isolated, source-static): `#/auto` renders `t('auto.eta')` with the `.auto-eta` class adjacent to `runBtn`; `auto.eta` ×8 locales; `setScanRunning(running)` promotes Stop to `btn-danger`; `.btn-danger` exists with high-contrast white text. 773 → 777.
+
+---
+
 ## [1.55.3] — 2026-05-19
 
 **feat(onboarding): on-screen 4-provider OR status — cold-start banner + active-provider chip (UX-2, HIGH).**

@@ -44,6 +44,13 @@ Router.register('auto', async () => {
   });
   const runBtn = c('button', { className: 'btn btn-primary', style: { whiteSpace: 'nowrap' } },
     '▶ ' + t('auto.run', 'Run full pipeline'));
+  // v1.55.4 — UX-6: the docs promise auto-pipeline ≈ 1–2 min. Show
+  // that ETA next to Run so the one-click promise is honest about
+  // duration before the user commits (Feedback & system status).
+  const etaHint = c('span', {
+    className: 'auto-eta',
+    title: t('auto.etaTitle', 'Typical end-to-end time per career-ops.org/docs'),
+  }, '⏱ ' + t('auto.eta', '~1–2 min'));
 
   // Polite live region — screen readers announce each transition.
   const liveRegion = c('div', {
@@ -242,6 +249,7 @@ Router.register('auto', async () => {
       c('div', { className: 'flex gap-3 mt-3', style: { flexWrap: 'wrap', alignItems: 'center' } }, [
         c('div', { style: { flex: '1 1 320px' } }, urlInput),
         runBtn,
+        etaHint,
       ]),
       liveRegion,
       stepperEl,

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.4] — 2026-05-19
+
+**feat(ux):Run 旁的诚实 auto-pipeline ETA + 扫描时醒目的 Stop(UX-6)。** `#/auto`:新增 `.auto-eta` 提示 —— *"⏱ 约 1–2 分钟"*(键 `auto.eta`,`title` 经 `auto.etaTitle`)—— 现位于 Run 按钮旁,使一键承诺在用户决定*之前*就对耗时诚实;文案与 career-ops.org/docs(“粘贴 URL → 1–2 分钟内完整报告”)一致。`#/scan`:在数分钟爬取运行中(`aria-busy`)时,**Stop** 从低对比度幽灵按钮提升为醒目的破坏性按钮(新增 `.btn-danger` —— 填充,高对比白字配珊瑚色,字重 600)。`setScanRunning(running)` 在 `btn-danger`(运行中)与 `btn-ghost`(空闲,反正隐藏)之间切换 `scan-stop-btn`,使用户在负载下也能找到并信任 Stop。8 个语言新增 i18n 键 `auto.eta`、`auto.etaTitle`;新增 `.btn-danger`/`.auto-eta` CSS。**`test: tests/auto-eta-stop.test.mjs`**(新增,4 个用例,CI 隔离,源静态):`#/auto` 在 `runBtn` 旁以 `.auto-eta` 类渲染 `t('auto.eta')`;`auto.eta` ×8;`setScanRunning(running)` 将 Stop 提升为 `btn-danger`;`.btn-danger` 存在且为高对比白字。773 → 777。`feat(ux)` · `test: tests/auto-eta-stop.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.55.3] — 2026-05-19
 
 **feat(onboarding):屏幕上的 4 提供方 OR 状态 —— 冷启动横幅 + 活动提供方徽标(UX-2,HIGH)。** 新增只读端点 **`GET /api/status/providers`** → `{ activeProvider, activeModel, keysConfigured }`。`keysConfigured` 使用与 `llm.mjs` 门控相同的有效 env 视图(process.env ∨ 父 `.env`);`activeProvider` 是 OR 路由器实际会选的 —— `env-config.mjs` 中的新纯函数 `selectActiveProvider()` 遍历 `providerOrder()`(无对应密钥的 `LLM_PROVIDER` 锁定返回 `null`)。不返回任何机密 —— 仅提供方名称 + 模型 id。SPA 外壳现在渲染全局引导区域(`#onboarding-banner`,由 `app.js` 填充,仅 CSP 安全 DOM):**0 密钥 → 红色横幅** + 指向 `#/config?tab=api-keys` 的 CTA;**≥1 密钥 → 低调徽标** 显示活动提供方+模型。让招牌差异点("Anthropic / Gemini / OpenAI / Qwen 之一,自动排序")在屏幕上可发现,而非靠试错。8 个语言新增 `onboarding.*` i18n 键;新增 `.onboarding-warn`/`.onboarding-ok` CSS。**`test: tests/onboarding-key-banner.test.mjs`**(新增,9 个用例,CI 隔离):`selectActiveProvider` 语义;`GET /api/status/providers` 进程内(临时端口 + 临时 `CAREER_OPS_ROOT` `.env`,绝不读取真实父密钥 —— CLAUDE.md #2/#8);静态 SPA 接线 + `onboarding.*` ×8 覆盖。764 → 773。`feat(onboarding)` · `test: tests/onboarding-key-banner.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。

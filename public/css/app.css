@@ -434,6 +434,24 @@ body.sidebar-open .sidebar-backdrop { display: block; }
 }
 .btn-dark:hover { background: #000; }
 
+/* v1.55.4 — UX-6: destructive/stop action. Filled, high-contrast so
+   the Stop button is unmistakable during a multi-minute scan. */
+.btn-danger {
+  background: linear-gradient(135deg, var(--rausch) 0%, var(--rausch-dark) 100%);
+  color: #fff;
+  border: 1px solid var(--rausch-dark);
+  font-weight: 600;
+}
+.btn-danger:hover { background: var(--rausch-dark); }
+
+/* v1.55.4 — UX-6: honest "~1–2 min" ETA chip next to #/auto Run. */
+.auto-eta {
+  font-size: 12px;
+  color: var(--foggy);
+  white-space: nowrap;
+  align-self: center;
+}
+
 /* WCAG 2.5.5 / 2.5.8 — touch target size. Default buttons inherit
    `min-height: 44px` from .btn. Small buttons relax this for dense
    table-row controls (Edit / Delete / etc.) but keep min-height ≥ 32 px

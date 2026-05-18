@@ -147,6 +147,13 @@ Router.register('scan', async () => {
     scanBtn.disabled = running;
     scanBtn.setAttribute('aria-busy', running ? 'true' : 'false');
     stopBtn.hidden = !running;
+    // v1.55.4 — UX-6: while the multi-minute crawl is running, Stop
+    // is the primary action — promote it to a prominent destructive
+    // button so the user can find and trust it under load. Quiet
+    // ghost otherwise (it's hidden then anyway).
+    stopBtn.className = running
+      ? 'btn btn-danger scan-stop-btn'
+      : 'btn btn-ghost scan-stop-btn';
   }
   function announce(msg) { statusRegion.textContent = msg; }
   function clearScanError() { errBanner.hidden = true; errBanner.textContent = ''; }
