@@ -88,8 +88,7 @@
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('scripts',{}\\), indent=2\\)\\)\")",
       "Bash(grep -v ':0$')",
       "Bash(perl -ne 'print unless /Workable/')",
-      "Bash(lsof -nP -iTCP:4317 -sTCP:LISTEN)",
-      "Bash(node -e 'JSON.parse\\(require\\(\"fs\"\\).readFileSync\\(\".claude/settings.json\",\"utf8\"\\)\\);console.log\\(\"valid JSON, allow entries:\",JSON.parse\\(require\\(\"fs\"\\).readFileSync\\(\".claude/settings.json\",\"utf8\"\\)\\).permissions.allow.length\\)')"
+      "Bash(lsof -nP -iTCP:4317 -sTCP:LISTEN)"
     ]
   }
 }
