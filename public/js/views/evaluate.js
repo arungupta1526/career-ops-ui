@@ -16,7 +16,10 @@ Router.register('evaluate', async () => {
     placeholder: t('eval.placeholder'),
   });
   const saveJd = c('input', { type: 'checkbox', id: 'save-jd' });
-  const out = c('div', { id: 'eval-out' });
+  // WS2 #19 — the long LLM call was silent for screen readers; make
+  // the result container a polite status region so "Evaluating…", the
+  // verdict, and errors are all announced.
+  const out = c('div', { id: 'eval-out', role: 'status', 'aria-live': 'polite' });
 
   if (prefillUrl) {
     jdInput.value = `URL: ${prefillUrl}\n\n[paste JD text here]`;
@@ -116,7 +119,10 @@ Router.register('evaluate', async () => {
         saveJd, c('span', null, t('eval.saveJd')),
       ]),
       c('div', { className: 'flex gap-3 mt-3' }, [
-        c('button', { className: 'btn btn-primary', onClick: run }, t('eval.btnEval')),
+        // WS2 #20 — spinner-wrap so the button disables + shows a busy
+        // state during the long LLM call (was plain `onClick: run`,
+        // allowing duplicate submissions).
+        c('button', { className: 'btn btn-primary', onClick: (e) => UI.withSpinner(e.currentTarget, run) }, t('eval.btnEval')),
         c('button', { className: 'btn btn-ghost', onClick: () => { jdInput.value = ''; out.innerHTML = ''; } }, t('eval.btnClear')),
       ]),
     ]),

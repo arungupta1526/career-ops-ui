@@ -8,6 +8,12 @@
 
 ---
 
+## [1.51.0] — 2026-05-18
+
+**WS2 #13 + #14 + #18 + #19 + #20 — `#/auto`와 `#/evaluate` feedback/i18n 정리.** UX 감사 지적 5건. `fix(a11y/ux): auto+evaluate — busy state, actionable HTTP errors, clipboard fallback, aria-live result, spinner-guarded submit` — #13: `#/auto`의 Run 버튼이 이제 단순 비활성화 대신 바쁨 상태(`is-loading` + `aria-busy` + "Running…")를 표시함. #14: 실패한 HTTP 요청이 이제 단계에 실행 가능한 i18n 메시지와 토스트(`{n}`가 담긴 `auto.httpFail`)를 노출함(이전엔 무미건조한 "HTTP 500"이었음). #18: 수동 모드의 "Copy prompt"가 이제 비동기 Clipboard API를 `execCommand` 폴백과 함께 사용하며, 거짓 "Copied" 대신 실제 실패를 토스트함. #19: evaluate 결과 컨테이너가 이제 `role=status` `aria-live=polite`여서 긴 LLM 호출이 스크린 리더에 안내됨. #20: Evaluate 버튼이 `UI.withSpinner`로 감싸짐(이전엔 중복 제출을 허용하는 평범한 `onClick: run`이었음). 신규 i18n 키 3개 × 8개 로케일; 테스트 +6: 691 → 697. 또한 테스트 전용 수정(커밋 `7f8e250`): e2e pipeline-delete 티어다운이 v1.48 이전 네이티브 confirm 경로에 있었음; API DELETE로 전환(`fix(test): …` — CI Playwright-e2e가 빨간색이었음; 제품 회귀가 아님). 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.50.0] — 2026-05-18
 
 **WS2 #12 + #27 + #28 — help 내비게이션 접근성.** 17개 섹션·90+개 헤딩 가이드의 `#/help` UX 감사 지적 3건을 `help.js`에서 수정. `fix(a11y): help — single h1, labelled+filterable TOC, focus-on-anchor, back-to-top` — #28: 문서 markdown이 자체 `# Title`로 시작해, 헤더가 이미 정규 h1을 제공하는 페이지에 두 번째 `<h1>`을 만들었음; 이제 기사의 모든 `<h1>`이 제거되어 h1은 정확히 하나이며 계층은 `<h2>` 섹션에서 깔끔하게 시작함. #27: TOC의 `<nav>`는 이름 없는 랜드마크였음(페이지에 라벨 없는 `<nav>` 2개); 이제 `aria-label`(`help.toc`)을 가지며, TOC 항목을 클릭하면 뷰포트 스크롤뿐 아니라 포커스가 섹션 헤딩으로 이동함(`tabindex=-1` + `focus()`). #12: 긴 문서에서 무언가를 찾을 방법이 없었음; TOC 위의 `type=search` 필터가 헤딩 텍스트로 항목을 실시간으로 좁히고, 스크롤 후 `aria-label`이 달린 플로팅 "Back to top" 버튼이 나타나 맨 위로 돌아가 페이지 `<h1>`로 포커스를 되돌림; 그 scroll 리스너는 `#/help`를 벗어나는 `hashchange`에서 제거됨. 신규 i18n 키 2개 × 8개 로케일 — `help.tocFilter`, `help.backToTop`; 테스트 +6: `test: tests/help-nav-a11y.test.mjs`. 685 → 691. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

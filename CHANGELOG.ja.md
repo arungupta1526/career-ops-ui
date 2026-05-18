@@ -8,6 +8,12 @@
 
 ---
 
+## [1.51.0] — 2026-05-18
+
+**WS2 #13 + #14 + #18 + #19 + #20 — `#/auto` と `#/evaluate` の feedback/i18n 一掃。** UX 監査の 5 件の指摘。`fix(a11y/ux): auto+evaluate — busy state, actionable HTTP errors, clipboard fallback, aria-live result, spinner-guarded submit` — #13:`#/auto` の Run ボタンは今や単に無効化されるのではなくビジー状態(`is-loading` + `aria-busy` +「Running…」)を表示する。#14:失敗した HTTP リクエストは今やステップ上の操作可能な i18n メッセージと toast(`{n}` 付きの `auto.httpFail`)を提示する(以前は素っ気ない「HTTP 500」だった)。#18:手動モードの「Copy prompt」は今や非同期 Clipboard API を `execCommand` フォールバック付きで使い、偽の「Copied」ではなく実際の失敗を toast する。#19:evaluate の結果コンテナは今や `role=status` `aria-live=polite` であり、長い LLM 呼び出しがスクリーンリーダーへアナウンスされる。#20:Evaluate ボタンは `UI.withSpinner` でラップされた(以前は素の `onClick: run` で重複送信を許していた)。新規 i18n キー 3 件 × 8 ロケール;テスト +6:691 → 697。さらにテストのみの修正(コミット `7f8e250`):e2e pipeline-delete のティアダウンが v1.48 以前のネイティブ confirm 経路上にあった;API DELETE へ切り替え(`fix(test): …` — CI の Playwright-e2e が赤だった;製品の回帰ではない)。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.50.0] — 2026-05-18
 
 **WS2 #12 + #27 + #28 — help ナビゲーションのアクセシビリティ。** 17 セクション・90+ 見出しのガイドにおける `#/help` の UX 監査の 3 件の指摘を `help.js` で修正。`fix(a11y): help — single h1, labelled+filterable TOC, focus-on-anchor, back-to-top` — #28:ドキュメントの markdown が独自の `# Title` で始まり、すでにヘッダーが正規の h1 を供給しているページに 2 つ目の `<h1>` を生んでいた;今は記事のすべての `<h1>` が除去され、h1 はちょうど 1 つで、階層は `<h2>` セクションから綺麗に始まる。#27:TOC の `<nav>` は名前の無いランドマークだった(ページ上にラベルの無い `<nav>` が 2 つ);今は `aria-label`(`help.toc`)を持ち、TOC エントリをクリックするとビューポートのスクロールだけでなくフォーカスがセクション見出しへ移る(`tabindex=-1` + `focus()`)。#12:長いドキュメント内で何かを見つける手段が無かった;TOC の上の `type=search` フィルタが見出しテキストでエントリをライブに絞り込み、スクロール後に `aria-label` 付きのフローティング「Back to top」ボタンが現れ、先頭に戻りページの `<h1>` にフォーカスを戻す;その scroll リスナーは `#/help` から離れる `hashchange` で除去される。新規 i18n キー 2 件 × 8 ロケール — `help.tocFilter`、`help.backToTop`;テスト +6:`test: tests/help-nav-a11y.test.mjs`。685 → 691。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

@@ -6,6 +6,39 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.51.0] — 2026-05-18
+
+**WS2 #13 + #14 + #18 + #19 + #20 — feedback / i18n sweep (auto + evaluate).**
+
+### 🐛 Fixes
+
+- **`fix(a11y/ux): pending feedback, actionable errors, real clipboard, status regions`**:
+  - **#13** `#/auto` Run button was disabled with an unchanged label → no pending cue for the multi-second pipeline. It now shows a busy state (`is-loading` + `aria-busy` + "⏳ Running…"), restored in `finally`.
+  - **#14** the HTTP-failure branch put a bare "HTTP 500" on step 1 with no toast and an empty live region. Now an actionable, i18n'd message (`auto.httpFail`, `{n}`-substituted) on the step **and** a toast.
+  - **#18** the manual-mode "Copy prompt" used deprecated `document.execCommand('copy')` and always toasted "Copied" even when it silently no-op'd. Now prefers the async Clipboard API, falls back to `execCommand`, and toasts a real failure (`auto.copyFail`) instead of a false success.
+  - **#19** `#/evaluate` `#eval-out` had no live role — the long LLM call was silent for screen readers. Now `role="status" aria-live="polite"` so "Evaluating…", the verdict, and errors are announced.
+  - **#20** the Evaluate button was a plain `onClick: run` (enabled during the call → duplicate submissions). Now `UI.withSpinner`-wrapped (disables + busy state).
+
+### 🌐 i18n
+
+- 3 new keys × 8 locales — `auto.running`, `auto.httpFail` (`{n}` preserved), `auto.copyFail`. `i18n-coverage` gate green.
+
+### 🧪 Tests
+
+- **`test: tests/feedback-i18n-sweep.test.mjs`** — 6 cases (busy state + restore, actionable+toasted HTTP fail, async-clipboard fallback, eval status region, eval spinner-wrap, 3 i18n keys ×8). 691 → 697.
+- **`fix(test): e2e pipeline-delete teardown`** (commit 7f8e250) — `e2e.mjs` / `e2e-comprehensive.mjs` deleted the test row via the pre-v1.48 native-confirm path; v1.48.0's focus-trapped `UI.confirm()` left the modal open and its backdrop blocked later flows (CI Playwright-e2e red). Teardown is now an API DELETE. Not a product regression — tests predated the confirm gate.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 697 / 697 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.51.0
+$ node tests/e2e.mjs               # 20/0
+$ node tests/e2e-comprehensive.mjs # 23/23
+```
+
+---
+
 ## [1.50.0] — 2026-05-18
 
 **WS2 #12 + #27 + #28 — help navigation accessibility.**

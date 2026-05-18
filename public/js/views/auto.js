@@ -110,7 +110,21 @@ Router.register('auto', async () => {
         ta,
         c('button', {
           className: 'btn btn-primary mt-3',
-          onClick: () => { ta.select(); document.execCommand && document.execCommand('copy'); UI.toast(t('auto.copied', 'Copied'), 'success'); },
+          // WS2 #18 — execCommand('copy') is deprecated and silently
+          // no-ops in some browsers (user thinks it copied). Prefer the
+          // async Clipboard API; fall back to execCommand; toast on
+          // genuine failure instead of a false "Copied".
+          onClick: async () => {
+            const ok = await (navigator.clipboard
+              ? navigator.clipboard.writeText(ta.value).then(() => true, () => false)
+              : Promise.resolve(false));
+            if (ok) { UI.toast(t('auto.copied', 'Copied'), 'success'); return; }
+            ta.select();
+            const legacy = document.execCommand && document.execCommand('copy');
+            UI.toast(legacy ? t('auto.copied', 'Copied')
+              : t('auto.copyFail', 'Copy failed — select the text and copy manually.'),
+              legacy ? 'success' : 'error');
+          },
         }, '⧉ ' + t('auto.copyPrompt', 'Copy prompt')),
       ]));
       return;
@@ -139,7 +153,12 @@ Router.register('auto', async () => {
     if (running) return;
     if (!url) { UI.toast(t('auto.urlRequired', 'Paste a job URL first'), 'error'); urlInput.focus(); return; }
     running = true;
+    // WS2 #13 — a disabled button with the same label gave no pending
+    // feedback for the multi-second pipeline. Swap to a busy state.
     runBtn.disabled = true; urlInput.disabled = true;
+    runBtn.classList.add('is-loading');
+    runBtn.setAttribute('aria-busy', 'true');
+    runBtn.textContent = '⏳ ' + t('auto.running', 'Running…');
     stepState.forEach((s) => { s.status = 'pending'; s.detail = ''; });
     stepperEl.style.display = '';
     resultEl.style.display = 'none';
@@ -153,7 +172,12 @@ Router.register('auto', async () => {
         body: JSON.stringify({ url, lang }),
       });
       if (!resp.ok || !resp.body) {
-        setStep(0, 'failed', 'HTTP ' + resp.status);
+        // WS2 #14 — was a bare "HTTP 500" on the step with no toast and
+        // an empty live-region. Surface an actionable message both ways.
+        const msg = t('auto.httpFail', 'Server error (HTTP {n}). Check the server is running, then retry.')
+          .replace('{n}', String(resp.status));
+        setStep(0, 'failed', msg);
+        UI.toast(msg, 'error');
         return;
       }
       const reader = resp.body.getReader();
@@ -187,6 +211,9 @@ Router.register('auto', async () => {
     } finally {
       running = false;
       runBtn.disabled = false; urlInput.disabled = false;
+      runBtn.classList.remove('is-loading');
+      runBtn.removeAttribute('aria-busy');
+      runBtn.textContent = '▶ ' + t('auto.run', 'Run full pipeline');
     }
   }
 

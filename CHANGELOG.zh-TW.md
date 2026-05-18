@@ -8,6 +8,12 @@
 
 ---
 
+## [1.51.0] — 2026-05-18
+
+**WS2 #13 + #14 + #18 + #19 + #20 —— `#/auto` 與 `#/evaluate` 的 feedback/i18n 清掃。** UX 稽核的五項發現。`fix(a11y/ux): auto+evaluate — busy state, actionable HTTP errors, clipboard fallback, aria-live result, spinner-guarded submit` —— #13:`#/auto` 的 Run 按鈕現在顯示忙碌狀態(`is-loading` + `aria-busy` +「Running…」),而非僅停用。#14:失敗的 HTTP 請求現在於步驟上浮現可操作的 i18n 訊息並附帶 toast(帶 `{n}` 的 `auto.httpFail`),不再是乾巴巴的「HTTP 500」。#18:手動模式的「Copy prompt」現在使用非同步 Clipboard API 並帶 `execCommand` 回退,真正失敗時 toast 提示,而非虛假的「Copied」。#19:evaluate 結果容器現為 `role=status` `aria-live=polite`,使漫長的 LLM 呼叫向螢幕閱讀器播報。#20:Evaluate 按鈕以 `UI.withSpinner` 包裹(原先為樸素的 `onClick: run`,允許重複送出)。新增 3 個 i18n 鍵 × 8 個語系;測試 +6:691 → 697。另有一處僅測試的修正(提交 `7f8e250`):e2e pipeline-delete 的拆卸位於 v1.48 之前的原生 confirm 路徑上;改為 API DELETE(`fix(test): …` —— CI 的 Playwright-e2e 為紅;並非產品回歸)。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.50.0] — 2026-05-18
 
 **WS2 #12 + #27 + #28 —— help 導覽無障礙。** 一份 17 個章節、90+ 個標題的指南中,`#/help` 上 UX 稽核的三項發現,於 `help.js` 中修正。`fix(a11y): help — single h1, labelled+filterable TOC, focus-on-anchor, back-to-top` —— #28:文件 markdown 以自帶的 `# Title` 開頭,在頁首已提供規範 h1 的頁面上又產生了第二個 `<h1>`;現已剝除文章的所有 `<h1>`,使全頁恰有一個 h1,層級從 `<h2>` 章節乾淨起始。#27:TOC 的 `<nav>` 是無名地標(頁面上有兩個無標籤 `<nav>`);現帶 `aria-label`(`help.toc`),點擊 TOC 項目時焦點移至章節標題(`tabindex=-1` + `focus()`),而非僅捲動視口。#12:長文件中無從查找;TOC 上方的 `type=search` 篩選器依標題文字即時收窄項目,捲動後出現帶 `aria-label` 的浮動「Back to top」按鈕,返回頂部並把焦點移回頁面 `<h1>`;其 scroll 監聽器在離開 `#/help` 的 `hashchange` 時移除。新增 2 個 i18n 鍵 × 8 個語系 —— `help.tocFilter`、`help.backToTop`;測試 +6:`test: tests/help-nav-a11y.test.mjs`。685 → 691。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
