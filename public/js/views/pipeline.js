@@ -8,6 +8,7 @@ Router.register('pipeline', async () => {
   let filterQuery = '';
   let activeUrl = null;       // currently selected for preview
   let previewBody = '';
+  let previewError = '';   // WS2 #22 — distinct from previewBody
   let previewLoading = false;
 
   // ── elements ──
@@ -22,7 +23,14 @@ Router.register('pipeline', async () => {
     style: { maxWidth: '320px' },
   });
   const list = c('div', { id: 'pipeline-list', className: 'card', style: { display: 'flex', flexDirection: 'column', gap: '6px' } });
-  const previewPane = c('div', { className: 'card', style: { minHeight: '120px' } });
+  // v1.48.0 (WS2 #22) — the preview is a polite live region with an
+  // accessible name; a fetch failure renders a distinct role=alert
+  // block, not disguised as preview body text.
+  const previewPane = c('div', {
+    id: 'pipe-preview', className: 'card', style: { minHeight: '120px' },
+    role: 'region', 'aria-live': 'polite',
+    'aria-label': t('pipe.previewRegion', 'Job preview'),
+  });
   const newUrl = c('input', {
     id: 'pipe-new-url',
     'aria-label': t('pipe.placeholder'),
@@ -64,7 +72,10 @@ Router.register('pipeline', async () => {
           className: 'btn btn-ghost btn-sm',
           style: { color: 'var(--rausch)' },
           onClick: async (e) => {
-            if (!confirm(t('pipe.confirmDel'))) return;
+            if (!(await UI.confirm(
+              t('pipe.confirmDelTitle', 'Remove from pipeline?'),
+              t('pipe.confirmDel'),
+              { danger: true, confirmLabel: t('common.delete', 'Delete'), cancelLabel: t('common.cancel', 'Cancel') }))) return;
             await UI.withSpinner(e.currentTarget,
               () => API.del('/api/pipeline?url=' + encodeURIComponent(activeUrl)));
             UI.toast(t('pipe.deleted'));
@@ -78,6 +89,13 @@ Router.register('pipeline', async () => {
 
     if (previewLoading) {
       previewPane.appendChild(c('div', { className: 'loading' }, t('pipe.previewLoading', 'Loading preview…')));
+      return;
+    }
+    if (previewError) {
+      previewPane.appendChild(c('div', {
+        className: 'empty', role: 'alert',
+        style: { border: 'none', padding: '20px', color: 'var(--rausch)' },
+      }, '✗ ' + t('pipe.previewError', 'Preview failed') + ': ' + previewError));
       return;
     }
     if (!previewBody) {
@@ -94,13 +112,14 @@ Router.register('pipeline', async () => {
   async function selectUrl(url) {
     activeUrl = url;
     previewBody = '';
+    previewError = '';
     previewLoading = true;
     renderPreview();
     try {
       const r = await API.get('/api/pipeline/preview?url=' + encodeURIComponent(url));
       previewBody = (r.text || '').slice(0, 4000);
     } catch (e) {
-      previewBody = '(' + (e.message || 'fetch failed') + ')';
+      previewError = e.message || 'fetch failed';
     } finally {
       previewLoading = false;
       renderPreview();
@@ -149,11 +168,14 @@ Router.register('pipeline', async () => {
           title: t('common.delete', 'Delete'),
           onClick: async (e) => {
             e.stopPropagation();
-            if (!confirm(t('pipe.confirmDel'))) return;
+            if (!(await UI.confirm(
+              t('pipe.confirmDelTitle', 'Remove from pipeline?'),
+              t('pipe.confirmDel'),
+              { danger: true, confirmLabel: t('common.delete', 'Delete'), cancelLabel: t('common.cancel', 'Cancel') }))) return;
             await UI.withSpinner(e.currentTarget,
               () => API.del('/api/pipeline?url=' + encodeURIComponent(url)));
             UI.toast(t('pipe.deleted'));
-            if (activeUrl === url) { activeUrl = null; previewBody = ''; }
+            if (activeUrl === url) { activeUrl = null; previewBody = ''; previewError = ''; }
             await refresh();
           },
         }, '✕'),
@@ -205,7 +227,10 @@ Router.register('pipeline', async () => {
           className: 'btn btn-ghost',
           onClick: async () => {
             if (allUrls.length === 0) return UI.toast(t('pipe.empty'), 'error');
-            if (!confirm(t('pipe.evaluateAllConfirm', 'Open the first queued URL on Evaluate?'))) return;
+            if (!(await UI.confirm(
+              t('pipe.evaluateAllTitle', 'Evaluate first queued URL?'),
+              t('pipe.evaluateAllConfirm', 'Open the first queued URL on Evaluate?'),
+              { danger: false, confirmLabel: t('common.confirm', 'Confirm'), cancelLabel: t('common.cancel', 'Cancel') }))) return;
             Router.go('/evaluate?url=' + encodeURIComponent(allUrls[0]));
           },
         }, '⚡ ' + t('pipe.evaluateAll', 'Evaluate first')),

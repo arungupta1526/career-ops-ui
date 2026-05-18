@@ -8,6 +8,12 @@
 
 ---
 
+## [1.48.0] — 2026-05-18
+
+**WS2 #8 + #22 — pipeline:フォーカストラップされた確認 + プレビューのアクセシビリティ。** `#/pipeline` における UX 監査の 2 件の指摘を `pipeline.js` で修正。`fix(a11y): pipeline UI.confirm() + live preview region` — #8:`#/pipeline` の 3 つのアクションはネイティブ `confirm()` を使用していた(フォーカストラップされない):プレビューペインの Delete、行ごとの `✕` 削除、「Evaluate first」。いずれもフォーカストラップされる `UI.confirm()`(v1.44.0 のインフラ)を経由するようになった — 2 つの削除は `danger:true`(Cancel がデフォルト)、「Evaluate first」は `danger:false`;`pipeline.js` にネイティブ `confirm()` はもう残っていない。#22:`previewPane` にはライブロールが無く、fetch 失敗が `previewBody` に詰め込まれて誤解を招く `<pre>`「preview」としてレンダリングされていた;今は `aria-label` 付きの `role=region` `aria-live=polite` となり、失敗時は別の `previewError` を設定して独立した `role=alert` ブロックとしてレンダリングする((再)選択時およびアクティブ行の削除時にクリア)。新規 i18n キー 4 件 × 8 ロケール;テスト +5:`test: tests/pipeline-confirm-preview.test.mjs`。672 → 677。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.47.0] — 2026-05-18
 
 **WS2 #7 + #30 + #31 + #16 — 未バインドラベルのアクセシビリティ一掃。** フォームコントロールにプログラム的ラベルが無かった UX 監査の 4 件の指摘(WCAG 1.3.1 / 3.3.2 / 4.1.2)を、すべてバインド。`fix(a11y): bind every swept form control to an accessible name` — #7 `scan.js`:`dry-run` チェックボックスと `company-select` ドロップダウンには `for` の無いラベルがあった;既存の `id` に合わせて `htmlFor` を追加。#30 `deep.js`:`company` / `role` 入力に未バインドのラベルがあった;`id` + `htmlFor` を追加(`deep-company`、`deep-role`)。#31 `apply.js`:`url` / `jd` に未バインドのラベルがあった;`id` + `htmlFor` を追加(`apply-url`、`apply-jd`)。#16 `cv.js`:主要な markdown `<textarea>` にアクセシブル名が無かった;表示されている「Markdown」見出しへ `aria-labelledby` でバインド — スクリーンリーダー名と画面上の見出しが一致、新規 i18n キーなし。`batch.js` / `mode-page.js` で既に標準の明示的 `label[for]`↔`control[id]` パターンを使用;新規 i18n キーなし;挙動の変更ゼロ。テスト +5:`test:` 667 → 672。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

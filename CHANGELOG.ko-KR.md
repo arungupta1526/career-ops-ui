@@ -8,6 +8,12 @@
 
 ---
 
+## [1.48.0] — 2026-05-18
+
+**WS2 #8 + #22 — pipeline: 포커스 트랩 확인 + 미리보기 접근성.** `#/pipeline`의 UX 감사 지적 2건을 `pipeline.js`에서 수정. `fix(a11y): pipeline UI.confirm() + live preview region` — #8: `#/pipeline`의 세 가지 액션이 네이티브 `confirm()`을 사용했음(포커스 트랩 안 됨): 미리보기 창의 Delete, 행별 `✕` 삭제, "Evaluate first". 이제 모두 포커스 트랩되는 `UI.confirm()`(v1.44.0 인프라)를 거침 — 두 삭제는 `danger:true`(Cancel 기본값), "Evaluate first"는 `danger:false`; `pipeline.js`에 네이티브 `confirm()`은 더 이상 남아 있지 않음. #22: `previewPane`에 라이브 역할이 없었고 fetch 실패가 `previewBody`에 채워져 오해를 주는 `<pre>` "preview"로 렌더링되었음; 이제 `aria-label`을 갖춘 `role=region` `aria-live=polite`이며, 실패 시 별도의 `previewError`를 설정해 독립적인 `role=alert` 블록으로 렌더링함((재)선택 시 및 활성 행 삭제 시 지워짐). 신규 i18n 키 4개 × 8개 로케일; 테스트 +5: `test: tests/pipeline-confirm-preview.test.mjs`. 672 → 677. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.47.0] — 2026-05-18
 
 **WS2 #7 + #30 + #31 + #16 — 미바인딩 레이블 접근성 일괄 정리.** 폼 컨트롤에 프로그래밍적 레이블이 없던 UX 감사 지적 4건(WCAG 1.3.1 / 3.3.2 / 4.1.2)을 모두 바인딩. `fix(a11y): bind every swept form control to an accessible name` — #7 `scan.js`: `dry-run` 체크박스와 `company-select` 드롭다운에 `for` 없는 레이블이 있었음; 기존 `id`에 맞춰 `htmlFor` 추가. #30 `deep.js`: `company` / `role` 입력에 미바인딩 레이블이 있었음; `id` + `htmlFor` 추가(`deep-company`, `deep-role`). #31 `apply.js`: `url` / `jd`에 미바인딩 레이블이 있었음; `id` + `htmlFor` 추가(`apply-url`, `apply-jd`). #16 `cv.js`: 주요 markdown `<textarea>`에 접근 가능한 이름이 없었음; 표시된 "Markdown" 제목에 `aria-labelledby`로 바인딩 — 스크린 리더 이름과 화면 제목 일치, 신규 i18n 키 없음. `batch.js` / `mode-page.js`에서 이미 표준인 명시적 `label[for]`↔`control[id]` 패턴 사용; 신규 i18n 키 없음; 동작 변경 없음. 테스트 +5: `test:` 667 → 672. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

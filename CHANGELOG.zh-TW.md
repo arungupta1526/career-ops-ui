@@ -8,6 +8,12 @@
 
 ---
 
+## [1.48.0] — 2026-05-18
+
+**WS2 #8 + #22 —— pipeline:焦點陷阱確認 + 預覽無障礙。** `#/pipeline` 上 UX 稽核的兩項發現,於 `pipeline.js` 中修正。`fix(a11y): pipeline UI.confirm() + live preview region` —— #8:`#/pipeline` 的三個動作皆使用原生 `confirm()`(未做焦點陷阱):預覽面板的 Delete、每列的 `✕` 刪除、以及「Evaluate first」;現全部改走帶焦點陷阱的 `UI.confirm()`(v1.44.0 基礎設施)—— 兩個刪除 `danger:true`(Cancel 為預設),「Evaluate first」`danger:false`;`pipeline.js` 中已無任何原生 `confirm()`。#22:`previewPane` 沒有 live 角色,且 fetch 失敗被塞進 `previewBody`,渲染成誤導性的 `<pre>`「preview」;現為帶 `aria-label` 的 `role=region` `aria-live=polite`,失敗時另設 `previewError` 並渲染為獨立的 `role=alert` 區塊((重新)選擇時及刪除當前列時清除)。新增 4 個 i18n 鍵 × 8 個語系;測試 +5:`test: tests/pipeline-confirm-preview.test.mjs`。672 → 677。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.47.0] — 2026-05-18
 
 **WS2 #7 + #30 + #31 + #16 —— 未綁定標籤無障礙清掃。** UX 稽核的四項發現:表單控制項缺少程式化標籤(WCAG 1.3.1 / 3.3.2 / 4.1.2),現已全部綁定。`fix(a11y): bind every swept form control to an accessible name` —— #7 `scan.js`:`dry-run` 核取方塊與 `company-select` 下拉選單的標籤缺少 `for`;依既有 `id` 加上 `htmlFor`。#30 `deep.js`:`company` / `role` 輸入框存在未綁定標籤;加上 `id` + `htmlFor`(`deep-company`、`deep-role`)。#31 `apply.js`:`url` / `jd` 存在未綁定標籤;加上 `id` + `htmlFor`(`apply-url`、`apply-jd`)。#16 `cv.js`:主 markdown `<textarea>` 無可存取名稱;透過 `aria-labelledby` 綁定到可見的「Markdown」標題 —— 螢幕閱讀器名稱與螢幕標題一致,無新增 i18n 鍵。沿用 `batch.js` / `mode-page.js` 中已為標準的明確 `label[for]`↔`control[id]` 模式;無新增 i18n 鍵;行為零變更。測試 +5:`test:` 667 → 672。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

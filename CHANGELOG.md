@@ -6,6 +6,34 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.48.0] — 2026-05-18
+
+**WS2 #8 + #22 — pipeline: focus-trapped confirm + preview a11y.**
+
+### 🐛 Fixes
+
+- **`fix(a11y): pipeline UI.confirm() + live preview region`** —
+  - **#8** all three `#/pipeline` actions used native `confirm()` (auto-dismissed in embeds, not focus-trapped): the preview-pane Delete, the per-row `✕` delete, and "Evaluate first". All now route through the focus-trapped `UI.confirm()` (v1.44.0 infra) — the two deletes `danger:true` (Cancel-default), "Evaluate first" `danger:false`.
+  - **#22** `previewPane` had no live role and a fetch failure was stuffed into `previewBody` so it rendered as a misleading `<pre>` "preview". It's now `role="region" aria-live="polite"` with an `aria-label`; failures set a separate `previewError` and render a distinct `role="alert"` block. `previewError` is cleared on (re)select and when the active row is deleted.
+- No native `confirm()` remains in `pipeline.js`.
+
+### 🌐 i18n
+
+- 4 new keys × 8 locales — `pipe.confirmDelTitle`, `pipe.previewError`, `pipe.evaluateAllTitle`, `pipe.previewRegion`. `i18n-coverage` gate green.
+
+### 🧪 Tests
+
+- **`test: tests/pipeline-confirm-preview.test.mjs`** — 5 cases (no native confirm, ≥3 UI.confirm with correct danger flags, labelled live region, distinct alert + state-clear, 4 i18n keys ×8). 672 → 677. Playwright-verified: preview role=region/aria-live, row-delete opens a focus-trapped modal (focus on Cancel), 0 console errors.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 677 / 677 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.48.0
+```
+
+---
+
 ## [1.47.0] — 2026-05-18
 
 **WS2 #7 + #30 + #31 + #16 — unbound-label accessibility sweep.**

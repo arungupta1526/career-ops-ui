@@ -8,6 +8,12 @@
 
 ---
 
+## [1.48.0] — 2026-05-18
+
+**WS2 #8 + #22 — pipeline: подтверждение с захватом фокуса + доступность превью.** Два замечания UX-аудита на `#/pipeline`, исправлены в `pipeline.js`. `fix(a11y): pipeline UI.confirm() + live preview region` — #8: три действия `#/pipeline` использовали нативный `confirm()` (фокус не захватывался): Delete в панели превью, построчное удаление `✕` и «Evaluate first»; теперь все проходят через `UI.confirm()` с захватом фокуса (инфраструктура v1.44.0) — два удаления `danger:true` (Cancel по умолчанию), «Evaluate first» `danger:false`; нативного `confirm()` в `pipeline.js` больше не осталось. #22: у `previewPane` не было live-роли, а сбой fetch запихивался в `previewBody` и рендерился как вводящий в заблуждение `<pre>` «preview»; теперь это `role=region` `aria-live=polite` с `aria-label`, а сбои устанавливают отдельный `previewError`, рендерящийся как отдельный блок `role=alert` (очищается при (пере)выборе и при удалении активной строки). 4 новых ключа i18n × 8 локалей; +5 тестов: `test: tests/pipeline-confirm-preview.test.mjs`. 672 → 677. Подробно — [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.47.0] — 2026-05-18
 
 **WS2 #7 + #30 + #31 + #16 — зачистка доступности непривязанных меток.** Четыре замечания UX-аудита, где у элементов формы не было программной метки (WCAG 1.3.1 / 3.3.2 / 4.1.2), теперь привязаны. `fix(a11y): bind every swept form control to an accessible name` — #7 `scan.js`: у чекбокса `dry-run` и выпадающего списка `company-select` были метки без `for`; добавлен `htmlFor` (с существующими `id`). #30 `deep.js`: у инпутов `company` / `role` были непривязанные метки; добавлены `id` + `htmlFor` (`deep-company`, `deep-role`). #31 `apply.js`: у `url` / `jd` были непривязанные метки; добавлены `id` + `htmlFor` (`apply-url`, `apply-jd`). #16 `cv.js`: у основного markdown-`<textarea>` не было доступного имени; привязан через `aria-labelledby` к видимому заголовку «Markdown» — имя для скринридера совпадает с заголовком на экране, без нового ключа i18n. Использует явный паттерн `label[for]`↔`control[id]`, уже стандартный в `batch.js` / `mode-page.js`; без новых ключей i18n; ноль изменений поведения. +5 тестов: `test:` 667 → 672. Подробно — [`CHANGELOG.md`](CHANGELOG.md).
