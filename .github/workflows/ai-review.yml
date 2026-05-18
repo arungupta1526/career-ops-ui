@@ -1,42 +1,108 @@
 name: AI Review (Claude Code)
 
-# Runs Claude Code on every pull request to leave a structured review
-# comment. Maintainers retain merge authority — Claude only suggests.
+# ────────────────────────────────────────────────────────────────────
+# Pipeline-level AI reviewer for career-ops-ui.
 #
-# Required repo secrets:
-#   ANTHROPIC_API_KEY   # console.anthropic.com → API keys
+# WHY THIS EXISTS / WHAT IT FIXES
+#   The original workflow triggered ONLY on `pull_request`. This repo
+#   ships **direct to main** (see CHANGELOG / git history — every
+#   release is a direct commit, not a PR), so the PR-only reviewer had
+#   ZERO runs and never actually reviewed anything. This rewrite makes
+#   the AI reviewer fire on the path the project actually uses:
 #
-# Required permissions:
-#   contents: read           — checkout the diff
-#   pull-requests: write     — post the review comment
-#   issues: write            — fall-back comment surface
+#     • push → main      → review HEAD diff, post a COMMIT comment
+#     • pull_request      → review the PR diff, post a PR comment
+#                           (kept for any future PR-based flow)
 #
-# How it triggers:
-#   - Any PR opened, synchronized, or reopened against main.
-#   - Re-runs on every push to the PR branch (so the review tracks the
-#     latest commits).
-#   - Comments are written as the github-actions[bot] user; maintainers
-#     and contributors can keep replying inline.
+#   It mirrors, at the pipeline level, the advisory AI layer that
+#   scripts/ai-precommit-review.mjs already runs locally on commit:
+#   deterministic gates live in ci.yml (hard-fail); this job is the
+#   ADVISORY second opinion (fail-soft — never blocks a push/merge;
+#   maintainers retain all authority).
+#
+# REQUIRED REPO SECRET
+#   ANTHROPIC_API_KEY   — console.anthropic.com → API keys.
+#   Without it the job logs a clear skip notice and exits 0 (so the
+#   pipeline stays green; the local pre-commit AI layer + ci.yml still
+#   protect every commit). Add it via:
+#     gh secret set ANTHROPIC_API_KEY --repo Fighter90/career-ops-ui
+#
+# DESIGN NOTES
+#   • Zero extra runtime deps: the push-path review is a direct HTTPS
+#     call to the Anthropic Messages API via curl + python3 (both
+#     present on ubuntu-latest) — the same zero-dependency ethos as
+#     server/lib/anthropic.mjs. No SDK, no Node project install.
+#   • The PR path uses the official anthropics/claude-code-action@v1
+#     (purpose-built to post inline PR review comments).
+#   • Both paths share ONE review rubric (the env REVIEW_RUBRIC below)
+#     so local pre-commit, PR, and push reviews judge by the same bar.
+#   • The diff is size-capped (200 KB) so a huge release commit can't
+#     blow the model context or the API request.
+#   • Comments are written as github-actions[bot]; humans keep replying.
+# ────────────────────────────────────────────────────────────────────
 
 on:
+  push:
+    branches: [main]
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [main]
 
 permissions:
-  contents: read
-  pull-requests: write
-  issues: write
+  contents: read          # checkout + diff
+  pull-requests: write    # PR review comment
+  issues: write           # fallback comment surface
+  # `contents: write` is NOT granted: commit comments use the default
+  # GITHUB_TOKEN which can comment on commits with `contents: read`.
 
 concurrency:
-  group: ai-review-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  # PRs: one in-flight review per PR (cancel stale). Pushes: one per
+  # commit SHA (never cancel — each main commit deserves its review).
+  group: ai-review-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Single source of truth for the review bar — kept in lockstep with
+  # CLAUDE.md hard rules and docs/sdd/CONVENTIONS.md.
+  REVIEW_RUBRIC: |
+    You are the pipeline reviewer for career-ops-ui (Express +
+    vanilla-JS SPA, ESM-only, no bundler). Review ONLY the supplied
+    diff against this bar. Be terse, quote file:line, skip nitpicks.
+
+      1. SECURITY (CLAUDE.md hard rules 3-5): no new inline
+         onclick / inline <script>; CSP must keep excluding
+         'unsafe-inline' & 'unsafe-eval'; every user-supplied URL
+         that gets fetched must pass isValidJobUrl() (SSRF guard);
+         all CV/markdown ingress must route through
+         stripDangerousMarkdown(); no XSS / prompt-injection
+         regressions; no secrets, tokens, or PII in code/logs.
+      2. PARENT BOUNDARY (hard rule 1): nothing outside web-ui/
+         may be edited by code. Flag any such change.
+      3. i18n: every new user-facing string goes through I18n.t()
+         AND has entries in ALL 8 locales (en, es, pt-BR, ko, ja,
+         ru, zh-CN, zh-TW). A missing locale is a BLOCKER call-out.
+      4. TESTS: every fix/feature needs >=1 CI-isolated test that
+         can't assume the parent project is present. No mocks of
+         internal collaborators.
+      5. CONVENTIONS: conventional-commit subject
+         (feat|fix|refactor|docs|test|chore|perf|ci[!]); files
+         < 400 lines target; CHANGELOG parity across all 8 locale
+         files if a release; ESM + node: builtin prefixes.
+      6. CORRECTNESS: real bugs, race conditions, unhandled
+         rejections, broken error paths, dead/unreachable code.
+
+    If everything is within the bar, reply exactly: "LGTM — no
+    blocking findings." Otherwise list findings worst-first. Do NOT
+    restate the diff or the commit message back to the author.
 
 jobs:
-  review:
-    name: Claude Code review
+  # ── PR path ──────────────────────────────────────────────────────
+  pr-review:
+    name: Claude review (pull request)
+    if: >-
+      github.event_name == 'pull_request' &&
+      !contains(github.event.pull_request.labels.*.name, 'skip-ai-review')
     runs-on: ubuntu-latest
-    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-ai-review') }}
     steps:
       - name: Check out PR head
         uses: actions/checkout@v4
@@ -44,30 +110,138 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
 
+      - name: Guard — ANTHROPIC_API_KEY present
+        id: guard
+        env:
+          KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::warning::ANTHROPIC_API_KEY not set — skipping AI review (advisory only; ci.yml + pre-commit still gate this PR)."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Run Claude Code review
+        if: steps.guard.outputs.ok == 'true'
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          # Stay focused — Claude reviews ONLY this PR's diff against main.
-          # Custom prompt keeps comments terse, line-anchored, and avoids
-          # restating the whole PR description.
           direct_prompt: |
-            You are reviewing this pull request against career-ops-ui's
-            engineering bar. Look for:
+            ${{ env.REVIEW_RUBRIC }}
 
-              1. Security: XSS / prompt-injection / sanitizer regressions,
-                 CSP violations (no new inline onclick), validator gaps.
-              2. i18n: every new user-facing string must go through
-                 I18n.t() AND have entries in all 8 locales (en, es,
-                 pt-BR, ko, ja, ru, zh-CN, zh-TW). Missing locale = block.
-              3. Tests: every fix or feature needs at least one test.
-                 The Acceptance section in the PR body should match
-                 what's in tests/.
-              4. Parent-project boundary: edits to files outside web-ui/
-                 require explicit approval — call them out.
-              5. Commit style: must follow conventional-commits with
-                 FIX-N reference if it closes a numbered defect.
+  # ── Push-to-main path (the one this repo actually uses) ──────────
+  push-review:
+    name: Claude review (push → main)
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out (full history for the diff)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-            Be terse. Quote line numbers. Skip nitpicks. If everything
-            looks fine, say so in one sentence. Do not summarise the PR
-            description back to the author.
+      - name: Compute reviewable diff
+        id: diff
+        run: |
+          set -euo pipefail
+          BEFORE="${{ github.event.before }}"
+          SHA="${{ github.sha }}"
+          # First push to a new branch / force-push / unknown base →
+          # fall back to the commit's first parent (or empty tree).
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] \
+             || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            BASE="$(git rev-parse "$SHA"^ 2>/dev/null || git hash-object -t tree /dev/null)"
+          else
+            BASE="$BEFORE"
+          fi
+          echo "Reviewing $BASE..$SHA"
+          git diff --no-color "$BASE" "$SHA" > /tmp/pr.diff || true
+          BYTES=$(wc -c < /tmp/pr.diff | tr -d ' ')
+          # Cap at 200 KB so a big release commit can't overflow the
+          # model context / API request body.
+          if [ "$BYTES" -gt 204800 ]; then
+            head -c 204800 /tmp/pr.diff > /tmp/pr.diff.cap
+            printf '\n\n[... diff truncated at 200 KB of %s for review ...]\n' "$BYTES" >> /tmp/pr.diff.cap
+            mv /tmp/pr.diff.cap /tmp/pr.diff
+          fi
+          if [ ! -s /tmp/pr.diff ]; then
+            echo "empty=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "empty=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "subject=$(git log -1 --pretty=%s "$SHA" | head -c 200)" >> "$GITHUB_OUTPUT"
+
+      - name: Claude review → commit comment (fail-soft)
+        if: steps.diff.outputs.empty == 'false'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+          SUBJECT: ${{ steps.diff.outputs.subject }}
+        run: |
+          set -uo pipefail
+          if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+            echo "::warning::ANTHROPIC_API_KEY not set — skipping AI review (advisory; ci.yml + pre-commit still gate main). Add it: gh secret set ANTHROPIC_API_KEY"
+            exit 0
+          fi
+
+          # Build a JSON-safe Messages API request (python3 is on the
+          # ubuntu-latest image; no Node project install needed here).
+          python3 - <<'PY' > /tmp/req.json
+          import json, os
+          diff = open('/tmp/pr.diff','r',encoding='utf-8',errors='replace').read()
+          rubric = os.environ.get('REVIEW_RUBRIC','Review this diff for bugs and security.')
+          subject = os.environ.get('SUBJECT','(no subject)')
+          prompt = (rubric
+                    + "\n\nCommit subject: " + subject
+                    + "\n\n=== DIFF ===\n" + diff)
+          req = {
+              "model": "claude-opus-4-7",
+              "max_tokens": 1500,
+              "messages": [{"role": "user", "content": prompt}],
+          }
+          json.dump(req, open('/tmp/req.json','w'))
+          print("ok")
+          PY
+
+          # Direct HTTPS to the Anthropic API (mirrors anthropic.mjs).
+          HTTP=$(curl -sS -o /tmp/resp.json -w '%{http_code}' \
+            --max-time 120 \
+            https://api.anthropic.com/v1/messages \
+            -H "x-api-key: ${ANTHROPIC_API_KEY}" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            --data-binary @/tmp/req.json || echo "000")
+
+          if [ "$HTTP" != "200" ]; then
+            echo "::warning::AI review API call failed (HTTP $HTTP) — fail-soft, not blocking. Body:"
+            head -c 800 /tmp/resp.json || true
+            exit 0
+          fi
+
+          REVIEW=$(python3 - <<'PY'
+          import json
+          try:
+              d = json.load(open('/tmp/resp.json'))
+              parts = [b.get('text','') for b in d.get('content',[]) if b.get('type')=='text']
+              print(("".join(parts)).strip() or "(empty model response)")
+          except Exception as e:
+              print(f"(could not parse model response: {e})")
+          PY
+          )
+
+          # Post as a commit comment (advisory). Fail-soft on any error.
+          BODY=$(printf '🤖 **AI review — advisory** (CLAUDE.md bar; ci.yml is the hard gate)\n\n%s\n\n_Posted by the AI Review workflow. Maintainers retain merge authority._' "$REVIEW")
+          if gh api -X POST "repos/${REPO}/commits/${SHA}/comments" \
+               -f body="$BODY" >/dev/null 2>&1; then
+            echo "✓ AI review posted to commit ${SHA}"
+          else
+            echo "::warning::could not post commit comment (fail-soft). Review was:"
+            echo "$REVIEW"
+          fi
+          # Echo to the job log too, so the review is visible even if
+          # the comment API is unavailable.
+          echo "----- AI REVIEW -----"
+          echo "$REVIEW"
