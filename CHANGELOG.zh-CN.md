@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.8] — 2026-05-18
+
+**feat(config):Modes 字段表单始终渲染规范模式(即便在空/桩文件上),并带 career-ops.org 字段指引。** v1.54.3 的 Modes 字段表单只为已存在的 `##` 小节渲染字段 —— 因此在全新、空或非模式的 `modes/_profile.md`(例如常见的 1 行桩)上,它会回退到 *"No ## sections found — use the raw editor below."*,用户拿不到任何字段。应用户请求(*"разбей по полям … описание полей возьми из career-ops.org/docs"*),表单现在**始终按文档化顺序渲染 5 个规范字段**(Target Roles、Adaptive Framing、Exit Narrative、Comp Targets、Location Policy),存在时从文件预填,不存在时为空但可编辑 —— 因此全新的 profile 可完全通过表单填写。每个字段显示一段**来自规范 career-ops.org Quick Start §Step-5 的描述**(在 Target Roles / Adaptive Framing / Exit Narrative / Comp Targets / Location Policy 中分别填什么),通过 `aria-describedby` 接入供屏幕阅读器使用。容忍标题变体:模板的 `## Your Target Roles`(等)映射到与 `## Target Roles` 相同的规范字段,因此模板与服务端脚手架约定都不会破坏表单。`collect()` 现在是带标签的载荷:当渲染的标题与文件现有标题完全一致时进行非破坏性的 **`{ sections }` 合并**(前言 + 未触碰 + 自定义小节按字节稳定保留),或当文件缺少模式时进行 **`{ markdown }` 全文件重建**,引导/规范化一份符合模式的文档。重建路径在 `config.js` 中**经确认门控**(它替换父文件 —— WS2 #4 破坏性保存不变量),保留现有前言(或文档化的默认值),并按 verbatim 保留非规范小节。8 个语言环境新增 6 个 i18n 键(`config.modesDescTargetRoles` … `config.modesDescLocationPolicy` + `config.modesFormRebuildBody`)。`tests/modes-form.test.mjs` 按 v1.54.8 契约重写:模式 + 规范顺序、`config.js` 载荷/确认接线、8 个语言环境中每个字段来自文档的描述存在、`canonicalKey` "Your X" 容忍、列表往返稳定性、引导始终渲染保证,以及带数据安全的带标签 sections-vs-markdown `collect()`。已针对真实父桩文件在线验证(5 个字段 + 描述出现,0 控制台错误)和隔离桩夹具(填写 → 经确认门控保存 → 5 个规范小节全部持久化)。`feat(config)` · `test: tests/modes-form.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.54.7] — 2026-05-18
 
 **fix: W-001 — 代码/样式资源 + SPA 外壳以 `Cache-Control: no-store` 提供(部署卫生)。** SPA 通过不带版本查询字符串的纯 `<script src>` 加载 `api.js` / `router.js` / 每个视图,且没有构建步骤(无内容哈希),因此部署后浏览器可能**继续提供缓存的旧 bundle 数小时** —— 在查询字符串路由上出现 stale-cache 404(在 v1.29.2 回归期间在线观察到;回归运行 W-001)。`server/index.mjs` 现在通过 `express.static` 的 `setHeaders` 钩子在 `.js` / `.mjs` / `.css` / `.html` 上设置 `Cache-Control: no-store`,并在 SPA 外壳 catch-all(它使用 `sendFile` 并绕过 `setHeaders`)上显式设置,使浏览器始终重新校验驱动路由的代码。非代码静态资源保留 `express.static` 的默认缓存。安全头(CSP / nosniff / frame-deny / referrer-policy)不变 —— 由既有的 `security-headers` 套件(8 个用例)与新测试并行跑绿验证。新增 1 个测试文件 `tests/asset-cache-control.test.mjs` —— 4 个用例(JS 资源 `no-store`、CSS `no-store`、静态 `index.html` `no-store`、SPA catch-all 深层路由外壳 `no-store`),针对隔离的 `CAREER_OPS_ROOT` 启动真实应用。另加 `tests/playwright-smoke.mjs` 中的 flaky teardown 修复(单独的 `test(e2e)` 提交):auto-pipeline 的 SSE 冒烟测试现在在 `finally` 中取消 reader + 中止 fetch,且 `after` 钩子强制关闭残留套接字,消除了使 v1.54.6 Playwright e2e 作业变红的 teardown 后 "Error: aborted"。738 → 742。`fix` · `test: tests/asset-cache-control.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。

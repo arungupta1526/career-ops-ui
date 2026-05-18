@@ -6,6 +6,24 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.54.8] — 2026-05-18
+
+**feat(config): Modes field-form always renders the canonical schema (even on an empty/stub file) with career-ops.org field guidance.**
+
+### ✨ Features
+
+- The v1.54.3 Modes field-form only rendered fields for `##` sections that already existed — so on a fresh, empty, or non-schema `modes/_profile.md` (e.g. the common 1-line stub) it fell back to *"No ## sections found — use the raw editor below."* and the user never got fields. Per user request (*"разбей по полям … описание полей возьми из career-ops.org/docs"*), the form now **always renders the 5 canonical fields in documented order** (Target Roles, Adaptive Framing, Exit Narrative, Comp Targets, Location Policy), pre-filled from the file when present and empty-but-editable when not — so a brand-new profile can be filled in entirely through the form.
+- Each field shows a **description sourced from the canonical career-ops.org Quick Start §Step-5** (what to put in Target Roles / Adaptive Framing / Exit Narrative / Comp Targets / Location Policy), wired via `aria-describedby` for screen readers.
+- Heading-variant tolerant: the template's `## Your Target Roles` (etc.) maps to the same canonical field as `## Target Roles`, so neither the template nor the server-scaffold convention breaks the form.
+- `collect()` is now a tagged payload: a non-destructive **`{ sections }` merge** when the rendered headings exactly match the file's existing ones (preamble + untouched + custom sections survive byte-stable), or a **`{ markdown }` full-file rebuild** that bootstraps/normalises a schema-conformant document when the file lacked the schema. The rebuild path is **confirm-gated** in `config.js` (it replaces the parent file — WS2 #4 destructive-save invariant), preserves the existing preamble (or a documented default), and keeps non-canonical sections verbatim.
+- 6 new i18n keys (`config.modesDescTargetRoles` … `config.modesDescLocationPolicy` + `config.modesFormRebuildBody`) across all 8 locales.
+
+### 🧪 Tests
+
+- **`test: tests/modes-form.test.mjs`** — rewritten for the v1.54.8 contract: schema + canonical order, config.js payload/confirm wiring, every field's doc-sourced description present in all 8 locales, `canonicalKey` "Your X" tolerance, list round-trip stability, the bootstrap-always-renders guarantee, and the tagged sections-vs-markdown collect() with data-safety. Verified live against the real parent stub file (5 fields + descriptions appear, 0 console errors) and an isolated stub fixture (fill → confirm-gated save → all 5 canonical sections persisted). 742 unchanged (7 cases, replaced).
+
+---
+
 ## [1.54.7] — 2026-05-18
 
 **fix: W-001 — code/style assets + SPA shell served `Cache-Control: no-store` (deploy-hygiene).**

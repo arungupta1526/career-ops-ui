@@ -518,9 +518,12 @@ Router.register('config', async () => {
   const modesSectionHost = c('div');
   let modesForm = null; // { host, collect } from ModesForm.build()
 
-  function buildSectionEditors(sections) {
+  function buildSectionEditors(data) {
     modesSectionHost.innerHTML = '';
-    modesForm = window.ModesForm.build(sections || []);
+    // v1.54.8 — pass the whole GET payload so the form can render the
+    // 5 canonical fields (with doc-sourced descriptions) even when the
+    // file has no `##` sections, and preserve the preamble on rebuild.
+    modesForm = window.ModesForm.build(data || { sections: [], preamble: '' });
     modesSectionHost.appendChild(modesForm.host);
   }
 
@@ -529,7 +532,7 @@ Router.register('config', async () => {
     try {
       const data = await API.get('/api/modes/_profile');
       modesTextarea.value = (data && data.markdown) || '';
-      buildSectionEditors((data && data.sections) || []);
+      buildSectionEditors(data || { sections: [], preamble: '' });
       modesScaffolded = !!(data && data.scaffolded);
       modesLoaded = true;
       if (modesScaffolded) {
@@ -541,16 +544,35 @@ Router.register('config', async () => {
     }
   }
 
-  // Field-form save → merge path (preamble + unknown sections survive).
+  // Field-form save. collect() is tagged:
+  //   { mode:'sections' } → non-destructive per-section merge (no
+  //     confirm; preamble + untouched + custom sections survive).
+  //   { mode:'markdown' }  → the file lacked the canonical schema, so
+  //     the form bootstraps/normalises the whole document. That
+  //     REPLACES the parent file → confirm-gate it (WS2 #4), exactly
+  //     like the raw editor.
   async function saveModes(btn) {
-    const sectionsPayload = modesForm ? modesForm.collect() : {};
-    if (!Object.keys(sectionsPayload).length) {
+    const payload = modesForm ? modesForm.collect() : null;
+    if (!payload) {
       UI.toast(t('config.modesNoSections', 'No ## sections found — use the raw editor below.'), 'error');
       return;
     }
+    let body;
+    if (payload.mode === 'markdown') {
+      if (!(await UI.confirm(
+        t('config.rawConfirmTitle', 'Overwrite the whole file?'),
+        t('config.modesFormRebuildBody',
+          'This will (re)create modes/_profile.md from the fields above with the standard schema. Your preamble and any custom sections are preserved. Continue?'),
+        { danger: true, confirmLabel: t('config.rawConfirmOk', 'Overwrite'), cancelLabel: t('common.cancel', 'Cancel') }))) {
+        return;
+      }
+      body = { markdown: payload.markdown };
+    } else {
+      body = { sections: payload.sections };
+    }
     try {
       const r = await UI.withSpinner(btn, () =>
-        API.put('/api/modes/_profile', { sections: sectionsPayload }));
+        API.put('/api/modes/_profile', body));
       UI.toast(t('config.modesSaved', 'modes/_profile.md saved') +
         (r.sanitized ? ` (${t('config.sanitized', 'sanitized')})` : ''), 'success');
       modesScaffolded = false;
