@@ -85,7 +85,13 @@ before(async () => {
 after(async () => {
   if (context) await context.close();
   if (browser) await browser.close();
-  if (server) await new Promise((r) => server.close(r));
+  if (server) {
+    // Force-destroy any lingering keep-alive / in-flight SSE sockets
+    // (Node ≥18.2) so server.close() resolves deterministically and
+    // no aborted-request async activity escapes after teardown.
+    server.closeAllConnections?.();
+    await new Promise((r) => server.close(r));
+  }
   delete process.env.CAREER_OPS_ROOT;
 });
 
@@ -413,25 +419,42 @@ test('Playwright smoke: POST /api/auto-pipeline SSE — emits start + step event
   // verifies the server emits the canonical event sequence even when
   // there's no LLM key (step 3 → error).
   const events = await page.evaluate(async () => {
+    // Abort + cancel the SSE stream the instant we have what we need.
+    // Previously this `break`-ed out of the read loop leaving the
+    // fetch body attached to the server socket; page.close() then
+    // aborted it mid-stream and the "Error: aborted" surfaced as
+    // async activity after the test ended → flaky CI failure. The
+    // AbortController + guaranteed reader.cancel() in finally make
+    // teardown deterministic.
+    const ac = new AbortController();
     const resp = await fetch('/api/auto-pipeline', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: 'javascript:bad' }),
+      signal: ac.signal,
     });
     const reader = resp.body.getReader();
     const dec = new TextDecoder();
     let buf = '';
     const out = [];
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buf += dec.decode(value, { stream: true });
-      const parts = buf.split('\n\n'); buf = parts.pop();
-      for (const p of parts) {
-        const ev = (p.match(/^event:\s*(\S+)/m) || [])[1];
-        if (ev) out.push(ev);
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const parts = buf.split('\n\n'); buf = parts.pop();
+        for (const p of parts) {
+          const ev = (p.match(/^event:\s*(\S+)/m) || [])[1];
+          if (ev) out.push(ev);
+        }
+        if (out.includes('error') || out.includes('done')) break;
       }
-      if (out.includes('error') || out.includes('done')) break;
+    } finally {
+      // Cancel the reader first (closes the client end), then abort
+      // the request so the server's res stream ends cleanly before
+      // the page/context/server are torn down.
+      try { await reader.cancel(); } catch { /* already closed */ }
+      ac.abort();
     }
     return out;
   });
