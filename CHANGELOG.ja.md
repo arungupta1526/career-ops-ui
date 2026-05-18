@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.5] — 2026-05-19
+
+**feat(dashboard): 2 つの P0 CTA + 焦点となる最近のアクティビティヒントのヒーロー(UX-3)。** `#/dashboard` は同じ重みの約 30 ノードで開き、「次に何をすべきか」が不明瞭だった。新しい `.dash-hero` ブロックがページヘッダー直下に配置:2 つの P0 ジャーニー — **✨ URL を自動パイプライン**、**🌐 今すぐスキャン** — を大きな `.btn-hero` ボタンに昇格し、単一の **焦点となる最近のアクティビティヒント**(「最新の評価: `<スコア>` — `<タイトル>`」、レポートへリンク;コールドスタートでは `dash.heroNoEval` の案内空状態)が、再訪ユーザーには中断地点を、新規ユーザーには重要な唯一のアクションを示す。2 つの主要ボタンはヘッダーから削除(副次的な「📋 パイプラインを開く」のみ残置)しアクションの重複を回避。ステータスバケットは目立つ `.badge` から控えめな `.dash-chip` ピルへ降格。8 ロケールの新 i18n キー `dash.lastEval`、`dash.heroNoEval`;新しい `.dash-hero`/`.btn-hero`/`.dash-chip` CSS。**`test: tests/dashboard-hero.test.mjs`**(新規、5 ケース、CI 隔離、ソース静的):`.dash-hero` が存在し Quick-actions グリッドに先行;両 P0 CTA が `/auto`+`/scan` ルートの `.btn-hero`;焦点 `dash.lastEval` + 空状態 `dash.heroNoEval`;バケットが `.dash-chip`;CSS 存在;`dash.lastEval`+`dash.heroNoEval` ×8。777 → 782。`feat(dashboard)` · `test: tests/dashboard-hero.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.55.4] — 2026-05-19
 
 **feat(ux): Run の隣に正直な auto-pipeline ETA + スキャン中の目立つ Stop(UX-6)。** `#/auto`:新しい `.auto-eta` ヒント — *"⏱ 約1〜2分"*(キー `auto.eta`、`title` は `auto.etaTitle`)— が Run ボタンの隣に表示され、ワンクリックの約束が所要時間について *コミット前に* 正直になる;文言は career-ops.org/docs(「URL を貼る → 1〜2 分で完全レポート」)と一致。`#/scan`:数分のクロールが実行中(`aria-busy`)の間、**Stop** を低コントラストのゴーストボタンから目立つ破壊的ボタンへ昇格(新しい `.btn-danger` — 塗りつぶし、高コントラストの白文字 on コーラル、太さ 600)。`setScanRunning(running)` が `scan-stop-btn` を `btn-danger`(実行中)と `btn-ghost`(アイドル、どのみち非表示)で切り替え、負荷時でもユーザーが Stop を見つけ信頼できるようにする。8 ロケールの新 i18n キー `auto.eta`、`auto.etaTitle`;新しい `.btn-danger`/`.auto-eta` CSS。**`test: tests/auto-eta-stop.test.mjs`**(新規、4 ケース、CI 隔離、ソース静的):`#/auto` が `runBtn` の隣に `.auto-eta` クラスで `t('auto.eta')` を描画;`auto.eta` ×8;`setScanRunning(running)` が Stop を `btn-danger` に昇格;`.btn-danger` が高コントラストの白文字で存在。773 → 777。`feat(ux)` · `test: tests/auto-eta-stop.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

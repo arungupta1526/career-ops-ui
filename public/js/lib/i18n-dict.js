@@ -238,6 +238,8 @@ window.__I18N_DICT = {
   'dash.statuses':  { en: 'Application statuses', es: 'Estados de aplicaciones', 'pt-BR': 'Status das aplicações', ko: '지원 상태', ja: '応募ステータス', ru: 'Статусы заявок', 'zh-CN': '申请状态', 'zh-TW': '申請狀態' },
   'dash.recent':    { en: 'Recent applications', es: 'Aplicaciones recientes', 'pt-BR': 'Aplicações recentes', ko: '최근 지원', ja: '最近の応募', ru: 'Последние заявки', 'zh-CN': '最近申请', 'zh-TW': '最近申請' },
   'dash.lastReport':{ en: 'Latest report', es: 'Último reporte', 'pt-BR': 'Último relatório', ko: '최신 보고서', ja: '最新レポート', ru: 'Последний отчёт', 'zh-CN': '最新报告', 'zh-TW': '最新報告' },
+  'dash.lastEval':  { en: 'Last evaluation', es: 'Última evaluación', 'pt-BR': 'Última avaliação', ko: '최근 평가', ja: '最新の評価', ru: 'Последняя оценка', 'zh-CN': '最近评估', 'zh-TW': '最近評估' },
+  'dash.heroNoEval': { en: 'No evaluations yet — paste a job URL to get your first report.', es: 'Sin evaluaciones aún — pega una URL de vacante para tu primer informe.', 'pt-BR': 'Sem avaliações ainda — cole uma URL de vaga para seu primeiro relatório.', ko: '아직 평가 없음 — 채용 URL을 붙여넣어 첫 리포트를 받으세요.', ja: 'まだ評価がありません — 求人 URL を貼り付けて最初のレポートを取得。', ru: 'Оценок пока нет — вставьте URL вакансии для первого отчёта.', 'zh-CN': '尚无评估 —— 粘贴职位 URL 获取首份报告。', 'zh-TW': '尚無評估 —— 貼上職缺 URL 取得首份報告。' },
   'dash.scanNow': { en: 'Scan now', es: 'Buscar ahora', 'pt-BR': 'Buscar agora', ko: '지금 스캔', ja: '今すぐスキャン', ru: 'Запустить скан', 'zh-CN': '立即扫描', 'zh-TW': '立即掃描' },
   // G-007 (v1.15.0) — auto-pipeline 1-click flow.
   'dash.autoPipeline': { en: 'Auto-pipeline a URL', es: 'Auto-pipeline para una URL', 'pt-BR': 'Auto-pipeline para uma URL', ko: 'URL 자동 파이프라인', ja: 'URL を自動パイプライン', ru: 'Auto-pipeline по URL', 'zh-CN': 'URL 自动管道', 'zh-TW': 'URL 自動管道' },

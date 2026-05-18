@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.5] — 2026-05-19
+
+**feat(dashboard): 2개 P0 CTA + 초점 최근 활동 힌트의 히어로 (UX-3).** `#/dashboard` 는 동일 가중치의 ~30개 노드로 열려 "다음에 뭘 할지"가 불명확했음. 새 `.dash-hero` 블록이 이제 페이지 헤더 바로 아래에 위치: 두 P0 여정 — **✨ URL 자동 파이프라인**, **🌐 지금 스캔** — 을 큰 `.btn-hero` 버튼으로 승격하고, 단일 **초점 최근 활동 힌트**("최근 평가: `<점수>` — `<제목>`", 리포트로 링크; 콜드 스타트에서는 `dash.heroNoEval` 안내 빈 상태)가 재방문 사용자에게 멈춘 지점을, 신규 사용자에게 가장 중요한 단 하나의 행동을 알려줌. 두 기본 버튼은 헤더에서 제거(보조 "📋 파이프라인 열기"만 잔류)해 행동 중복 방지. 상태 버킷은 두드러진 `.badge` 에서 조용한 `.dash-chip` 알약으로 격하. 8개 로케일 새 i18n 키 `dash.lastEval`, `dash.heroNoEval`; 새 `.dash-hero`/`.btn-hero`/`.dash-chip` CSS. **`test: tests/dashboard-hero.test.mjs`**(신규, 5 케이스, CI-격리, 소스-정적): `.dash-hero` 존재 및 Quick-actions 그리드 선행; 두 P0 CTA 가 `/auto`+`/scan` 라우트의 `.btn-hero`; 초점 `dash.lastEval` + 빈 상태 `dash.heroNoEval`; 버킷이 `.dash-chip`; CSS 존재; `dash.lastEval`+`dash.heroNoEval` ×8. 777 → 782. `feat(dashboard)` · `test: tests/dashboard-hero.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.55.4] — 2026-05-19
 
 **feat(ux): Run 옆 정직한 auto-pipeline ETA + 스캔 중 눈에 띄는 Stop (UX-6).** `#/auto`: 새 `.auto-eta` 힌트 — *"⏱ ~1–2분"*(키 `auto.eta`, `title`은 `auto.etaTitle`) — 이제 Run 버튼 옆에 표시되어, 사용자가 누르기 *전에* 원클릭 약속이 소요 시간에 대해 정직하도록 함; 문구는 career-ops.org/docs("URL 붙여넣기 → 1–2분 내 전체 리포트")와 일치. `#/scan`: 수 분짜리 크롤이 실행 중(`aria-busy`)일 때 **Stop** 을 저대비 고스트 버튼에서 눈에 띄는 파괴적 버튼으로 승격(새 `.btn-danger` — 채움, 고대비 흰색 온 코랄, 굵기 600). `setScanRunning(running)` 이 `scan-stop-btn` 을 `btn-danger`(실행 중)와 `btn-ghost`(유휴, 어차피 숨김) 사이에서 전환하여, 부하 상황에서도 사용자가 Stop 을 찾고 신뢰하게 함. 8개 로케일 새 i18n 키 `auto.eta`, `auto.etaTitle`; 새 `.btn-danger`/`.auto-eta` CSS. **`test: tests/auto-eta-stop.test.mjs`**(신규, 4 케이스, CI-격리, 소스-정적): `#/auto` 가 `runBtn` 옆에 `.auto-eta` 클래스로 `t('auto.eta')` 렌더; `auto.eta` ×8; `setScanRunning(running)` 이 Stop 을 `btn-danger` 로 승격; `.btn-danger` 가 고대비 흰색 텍스트로 존재. 773 → 777. `feat(ux)` · `test: tests/auto-eta-stop.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

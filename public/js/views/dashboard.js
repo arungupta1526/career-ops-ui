@@ -40,25 +40,49 @@ Router.register('dashboard', async () => {
     ]);
   }
 
+  // v1.55.5 — UX-3: a visually dominant hero. Two P0 CTAs as large
+  // buttons + a single focal recent-activity hint (last evaluation,
+  // linked) so a returning user sees progress and a new user sees the
+  // one action that matters. Empty-state guides the cold start.
+  function heroBlock() {
+    const lr = data.lastReport;
+    const focal = lr
+      ? c('a', { className: 'dash-hero-focal', href: '#/reports/' + lr.slug }, [
+          c('span', { className: 'dash-hero-focal-label' }, t('dash.lastEval', 'Last evaluation') + ': '),
+          lr.scoreNum != null
+            ? c('span', { className: 'score-pill ' + scoreClass(lr.scoreNum) }, lr.score)
+            : null,
+          c('span', { className: 'dash-hero-focal-title' }, ' ' + (lr.title || lr.slug)),
+        ])
+      : c('div', { className: 'dash-hero-focal dash-hero-focal--empty' },
+          t('dash.heroNoEval', 'No evaluations yet — paste a job URL to get your first report.'));
+    return c('section', { className: 'dash-hero' }, [
+      c('div', { className: 'dash-hero-cta' }, [
+        c('button', { className: 'btn btn-primary btn-hero', onClick: () => Router.go('/auto') },
+          '✨ ' + t('dash.autoPipeline', 'Auto-pipeline a URL')),
+        c('button', { className: 'btn btn-primary btn-hero', onClick: () => Router.go('/scan') },
+          '🌐 ' + t('dash.scanNow', 'Scan now')),
+      ]),
+      focal,
+    ]);
+  }
+
   const root = c('div', null, [
     c('header', { className: 'page-header' }, [
       c('div', null, [
         c('h1', { className: 'page-title' }, t('dash.title')),
         c('p', { className: 'page-subtitle' }, t('dash.subtitle')),
       ]),
+      // v1.55.5 — UX-3: only the secondary action stays in the header;
+      // the two P0 journeys are promoted into the hero block below so
+      // the single most valuable next action is unmistakable.
       c('div', { className: 'flex gap-3' }, [
         c('button', { className: 'btn btn-ghost', onClick: () => Router.go('/pipeline') }, '📋 ' + t('dash.openPipeline')),
-        c('button', { className: 'btn btn-primary', onClick: () => Router.go('/scan') }, '🌐 ' + t('dash.scanNow', 'Scan now')),
-        // G-007 (v1.15.0) — auto-pipeline 1-click flow. v1.34.0 (WS5):
-        // promoted from a transient modal to the dedicated #/auto
-        // screen (linkable, inline stepper, artifact deep-links). The
-        // window.AutoPipeline modal helper stays for backward-compat.
-        c('button', {
-          className: 'btn btn-primary',
-          onClick: () => Router.go('/auto'),
-        }, '✨ ' + t('dash.autoPipeline', 'Auto-pipeline a URL')),
       ]),
     ]),
+
+    // ── v1.55.5 (UX-3) — hero: the 2 P0 CTAs + a focal recent hint ──
+    heroBlock(),
 
     // ── 4 metric cards ────────────────────────────────────────────
     c('div', { className: 'card-row' }, [
@@ -116,7 +140,9 @@ Router.register('dashboard', async () => {
           Object.entries(data.byStatus).length === 0
             ? [c('div', { className: 'empty', style: { width: '100%' } }, t('common.empty'))]
             : Object.entries(data.byStatus).map(([s, n]) =>
-                c('div', { className: 'badge ' + statusClass(s) }, `${s} · ${n}`)
+                // v1.55.5 — UX-3: demoted from prominent badges to
+                // compact chips so they don't compete with the hero.
+                c('div', { className: 'dash-chip ' + statusClass(s) }, `${s} · ${n}`)
               )
         )
       ),

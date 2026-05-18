@@ -501,6 +501,48 @@ body.sidebar-open .sidebar-backdrop { display: block; }
   gap: var(--space-4);
 }
 
+/* v1.55.5 — UX-3: dashboard hero. The two P0 CTAs dominate; a single
+   focal recent-activity hint sits under them; status buckets are
+   demoted to quiet chips so they don't compete for attention. */
+.dash-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 24px;
+  margin-bottom: var(--space-4);
+  border: 1px solid var(--border, rgba(0,0,0,.08));
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255,56,92,.06) 0%, rgba(255,56,92,.02) 100%);
+}
+.dash-hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn-hero {
+  font-size: 16px;
+  font-weight: 700;
+  padding: 14px 22px;
+  border-radius: 12px;
+}
+.dash-hero-focal {
+  font-size: 14px;
+  color: var(--hof);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.dash-hero-focal:hover { text-decoration: underline; }
+.dash-hero-focal--empty { color: var(--foggy); }
+.dash-hero-focal-label { font-weight: 600; }
+.dash-hero-focal-title { color: var(--foggy); }
+.dash-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 12px;
+  border-radius: 999px;
+  background: var(--bg-subtle, rgba(0,0,0,.04));
+  color: var(--foggy);
+}
+
 .metric-card {
   display: flex;
   flex-direction: column;

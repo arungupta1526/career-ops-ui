@@ -6,6 +6,22 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.55.5] — 2026-05-19
+
+**feat(dashboard): hero-promote the 2 P0 CTAs + a focal recent-activity hint (UX-3).**
+
+### ✨ Features
+
+- `#/dashboard` opened with ~30 equal-weight nodes — no clear "what next". A new `.dash-hero` block now sits directly under the page header: the two P0 journeys — **✨ Auto-pipeline a URL** and **🌐 Scan now** — are promoted to large `.btn-hero` buttons, and a single **focal recent-activity hint** ("Last evaluation: `<score>` — `<title>`", linked to the report; a guiding empty-state on cold start via `dash.heroNoEval`) tells a returning user where they left off and a new user the one action that matters. The two primary buttons were removed from the header (only the secondary "📋 Open pipeline" stays there) so the action isn't duplicated.
+- The application-status buckets were demoted from prominent `.badge`s to quiet `.dash-chip` pills so they no longer compete with the hero (Information-scent / cognitive-load lens).
+- New i18n keys `dash.lastEval`, `dash.heroNoEval` across all 8 locales; new token-based `.dash-hero` / `.btn-hero` / `.dash-chip` CSS.
+
+### 🧪 Tests
+
+- **`test: tests/dashboard-hero.test.mjs`** (new, 5 cases, CI-isolated, source-static): a `.dash-hero` block exists and precedes the Quick-actions grid; both P0 CTAs are `.btn-hero` with the `/auto` + `/scan` routes; a focal `dash.lastEval` hint + `dash.heroNoEval` empty-state; status buckets use `.dash-chip`; `.dash-hero`/`.btn-hero`/`.dash-chip` CSS exists; `dash.lastEval` + `dash.heroNoEval` ×8 locales. 777 → 782.
+
+---
+
 ## [1.55.4] — 2026-05-19
 
 **feat(ux): honest auto-pipeline ETA next to Run + prominent Stop during a scan (UX-6).**

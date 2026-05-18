@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.5] — 2026-05-19
+
+**feat(dashboard):2 個 P0 CTA + 聚焦近期活動提示的 hero(UX-3)。** `#/dashboard` 此前以約 30 個等權重節點開啟 —— 沒有清晰的「下一步做什麼」。新增 `.dash-hero` 區塊現位於頁首正下方:兩個 P0 旅程 —— **✨ URL 自動管道** 與 **🌐 立即掃描** —— 提升為大號 `.btn-hero` 按鈕;單一**聚焦近期活動提示**(「最近評估: `<分數>` — `<標題>`」,連結至報告;冷啟動時經 `dash.heroNoEval` 顯示引導空狀態)告訴回訪使用者停在何處、告訴新使用者唯一重要的動作。兩個主按鈕已從頁首移除(僅保留次要的「📋 開啟管道」)以避免動作重複。狀態計數從醒目的 `.badge` 降級為安靜的 `.dash-chip` 膠囊。8 個語言新增 i18n 鍵 `dash.lastEval`、`dash.heroNoEval`;新增 `.dash-hero`/`.btn-hero`/`.dash-chip` CSS。**`test: tests/dashboard-hero.test.mjs`**(新增,5 個案例,CI 隔離,源靜態):`.dash-hero` 存在且先於 Quick-actions 網格;兩個 P0 CTA 為帶 `/auto`+`/scan` 路由的 `.btn-hero`;聚焦 `dash.lastEval` + 空狀態 `dash.heroNoEval`;桶使用 `.dash-chip`;CSS 存在;`dash.lastEval`+`dash.heroNoEval` ×8。777 → 782。`feat(dashboard)` · `test: tests/dashboard-hero.test.mjs`。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.55.4] — 2026-05-19
 
 **feat(ux):Run 旁的誠實 auto-pipeline ETA + 掃描時醒目的 Stop(UX-6)。** `#/auto`:新增 `.auto-eta` 提示 —— *"⏱ 約 1–2 分鐘"*(鍵 `auto.eta`,`title` 經 `auto.etaTitle`)—— 現位於 Run 按鈕旁,使一鍵承諾在使用者決定*之前*就對耗時誠實;文案與 career-ops.org/docs(「貼上 URL → 1–2 分鐘內完整報告」)一致。`#/scan`:在數分鐘爬取執行中(`aria-busy`)時,**Stop** 從低對比幽靈按鈕提升為醒目的破壞性按鈕(新增 `.btn-danger` —— 填充,高對比白字配珊瑚色,字重 600)。`setScanRunning(running)` 在 `btn-danger`(執行中)與 `btn-ghost`(閒置,反正隱藏)之間切換 `scan-stop-btn`,使使用者在負載下也能找到並信任 Stop。8 個語言新增 i18n 鍵 `auto.eta`、`auto.etaTitle`;新增 `.btn-danger`/`.auto-eta` CSS。**`test: tests/auto-eta-stop.test.mjs`**(新增,4 個案例,CI 隔離,源靜態):`#/auto` 在 `runBtn` 旁以 `.auto-eta` 類渲染 `t('auto.eta')`;`auto.eta` ×8;`setScanRunning(running)` 將 Stop 提升為 `btn-danger`;`.btn-danger` 存在且為高對比白字。773 → 777。`feat(ux)` · `test: tests/auto-eta-stop.test.mjs`。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
