@@ -896,6 +896,13 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
   overflow-y: auto;
 }
 
+/* v1.44.0 — confirm() dialog message (was an inline style; promoted to
+   a token-based rule per the hand-written-CSS convention). */
+.modal-msg {
+  margin: 0 0 var(--space-4);
+  line-height: 1.5;
+}
+
 /* ───────────────────────── misc ───────────────────────── */
 .loading { padding: var(--space-7); text-align: center; color: var(--foggy); }
 .empty {

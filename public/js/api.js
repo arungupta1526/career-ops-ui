@@ -217,6 +217,10 @@ window.UI = (function () {
     }
   }
   function modal(title, html, onClose) {
+    // If a prior modal with a close hook is still open (e.g. a second
+    // modal opens over an unresolved confirm), settle the old one as a
+    // dismissal so its Promise never leaks. Then arm the new hook.
+    if (_onClose) { const stale = _onClose; _onClose = null; stale(); }
     _onClose = typeof onClose === 'function' ? onClose : null;
     document.getElementById('modal-title').textContent = title;
     const body = document.getElementById('modal-body');
@@ -281,7 +285,7 @@ window.UI = (function () {
         onClick: () => { finish(true); closeModal(); },
       }, opts.confirmLabel || (window.I18n && I18n.t('common.confirm', 'Confirm')) || 'Confirm');
       const body = el('div', null, [
-        el('p', { className: 'modal-msg', style: { margin: '0 0 16px', lineHeight: '1.5' } }, message),
+        el('p', { className: 'modal-msg' }, message),
         el('div', { className: 'flex gap-3' }, [cancelBtn, okBtn]),
       ]);
       // onClose fires on Esc / backdrop / × — treat as Cancel.

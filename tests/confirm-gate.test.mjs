@@ -58,10 +58,19 @@ test('tracker.js #9: runFix is confirm-gated before the POST', () => {
 
 test('no native confirm() left on the destructive paths', () => {
   // The audit explicitly forbids window.confirm() (auto-dismissed in
-  // embeds, not focus-trapped).
-  assert.ok(!/\bwindow\.confirm\(|[^.]\bconfirm\(/.test(
-    CONFIG.replace(/UI\.confirm\(/g, '')), 'config.js uses only UI.confirm');
-  assert.ok(!/\bwindow\.confirm\(/.test(TRACKER), 'tracker.js uses no native confirm');
+  // embeds, not focus-trapped). Anchor on (start|non-ident|non-dot) so a
+  // bare `confirm(` at line start is also caught, while `UI.confirm(` is
+  // first stripped.
+  const stripped = CONFIG.replace(/UI\.confirm\(/g, '');
+  assert.ok(!/(?:^|[^.\w])confirm\(/m.test(stripped), 'config.js uses only UI.confirm');
+  assert.ok(!/(?:^|[^.\w])confirm\(/m.test(TRACKER.replace(/UI\.confirm\(/g, '')),
+    'tracker.js uses no native confirm');
+});
+
+test('modal(): a stale _onClose is settled when a new modal opens (no Promise leak)', () => {
+  // If a second modal opens over an unresolved confirm, the old hook
+  // must fire (resolve false) instead of being silently dropped.
+  assert.match(API, /if \(_onClose\) \{ const stale = _onClose; _onClose = null; stale\(\); \}/);
 });
 
 test('i18n: all 8 confirm-dialog keys present with the {op} placeholder intact', () => {
