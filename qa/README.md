@@ -2,22 +2,31 @@
 
 Tracks regressions, fix-prompts, and live evidence across releases.
 
-## CURRENT (v1.54.9 — post-cycle, v1.54.1→v1.54.9 hardening)
+## CURRENT — two perennial, version-agnostic prompts
 
-**One authoritative spec.** [`REGRESSION-v1.54.9.md`](./REGRESSION-v1.54.9.md)
-carries forward every P-31 invariant and adds the nine ships landed
-after the v1.54.0 final (3 MEDIUM regression findings, 2 config
-features, the Modes canonical-schema field-form, deploy-hygiene, the
-LLM-key routing fix). Run §0→§11 on every release; §0 gates the rest.
-Save run reports under `qa/v54-regression/<date>-REGRESSION.md`.
+Run **both** on every release; each reads `package.json::version` and
+validates the current `HEAD`. Save run reports under
+`qa/v54-regression/<date>-{REGRESSION,UX-AUDIT}.md`.
 
-It supersedes `REGRESSION-v1.54.md` (and the prior split specs), which
-stay for historical diff only.
+1. **[`REGRESSION-FINAL.md`](./REGRESSION-FINAL.md)** — the single
+   authoritative full-project regression prompt (§0 hard-gate → §10:
+   routes, a11y, config/model selectors, the Modes canonical-schema
+   field-form, deploy-hygiene, LLM-key routing, SSE disconnect
+   hygiene, SSRF, i18n/docs parity, the test pyramid).
+2. **[`UX-AUDIT-PROMPT.md`](./UX-AUDIT-PROMPT.md)** — a Senior
+   UX-designer heuristic + task-based audit judged against the
+   canonical product intent at <https://career-ops.org/docs> (12
+   lenses, 2 task scenarios, promise-fidelity ledger).
+
+They supersede the version-pinned specs below, which stay for
+historical diff only.
 
 | File | Status | Purpose |
 |---|---|---|
-| **[`REGRESSION-v1.54.9.md`](./REGRESSION-v1.54.9.md)** | **CURRENT** | End-to-end regression + canonical conformance for the v1.54.1→v1.54.9 cycle. §0 pre-flight, 17 routes, 40 WS2 a11y invariants, the 9 post-final ships (§3–§10), docs/context conformance (§11). |
-| [`REGRESSION-v1.54.md`](./REGRESSION-v1.54.md) | Historical | v1.54.0 FINAL end-to-end spec (P-31 WS0–WS10). Superseded; diff-only. |
+| **[`REGRESSION-FINAL.md`](./REGRESSION-FINAL.md)** | **CURRENT** | Perennial full-project regression — run on every release. |
+| **[`UX-AUDIT-PROMPT.md`](./UX-AUDIT-PROMPT.md)** | **CURRENT** | Perennial Senior-UX-designer audit vs career-ops.org/docs. |
+| [`REGRESSION-v1.54.9.md`](./REGRESSION-v1.54.9.md) | Historical | v1.54.1→v1.54.9 cycle spec. Superseded by FINAL; diff-only. |
+| [`REGRESSION-v1.54.md`](./REGRESSION-v1.54.md) | Historical | v1.54.0 FINAL end-to-end spec (P-31 WS0–WS10). Diff-only. |
 | [`REGRESSION-v1.29.2.md`](./REGRESSION-v1.29.2.md) | Historical | Prior bottom-up spec (baseline v1.6.0→v1.29.2). Diff-only. |
 | [`DOCS-COVERAGE-v1.29.md`](./DOCS-COVERAGE-v1.29.md) | Historical | Prior top-down docs-coverage. Diff-only. |
 | `REGRESSION-v1.27.md`, `DOCS-COVERAGE-v1.28.md` | Historical | Older frozen specs. |

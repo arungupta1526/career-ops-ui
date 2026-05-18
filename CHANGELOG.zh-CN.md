@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.10] — 2026-05-18
+
+**fix(auto-pipeline):SSE 客户端断开卫生 —— 消除不稳定的 Playwright e2e 作业。** Playwright e2e 作业间歇性变红(32/32 个单项测试通过,但 `not ok 2 - tests/playwright-smoke.mjs`):在 `#/auto` SSE 流进行中关闭页面,会使服务器下一次 `res.write()` 以 `EPIPE`/`"aborted"` 被拒绝,而 —— 由于响应上没有 `'error'` 监听器 —— Node 将其升级为 uncaughtException,node:test 报告为 "asynchronous activity after the test ended"。`auto-pipeline.mjs` 中的 `openSse()` 现在注册一个 no-op 的 `res.on('error')`,并以 `res.writableEnded || res.destroyed` 保护 `send()`(用 try/catch 包裹)—— 消失的客户端是预期的,而非异常。这是正确的生产 SSE 卫生,不只是测试修复。`tests/playwright-smoke.mjs`:Cmd+K 测试使用了真实的外发 URL(`https://example.com/jobs/123`),但只等待模态出现,因此 `closePage()` 在测试结束后中止了服务器进行中的 `safeGet()`。现在它等待管线到达终态(以便 fetch 在关闭前正常解析)。共享的 `closePage()` 辅助函数(`window.stop()` 然后关闭)和 `after` 钩子的 `server.closeAllConnections()` 作为纵深防御保留。已验证:连续 8/8 绿色运行(6× `node --test` + 2× browser-smoke),此前约每 2 次有 1 次红。`tests/auto-pipeline.test.mjs` +1 个静态用例,锁定 `openSse` 断开卫生契约(`res.on('error')` 监听器 + `writableEnded||destroyed` 守卫 + try 包裹的写入)。747 → 748。`fix(auto-pipeline)` · `test: tests/auto-pipeline.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.54.9] — 2026-05-18
 
 **fix(llm):在请求时尊重父项目 `.env` 的 LLM 密钥 —— 停止错误路由到过期/无效的提供方。** 即便 `ANTHROPIC_API_KEY` 是已配置的提供方,实时评估也可能以 *"Gemini API error: API key not valid"* 失败。根本原因:`hasAnthropicKey()` / `hasGeminiKey()`(以及 `runAnthropic` 的密钥/模型查找)**只读取启动时的 `process.env` 快照**。如果在服务器启动后才把 Anthropic 密钥加入父 `.env`,运行中的进程永远看不到它 → Anthropic 检测为 false,评估随后回退到 `process.env` 中*确实*存在的任何过期密钥(通常是旧的、无效的 `GEMINI_API_KEY`)。Gemini 执行路径(父 Node 子进程)已经读取父项目的实时 `.env`,因此两个提供方解析密钥的方式不一致。`env-config.mjs` 新增 `effectiveEnv(key, envFilePath)`:非空的 `process.env` 值优先(覆盖 shell export 与 `POST /api/config` 的实时应用),否则查阅**当前父 `.env` 文件**。`anthropic.mjs` 现在通过它解析 `ANTHROPIC_API_KEY`、`ANTHROPIC_MODEL` 和 Gemini 密钥检查,因此设置在父 `.env` 的密钥**无需重启服务器**即被尊重,且密钥检测始终与请求实际发送的密钥一致。提供方顺序不变(`auto` → Anthropic-然后-Gemini);这只修复检测。密钥从不被记录或返回(REVIEW-B4 无泄漏测试仍通过)。`tests/anthropic.test.mjs` 重写为 CI 隔离(temp `CAREER_OPS_ROOT`、动态 import),含 2 个复现确切 bug 的新用例(密钥仅在父 `.env` → 被检测到;`process.env` 未设置时 `runAnthropic` 发送父 `.env` 的密钥 + 模型)。`tests/env-config.test.mjs` +3 个 `effectiveEnv` 用例(`process.env` 优先、含空字符串视为未设置的 `.env` 回退、文件缺失 / 密钥缺失 / 无路径 → undefined)—— 新分支 100%。742 → 747。`fix(llm)` · `test: tests/anthropic.test.mjs` · `test: tests/env-config.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。

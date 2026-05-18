@@ -139,3 +139,22 @@ test('SSE: response headers are SSE-compatible', async () => {
   const ct = resp.headers.get('content-type') || '';
   assert.match(ct, /text\/event-stream/);
 });
+
+// ── v1.54.10 — SSE client-disconnect hygiene (static contract) ──
+// A client closing mid-stream must NOT make the next res.write()
+// escalate to an uncaughtException (it flaked the Playwright e2e
+// job: 32/32 pass, "not ok 2 - <file>"). openSse() must register an
+// 'error' listener AND guard writes on a finished/destroyed socket.
+import { readFileSync as _rf } from 'node:fs';
+import { fileURLToPath as _f } from 'node:url';
+import { dirname as _d, resolve as _r } from 'node:path';
+test('openSse swallows client-disconnect + guards writes (no uncaught)', () => {
+  const src = _rf(_r(_d(_f(import.meta.url)), '..', 'server', 'lib',
+    'routes', 'auto-pipeline.mjs'), 'utf8');
+  assert.match(src, /res\.on\('error',\s*\(\)\s*=>/,
+    'openSse must register a res error listener');
+  assert.match(src, /if \(res\.writableEnded \|\| res\.destroyed\) return;/,
+    'send() must skip writing once the socket is finished/destroyed');
+  assert.match(src, /try \{\s*\n\s*res\.write\(`event:/,
+    'the res.write pair must be wrapped in try/…');
+});

@@ -62,9 +62,20 @@ function openSse(res) {
     Connection: 'keep-alive',
     'X-Accel-Buffering': 'no',
   });
+  // SSE hygiene: when the client disconnects mid-stream the next
+  // res.write() rejects with EPIPE/ECONNRESET/"aborted". Without an
+  // 'error' listener Node escalates that to an uncaughtException
+  // (which, under node:test, surfaces as "asynchronous activity after
+  // the test ended" and flaked the Playwright e2e job). Swallow it —
+  // a gone client is expected, not exceptional — and stop writing
+  // once the socket is finished/destroyed.
+  res.on('error', () => { /* client vanished — nothing to do */ });
   return (event, data) => {
-    res.write(`event: ${event}\n`);
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
+    if (res.writableEnded || res.destroyed) return;
+    try {
+      res.write(`event: ${event}\n`);
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    } catch { /* socket torn down between the guard and the write */ }
   };
 }
 

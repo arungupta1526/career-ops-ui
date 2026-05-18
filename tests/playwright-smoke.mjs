@@ -95,6 +95,21 @@ after(async () => {
   delete process.env.CAREER_OPS_ROOT;
 });
 
+/**
+ * Close a page WITHOUT leaving an in-flight request attached to the
+ * server socket. The #/auto stepper streams `fetch('/api/auto-pipeline')`;
+ * a bare page.close() while that stream is still draining aborts the
+ * request mid-flight and node:test attributes the post-teardown
+ * "Error: aborted" to the before-hook server → flaky CI failure.
+ * window.stop() synchronously aborts all in-flight network in the page
+ * BEFORE close, so nothing survives into teardown. Belt-and-braces with
+ * the after-hook's server.closeAllConnections().
+ */
+async function closePage(page) {
+  try { await page.evaluate(() => window.stop()); } catch { /* page gone */ }
+  await page.close();
+}
+
 test('Playwright smoke: dashboard renders + footer version present', { skip: SKIP }, async () => {
   const page = await context.newPage();
   const consoleErrors = [];
@@ -369,7 +384,7 @@ test('Playwright smoke: dashboard ✨ Auto-pipeline button → #/auto screen wit
   const placeholder = await page.locator('#auto-url').getAttribute('placeholder');
   assert.match(placeholder || '', /greenhouse|workable|workday|https/i, 'input should hint at a URL paste');
   assert.deepEqual(consoleErrors, [], 'dashboard auto-pipeline console errors: ' + consoleErrors.join(' | '));
-  await page.close();
+  await closePage(page);
 });
 
 test('Playwright smoke: Cmd+K + URL + Enter triggers auto-pipeline modal', { skip: SKIP }, async () => {
@@ -383,7 +398,17 @@ test('Playwright smoke: Cmd+K + URL + Enter triggers auto-pipeline modal', { ski
   await page.waitForSelector('#modal input.input', { timeout: 3000 });
   // Timeline should fire — step 1 (validate) at minimum.
   await page.waitForSelector('#modal', { timeout: 3000 });
-  await page.close();
+  // CRITICAL: example.com is a REAL outbound fetch (step 2). Wait for
+  // the pipeline to reach a terminal state — example.com returns a
+  // tiny page → JD < 50 chars → step fails with "✗" — so the server's
+  // safeGet() has RESOLVED (not been aborted by our close). Closing
+  // mid-fetch would abort safeGet and the undici "Error: aborted"
+  // would settle after this test ends → node:test reds the file.
+  await page.waitForFunction(() => {
+    const m = document.getElementById('modal');
+    return !!m && (/✗/.test(m.textContent || '') || /✓ done|error/i.test(m.textContent || ''));
+  }, { timeout: 15000 });
+  await closePage(page);
 });
 
 test('Playwright smoke: #/auto invalid URL → step 1 fails inline', { skip: SKIP }, async () => {
@@ -409,7 +434,7 @@ test('Playwright smoke: #/auto invalid URL → step 1 fails inline', { skip: SKI
     },
     { timeout: 8000 }
   );
-  await page.close();
+  await closePage(page);
 });
 
 test('Playwright smoke: POST /api/auto-pipeline SSE — emits start + step events', { skip: SKIP }, async () => {
@@ -463,7 +488,7 @@ test('Playwright smoke: POST /api/auto-pipeline SSE — emits start + step event
   assert.ok(events.includes('start'), `expected 'start' event, got ${events.join(',')}`);
   assert.ok(events.includes('step'),  `expected 'step' event, got ${events.join(',')}`);
   assert.ok(events.includes('error'), `expected 'error' event, got ${events.join(',')}`);
-  await page.close();
+  await closePage(page);
 });
 
 if (SKIP) {

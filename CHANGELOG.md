@@ -6,6 +6,21 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.54.10] — 2026-05-18
+
+**fix(auto-pipeline): SSE client-disconnect hygiene — kill the flaky Playwright e2e job.**
+
+### 🐛 Fixes
+
+- The Playwright e2e job intermittently went red (32/32 individual tests pass, but `not ok 2 - tests/playwright-smoke.mjs`): closing a page while the `#/auto` SSE stream was mid-flight made the server's next `res.write()` reject with `EPIPE`/`"aborted"`, and — with no `'error'` listener on the response — Node escalated it to an uncaughtException that node:test reported as "asynchronous activity after the test ended". `openSse()` in `auto-pipeline.mjs` now registers a no-op `res.on('error')` and guards `send()` on `res.writableEnded || res.destroyed` (wrapped in try/catch) — a vanished client is expected, not exceptional. This is correct production SSE hygiene, not just a test fix.
+- `tests/playwright-smoke.mjs`: the Cmd+K test used a real outbound URL (`https://example.com/jobs/123`) but only waited for the modal to appear, so `closePage()` aborted the server's in-flight `safeGet()` after the test ended. It now waits for the pipeline to reach a terminal state (so the fetch resolves normally before close). A shared `closePage()` helper (`window.stop()` then close) and the `after`-hook `server.closeAllConnections()` remain as defence-in-depth. Verified: 8/8 consecutive green runs (6× `node --test` + 2× browser-smoke), previously ~1-in-2 red.
+
+### 🧪 Tests
+
+- **`test: tests/auto-pipeline.test.mjs`** +1 static case locking the `openSse` disconnect-hygiene contract (`res.on('error')` listener + `writableEnded||destroyed` guard + try-wrapped writes). 747 → 748.
+
+---
+
 ## [1.54.9] — 2026-05-18
 
 **fix(llm): honour the parent `.env` LLM keys at request time — stop mis-routing to a stale/invalid provider.**
