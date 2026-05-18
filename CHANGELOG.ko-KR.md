@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.2] — 2026-05-18
+
+**feat(config): `#/config`의 OpenAI / Codex 모델 선택기.** `#/config`에는 OpenAI / Codex 모델을 고를 방법이 없었음 — `OPENAI_API_KEY`가 이미 부모 멀티-CLI(Codex / OpenCode) 흐름용으로 노출되어 있었는데도 `ANTHROPIC_MODEL`과 `GEMINI_MODEL`에만 드롭다운이 있었음. 이제 `OPENAI_MODEL`이 일급 환경 키임: `env-config.mjs`의 `KNOWN_KEYS`(`OPENAI_API_KEY` 바로 뒤에 정렬)와 `core` 키 그룹에 추가되었고, `SECRET_KEYS`에는 **의도적으로 미포함** — 자격 증명이 아니라 모델 id이므로 결코 마스킹되지 않음. `config.js`는 큐레이트된 `OPENAI_MODELS` 목록(기본값 `gpt-5-codex`, 이어서 `gpt-5` / `gpt-5-mini` / `gpt-4.1` / `o4-mini` / `o3`)과 OpenAI 키 바로 뒤에 렌더링되는 `OPENAI_MODEL` `<select>` 필드를 추가하며, Anthropic/Gemini 모델 필드를 정확히 그대로 따름. 8개 로케일 전반에 새 i18n 키 `config.openaiModel` + `config.openaiModelHint`. 테스트 파일 `tests/openai-model-selector.test.mjs`(4개 케이스) +1; 721 → 725. 라이브 검증됨: `#/config` → 6개 옵션을 가진 `OPENAI_MODEL` select, 기본값 `gpt-5-codex`, 레이블 바인딩됨, 콘솔 오류 0. `feat(config)` · `test: tests/openai-model-selector.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.54.1] — 2026-05-18
 
 **fix(a11y): F-V54-A — `#/cv`를 단일 `<h1>`로.** CV markdown 자체의 `# Name`이 페이지 제목 `<h1>CV</h1>` 옆에 **두 번째** 최상위 `<h1>`로 렌더링되었음(회귀 실행 F-V54-A; WCAG 1.3.1 정보와 관계 / 2.4.6 제목). 이제 `cv.js`는 CV 미리보기의 모든 주입 지점(초기 렌더, 파일 가져오기 시 새로고침, 에디터 라이브 동기화)을 제목을 한 단계 낮추는(h1→h2 … h6→`role="heading" aria-level="7"`) 범위 한정 `cvMd()`를 통과시켜 페이지가 정확히 하나의 `<h1>`을 유지함. `cv.js`로 의도적으로 범위 한정 — `UI.md`는 help/reports/deep/evaluate가 공유하며 각자 제목을 자기 방식으로 관리하기 때문. 테스트 파일 `tests/cv-single-h1.test.mjs`(4개 케이스) +1; 717 → 721. 라이브 검증됨: `#/cv` → `<h1>` 1개, 사용자의 `# Name`은 이제 `<h2>`, 콘솔 오류 0. `fix(a11y): F-V54-A` · `test: tests/cv-single-h1.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

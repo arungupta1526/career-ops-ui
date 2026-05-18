@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.2] — 2026-05-18
+
+**feat(config): `#/config` の OpenAI / Codex モデルセレクター。** `#/config` には OpenAI / Codex モデルを選ぶ手段がなかった — `OPENAI_API_KEY` は親のマルチ CLI(Codex / OpenCode)フロー用に既に公開されていたにもかかわらず、ドロップダウンは `ANTHROPIC_MODEL` と `GEMINI_MODEL` にしかなかった。今や `OPENAI_MODEL` はファーストクラスの環境キー:`env-config.mjs` の `KNOWN_KEYS`(`OPENAI_API_KEY` の直後に並べる)と `core` キーグループに追加し、`SECRET_KEYS` には**意図的に含めない** — 資格情報ではなくモデル id なので、決してマスクされない。`config.js` はキュレートされた `OPENAI_MODELS` リスト(デフォルト `gpt-5-codex`、続いて `gpt-5` / `gpt-5-mini` / `gpt-4.1` / `o4-mini` / `o3`)と、OpenAI キーの直後にレンダリングされる `OPENAI_MODEL` `<select>` フィールドを追加し、Anthropic/Gemini のモデルフィールドを正確に踏襲する。8 ロケール全体で新しい i18n キー `config.openaiModel` + `config.openaiModelHint`。テストファイル `tests/openai-model-selector.test.mjs`(4 ケース)を +1;721 → 725。ライブ検証済み:`#/config` → 6 オプションの `OPENAI_MODEL` select、デフォルト `gpt-5-codex`、ラベル紐付け済み、コンソールエラー 0。`feat(config)` · `test: tests/openai-model-selector.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.54.1] — 2026-05-18
 
 **fix(a11y): F-V54-A — `#/cv` を単一の `<h1>` に。** CV markdown 自身の `# Name` が、ページタイトルの `<h1>CV</h1>` の隣に **2 つ目** のトップレベル `<h1>` としてレンダリングされていた(回帰実行 F-V54-A;WCAG 1.3.1 情報と関係性 / 2.4.6 見出し)。`cv.js` は今や CV プレビューの全注入ポイント(初期レンダー、ファイルインポート時の更新、エディタのライブ同期)を、見出しを 1 レベル下げる(h1→h2 … h6→`role="heading" aria-level="7"`)スコープ付きの `cvMd()` を通すようになり、ページは正確に 1 つの `<h1>` を保つ。`cv.js` に意図的にスコープ — `UI.md` は help/reports/deep/evaluate で共有され、それぞれが見出しを独自に管理するため。テストファイル `tests/cv-single-h1.test.mjs`(4 ケース)を +1;717 → 721。ライブ検証済み:`#/cv` → `<h1>` 1 個、ユーザーの `# Name` は今や `<h2>`、コンソールエラー 0。`fix(a11y): F-V54-A` · `test: tests/cv-single-h1.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

@@ -6,6 +6,21 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.54.2] — 2026-05-18
+
+**feat(config): OpenAI / Codex model selector in `#/config`.**
+
+### ✨ Features
+
+- `#/config` had no way to pick the OpenAI / Codex model — only `ANTHROPIC_MODEL` and `GEMINI_MODEL` had dropdowns, even though `OPENAI_API_KEY` was already exposed for the parent multi-CLI (Codex / OpenCode) flow. `OPENAI_MODEL` is now a first-class env key: added to `env-config.mjs` `KNOWN_KEYS` (ordered right after `OPENAI_API_KEY`) and the `core` key group, and **deliberately not** in `SECRET_KEYS` — it's a model id, not a credential, so it's never masked. `config.js` gains a curated `OPENAI_MODELS` list (`gpt-5-codex` default, then `gpt-5` / `gpt-5-mini` / `gpt-4.1` / `o4-mini` / `o3`) and an `OPENAI_MODEL` `<select>` field rendered immediately after the OpenAI key, mirroring the Anthropic/Gemini model fields exactly (same `kind: 'select'`, `aria-describedby` hint wiring, label = env-var name). Read by the parent Codex / OpenCode CLI flow — web-ui live-eval still uses Anthropic|Gemini. Verified live: `#/config` → `OPENAI_MODEL` select with 6 options, default `gpt-5-codex`, label-bound, 0 console errors.
+- New i18n keys `config.openaiModel` + `config.openaiModelHint` across all 8 locales.
+
+### 🧪 Tests
+
+- **`test: tests/openai-model-selector.test.mjs`** — 4 cases (env-config core/non-secret contract + key ordering, `OPENAI_MODELS` list with `gpt-5-codex` default, the `OPENAI_MODEL` select field wired after `OPENAI_API_KEY`, both i18n keys across all 8 locales). 721 → 725.
+
+---
+
 ## [1.54.1] — 2026-05-18
 
 **fix(a11y): F-V54-A — `#/cv` single `<h1>`.**

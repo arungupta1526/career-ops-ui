@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.2] — 2026-05-18
+
+**feat(config): `#/config` 中的 OpenAI / Codex 模型选择器。** `#/config` 此前无法选择 OpenAI / Codex 模型 —— 尽管 `OPENAI_API_KEY` 已为父项目多 CLI(Codex / OpenCode)流程暴露,却只有 `ANTHROPIC_MODEL` 和 `GEMINI_MODEL` 有下拉框。现在 `OPENAI_MODEL` 成为一等环境变量键:已加入 `env-config.mjs` 的 `KNOWN_KEYS`(排在 `OPENAI_API_KEY` 之后)及 `core` 键组,并**有意不**纳入 `SECRET_KEYS` —— 它是模型 id 而非凭据,故永不脱敏。`config.js` 新增一份精选 `OPENAI_MODELS` 列表(默认 `gpt-5-codex`,其后为 `gpt-5` / `gpt-5-mini` / `gpt-4.1` / `o4-mini` / `o3`),以及在 OpenAI 键之后渲染的 `OPENAI_MODEL` `<select>` 字段,完全镜像 Anthropic/Gemini 模型字段。8 个语言区新增 i18n 键 `config.openaiModel` + `config.openaiModelHint`。新增 1 个测试文件 `tests/openai-model-selector.test.mjs`(4 个用例);721 → 725。已在线验证:`#/config` → 含 6 个选项的 `OPENAI_MODEL` select,默认 `gpt-5-codex`,已绑定标签,0 控制台错误。`feat(config)` · `test: tests/openai-model-selector.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.54.1] — 2026-05-18
 
 **fix(a11y): F-V54-A —— `#/cv` 单一 `<h1>`。** CV markdown 自身的 `# Name` 渲染成了页面标题 `<h1>CV</h1>` 旁的**第二个**顶级 `<h1>`(回归运行 F-V54-A;WCAG 1.3.1 信息与关系 / 2.4.6 标题)。`cv.js` 现将 CV 预览的每个注入点(初次渲染、文件导入时刷新、编辑器实时同步)经由作用域受限的 `cvMd()` 统一处理,将标题下移一级(h1→h2 … h6→`role="heading" aria-level="7"`),使页面恰好保留一个 `<h1>`。有意将作用域限定于 `cv.js` —— `UI.md` 由 help/reports/deep/evaluate 共享,各自以自有方式管理标题。新增 1 个测试文件 `tests/cv-single-h1.test.mjs`(4 个用例);717 → 721。已在线验证:`#/cv` → 1 个 `<h1>`,用户的 `# Name` 现为 `<h2>`,0 控制台错误。`fix(a11y): F-V54-A` · `test: tests/cv-single-h1.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。

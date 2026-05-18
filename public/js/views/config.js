@@ -41,6 +41,18 @@ Router.register('config', async () => {
     'gemini-1.5-pro',
     'gemini-2.0-flash-thinking-exp',
   ];
+  // Codex / OpenAI-CLI side (parent multi-CLI flow). First entry is the
+  // default when OPENAI_MODEL is unset. web-ui live-eval stays
+  // Anthropic|Gemini — this only feeds the stored env var the parent
+  // Codex / OpenCode CLI reads.
+  const OPENAI_MODELS = [
+    'gpt-5-codex',
+    'gpt-5',
+    'gpt-5-mini',
+    'gpt-4.1',
+    'o4-mini',
+    'o3',
+  ];
   const FIELDS = [
     {
       // v1.39.0 (WS8.2) — explicit provider preference.
@@ -84,6 +96,16 @@ Router.register('config', async () => {
       labelKey: 'config.openaiKey', label: 'OPENAI_API_KEY',
       hintKey: 'config.openaiHint',
       hintFallback: 'platform.openai.com → API keys. Used by the Codex / OpenCode CLI side of career-ops (parent multi-CLI flow). web-ui live-eval uses Anthropic or Gemini.',
+    },
+    {
+      // v1.54.2 — Codex / OpenAI model id, stored alongside OPENAI_API_KEY.
+      // Read by the parent multi-CLI (Codex / OpenCode) flow; web-ui
+      // live-eval is unaffected (stays Anthropic|Gemini).
+      key: 'OPENAI_MODEL', secret: false, kind: 'select',
+      options: OPENAI_MODELS, defaultValue: 'gpt-5-codex',
+      labelKey: 'config.openaiModel', label: 'OPENAI_MODEL',
+      hintKey: 'config.openaiModelHint',
+      hintFallback: 'Default: gpt-5-codex (Codex CLI). gpt-5 / gpt-5-mini for general use; o4-mini / o3 for reasoning. Consumed by the parent Codex / OpenCode CLI flow, not web-ui live-eval.',
     },
     // v1.19.0 — HH_USER_AGENT removed from the UI per user direction.
     // The server still honors the env var if a power user sets it via

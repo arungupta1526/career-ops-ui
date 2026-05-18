@@ -22,6 +22,7 @@ export const KNOWN_KEYS = [
   'GEMINI_API_KEY',
   'GEMINI_MODEL',
   'OPENAI_API_KEY',        // Codex / OpenAI-CLI side (stored; live-eval is claude|gemini)
+  'OPENAI_MODEL',          // Codex / OpenAI model id (stored alongside the key)
   // ── Server runtime ──
   'PORT',
   'HOST',
@@ -61,6 +62,7 @@ export const KEY_GROUPS = {
   GEMINI_API_KEY: 'core',
   GEMINI_MODEL: 'core',
   OPENAI_API_KEY: 'core',
+  OPENAI_MODEL: 'core',
   PORT: 'runtime',
   HOST: 'runtime',
 };
