@@ -506,37 +506,22 @@ Router.register('config', async () => {
   });
   let modesLoaded = false;
   let modesScaffolded = false;
-  // v1.36.0 (WS6.3) — per-section editor. `_profile.md` is a
-  // prompt-engineering doc (markdown tables + prose), so section-level
-  // editing (one focused textarea per `##` heading) is the right
-  // granularity — NOT field decomposition. The server merges by
-  // heading: preamble + unknown sections + order survive untouched.
+  // v1.54.3 (USER-REQ) — structured field-form (not raw markdown).
+  // `_profile.md` has a documented schema (career-ops.org §Step-5):
+  // Target Roles / Adaptive Framing / Comp Targets are bullet lists,
+  // Exit Narrative / Location Policy are prose. ModesForm renders real
+  // fields (repeatable line-inputs for lists, labelled textareas for
+  // prose) and collect()s back to the `{ sections }` merge payload the
+  // server already understands — preamble + unknown sections + order
+  // survive untouched (merge-not-replace). Raw markdown stays available
+  // in the Advanced disclosure for add/remove-section / preamble edits.
   const modesSectionHost = c('div');
-  const modesSectionInputs = {}; // heading → textarea
+  let modesForm = null; // { host, collect } from ModesForm.build()
 
   function buildSectionEditors(sections) {
     modesSectionHost.innerHTML = '';
-    for (const k of Object.keys(modesSectionInputs)) delete modesSectionInputs[k];
-    if (!sections || !sections.length) {
-      modesSectionHost.appendChild(c('p', { style: { color: 'var(--foggy)', fontSize: '13px' } },
-        t('config.modesNoSections', 'No ## sections found — use the raw editor below.')));
-      return;
-    }
-    sections.forEach((s) => {
-      const ta = c('textarea', {
-        className: 'textarea',
-        rows: Math.min(16, Math.max(4, (s.body || '').split('\n').length + 1)),
-        style: { width: '100%', fontFamily: 'ui-monospace,monospace', fontSize: '13px' },
-        'aria-label': s.heading,
-      });
-      ta.value = s.body || '';
-      modesSectionInputs[s.heading] = ta;
-      modesSectionHost.appendChild(c('details', { open: false, style: { marginBottom: '12px' } }, [
-        c('summary', { style: { fontSize: '14px', fontWeight: 600, cursor: 'pointer', padding: '6px 0' } },
-          '## ' + s.heading),
-        c('div', { style: { paddingTop: '8px' } }, [ta]),
-      ]));
-    });
+    modesForm = window.ModesForm.build(sections || []);
+    modesSectionHost.appendChild(modesForm.host);
   }
 
   async function loadModesTab() {
@@ -556,10 +541,9 @@ Router.register('config', async () => {
     }
   }
 
-  // Per-section save → merge path (preamble + unknown sections survive).
+  // Field-form save → merge path (preamble + unknown sections survive).
   async function saveModes(btn) {
-    const sectionsPayload = {};
-    for (const [h, ta] of Object.entries(modesSectionInputs)) sectionsPayload[h] = ta.value;
+    const sectionsPayload = modesForm ? modesForm.collect() : {};
     if (!Object.keys(sectionsPayload).length) {
       UI.toast(t('config.modesNoSections', 'No ## sections found — use the raw editor below.'), 'error');
       return;
@@ -610,7 +594,7 @@ Router.register('config', async () => {
         'modes/_profile.md is your private career framing — never committed to git. Drives every evaluation, deep-research, and outreach prompt.')),
     c('p', { style: { color: 'var(--foggy)', fontSize: '12px', margin: '0 0 12px' } },
       t('config.modesSectionHint',
-        'Each ## section is editable on its own below. Saving merges by section — your preamble and any sections you do not touch are preserved.')),
+        'Each section is a structured field below — list sections take one line per item, prose sections are free text. Saving merges by section: your preamble and any sections you do not touch are preserved.')),
     modesSectionHost,
     c('div', { className: 'flex gap-3 mt-3' }, [
       c('button', {

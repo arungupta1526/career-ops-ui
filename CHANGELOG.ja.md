@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.3] — 2026-05-18
+
+**feat(config): `#/config` の "Modes" タブ向け構造化フィールドフォーム(もう生の markdown ではない)。** "Modes" タブは `modes/_profile.md` を `##` セクションごとに 1 つの生の `<textarea>` として編集していた(v1.36.0 のセクション単位の粒度)。ユーザー要望により、今や**文書化されたスキーマから派生した構造化フィールドフォーム**をレンダリングする(career-ops.org Quick Start §Step-5): `Target Roles` / `Adaptive Framing` / `Comp Targets` → **追加/削除可能な反復ラベル付きライン入力**(フィールドごとにロール/アングル/comp 1 行、`＋ Add line` / 行ごとに `aria-label` 付き `✕`); `Exit Narrative` / `Location Policy` → 単一のラベル付き散文 `<textarea>`。各フィールドは i18n セクション名を持つ `<label htmlFor>` で紐付けられた実コントロール。新しい `public/js/lib/modes-form.js`(`window.ModesForm`)が parse → render → `collect()` のロジックを保持する;これは**既存**の `PUT /api/modes/_profile { sections }` マージ経路へ供給されるため、前文、順序、およびフォームが触れないすべてのセクションがバイト安定で残る(マージ-非置換、サーバー強制)。**データ安全性:** 本文が純粋な箇条書きでない正規リストセクション(ユーザーがそこに散文を入れた)および非正規 `##` セクションは、説明ノート付きのラベル付きそのままの `<textarea>` にフォールバックする — 任意のコンテンツはそのまま round-trip し、決して暗黙に再構成されたり失われたりしない。Round-trip 安定性を実証:`serialise(parse(body))` が同一に再パースされる。全ファイル生 markdown エディターは、セクションの追加/削除と前文編集のための確認ゲート付き **Advanced** ディスクロージャーとして残る(WS2 #4 破壊的保存ゲートは変更なし)。8 ロケール全体で新しい i18n キー 10 個(`config.modesTargetRoles` … `config.modesUnknownNote`)。テストファイル `tests/modes-form.test.mjs`(7 ケース)を +1;725 → 732。隔離された `CAREER_OPS_ROOT` フィクスチャに対してライブ検証済み:正規セクション 5 個がフィールドとしてレンダリング + カスタムセクション 1 個がラベル付きフォールバックとして、編集して保存の round-trip が前文 + カスタムセクションを保持、コンソールエラー 0。`feat(config)` · `test: tests/modes-form.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.54.2] — 2026-05-18
 
 **feat(config): `#/config` の OpenAI / Codex モデルセレクター。** `#/config` には OpenAI / Codex モデルを選ぶ手段がなかった — `OPENAI_API_KEY` は親のマルチ CLI(Codex / OpenCode)フロー用に既に公開されていたにもかかわらず、ドロップダウンは `ANTHROPIC_MODEL` と `GEMINI_MODEL` にしかなかった。今や `OPENAI_MODEL` はファーストクラスの環境キー:`env-config.mjs` の `KNOWN_KEYS`(`OPENAI_API_KEY` の直後に並べる)と `core` キーグループに追加し、`SECRET_KEYS` には**意図的に含めない** — 資格情報ではなくモデル id なので、決してマスクされない。`config.js` はキュレートされた `OPENAI_MODELS` リスト(デフォルト `gpt-5-codex`、続いて `gpt-5` / `gpt-5-mini` / `gpt-4.1` / `o4-mini` / `o3`)と、OpenAI キーの直後にレンダリングされる `OPENAI_MODEL` `<select>` フィールドを追加し、Anthropic/Gemini のモデルフィールドを正確に踏襲する。8 ロケール全体で新しい i18n キー `config.openaiModel` + `config.openaiModelHint`。テストファイル `tests/openai-model-selector.test.mjs`(4 ケース)を +1;721 → 725。ライブ検証済み:`#/config` → 6 オプションの `OPENAI_MODEL` select、デフォルト `gpt-5-codex`、ラベル紐付け済み、コンソールエラー 0。`feat(config)` · `test: tests/openai-model-selector.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

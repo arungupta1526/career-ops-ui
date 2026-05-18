@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.3] — 2026-05-18
+
+**feat(config): `#/config` "Modes" 탭을 위한 구조화된 필드 폼(더 이상 원시 마크다운 아님).** "Modes" 탭은 `modes/_profile.md`를 `##` 섹션마다 하나의 원시 `<textarea>`로 편집했음(v1.36.0 섹션 단위 세분성). 사용자 요청에 따라, 이제 **문서화된 스키마에서 파생된 구조화된 필드 폼**을 렌더링함(career-ops.org Quick Start §Step-5): `Target Roles` / `Adaptive Framing` / `Comp Targets` → **추가/제거 가능한 반복 레이블 라인 입력**(필드마다 역할/앵글/comp 한 줄, `＋ Add line` / 행마다 `aria-label`이 있는 `✕`); `Exit Narrative` / `Location Policy` → 단일 레이블 산문 `<textarea>`. 각 필드는 i18n 섹션 이름과 함께 `<label htmlFor>`로 바인딩된 실제 컨트롤임. 새 `public/js/lib/modes-form.js`(`window.ModesForm`)가 parse → render → `collect()` 로직을 소유함; 이는 **기존** `PUT /api/modes/_profile { sections }` 머지 경로에 공급되므로, 프리앰블, 순서, 그리고 폼이 건드리지 않는 모든 섹션이 바이트 안정적으로 유지됨(머지-비교체, 서버 강제). **데이터 안전성:** 본문이 순수 불릿 목록이 아닌 정규 목록 섹션(사용자가 거기에 산문을 넣음)과 비정규 `##` 섹션은 설명 노트가 있는 레이블된 그대로의 `<textarea>`로 폴백됨 — 임의 콘텐츠는 그대로 round-trip되며, 결코 조용히 재구성되거나 손실되지 않음. Round-trip 안정성 입증됨: `serialise(parse(body))`가 동일하게 재파싱됨. 전체 파일 원시 마크다운 편집기는 섹션 추가/제거 및 프리앰블 편집을 위한 확인 게이트가 있는 **Advanced** 디스클로저로 남아 있음(WS2 #4 파괴적 저장 게이트 변경 없음). 8개 로케일 전반에 새 i18n 키 10개(`config.modesTargetRoles` … `config.modesUnknownNote`). 테스트 파일 `tests/modes-form.test.mjs`(7개 케이스) +1; 725 → 732. 격리된 `CAREER_OPS_ROOT` 픽스처에 대해 라이브 검증됨: 정규 섹션 5개가 필드로 렌더링됨 + 커스텀 섹션 1개가 레이블된 폴백으로, 편집-후-저장 round-trip이 프리앰블 + 커스텀 섹션을 보존함, 콘솔 오류 0. `feat(config)` · `test: tests/modes-form.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.54.2] — 2026-05-18
 
 **feat(config): `#/config`의 OpenAI / Codex 모델 선택기.** `#/config`에는 OpenAI / Codex 모델을 고를 방법이 없었음 — `OPENAI_API_KEY`가 이미 부모 멀티-CLI(Codex / OpenCode) 흐름용으로 노출되어 있었는데도 `ANTHROPIC_MODEL`과 `GEMINI_MODEL`에만 드롭다운이 있었음. 이제 `OPENAI_MODEL`이 일급 환경 키임: `env-config.mjs`의 `KNOWN_KEYS`(`OPENAI_API_KEY` 바로 뒤에 정렬)와 `core` 키 그룹에 추가되었고, `SECRET_KEYS`에는 **의도적으로 미포함** — 자격 증명이 아니라 모델 id이므로 결코 마스킹되지 않음. `config.js`는 큐레이트된 `OPENAI_MODELS` 목록(기본값 `gpt-5-codex`, 이어서 `gpt-5` / `gpt-5-mini` / `gpt-4.1` / `o4-mini` / `o3`)과 OpenAI 키 바로 뒤에 렌더링되는 `OPENAI_MODEL` `<select>` 필드를 추가하며, Anthropic/Gemini 모델 필드를 정확히 그대로 따름. 8개 로케일 전반에 새 i18n 키 `config.openaiModel` + `config.openaiModelHint`. 테스트 파일 `tests/openai-model-selector.test.mjs`(4개 케이스) +1; 721 → 725. 라이브 검증됨: `#/config` → 6개 옵션을 가진 `OPENAI_MODEL` select, 기본값 `gpt-5-codex`, 레이블 바인딩됨, 콘솔 오류 0. `feat(config)` · `test: tests/openai-model-selector.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

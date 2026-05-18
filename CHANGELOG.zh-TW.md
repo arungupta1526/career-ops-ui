@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.3] — 2026-05-18
+
+**feat(config): `#/config` "Modes" 分頁的結構化欄位表單(不再是原始 markdown)。** "Modes" 分頁此前將 `modes/_profile.md` 按每個 `##` 區塊編輯為單個原始 `<textarea>`(v1.36.0 的區塊級粒度)。應使用者要求,現在改為算繪**從文件化結構描述衍生的結構化欄位表單**(career-ops.org Quick Start §Step-5):`Target Roles` / `Adaptive Framing` / `Comp Targets` → **可增刪的可重複帶標籤行輸入**(每個欄位一行 role/angle/comp,`＋ Add line` / 每行帶 `aria-label` 的 `✕`);`Exit Narrative` / `Location Policy` → 單個帶標籤的散文 `<textarea>`。每個欄位都是透過 `<label htmlFor>` 繫結、帶 i18n 區塊名的真實控制項。新增 `public/js/lib/modes-form.js`(`window.ModesForm`)持有 parse → render → `collect()` 邏輯;它饋入**既有**的 `PUT /api/modes/_profile { sections }` 合併路徑,因此前導文字、順序以及表單未觸及的任何區塊都保持位元組穩定(合併而非取代,由伺服端強制)。**資料安全:** 正文不是純項目符號清單的正規清單區塊(使用者在此放入了散文)以及任何非正規 `##` 區塊,會回退為帶說明註記的帶標籤原樣 `<textarea>` —— 任意內容原樣 round-trip,絕不會被靜默重構或遺失。Round-trip 穩定性已驗證:`serialise(parse(body))` 重新剖析完全一致。整檔原始 markdown 編輯器仍作為帶確認門的 **Advanced** 摺疊區保留,用於增刪區塊及編輯前導文字(WS2 #4 破壞性儲存門不變)。8 個語言區新增 10 個 i18n 鍵(`config.modesTargetRoles` … `config.modesUnknownNote`)。新增 1 個測試檔 `tests/modes-form.test.mjs`(7 個案例);725 → 732。已針對隔離的 `CAREER_OPS_ROOT` fixture 線上驗證:5 個正規區塊算繪為欄位 + 1 個自訂區塊作為帶標籤回退,編輯並儲存的 round-trip 保留了前導文字 + 自訂區塊,0 主控台錯誤。`feat(config)` · `test: tests/modes-form.test.mjs`。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.54.2] — 2026-05-18
 
 **feat(config): `#/config` 中的 OpenAI / Codex 模型選擇器。** `#/config` 此前無法選擇 OpenAI / Codex 模型 —— 儘管 `OPENAI_API_KEY` 已為父專案多 CLI(Codex / OpenCode)流程公開,卻只有 `ANTHROPIC_MODEL` 與 `GEMINI_MODEL` 有下拉選單。現在 `OPENAI_MODEL` 成為一等環境變數鍵:已加入 `env-config.mjs` 的 `KNOWN_KEYS`(排在 `OPENAI_API_KEY` 之後)及 `core` 鍵群組,並**刻意不**納入 `SECRET_KEYS` —— 它是模型 id 而非憑證,故永不遮罩。`config.js` 新增一份精選 `OPENAI_MODELS` 清單(預設 `gpt-5-codex`,其後為 `gpt-5` / `gpt-5-mini` / `gpt-4.1` / `o4-mini` / `o3`),以及在 OpenAI 鍵之後算繪的 `OPENAI_MODEL` `<select>` 欄位,完全鏡像 Anthropic/Gemini 模型欄位。8 個語言區新增 i18n 鍵 `config.openaiModel` + `config.openaiModelHint`。新增 1 個測試檔 `tests/openai-model-selector.test.mjs`(4 個案例);721 → 725。已線上驗證:`#/config` → 含 6 個選項的 `OPENAI_MODEL` select,預設 `gpt-5-codex`,已繫結標籤,0 主控台錯誤。`feat(config)` · `test: tests/openai-model-selector.test.mjs`。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

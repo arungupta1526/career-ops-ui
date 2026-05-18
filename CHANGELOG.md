@@ -6,6 +6,27 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.54.3] — 2026-05-18
+
+**feat(config): structured field-form for the `#/config` "Modes" tab (no more raw markdown).**
+
+### ✨ Features
+
+- The "Modes" tab edited `modes/_profile.md` as one raw `<textarea>` per `##` section (v1.36.0 section-level granularity). Per user request — *"собери данные по полям, разбей из документации, определи набор полей и реализуй поля именно, а не сырой"* — it now renders a **structured field-form derived from the documented schema** (career-ops.org Quick Start §Step-5):
+  - `Target Roles` / `Adaptive Framing` / `Comp Targets` → **repeatable add/remove labelled line-inputs** (one role/angle/comp line per field, `＋ Add line` / per-row `✕` with `aria-label`).
+  - `Exit Narrative` / `Location Policy` → **single labelled prose `<textarea>`**.
+  - Each field is a real `<label htmlFor>`-bound control with an i18n section name.
+- New `public/js/lib/modes-form.js` (`window.ModesForm`) owns the parse → render → `collect()` logic; it feeds the **existing** `PUT /api/modes/_profile { sections }` merge path, so the preamble, ordering, and any section the form doesn't touch survive byte-stable (merge-not-replace, server-enforced).
+- **Data-safety:** a canonical list section whose body isn't a pure bullet list (user put prose there) and any non-canonical `##` section fall back to a labelled verbatim `<textarea>` with an explanatory note — arbitrary content round-trips untouched, never silently reshaped or lost. Round-trip stability proven: `serialise(parse(body))` re-parses identically.
+- The raw full-file markdown editor remains as the confirm-gated **Advanced** disclosure for add/remove-section and preamble edits (WS2 #4 destructive-save gate unchanged).
+- 10 new i18n keys (`config.modesTargetRoles` … `config.modesUnknownNote`) across all 8 locales.
+
+### 🧪 Tests
+
+- **`test: tests/modes-form.test.mjs`** — 7 cases (documented schema present, config.js wires `ModesForm.build/collect` + drops the stale `modesSectionInputs` map, list classification incl. scaffold/prose/mixed, list & prose round-trip stability, empty-list → empty section, custom-section verbatim data-safety). 725 → 732. Verified live against an isolated `CAREER_OPS_ROOT` fixture: 5 canonical sections rendered as fields + 1 custom section as a labelled fallback, edit-and-save round-trip preserved the preamble + custom section, 0 console errors.
+
+---
+
 ## [1.54.2] — 2026-05-18
 
 **feat(config): OpenAI / Codex model selector in `#/config`.**
