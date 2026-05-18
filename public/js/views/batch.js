@@ -65,7 +65,7 @@ Router.register('batch', async () => {
     id: 'batch-min-score',
     'aria-label': t('batch.minScoreAria', 'Minimum score threshold (e.g. 4.0)'),
     className: 'input',
-    placeholder: 'min score (e.g. 4.0)',
+    placeholder: t('batch.minScorePh', 'min score (e.g. 4.0)'),
     style: { maxWidth: '160px' },
   });
   const dryRun = c('input', { type: 'checkbox', id: 'batch-dry-run' });
@@ -80,7 +80,7 @@ Router.register('batch', async () => {
     max: '10',
     'aria-label': t('batch.maxRetriesAria', 'Maximum retry attempts per failed offer (1-10)'),
     className: 'input',
-    placeholder: '(default 2)',
+    placeholder: t('batch.maxRetriesPh', '(default 2)'),
     style: { maxWidth: '110px' },
     disabled: true,
   });
@@ -95,7 +95,7 @@ Router.register('batch', async () => {
     id: 'batch-model',
     'aria-label': t('batch.modelAria', 'Claude model passed to batch-runner --model (optional)'),
     className: 'input',
-    placeholder: '(Claude Max default)',
+    placeholder: t('batch.modelPh', '(Claude Max default)'),
     style: { maxWidth: '210px' },
   });
   const startFromIn = c('input', {
@@ -104,7 +104,7 @@ Router.register('batch', async () => {
     min: '1',
     'aria-label': t('batch.startFromAria', 'Skip offer IDs below this number (optional)'),
     className: 'input',
-    placeholder: '(from #1)',
+    placeholder: t('batch.startFromPh', '(from #1)'),
     style: { maxWidth: '110px' },
   });
 

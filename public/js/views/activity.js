@@ -36,12 +36,18 @@ Router.register('activity', async () => {
     ]);
   }
 
-  // Pagination — server returns up to 200 events; show 25 per page
-  // (paginator clamps automatically on filter change). The activity
-  // log can grow unbounded over time so this matters more here than
-  // anywhere else.
+  // Pagination — we request the most recent 500 events (see load());
+  // show 25 per page (paginator clamps on filter change). The activity
+  // log grows unbounded, so when we hit the 500 cap the older history
+  // is NOT shown — surface that explicitly (WS2 #38; comment was stale
+  // at "200" while the code requested 500).
+  const CAP = 500;
   let allEvents = [];
   const pgWrap = c('div');
+  const truncNote = c('p', {
+    className: 'page-subtitle', role: 'note',
+    style: { display: 'none', color: 'var(--foggy)', marginTop: '8px' },
+  });
   const pager = UI.paginate({ pageSize: 25, onChange: () => render() });
 
   function render() {
@@ -49,12 +55,17 @@ Router.register('activity', async () => {
     pgWrap.innerHTML = '';
     if (allEvents.length === 0) {
       empty.hidden = false;
+      truncNote.style.display = 'none';
       return;
     }
     empty.hidden = true;
     const page = pager.slice(allEvents);
     for (const evt of page) tableBody.appendChild(renderRow(evt));
     pgWrap.appendChild(pager.controls(page.length, allEvents.length));
+    // At the cap the server dropped older events — say so.
+    truncNote.textContent = t('activity.truncated', 'Showing the most recent {n} events; older history is not displayed.')
+      .replace('{n}', String(CAP));
+    truncNote.style.display = allEvents.length >= CAP ? '' : 'none';
   }
 
   async function load() {
@@ -105,5 +116,6 @@ Router.register('activity', async () => {
       ])
     ),
     pgWrap,
+    truncNote,
   ]);
 });

@@ -140,6 +140,8 @@
         manualBtn.textContent = t('mode.runManual', 'Generate prompt');
         // Re-order so Run live appears first in the row.
         if (runLiveBtn.parentNode) runLiveBtn.parentNode.insertBefore(runLiveBtn, manualBtn);
+        liveAnnounce.textContent = t('mode.liveReadyAnnounce',
+          'Live evaluation is now available — the primary button runs it directly.');
       }
     }).catch(() => {});
 
@@ -302,6 +304,13 @@
       onClick: (e) => submit(e.currentTarget, true),
     }, '⚡ ' + t('mode.runLive', 'Run live'));
 
+    // WS2 #40 — the async health probe relabels/reorders the primary
+    // button under the user; a keyboard user who already focused it
+    // sees it change silently. Announce the change politely.
+    const liveAnnounce = c('div', {
+      role: 'status', 'aria-live': 'polite', className: 'visually-hidden',
+    });
+
     // G-011: surface a deprecation banner on /#/batch-prompt so anyone
     // hitting the legacy mode-prompt route from an old bookmark sees
     // the migration target.
@@ -318,6 +327,7 @@
       : null;
 
     return c('div', null, [
+      liveAnnounce,
       deprecationBanner,
       c('header', { className: 'page-header' }, [
         c('div', null, [

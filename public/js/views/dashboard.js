@@ -47,7 +47,7 @@ Router.register('dashboard', async () => {
         c('p', { className: 'page-subtitle' }, t('dash.subtitle')),
       ]),
       c('div', { className: 'flex gap-3' }, [
-        c('button', { className: 'btn btn-ghost', onClick: () => Router.go('/pipeline') }, t('dash.openPipeline')),
+        c('button', { className: 'btn btn-ghost', onClick: () => Router.go('/pipeline') }, '📋 ' + t('dash.openPipeline')),
         c('button', { className: 'btn btn-primary', onClick: () => Router.go('/scan') }, '🌐 ' + t('dash.scanNow', 'Scan now')),
         // G-007 (v1.15.0) — auto-pipeline 1-click flow. v1.34.0 (WS5):
         // promoted from a transient modal to the dedicated #/auto

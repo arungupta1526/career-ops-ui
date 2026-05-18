@@ -48,6 +48,7 @@ window.__I18N_DICT = {
   'mode.runManual':  { en: 'Generate prompt', es: 'Generar prompt', 'pt-BR': 'Gerar prompt', ko: '프롬프트 생성', ja: 'プロンプト生成', ru: 'Сгенерировать промпт', 'zh-CN': '生成 prompt', 'zh-TW': '產生 prompt' },
   'mode.runLive':    { en: 'Run live', es: 'Ejecutar en vivo', 'pt-BR': 'Executar ao vivo', ko: '실시간 실행', ja: 'ライブ実行', ru: 'Запустить вживую', 'zh-CN': '实时运行', 'zh-TW': '即時執行' },
   'mode.download':   { en: 'Download .md', es: 'Descargar .md', 'pt-BR': 'Baixar .md', ko: '.md 다운로드', ja: '.md ダウンロード', ru: 'Скачать .md', 'zh-CN': '下载 .md', 'zh-TW': '下載 .md' },
+  'mode.liveReadyAnnounce': { en: 'Live evaluation is now available — the primary button runs it directly.', es: 'La evaluación en vivo ya está disponible — el botón principal la ejecuta directamente.', 'pt-BR': 'A avaliação ao vivo já está disponível — o botão principal a executa diretamente.', ko: '실시간 평가를 이제 사용할 수 있습니다 — 기본 버튼이 바로 실행합니다.', ja: 'ライブ評価が利用可能になりました — メインボタンで直接実行します。', ru: 'Live-оценка теперь доступна — основная кнопка запускает её напрямую.', 'zh-CN': '实时评估现已可用 — 主按钮直接运行。', 'zh-TW': '即時評估現已可用 — 主按鈕直接執行。' },
   // ──────────── project ────────────
   'project.title':    { en: 'Portfolio project advisor', es: 'Asesor de proyecto de portfolio', 'pt-BR': 'Consultor de projeto de portfólio', ko: '포트폴리오 프로젝트 자문', ja: 'ポートフォリオプロジェクト相談', ru: 'Советник по портфолио-проекту', 'zh-CN': '作品集项目顾问', 'zh-TW': '作品集專案顧問' },
   'project.subtitle': { en: 'Pitch a project idea, get scope + signal-fit feedback before building.', es: 'Presenta una idea de proyecto, recibe alcance + señal antes de construir.', 'pt-BR': 'Apresente uma ideia, receba escopo + análise antes de construir.', ko: '프로젝트 아이디어 제출 후 빌드 전에 범위 + 시그널 피드백 수신.', ja: 'プロジェクト案を提示し、構築前にスコープとシグナル適合性の評価を受ける。', ru: 'Покажите идею проекта — получите оценку scope и сигнал-fit до сборки.', 'zh-CN': '提交项目构想,在构建前获得范围 + 信号匹配反馈。', 'zh-TW': '提交專案構想,在建構前獲得範圍 + 訊號匹配回饋。' },
@@ -89,6 +90,10 @@ window.__I18N_DICT = {
   'batch.urlsPh':      { en: 'https://…\nhttps://…', es: 'https://…\nhttps://…', 'pt-BR': 'https://…\nhttps://…', ko: 'https://…\nhttps://…', ja: 'https://…\nhttps://…', ru: 'https://…\nhttps://…', 'zh-CN': 'https://…\nhttps://…', 'zh-TW': 'https://…\nhttps://…' },
   'batch.workersLbl':  { en: 'Parallel workers (default 4)', es: 'Trabajadores en paralelo (def. 4)', 'pt-BR': 'Workers paralelos (padrão 4)', ko: '병렬 워커 수 (기본값 4)', ja: '並列ワーカー数 (既定 4)', ru: 'Параллельные воркеры (по умолч. 4)', 'zh-CN': '并行 worker 数(默认 4)', 'zh-TW': '平行 worker 數(預設 4)' },
   'batch.workersPh':   { en: '4', es: '4', 'pt-BR': '4', ko: '4', ja: '4', ru: '4', 'zh-CN': '4', 'zh-TW': '4' },
+  'batch.minScorePh':  { en: 'min score (e.g. 4.0)', es: 'score mín. (ej. 4.0)', 'pt-BR': 'score mín. (ex. 4.0)', ko: '최소 점수 (예: 4.0)', ja: '最低スコア (例: 4.0)', ru: 'мин. score (напр. 4.0)', 'zh-CN': '最低分数 (例如 4.0)', 'zh-TW': '最低分數 (例如 4.0)' },
+  'batch.maxRetriesPh': { en: '(default 2)', es: '(por defecto 2)', 'pt-BR': '(padrão 2)', ko: '(기본값 2)', ja: '(既定 2)', ru: '(по умолч. 2)', 'zh-CN': '(默认 2)', 'zh-TW': '(預設 2)' },
+  'batch.modelPh':     { en: '(Claude Max default)', es: '(Claude Max por defecto)', 'pt-BR': '(padrão Claude Max)', ko: '(기본값 Claude Max)', ja: '(既定 Claude Max)', ru: '(по умолч. Claude Max)', 'zh-CN': '(默认 Claude Max)', 'zh-TW': '(預設 Claude Max)' },
+  'batch.startFromPh': { en: '(from #1)', es: '(desde #1)', 'pt-BR': '(a partir de #1)', ko: '(#1부터)', ja: '(#1 から)', ru: '(с #1)', 'zh-CN': '(从 #1 起)', 'zh-TW': '(從 #1 起)' },
   'batch.urlsHint':    { en: 'One job URL per line — the runner evaluates each in parallel.', es: 'Una URL por línea — el runner evalúa en paralelo.', 'pt-BR': 'Uma URL por linha — o runner avalia em paralelo.', ko: '한 줄에 채용 URL 하나 — 러너가 병렬로 평가합니다.', ja: '1 行に 1 つの求人 URL — ランナーが並列で評価。', ru: 'Один URL на строку — runner оценивает параллельно.', 'zh-CN': '每行一个职位 URL — runner 并行评估。', 'zh-TW': '每列一個職位 URL — runner 平行評估。' },
   'batch.workersHint': { en: 'Concurrent worker count — too high hits LLM rate limits, too low takes hours.', es: 'Cantidad de workers paralelos — demasiado alto golpea rate limits del LLM, bajo demora horas.', 'pt-BR': 'Quantidade de workers paralelos — alto demais bate rate limits do LLM, baixo leva horas.', ko: '병렬 워커 수 — 너무 많으면 LLM rate limit, 너무 적으면 몇 시간 소요.', ja: '並列ワーカー数 — 多すぎると LLM レート制限、少なすぎると数時間。', ru: 'Число параллельных воркеров — слишком много — упрётся в rate limit LLM, мало — на часы.', 'zh-CN': '并行 worker 数量 — 过多触发 LLM rate limit,过少耗时数小时。', 'zh-TW': '並行 worker 數量 — 過多觸發 LLM rate limit,過少耗時數小時。' },
   // ──────────── contacto / outreach ────────────
@@ -178,6 +183,7 @@ window.__I18N_DICT = {
   'activity.col.result': { en: 'Result', es: 'Resultado', 'pt-BR': 'Resultado', ko: '결과', ja: '結果', ru: 'Результат', 'zh-CN': '结果', 'zh-TW': '結果' },
   'activity.empty': { en: 'No activity yet — try adding a URL or running a scan.', es: 'Sin actividad aún — añade una URL o ejecuta un scan.', 'pt-BR': 'Sem atividade ainda — adicione uma URL ou execute um scan.', ko: '아직 활동이 없습니다 — URL 추가 또는 스캔 실행을 시도해 보세요.', ja: 'まだアクティビティはありません — URL を追加するかスキャンを実行してみてください。', ru: 'Пока пусто — добавьте URL или запустите скан.', 'zh-CN': '暂无活动 — 试试添加 URL 或运行扫描。', 'zh-TW': '尚無活動 — 試試新增 URL 或執行掃描。' },
   'activity.refresh': { en: 'Refresh', es: 'Actualizar', 'pt-BR': 'Atualizar', ko: '새로고침', ja: '更新', ru: 'Обновить', 'zh-CN': '刷新', 'zh-TW': '重新整理' },
+  'activity.truncated': { en: 'Showing the most recent {n} events; older history is not displayed.', es: 'Mostrando los {n} eventos más recientes; el historial anterior no se muestra.', 'pt-BR': 'Mostrando os {n} eventos mais recentes; o histórico anterior não é exibido.', ko: '가장 최근 {n}개 이벤트만 표시 — 이전 기록은 표시되지 않습니다.', ja: '最新の {n} 件のイベントを表示 — 古い履歴は表示されません。', ru: 'Показаны последние {n} событий; более старая история не отображается.', 'zh-CN': '仅显示最近 {n} 条事件;较早的历史不显示。', 'zh-TW': '僅顯示最近 {n} 筆事件;較早的歷史不顯示。' },
 
   // Top bar
   'top.search':     { en: 'Find a company, role or URL…', es: 'Buscar empresa, rol o URL…', 'pt-BR': 'Buscar empresa, vaga ou URL…', ko: '회사, 직무 또는 URL 검색…', ja: '会社、役割、URL を検索…', ru: 'Найти компанию, роль или URL…', 'zh-CN': '查找公司、职位或 URL…', 'zh-TW': '查找公司、職位或 URL…' },
@@ -544,6 +550,8 @@ window.__I18N_DICT = {
   'set.name':       { en: 'Name', es: 'Nombre', 'pt-BR': 'Nome', ko: '이름', ja: '名前', ru: 'Имя', 'zh-CN': '姓名', 'zh-TW': '姓名' },
   'set.email':      { en: 'Email', es: 'Email', 'pt-BR': 'Email', ko: '이메일', ja: 'メール', ru: 'Email', 'zh-CN': '邮箱', 'zh-TW': '電郵' },
   'set.location':   { en: 'Location', es: 'Ubicación', 'pt-BR': 'Localização', ko: '위치', ja: '場所', ru: 'Локация', 'zh-CN': '位置', 'zh-TW': '位置' },
+  'set.fit':        { en: 'Fit', es: 'Encaje', 'pt-BR': 'Aderência', ko: '적합도', ja: '適合度', ru: 'Соответствие', 'zh-CN': '匹配度', 'zh-TW': '匹配度' },
+  'set.level':      { en: 'Level', es: 'Nivel', 'pt-BR': 'Nível', ko: '레벨', ja: 'レベル', ru: 'Уровень', 'zh-CN': '级别', 'zh-TW': '級別' },
   // G-009 (v1.15.0): canonical career-ops.org schema surfaces.
   'profile.headline': { en: 'Headline', es: 'Resumen', 'pt-BR': 'Resumo', ko: '한 줄 요약', ja: 'ヘッドライン', ru: 'Хедлайн', 'zh-CN': '一句话定位', 'zh-TW': '一句話定位' },
   'profile.missing':  { en: '— not set', es: '— sin definir', 'pt-BR': '— não definido', ko: '— 설정 안 됨', ja: '— 未設定', ru: '— не указано', 'zh-CN': '— 未设置', 'zh-TW': '— 未設定' },
@@ -582,6 +590,8 @@ window.__I18N_DICT = {
   'health.badgeOk': { en: 'OK', es: 'OK', 'pt-BR': 'OK', ko: 'OK', ja: 'OK', ru: 'OK', 'zh-CN': 'OK', 'zh-TW': 'OK' },
   'health.badgeOptional':{ en: 'OPTIONAL', es: 'OPCIONAL', 'pt-BR': 'OPCIONAL', ko: '선택사항', ja: 'オプション', ru: 'OPTIONAL', 'zh-CN': '可选', 'zh-TW': '選用' },
   'health.badgeFail':{ en: 'FAIL', es: 'FALLO', 'pt-BR': 'FALHA', ko: '실패', ja: '失敗', ru: 'FAIL', 'zh-CN': '失败', 'zh-TW': '失敗' },
+  'health.runningDoctor': { en: 'Running doctor.mjs…', es: 'Ejecutando doctor.mjs…', 'pt-BR': 'Executando doctor.mjs…', ko: 'doctor.mjs 실행 중…', ja: 'doctor.mjs を実行中…', ru: 'Запуск doctor.mjs…', 'zh-CN': '正在运行 doctor.mjs…', 'zh-TW': '正在執行 doctor.mjs…' },
+  'health.runningVerify': { en: 'Running verify-pipeline.mjs…', es: 'Ejecutando verify-pipeline.mjs…', 'pt-BR': 'Executando verify-pipeline.mjs…', ko: 'verify-pipeline.mjs 실행 중…', ja: 'verify-pipeline.mjs を実行中…', ru: 'Запуск verify-pipeline.mjs…', 'zh-CN': '正在运行 verify-pipeline.mjs…', 'zh-TW': '正在執行 verify-pipeline.mjs…' },
 
   // Tracker
   'track.title':    { en: 'Application tracker', es: 'Tracker de aplicaciones', 'pt-BR': 'Tracker de aplicações', ko: '지원 트래커', ja: '応募トラッカー', ru: 'Трекер заявок', 'zh-CN': '申请跟踪器', 'zh-TW': '申請追蹤器' },

@@ -46,10 +46,19 @@ Router.register('reports', async (params) => {
 
   function makeCard(rep) {
     const cls = rep.scoreNum >= 4 ? 'score-high' : rep.scoreNum >= 3 ? 'score-mid' : 'score-low';
+    // WS2 #37 — was a mouse-only <div onClick>. Make it a real
+    // keyboard-operable control: role=link, tabindex, Enter/Space.
+    const open = () => Router.go('/reports/' + rep.slug);
     return c('div', {
       className: 'card',
       style: { cursor: 'pointer' },
-      onClick: () => Router.go('/reports/' + rep.slug),
+      role: 'link',
+      tabindex: '0',
+      'aria-label': (rep.title || rep.slug),
+      onClick: open,
+      onKeydown: (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+      },
     }, [
       c('div', { className: 'flex-between' }, [
         c('div', null, [

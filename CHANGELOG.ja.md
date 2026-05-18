@@ -8,6 +8,12 @@
 
 ---
 
+## [1.52.0] — 2026-05-18
+
+**WS2 LOWs #33–#40 — バッチ磨き上げ一掃(UX 監査キューを締める)。** 低重大度の 8 件。`fix(a11y/i18n): WS2 LOW batch` — #33:`#/dashboard` — ヘッダーの 3 つの CTA が不揃いだった(2 つだけ先頭アイコンあり);「Open Pipeline」が今や `📋` を持ち、3 つすべてが揃う。#34:`#/profile` — アーキタイプの `fit`/`level` が曖昧な 2 つのチップとして描画されていた;今は接頭辞付き(`Fit:` / `Level:`)で対応する `aria-label` を持つ。#35:`#/health` — Run-doctor / verify の toast が `doctor.mjs` の生文字列を表示していた;今は i18n キー化。#36:`#/health` — チェック結果はフラットな `<div>` の連なりだった;今は `role=list` の `<ul>`/`<li>` で、ステータスバッジは `aria-label="<check>: <status>"` を持つ。#37:`#/reports` — レポートカードはマウス専用の `<div onClick>` だった;今は `role=link` + `tabindex` + Enter/Space ハンドラ + `aria-label`。#38:`#/activity` — ページネータのコメントは「200」と言うがコードは 500 を要求していた;`CAP` 定数へ整合させ、500 上限が古い履歴を切り詰めると `role=note` の通知が現れる。#39:`#/batch` — プレースホルダ文言が英語ハードコードだった一方で `aria-label` は localized だった;4 つが今は i18n キー化。#40:モードページは非同期プローブ後に主ボタンを黙ってラベル変更していた;今は丁寧な `role=status` 領域がそれをアナウンスする。新規 i18n キー 10 件 × 8 ロケール(`{n}` 保持);テスト +9:`test: tests/low-sweep.test.mjs`。697 → 706。WS2 の UX 監査キュー(v1.41→v1.52 の #1–#40)を締める;次は WS9 → WS10 → WS11。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.51.0] — 2026-05-18
 
 **WS2 #13 + #14 + #18 + #19 + #20 — `#/auto` と `#/evaluate` の feedback/i18n 一掃。** UX 監査の 5 件の指摘。`fix(a11y/ux): auto+evaluate — busy state, actionable HTTP errors, clipboard fallback, aria-live result, spinner-guarded submit` — #13:`#/auto` の Run ボタンは今や単に無効化されるのではなくビジー状態(`is-loading` + `aria-busy` +「Running…」)を表示する。#14:失敗した HTTP リクエストは今やステップ上の操作可能な i18n メッセージと toast(`{n}` 付きの `auto.httpFail`)を提示する(以前は素っ気ない「HTTP 500」だった)。#18:手動モードの「Copy prompt」は今や非同期 Clipboard API を `execCommand` フォールバック付きで使い、偽の「Copied」ではなく実際の失敗を toast する。#19:evaluate の結果コンテナは今や `role=status` `aria-live=polite` であり、長い LLM 呼び出しがスクリーンリーダーへアナウンスされる。#20:Evaluate ボタンは `UI.withSpinner` でラップされた(以前は素の `onClick: run` で重複送信を許していた)。新規 i18n キー 3 件 × 8 ロケール;テスト +6:691 → 697。さらにテストのみの修正(コミット `7f8e250`):e2e pipeline-delete のティアダウンが v1.48 以前のネイティブ confirm 経路上にあった;API DELETE へ切り替え(`fix(test): …` — CI の Playwright-e2e が赤だった;製品の回帰ではない)。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.52.0] — 2026-05-18
+
+**WS2 LOWs #33–#40 — 일괄 다듬기 정리(UX 감사 큐를 닫음).** 저심각도 8건. `fix(a11y/i18n): WS2 LOW batch` — #33: `#/dashboard` — 헤더의 3개 CTA가 불일치했음(2개만 앞 아이콘 있음); "Open Pipeline"이 이제 `📋`를 가져 셋 다 일치함. #34: `#/profile` — 아키타입 `fit`/`level`이 모호한 두 칩으로 렌더링됐음; 이제 접두사(`Fit:` / `Level:`)와 대응 `aria-label`을 가짐. #35: `#/health` — Run-doctor / verify 토스트가 `doctor.mjs`의 원시 문자열을 표시했음; 이제 i18n 키화. #36: `#/health` — 검사 결과가 평탄한 `<div>` 나열이었음; 이제 `role=list` `<ul>`/`<li>`이며 상태 배지가 `aria-label="<check>: <status>"`를 가짐. #37: `#/reports` — 리포트 카드가 마우스 전용 `<div onClick>`이었음; 이제 `role=link` + `tabindex` + Enter/Space 핸들러 + `aria-label`. #38: `#/activity` — 페이지네이터 주석은 "200"이라 했으나 코드는 500을 요청했음; `CAP` 상수로 정합화하고 500 상한이 오래된 이력을 잘라낼 때 `role=note` 알림이 표시됨. #39: `#/batch` — 프로즈 플레이스홀더가 영어 하드코딩이었던 반면 `aria-label`은 localized였음; 4개가 이제 i18n 키화. #40: 모드 페이지가 비동기 프로브 후 주 버튼을 조용히 재라벨했음; 이제 정중한 `role=status` 영역이 이를 안내함. 신규 i18n 키 10개 × 8개 로케일(`{n}` 보존); 테스트 +9: `test: tests/low-sweep.test.mjs`. 697 → 706. WS2의 UX 감사 큐(v1.41→v1.52의 #1–#40)를 닫음; 다음은 WS9 → WS10 → WS11. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.51.0] — 2026-05-18
 
 **WS2 #13 + #14 + #18 + #19 + #20 — `#/auto`와 `#/evaluate` feedback/i18n 정리.** UX 감사 지적 5건. `fix(a11y/ux): auto+evaluate — busy state, actionable HTTP errors, clipboard fallback, aria-live result, spinner-guarded submit` — #13: `#/auto`의 Run 버튼이 이제 단순 비활성화 대신 바쁨 상태(`is-loading` + `aria-busy` + "Running…")를 표시함. #14: 실패한 HTTP 요청이 이제 단계에 실행 가능한 i18n 메시지와 토스트(`{n}`가 담긴 `auto.httpFail`)를 노출함(이전엔 무미건조한 "HTTP 500"이었음). #18: 수동 모드의 "Copy prompt"가 이제 비동기 Clipboard API를 `execCommand` 폴백과 함께 사용하며, 거짓 "Copied" 대신 실제 실패를 토스트함. #19: evaluate 결과 컨테이너가 이제 `role=status` `aria-live=polite`여서 긴 LLM 호출이 스크린 리더에 안내됨. #20: Evaluate 버튼이 `UI.withSpinner`로 감싸짐(이전엔 중복 제출을 허용하는 평범한 `onClick: run`이었음). 신규 i18n 키 3개 × 8개 로케일; 테스트 +6: 691 → 697. 또한 테스트 전용 수정(커밋 `7f8e250`): e2e pipeline-delete 티어다운이 v1.48 이전 네이티브 confirm 경로에 있었음; API DELETE로 전환(`fix(test): …` — CI Playwright-e2e가 빨간색이었음; 제품 회귀가 아님). 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

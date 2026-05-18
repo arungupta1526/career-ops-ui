@@ -8,6 +8,12 @@
 
 ---
 
+## [1.52.0] — 2026-05-18
+
+**WS2 LOWs #33–#40 —— 批量打磨清扫(收尾 UX 审计队列)。** 八项低严重度发现。`fix(a11y/i18n): WS2 LOW batch` —— #33:`#/dashboard` —— 页眉的 3 个 CTA 不一致(仅 2 个有前导图标);「Open Pipeline」现带 `📋`,三者齐整。#34:`#/profile` —— 原型的 `fit`/`level` 渲染为两个含糊的 chip;现加前缀(`Fit:` / `Level:`)并配对应的 `aria-label`。#35:`#/health` —— Run-doctor / verify 的 toast 显示 `doctor.mjs` 的原始字符串;现已 i18n 键化。#36:`#/health` —— 检查结果原是扁平的 `<div>` 串;现为 `role=list` 的 `<ul>`/`<li>`,状态徽章带 `aria-label="<check>: <status>"`。#37:`#/reports` —— 报告卡原是仅鼠标的 `<div onClick>`;现为 `role=link` + `tabindex` + Enter/Space 处理器 + `aria-label`。#38:`#/activity` —— 分页器注释写「200」而代码请求 500;已对齐到 `CAP` 常量,且当 500 上限截断旧历史时浮现 `role=note` 通知。#39:`#/batch` —— prose 占位符为英文硬编码而其 `aria-label` 已 localized;四个现已 i18n 键化。#40:模式页在异步探测后静默重命名主按钮;现由礼貌的 `role=status` 区域播报。新增 10 个 i18n 键 × 8 个语言区(`{n}` 保留);测试 +9:`test: tests/low-sweep.test.mjs`。697 → 706。收尾 WS2 的 UX 审计队列(v1.41→v1.52 的 #1–#40);接下来 WS9 → WS10 → WS11。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.51.0] — 2026-05-18
 
 **WS2 #13 + #14 + #18 + #19 + #20 —— `#/auto` 与 `#/evaluate` 的 feedback/i18n 清扫。** UX 审计的五项发现。`fix(a11y/ux): auto+evaluate — busy state, actionable HTTP errors, clipboard fallback, aria-live result, spinner-guarded submit` —— #13:`#/auto` 的 Run 按钮现在显示忙碌状态(`is-loading` + `aria-busy` +「Running…」),而非仅禁用。#14:失败的 HTTP 请求现在在步骤上浮现可操作的 i18n 消息并附带 toast(带 `{n}` 的 `auto.httpFail`),不再是干巴巴的「HTTP 500」。#18:手动模式的「Copy prompt」现在使用异步 Clipboard API 并带 `execCommand` 回退,真正失败时 toast 提示,而非虚假的「Copied」。#19:evaluate 结果容器现为 `role=status` `aria-live=polite`,使漫长的 LLM 调用向屏幕阅读器播报。#20:Evaluate 按钮以 `UI.withSpinner` 包裹(原先为朴素的 `onClick: run`,允许重复提交)。新增 3 个 i18n 键 × 8 个语言区;测试 +6:691 → 697。另有一处仅测试的修复(提交 `7f8e250`):e2e pipeline-delete 的拆卸位于 v1.48 之前的原生 confirm 路径上;改为 API DELETE(`fix(test): …` —— CI 的 Playwright-e2e 为红;并非产品回归)。详见 [`CHANGELOG.md`](CHANGELOG.md)。

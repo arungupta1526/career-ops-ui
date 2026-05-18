@@ -12,19 +12,22 @@ Router.register('health', async () => {
       ]),
       c('div', { className: 'flex gap-3' }, [
         c('button', { className: 'btn btn-ghost', onClick: async (e) => {
-          UI.toast('doctor.mjs…');
+          UI.toast(t('health.runningDoctor', 'Running doctor.mjs…'));
           const r = await UI.withSpinner(e.currentTarget, () => API.post('/api/run/doctor'));
           UI.modal('doctor', UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n' + r.stderr : '')));
         }}, t('health.runDoctor')),
         c('button', { className: 'btn btn-ghost', onClick: async (e) => {
-          UI.toast('verify-pipeline.mjs…');
+          UI.toast(t('health.runningVerify', 'Running verify-pipeline.mjs…'));
           const r = await UI.withSpinner(e.currentTarget, () => API.post('/api/run/verify'));
           UI.modal('verify', UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n' + r.stderr : '')));
         }}, t('health.verify')),
       ]),
     ]),
 
-    c('div', { className: 'card-row' },
+    // WS2 #36 — a flat run of generic divs gave SR users no name↔status
+    // relationship. Render as a list; the badge carries an aria-label
+    // pairing the check name with its pass/fail state.
+    c('ul', { className: 'card-row', role: 'list', style: { listStyle: 'none', margin: 0, padding: 0 } },
       data.checks.map((ch) => {
         let badgeClass, badgeText;
         if (ch.ok) {
@@ -34,13 +37,13 @@ Router.register('health', async () => {
         } else {
           badgeClass = 'badge-bad'; badgeText = t('health.badgeFail');
         }
-        return c('div', { className: 'card' }, [
+        return c('li', { className: 'card' }, [
           c('div', { className: 'flex-between' }, [
             c('div', null, [
               c('div', { className: 'metric-label' }, ch.name),
               ch.value && c('div', { style: { fontSize: '13px', color: 'var(--foggy)', marginTop: '6px', wordBreak: 'break-all' } }, ch.value),
             ]),
-            c('span', { className: 'badge ' + badgeClass }, badgeText),
+            c('span', { className: 'badge ' + badgeClass, 'aria-label': ch.name + ': ' + badgeText }, badgeText),
           ]),
         ]);
       })

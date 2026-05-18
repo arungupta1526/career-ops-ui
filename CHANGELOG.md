@@ -6,6 +6,41 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.52.0] — 2026-05-18
+
+**WS2 LOWs #33–#40 — batched polish sweep (closes the UX-audit queue).**
+
+### 🐛 Fixes
+
+- **`fix(a11y/i18n): WS2 LOW batch`** — eight low-severity findings:
+  - **#33** `#/dashboard` — the 3 header CTAs were inconsistent (only 2 had a leading icon); "Open Pipeline" now gets `📋` so all three match.
+  - **#34** `#/profile` — archetype `fit`/`level` rendered as two bare ambiguous chips; now prefixed (`Fit: …` / `Level: …`) with matching `aria-label`.
+  - **#35** `#/health` — Run-doctor / verify toasts showed raw `doctor.mjs` / `verify-pipeline.mjs` strings; now i18n-keyed (`health.runningDoctor/Verify`).
+  - **#36** `#/health` — the check results were a flat run of `<div>`s with no programmatic name↔status link. Now a `role="list"` `<ul>`/`<li>` and the status badge carries `aria-label="<check>: <status>"`.
+  - **#37** `#/reports` — report cards were mouse-only `<div onClick>`; now `role="link"` + `tabindex="0"` + Enter/Space handler + `aria-label`.
+  - **#38** `#/activity` — the paginator comment said "200" while the code requested 500; reconciled to a `CAP` constant and a `role="note"` notice now surfaces when the 500-cap truncates older history (`activity.truncated`).
+  - **#39** `#/batch` — prose placeholders were hardcoded English while their `aria-label`s were localized; the four (`minScore/maxRetries/model/startFrom`) are now i18n-keyed (the TSV-template placeholder stays — it's a data-format example).
+  - **#40** mode pages — the async health probe relabelled/reordered the primary button silently; a visually-hidden `role="status"` region now announces it (`mode.liveReadyAnnounce`).
+
+### 🌐 i18n
+
+- 10 new keys × 8 locales (`set.fit/level`, `health.runningDoctor/Verify`, `activity.truncated` (`{n}` preserved), `batch.minScorePh/maxRetriesPh/modelPh/startFromPh`, `mode.liveReadyAnnounce`). `i18n-coverage` gate green.
+
+### 🧪 Tests
+
+- **`test: tests/low-sweep.test.mjs`** — 9 cases (one per finding + the 10-key ×8 i18n check). 697 → 706. Playwright-verified: health `ul[role=list]` (17 `li`, badge aria "Node version: OK"), report card role=link/tabindex/aria, dashboard CTAs all-iconed, 0 console errors.
+
+> This closes the WS2 UX-audit queue (#1–#40 across v1.41→v1.52). Next: WS9 (test pyramid) → WS10 (canonical re-validation + separate final release) → WS11 (qa/ finalization).
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 706 / 706 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.52.0
+```
+
+---
+
 ## [1.51.0] — 2026-05-18
 
 **WS2 #13 + #14 + #18 + #19 + #20 — feedback / i18n sweep (auto + evaluate).**

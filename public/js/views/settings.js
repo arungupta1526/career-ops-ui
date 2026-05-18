@@ -97,8 +97,12 @@ Router.register('profile', async () => {
         archetypes.map((a) => c('div', { className: 'card' }, [
           c('div', { style: { fontWeight: 700 } }, a.name),
           c('div', { className: 'flex gap-1 mt-3' }, [
-            c('span', { className: 'tag' }, a.fit || ''),
-            c('span', { className: 'tag' }, a.level || ''),
+            // WS2 #34 — were two bare ambiguous chips; prefix each with
+            // what it means (and an aria-label) so it's self-describing.
+            a.fit ? c('span', { className: 'tag', 'aria-label': t('set.fit', 'Fit') + ': ' + a.fit },
+              t('set.fit', 'Fit') + ': ' + a.fit) : null,
+            a.level ? c('span', { className: 'tag', 'aria-label': t('set.level', 'Level') + ': ' + a.level },
+              t('set.level', 'Level') + ': ' + a.level) : null,
           ]),
           c('p', { style: { color: 'var(--foggy)', fontSize: '13.5px', marginTop: '8px' } }, a.notes || ''),
         ]))
