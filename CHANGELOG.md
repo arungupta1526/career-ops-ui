@@ -6,6 +6,33 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.47.0] — 2026-05-18
+
+**WS2 #7 + #30 + #31 + #16 — unbound-label accessibility sweep.**
+
+### 🐛 Fixes
+
+- **`fix(a11y): bind every swept form control to an accessible name`** — four UX-audit findings where inputs had no programmatic label (WCAG 1.3.1 / 3.3.2 / 4.1.2):
+  - **#7** `scan.js` — the `dry-run` checkbox and `company-select` dropdown had labels with no `for`; added `htmlFor` (matching the existing `id`s).
+  - **#30** `deep.js` — `company` / `role` inputs had unbound labels; added `id` + `htmlFor` (`deep-company`, `deep-role`).
+  - **#31** `apply.js` — `url` / `jd` had unbound labels; added `id` + `htmlFor` (`apply-url`, `apply-jd`).
+  - **#16** `cv.js` — the primary markdown `<textarea>` had no accessible name; bound it via `aria-labelledby` to the visible "Markdown" `<h3>` (`id="cv-md-heading"`) — SR name == on-screen heading, no new i18n key.
+- Uses the explicit `label[for]`↔`control[id]` pattern already standard in `batch.js` / `mode-page.js`. No new i18n keys; zero behaviour change.
+
+### 🧪 Tests
+
+- **`test: tests/unbound-label-sweep.test.mjs`** — 5 cases incl. a binding-integrity check that every new `htmlFor`/`aria-labelledby` has a matching `id` in-file. 667 → 672. Playwright-verified: on #/scan, #/deep, #/apply every `label[for]` resolves to a control; #/cv `aria-labelledby` resolves to the heading.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 672 / 672 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.47.0
+# Playwright: scan/deep/apply 2 bound label[for] each (all resolve) · cv aria-labelledby resolves · 0 errors
+```
+
+---
+
 ## [1.46.0] — 2026-05-18
 
 **WS2 #5 + #6 + #21 + #24 — scan SSE accessibility.**

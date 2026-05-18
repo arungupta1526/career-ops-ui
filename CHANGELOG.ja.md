@@ -8,6 +8,12 @@
 
 ---
 
+## [1.47.0] — 2026-05-18
+
+**WS2 #7 + #30 + #31 + #16 — 未バインドラベルのアクセシビリティ一掃。** フォームコントロールにプログラム的ラベルが無かった UX 監査の 4 件の指摘(WCAG 1.3.1 / 3.3.2 / 4.1.2)を、すべてバインド。`fix(a11y): bind every swept form control to an accessible name` — #7 `scan.js`:`dry-run` チェックボックスと `company-select` ドロップダウンには `for` の無いラベルがあった;既存の `id` に合わせて `htmlFor` を追加。#30 `deep.js`:`company` / `role` 入力に未バインドのラベルがあった;`id` + `htmlFor` を追加(`deep-company`、`deep-role`)。#31 `apply.js`:`url` / `jd` に未バインドのラベルがあった;`id` + `htmlFor` を追加(`apply-url`、`apply-jd`)。#16 `cv.js`:主要な markdown `<textarea>` にアクセシブル名が無かった;表示されている「Markdown」見出しへ `aria-labelledby` でバインド — スクリーンリーダー名と画面上の見出しが一致、新規 i18n キーなし。`batch.js` / `mode-page.js` で既に標準の明示的 `label[for]`↔`control[id]` パターンを使用;新規 i18n キーなし;挙動の変更ゼロ。テスト +5:`test:` 667 → 672。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.46.0] — 2026-05-18
 
 **WS2 #5 + #6 + #21 + #24 — scan SSE のアクセシビリティ。** `#/scan` における UX 監査の 4 件の指摘を `scan.js` で修正。`fix(a11y): scan SSE — live-log region, Stop, run-state, error banner` — #5:ストリーミングコンソールは今や `role=log` `aria-live=polite`(+ `aria-label`、`tabindex=0`、キーボードでスクロール可能)で、別の視覚的に隠された assertive な `role=status` 領域がターミナルイベント(完了 / 失敗 / 停止)をアナウンスする。#6:Stop ボタンが進行中の `EventSource` を閉じ(`es.close()`)、結果ポーリングをキャンセルし、状態をリセットする。Stop は scan 実行中のみ表示。#21:scan 実行中は Scan ボタンを無効化 + `aria-busy` を付与し、Stop を表示する。両方のストリームパス(単一フェーズの `streamTo` と多フェーズの `runScanAll` — 後者は終端 `done`、`final !== false` でのみ実行を終える)で適用。#24:SSE 障害はもはや 3.5 秒のトーストだけではなく、永続的な `role=alert` バナーがエラーを再試行アクション付きで表示(直近の実行関数を再呼び出し)し、次回の実行でクリアされる。i18n キー 8 件を新規追加 × 8 ロケール;テスト +7:`test: tests/scan-sse-a11y.test.mjs`。660 → 667。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

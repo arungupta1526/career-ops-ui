@@ -3,8 +3,8 @@ Router.register('deep', async () => {
   const c = UI.el;
   const t = (k, f) => I18n.t(k, f);
 
-  const company = c('input', { className: 'input', placeholder: t('deep.companyExample') });
-  const role = c('input', { className: 'input', placeholder: t('deep.roleExample') });
+  const company = c('input', { className: 'input', id: 'deep-company', placeholder: t('deep.companyExample') });
+  const role = c('input', { className: 'input', id: 'deep-role', placeholder: t('deep.roleExample') });
   const out = c('div');
   const archive = c('div');
   let liveAvailable = false;
@@ -189,8 +189,8 @@ Router.register('deep', async () => {
     ]),
     c('div', { className: 'card' }, [
       c('div', { className: 'row' }, [
-        c('div', { className: 'field' }, [c('label', null, t('deep.companyLbl')), company]),
-        c('div', { className: 'field' }, [c('label', null, t('deep.roleLbl')), role]),
+        c('div', { className: 'field' }, [c('label', { htmlFor: 'deep-company' }, t('deep.companyLbl')), company]),
+        c('div', { className: 'field' }, [c('label', { htmlFor: 'deep-role' }, t('deep.roleLbl')), role]),
       ]),
       c('div', { className: 'flex gap-3' }, [
         liveAvailable

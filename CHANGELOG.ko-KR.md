@@ -8,6 +8,12 @@
 
 ---
 
+## [1.47.0] — 2026-05-18
+
+**WS2 #7 + #30 + #31 + #16 — 미바인딩 레이블 접근성 일괄 정리.** 폼 컨트롤에 프로그래밍적 레이블이 없던 UX 감사 지적 4건(WCAG 1.3.1 / 3.3.2 / 4.1.2)을 모두 바인딩. `fix(a11y): bind every swept form control to an accessible name` — #7 `scan.js`: `dry-run` 체크박스와 `company-select` 드롭다운에 `for` 없는 레이블이 있었음; 기존 `id`에 맞춰 `htmlFor` 추가. #30 `deep.js`: `company` / `role` 입력에 미바인딩 레이블이 있었음; `id` + `htmlFor` 추가(`deep-company`, `deep-role`). #31 `apply.js`: `url` / `jd`에 미바인딩 레이블이 있었음; `id` + `htmlFor` 추가(`apply-url`, `apply-jd`). #16 `cv.js`: 주요 markdown `<textarea>`에 접근 가능한 이름이 없었음; 표시된 "Markdown" 제목에 `aria-labelledby`로 바인딩 — 스크린 리더 이름과 화면 제목 일치, 신규 i18n 키 없음. `batch.js` / `mode-page.js`에서 이미 표준인 명시적 `label[for]`↔`control[id]` 패턴 사용; 신규 i18n 키 없음; 동작 변경 없음. 테스트 +5: `test:` 667 → 672. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.46.0] — 2026-05-18
 
 **WS2 #5 + #6 + #21 + #24 — scan SSE 접근성.** `#/scan`의 UX 감사 지적 4건을 `scan.js`에서 수정. `fix(a11y): scan SSE — live-log region, Stop, run-state, error banner` — #5: 스트리밍 콘솔이 이제 `role=log` `aria-live=polite`(+ `aria-label`, `tabindex=0`, 키보드 스크롤 가능)이며, 별도의 시각적으로 숨겨진 assertive `role=status` 영역이 종단 이벤트(완료 / 실패 / 중지)를 알림. #6: Stop 버튼이 진행 중인 `EventSource`를 닫고(`es.close()`), 결과 폴링을 취소하고, 상태를 초기화함. Stop은 scan 실행 중에만 표시. #21: scan 실행 중에는 Scan 버튼을 비활성화 + `aria-busy` 부여하고 Stop을 표시함. 두 스트림 경로 모두(단일 페이즈 `streamTo`와 다중 페이즈 `runScanAll` — 후자는 종단 `done`, `final !== false`에서만 실행을 종료) 적용. #24: SSE 실패가 더 이상 3.5초 토스트만이 아니라, 영속적인 `role=alert` 배너가 재시도 액션과 함께 오류를 표시하고(직전 실행 함수를 재호출), 다음 실행에서 지워짐. 신규 i18n 키 8개 × 8개 로케일; 테스트 +7: `test: tests/scan-sse-a11y.test.mjs`. 660 → 667. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

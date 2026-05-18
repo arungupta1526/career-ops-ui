@@ -2,8 +2,8 @@
 Router.register('apply', async () => {
   const c = UI.el;
   const t = (k, f) => I18n.t(k, f);
-  const url = c('input', { className: 'input', placeholder: 'https://...' });
-  const jd = c('textarea', { className: 'textarea', rows: 10, placeholder: t('apply.jdLbl') });
+  const url = c('input', { className: 'input', id: 'apply-url', placeholder: 'https://...' });
+  const jd = c('textarea', { className: 'textarea', id: 'apply-jd', rows: 10, placeholder: t('apply.jdLbl') });
   const out = c('div');
 
   async function run() {
@@ -53,8 +53,8 @@ Router.register('apply', async () => {
       ]),
     ]),
     c('div', { className: 'card' }, [
-      c('div', { className: 'field' }, [c('label', null, t('apply.urlLbl')), url]),
-      c('div', { className: 'field' }, [c('label', null, t('apply.jdLbl')), jd]),
+      c('div', { className: 'field' }, [c('label', { htmlFor: 'apply-url' }, t('apply.urlLbl')), url]),
+      c('div', { className: 'field' }, [c('label', { htmlFor: 'apply-jd' }, t('apply.jdLbl')), jd]),
       c('button', { className: 'btn btn-primary', onClick: run }, t('apply.run')),
     ]),
     c('div', { className: 'mt-5' }, out),

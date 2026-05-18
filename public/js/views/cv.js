@@ -3,7 +3,13 @@ Router.register('cv', async () => {
   const c = UI.el;
   const t = (k, f) => I18n.t(k, f);
   const data = await API.get('/api/cv');
-  const ta = c('textarea', { className: 'textarea', rows: 30, style: { minHeight: '60vh' } }, data.markdown || '');
+  // v1.47.0 (WS2 #16) — the primary editor had no accessible name.
+  // Bind it to the visible "Markdown" heading via aria-labelledby
+  // (no new i18n key; the SR name matches what's on screen).
+  const ta = c('textarea', {
+    className: 'textarea', rows: 30, style: { minHeight: '60vh' },
+    id: 'cv-editor', 'aria-labelledby': 'cv-md-heading',
+  }, data.markdown || '');
   const pdfBox = c('div');
 
   async function loadPdfList() {
@@ -175,7 +181,7 @@ Router.register('cv', async () => {
 
     c('div', { className: 'grid-2' }, [
       c('div', null, [
-        c('h3', { className: 'section-title' }, t('cv.markdown')),
+        c('h3', { className: 'section-title', id: 'cv-md-heading' }, t('cv.markdown')),
         c('div', { className: 'card', style: { padding: 0 } }, ta),
       ]),
       c('div', null, [

@@ -515,10 +515,10 @@ Router.register('scan', async () => {
     c('div', { className: 'card mb-3' }, [
       c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap', alignItems: 'flex-end' } }, [
         c('div', { className: 'field', style: { flex: 1, marginBottom: 0, minWidth: '220px' } }, [
-          c('label', null, t('scan.companyLbl')),
+          c('label', { htmlFor: 'company-select' }, t('scan.companyLbl')),
           companySelect,
         ]),
-        c('label', { className: 'flex', style: { gap: '8px', userSelect: 'none' } }, [
+        c('label', { className: 'flex', htmlFor: 'dry-run', style: { gap: '8px', userSelect: 'none' } }, [
           dryRun, c('span', null, t('scan.dryRun')),
         ]),
         // Single "Scan" button — runs every enabled source (EN APIs +

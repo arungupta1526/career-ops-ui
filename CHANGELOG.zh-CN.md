@@ -8,6 +8,12 @@
 
 ---
 
+## [1.47.0] — 2026-05-18
+
+**WS2 #7 + #30 + #31 + #16 —— 未绑定标签无障碍清扫。** UX 审计的四项发现:表单控件缺少程序化标签(WCAG 1.3.1 / 3.3.2 / 4.1.2),现已全部绑定。`fix(a11y): bind every swept form control to an accessible name` —— #7 `scan.js`:`dry-run` 复选框与 `company-select` 下拉框的标签缺少 `for`;按既有 `id` 添加 `htmlFor`。#30 `deep.js`:`company` / `role` 输入框存在未绑定标签;添加 `id` + `htmlFor`(`deep-company`、`deep-role`)。#31 `apply.js`:`url` / `jd` 存在未绑定标签;添加 `id` + `htmlFor`(`apply-url`、`apply-jd`)。#16 `cv.js`:主 markdown `<textarea>` 无可访问名称;通过 `aria-labelledby` 绑定到可见的「Markdown」标题 —— 屏幕阅读器名称与屏幕标题一致,无新增 i18n 键。沿用 `batch.js` / `mode-page.js` 中已为标准的显式 `label[for]`↔`control[id]` 模式;无新增 i18n 键;行为零变更。测试 +5:`test:` 667 → 672。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.46.0] — 2026-05-18
 
 **WS2 #5 + #6 + #21 + #24 —— scan SSE 无障碍。** `#/scan` 上 UX 审计的四项发现,在 `scan.js` 中修复。`fix(a11y): scan SSE — live-log region, Stop, run-state, error banner` —— #5:流式控制台现为 `role=log` `aria-live=polite`(+ `aria-label`、`tabindex=0`、可键盘滚动),并有一个独立的视觉隐藏 assertive `role=status` 区域播报终态事件(完成 / 失败 / 已停止)。#6:Stop 按钮关闭进行中的 `EventSource`(`es.close()`),取消结果轮询并重置状态;仅在 scan 运行时显示。#21:scan 运行时 Scan 按钮被禁用 + 置 `aria-busy` 并显示 Stop,两条流路径均如此(单阶段 `streamTo` 与多阶段 `runScanAll` —— 后者仅在终态 `done`、`final !== false` 时结束本次运行)。#24:SSE 失败不再只是 3.5 秒提示条;现由持久的 `role=alert` 横幅显示错误并附带重试操作(重新调用上次的运行函数),下次运行时清除。新增 8 个 i18n 键 × 8 个语言区;测试 +7:`test: tests/scan-sse-a11y.test.mjs`。660 → 667。详见 [`CHANGELOG.md`](CHANGELOG.md)。
