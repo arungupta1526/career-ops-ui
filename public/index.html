@@ -124,6 +124,10 @@
         <span class="conn-msg" data-i18n="conn.down">Server is not responding.</span>
         <button class="btn btn-sm btn-dark" id="conn-refresh-btn" data-i18n="common.refresh">Refresh</button>
       </div>
+      <!-- v1.55.3 (UX-2) — 4-provider OR onboarding. Populated by
+           app.js from /api/status/providers: red banner when 0 keys,
+           subtle active-provider chip when ≥1. Hidden until resolved. -->
+      <div id="onboarding-banner" hidden role="status" aria-live="polite"></div>
       <header class="topbar" role="banner">
         <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle menu" aria-controls="sidebar" aria-expanded="false" type="button">☰</button>
         <div class="searchbar" role="search">

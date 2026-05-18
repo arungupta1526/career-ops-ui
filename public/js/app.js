@@ -52,6 +52,57 @@ I18n.onChange(() => {
     // Network banner is shown by api.js — no extra toast needed
   }
 
+  // v1.55.3 (UX-2) — surface the 4-provider OR contract. Cold-start
+  // (0 keys) → red banner explaining ⚡ Run-live is in manual-prompt
+  // mode + a deep link to the API-keys tab. ≥1 key → a subtle chip
+  // naming the provider the OR-router will use. CSP-safe: DOM nodes +
+  // addEventListener only, never innerHTML with response data.
+  const PROVIDER_NAME = {
+    anthropic: 'Anthropic', gemini: 'Gemini', openai: 'OpenAI', qwen: 'Qwen',
+  };
+  async function renderOnboardingBanner() {
+    const host = document.getElementById('onboarding-banner');
+    if (!host) return;
+    let st;
+    try {
+      st = await API.get('/api/status/providers');
+    } catch {
+      host.hidden = true; // status unknown → say nothing (fail-soft)
+      return;
+    }
+    host.textContent = '';
+    host.classList.remove('onboarding-warn', 'onboarding-ok');
+    if (!st || !Array.isArray(st.keysConfigured) || st.keysConfigured.length === 0) {
+      host.classList.add('onboarding-warn');
+      const msg = document.createElement('span');
+      msg.textContent = I18n.t(
+        'onboarding.noKey.title',
+        'No LLM key set — “⚡ Run live” is in manual-prompt mode.');
+      const cta = document.createElement('a');
+      cta.href = '#/config?tab=api-keys';
+      cta.className = 'btn btn-sm btn-dark';
+      cta.textContent = I18n.t('onboarding.noKey.cta', 'Set up a key →');
+      host.append(msg, ' ', cta);
+      host.hidden = false;
+    } else {
+      host.classList.add('onboarding-ok');
+      const name = PROVIDER_NAME[st.activeProvider] || st.activeProvider || '';
+      const label = I18n.t('onboarding.activeProvider', 'Live eval');
+      const chip = document.createElement('span');
+      chip.textContent = label + ': ' + name +
+        (st.activeModel ? ' (' + st.activeModel + ')' : '');
+      host.append(chip);
+      host.hidden = false;
+    }
+  }
+  renderOnboardingBanner();
+  // Re-evaluate when the user returns from the config tab (keys may
+  // have just been saved) and on locale change so copy stays localized.
+  window.addEventListener('hashchange', () => {
+    if (!String(window.location.hash || '').includes('/config')) renderOnboardingBanner();
+  });
+  I18n.onChange(renderOnboardingBanner);
+
   // initial route
   if (!window.location.hash) window.location.hash = '#/dashboard';
   // i18n first paint

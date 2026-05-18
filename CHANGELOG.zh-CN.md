@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.3] — 2026-05-19
+
+**feat(onboarding):屏幕上的 4 提供方 OR 状态 —— 冷启动横幅 + 活动提供方徽标(UX-2,HIGH)。** 新增只读端点 **`GET /api/status/providers`** → `{ activeProvider, activeModel, keysConfigured }`。`keysConfigured` 使用与 `llm.mjs` 门控相同的有效 env 视图(process.env ∨ 父 `.env`);`activeProvider` 是 OR 路由器实际会选的 —— `env-config.mjs` 中的新纯函数 `selectActiveProvider()` 遍历 `providerOrder()`(无对应密钥的 `LLM_PROVIDER` 锁定返回 `null`)。不返回任何机密 —— 仅提供方名称 + 模型 id。SPA 外壳现在渲染全局引导区域(`#onboarding-banner`,由 `app.js` 填充,仅 CSP 安全 DOM):**0 密钥 → 红色横幅** + 指向 `#/config?tab=api-keys` 的 CTA;**≥1 密钥 → 低调徽标** 显示活动提供方+模型。让招牌差异点("Anthropic / Gemini / OpenAI / Qwen 之一,自动排序")在屏幕上可发现,而非靠试错。8 个语言新增 `onboarding.*` i18n 键;新增 `.onboarding-warn`/`.onboarding-ok` CSS。**`test: tests/onboarding-key-banner.test.mjs`**(新增,9 个用例,CI 隔离):`selectActiveProvider` 语义;`GET /api/status/providers` 进程内(临时端口 + 临时 `CAREER_OPS_ROOT` `.env`,绝不读取真实父密钥 —— CLAUDE.md #2/#8);静态 SPA 接线 + `onboarding.*` ×8 覆盖。764 → 773。`feat(onboarding)` · `test: tests/onboarding-key-banner.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.55.2] — 2026-05-18
 
 **fix(cv):为 `#/cv` markdown 编辑器赋予描述性、自包含的可访问名称(F-V55-H / UX-5)。** `#/cv` 主编辑器 `<textarea id="cv-editor">` 现在通过新键 `cv.editorAria` 携带描述性 `aria-label` —— *"CV Markdown 编辑器 —— 你的 markdown 格式专业简历"* —— 取代它从可见的"Markdown"区段标题继承的简略名称。注:与 F-V55-H 症状(仅检查 `aria-label`/`labels`)相反,该字段**并非**无名 —— v1.47.0(WS2 #16)早已通过 `aria-labelledby` → `<h3 id="cv-md-heading">Markdown</h3>` 绑定,故屏幕阅读器播报"Markdown,编辑,多行"。v1.55.2 将该简略"Markdown"升级为自包含标签。冗余的 `aria-labelledby` 被移除(否则即死标记 —— 按 ARIA 优先级 `aria-label` 胜出);可见的 `<h3>Markdown</h3>` 为视力正常用户保留。WCAG 1.3.1 + 4.1.2;与 v1.54.5 batch-tsv 修复(F-V54-C)平行。**`test: tests/cv-editor-a11y.test.mjs`**(新增,3 个用例,CI 隔离,如 `auto-stepper-prerender.test.mjs` 的源静态):`#cv-editor` 通过 `t('cv.editorAria', …)` 自命名且回退非空;`cv.editorAria` 在全部 8 个语言存在且非空;元素上无冗余 `aria-labelledby`。761 → 764。`fix(cv)` · `test: tests/cv-editor-a11y.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。

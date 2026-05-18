@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.3] — 2026-05-19
+
+**feat(onboarding): 画面上の 4 プロバイダ OR ステータス — コールドスタート・バナー + アクティブ・プロバイダ・チップ(UX-2、HIGH)。** 新しい読み取り専用エンドポイント **`GET /api/status/providers`** → `{ activeProvider, activeModel, keysConfigured }`。`keysConfigured` は `llm.mjs` のゲートと同じ実効 env ビュー(process.env ∨ 親 `.env`);`activeProvider` は OR ルーターが実際に選ぶもの — `env-config.mjs` の新しい純粋ヘルパー `selectActiveProvider()` が `providerOrder()` を走査(キーのない `LLM_PROVIDER` ピンは `null`)。秘密は返さない — プロバイダ名 + モデル id のみ。SPA シェルがグローバルなオンボーディング領域(`#onboarding-banner`、`app.js` が描画、CSP 安全な DOM のみ)を表示:**0 キー → 赤いバナー** + `#/config?tab=api-keys` への CTA;**≥1 キー → 控えめなチップ** にアクティブなプロバイダ+モデル。看板の差別化要因(「Anthropic / Gemini / OpenAI / Qwen のいずれかが自動順で動く」)を試行錯誤ではなく画面上で発見可能にする。8 ロケールの `onboarding.*` i18n キー;新しい `.onboarding-warn`/`.onboarding-ok` CSS。**`test: tests/onboarding-key-banner.test.mjs`**(新規、9 ケース、CI 隔離):`selectActiveProvider` の意味論;`GET /api/status/providers` のインプロセス(エフェメラルポート + 一時 `CAREER_OPS_ROOT` `.env` で実際の親キーを決して読まない — CLAUDE.md #2/#8);静的 SPA 配線 + `onboarding.*` ×8 カバレッジ。764 → 773。`feat(onboarding)` · `test: tests/onboarding-key-banner.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.55.2] — 2026-05-18
 
 **fix(cv): `#/cv` マークダウンエディタに記述的で自己完結したアクセシブル名を付与(F-V55-H / UX-5)。** `#/cv` の主エディタ `<textarea id="cv-editor">` は今や新キー `cv.editorAria` 経由で記述的な `aria-label` — *"CV マークダウンエディタ — マークダウン形式のプロフェッショナル履歴書"* — を持ち、可視の「Markdown」セクション見出しから継いでいた簡素な名前を置き換える。注:F-V55-H の症状(`aria-label`/`labels` のみ検査)と異なり、このフィールドは名前が**無かったわけではない** — v1.47.0(WS2 #16)が既に `aria-labelledby` → `<h3 id="cv-md-heading">Markdown</h3>` で結び付けており、スクリーンリーダーは「Markdown、編集、複数行」と読み上げていた。v1.55.2 はその簡素な「Markdown」を自己完結ラベルへ改善する。冗長な `aria-labelledby` は削除(残れば死んだマークアップ — ARIA 優先順位で `aria-label` が勝つ);可視の `<h3>Markdown</h3>` は晴眼ユーザー向けに残る。WCAG 1.3.1 + 4.1.2;v1.54.5 の batch-tsv 修正(F-V54-C)と並行。**`test: tests/cv-editor-a11y.test.mjs`**(新規、3 ケース、CI 隔離、`auto-stepper-prerender.test.mjs` 流のソース静的):`#cv-editor` は空でないフォールバックと共に `t('cv.editorAria', …)` で自己命名;`cv.editorAria` は 8 ロケール全てに存在し空でない;要素に冗長な `aria-labelledby` なし。761 → 764。`fix(cv)` · `test: tests/cv-editor-a11y.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

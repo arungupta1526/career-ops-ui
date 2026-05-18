@@ -22,6 +22,9 @@ import {
   safeListReports,
   checkProfileCustomized,
 } from '../store.mjs';
+import { effectiveEnv, selectActiveProvider } from '../env-config.mjs';
+import { hasAnthropicKey, hasGeminiKey } from '../anthropic.mjs';
+import { hasOpenAIKey, hasQwenKey } from '../openai.mjs';
 
 export function registerHealthRoutes(app) {
   app.get('/api/health', async (_req, res) => {
@@ -87,6 +90,30 @@ export function registerHealthRoutes(app) {
     const ok = checks.filter((c) => c.required).every((c) => c.ok);
     const warnings = checks.filter((c) => !c.required && !c.ok).length;
     res.json({ ok, warnings, version, parentVersion, checks });
+  });
+
+  // v1.55.3 (UX-2) — surface the 4-provider OR contract to the SPA so
+  // a cold-start user learns the ⚡-live key requirement on screen,
+  // not by trial. keysConfigured uses the same effective-env view as
+  // the llm.mjs gate sites (process.env ∨ parent .env); activeProvider
+  // is what the OR-router would actually pick (honors LLM_PROVIDER).
+  // Read-only, no secrets returned — only provider names + model id.
+  app.get('/api/status/providers', (_req, res) => {
+    const keysConfigured = [
+      ['anthropic', hasAnthropicKey()],
+      ['gemini', hasGeminiKey()],
+      ['openai', hasOpenAIKey()],
+      ['qwen', hasQwenKey()],
+    ].filter(([, set]) => set).map(([p]) => p);
+    const activeProvider = selectActiveProvider(keysConfigured);
+    const MODEL_KEY = {
+      anthropic: 'ANTHROPIC_MODEL', gemini: 'GEMINI_MODEL',
+      openai: 'OPENAI_MODEL', qwen: 'QWEN_MODEL',
+    };
+    const activeModel = activeProvider
+      ? (effectiveEnv(MODEL_KEY[activeProvider], PATHS.envFile) || null)
+      : null;
+    res.json({ activeProvider, activeModel, keysConfigured });
   });
 
   app.get('/api/dashboard', (_req, res) => {

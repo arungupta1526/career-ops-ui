@@ -60,6 +60,20 @@ export function providerOrder(env = process.env) {
 }
 
 /**
+ * v1.55.3 (UX-2) — given the list of providers whose key is set,
+ * return the one the OR-router would actually use: the first entry of
+ * providerOrder(env) that is in `keysConfigured`, else null. Pure (no
+ * I/O) so the /api/status/providers endpoint and its test share one
+ * source of truth with the llm.mjs gate sites. An explicit
+ * LLM_PROVIDER pin with no matching key correctly yields null (mirrors
+ * the manual-prompt fall-through).
+ */
+export function selectActiveProvider(keysConfigured, env = process.env) {
+  const set = new Set(keysConfigured || []);
+  return providerOrder(env).find((p) => set.has(p)) || null;
+}
+
+/**
  * Group classification for the SPA config view (F-013). v1.19.0 collapsed
  * to two groups: `core` (LLM keys) and `runtime` (PORT/HOST). The
  * previous "regional" group (only HH_USER_AGENT) was removed — the

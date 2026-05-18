@@ -819,6 +819,33 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
 .conn-banner[hidden] { display: none; }
 .conn-banner .btn-dark { background: rgba(0,0,0,.4); border: none; }
 .conn-banner .btn-dark:hover { background: rgba(0,0,0,.6); }
+
+/* v1.55.3 (UX-2) — 4-provider OR onboarding. .onboarding-warn is the
+   loud cold-start banner (0 keys); .onboarding-ok is a quiet
+   provider chip (≥1 key). */
+#onboarding-banner[hidden] { display: none; }
+#onboarding-banner.onboarding-warn {
+  position: sticky;
+  top: 0;
+  z-index: 49;
+  background: var(--rausch);
+  color: #fff;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+  font-weight: 500;
+}
+#onboarding-banner.onboarding-warn .btn-dark { background: rgba(0,0,0,.4); border: none; }
+#onboarding-banner.onboarding-warn .btn-dark:hover { background: rgba(0,0,0,.6); }
+#onboarding-banner.onboarding-ok {
+  padding: 6px 24px;
+  font-size: 12px;
+  color: var(--foggy);
+  background: var(--bg-subtle, rgba(0,0,0,.03));
+  border-bottom: 1px solid var(--border, rgba(0,0,0,.08));
+}
 /* v1.22.0 (M-3) — WCAG 1.4.1 redundant cue. The banner used to rely
  * on the red `--rausch` background alone to signal "server down".
  * The leading ⚠ glyph gives a non-color signal that works for users

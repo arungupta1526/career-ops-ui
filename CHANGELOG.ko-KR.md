@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.3] — 2026-05-19
+
+**feat(onboarding): 화면상 4-제공자 OR 상태 — 콜드 스타트 배너 + 활성 제공자 칩 (UX-2, HIGH).** 새 읽기 전용 엔드포인트 **`GET /api/status/providers`** → `{ activeProvider, activeModel, keysConfigured }`. `keysConfigured` 는 `llm.mjs` 게이트와 동일한 effective-env 뷰(process.env ∨ 부모 `.env`); `activeProvider` 는 OR-라우터가 실제로 고를 값 — `env-config.mjs` 의 새 순수 헬퍼 `selectActiveProvider()` 가 `providerOrder()` 를 순회(키 없는 `LLM_PROVIDER` 핀은 `null`). 비밀은 반환 안 함 — 제공자 이름 + 모델 id 만. SPA 셸이 전역 온보딩 영역(`#onboarding-banner`, `app.js` 가 채움, CSP 안전 DOM)을 렌더: **0 키 → 빨간 배너** + `#/config?tab=api-keys` CTA; **≥1 키 → 은은한 칩** 활성 제공자+모델. 대표 차별점("Anthropic / Gemini / OpenAI / Qwen 중 하나, 자동 순서")을 시행착오 대신 화면에서 발견 가능하게 함. 8개 로케일 `onboarding.*` i18n 키; 새 `.onboarding-warn`/`.onboarding-ok` CSS. **`test: tests/onboarding-key-banner.test.mjs`**(신규, 9 케이스, CI-격리): `selectActiveProvider` 의미; `GET /api/status/providers` 인프로세스(임시 포트 + 임시 `CAREER_OPS_ROOT` `.env` 로 실제 부모 키 비참조 — CLAUDE.md #2/#8); 정적 SPA 배선 + `onboarding.*` ×8 커버리지. 764 → 773. `feat(onboarding)` · `test: tests/onboarding-key-banner.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.55.2] — 2026-05-18
 
 **fix(cv): `#/cv` 마크다운 편집기에 서술적이고 자체 완결된 접근 가능 이름 부여 (F-V55-H / UX-5).** `#/cv` 의 기본 편집기 `<textarea id="cv-editor">` 는 이제 새 `cv.editorAria` 키를 통해 서술적 `aria-label` — *"CV 마크다운 편집기 — 마크다운 형식의 전문 이력서"* — 을 가지며, 보이는 "Markdown" 섹션 제목에서 물려받던 간결한 이름을 대체함. 참고: F-V55-H 증상(`aria-label`/`labels` 만 검사)과 달리 이 필드는 이름이 **없지 않았음** — v1.47.0(WS2 #16)이 이미 `aria-labelledby` → `<h3 id="cv-md-heading">Markdown</h3>` 로 바인딩하여 스크린 리더가 "Markdown, 편집, 여러 줄" 로 안내했음. v1.55.2 는 그 간결한 "Markdown" 을 자체 완결 레이블로 개선함. 중복 `aria-labelledby` 는 제거됨(남으면 죽은 마크업 — ARIA 우선순위상 `aria-label` 이 이김); 보이는 `<h3>Markdown</h3>` 은 비장애 사용자를 위해 유지됨. WCAG 1.3.1 + 4.1.2; v1.54.5 batch-tsv 수정(F-V54-C)과 평행. **`test: tests/cv-editor-a11y.test.mjs`**(신규, 3 케이스, CI-격리, `auto-stepper-prerender.test.mjs` 식 소스-정적): `#cv-editor` 는 비어있지 않은 폴백과 함께 `t('cv.editorAria', …)` 로 자신을 명명; `cv.editorAria` 는 8개 로케일 전부에 존재하고 비어있지 않음; 요소에 중복 `aria-labelledby` 없음. 761 → 764. `fix(cv)` · `test: tests/cv-editor-a11y.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

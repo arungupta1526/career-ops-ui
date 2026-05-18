@@ -6,6 +6,22 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.55.3] — 2026-05-19
+
+**feat(onboarding): on-screen 4-provider OR status — cold-start banner + active-provider chip (UX-2, HIGH).**
+
+### ✨ Features
+
+- New read-only endpoint **`GET /api/status/providers`** → `{ activeProvider, activeModel, keysConfigured }`. `keysConfigured` uses the same effective-env view as the `llm.mjs` gate sites (process.env ∨ parent `.env`, via `hasAnthropicKey/hasGeminiKey/hasOpenAIKey/hasQwenKey`); `activeProvider` is what the OR-router would actually pick — `selectActiveProvider()`, a new pure helper in `env-config.mjs` that walks `providerOrder()` (so an `LLM_PROVIDER` pin with no matching key correctly yields `null`). No secrets are returned — only provider names + the model id.
+- The SPA shell now renders a global onboarding region (`#onboarding-banner`, populated by `app.js` from that endpoint, CSP-safe DOM only): **0 keys → a red banner** "No LLM key set — '⚡ Run live' is in manual-prompt mode…" with a CTA deep-linking to `#/config?tab=api-keys`; **≥1 key → a subtle chip** naming the active provider + model (e.g. *Live eval: OpenAI (gpt-5-codex)*). It re-evaluates on locale change and when the user navigates away from the config tab (keys may have just been saved). This makes the product's headline differentiator — "one of Anthropic / Gemini / OpenAI / Qwen works, auto-ordered" — discoverable on screen instead of learned by trial.
+- New i18n keys `onboarding.noKey.title`, `onboarding.noKey.cta`, `onboarding.activeProvider` across all 8 locales; new `.onboarding-warn` / `.onboarding-ok` CSS (token-based, mirrors `.conn-banner`).
+
+### 🧪 Tests
+
+- **`test: tests/onboarding-key-banner.test.mjs`** (new, 9 cases, CI-isolated): `selectActiveProvider` auto-order / none / `LLM_PROVIDER`-pin semantics; `GET /api/status/providers` in-process (ephemeral port + temp `CAREER_OPS_ROOT` `.env` so the real parent key is never read — CLAUDE.md #2/#8) for 0-key, 1-key+model, and Anthropic-over-Gemini auto order; static SPA wiring (banner host, endpoint fetch, `#/config?tab=api-keys` CTA) + `onboarding.*` ×8 locale coverage. 764 → 773.
+
+---
+
 ## [1.55.2] — 2026-05-18
 
 **fix(cv): give the `#/cv` markdown editor a descriptive, self-contained accessible name (F-V55-H / UX-5).**
