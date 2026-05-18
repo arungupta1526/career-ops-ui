@@ -92,7 +92,21 @@ export function createApp() {
   // covers both API and asset routes (asset GETs are filtered out).
   app.use(activityMiddleware);
 
-  app.use(express.static(PUBLIC_DIR));
+  // W-001 (v1.54.7, regression run) — the SPA loads `api.js` /
+  // `router.js` / views via plain `<script src>` with no version
+  // query string, so after a deploy a browser could serve a cached
+  // old bundle for hours → stale-cache 404s on query-string routes
+  // (observed live during the v1.29.2 regression). No build step =
+  // no content hashing, so the robust fix is to make the HTML +
+  // code/style assets always-revalidate. Other static assets (fonts,
+  // images, favicon) keep express.static's default caching.
+  app.use(express.static(PUBLIC_DIR, {
+    setHeaders: (res, filePath) => {
+      if (/\.(?:js|mjs|css|html)$/i.test(filePath)) {
+        res.setHeader('Cache-Control', 'no-store');
+      }
+    },
+  }));
 
   // --- Route modules (P-2 phase 2 split) ---
   // Each topic lives in server/lib/routes/<topic>.mjs and exports
@@ -114,7 +128,12 @@ export function createApp() {
   // ───────────────────────────── Catch-all → SPA ─────────────────────────────
 
   app.get('/api/*', (_req, res) => res.status(404).json({ error: 'unknown api' }));
-  app.get('*', (_req, res) => res.sendFile('index.html', { root: PUBLIC_DIR }));
+  app.get('*', (_req, res) => {
+    // W-001 — the SPA shell must always revalidate (it references the
+    // un-hashed code assets); sendFile bypasses the static setHeaders.
+    res.setHeader('Cache-Control', 'no-store');
+    res.sendFile('index.html', { root: PUBLIC_DIR });
+  });
 
   // ─────────── Global error handler (F-019) ───────────
   // Express's body parsers (express.json / express.raw / multer-like) throw

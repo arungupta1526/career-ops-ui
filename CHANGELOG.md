@@ -6,6 +6,20 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.54.7] — 2026-05-18
+
+**fix: W-001 — code/style assets + SPA shell served `Cache-Control: no-store` (deploy-hygiene).**
+
+### 🐛 Fixes
+
+- The SPA loads `api.js` / `router.js` / every view via plain `<script src>` with no version query string, and there is no build step (no content hashing), so after a deploy a browser could keep serving a **cached old bundle for hours** → stale-cache 404s on query-string routes (observed live during the v1.29.2 regression; regression run W-001). `server/index.mjs` now sets `Cache-Control: no-store` on `.js` / `.mjs` / `.css` / `.html` via the `express.static` `setHeaders` hook, and explicitly on the SPA-shell catch-all (which uses `sendFile` and bypasses `setHeaders`), so the browser always revalidates the code that drives routing. Non-code static assets keep `express.static`'s default caching. Security headers (CSP / nosniff / frame-deny / referrer-policy) are unchanged — verified by the existing `security-headers` suite (8 cases) running green alongside the new test.
+
+### 🧪 Tests
+
+- **`test: tests/asset-cache-control.test.mjs`** — 4 cases (JS assets `no-store`, CSS `no-store`, static `index.html` `no-store`, SPA catch-all deep-route shell `no-store`), booting the real app against an isolated `CAREER_OPS_ROOT`. Plus a flaky-teardown fix in `tests/playwright-smoke.mjs` (separate `test(e2e)` commit): the auto-pipeline SSE smoke test now cancels the reader + aborts the fetch in a `finally` and the `after` hook force-closes lingering sockets, eliminating the post-teardown "Error: aborted" that reddened the v1.54.6 Playwright e2e job. 738 → 742.
+
+---
+
 ## [1.54.6] — 2026-05-18
 
 **fix(a11y): S-7 — `#/help` back-to-top button carries the canonical `back-to-top` selector class.**

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.7] — 2026-05-18
+
+**fix: W-001 — 코드/스타일 자산 + SPA 셸이 `Cache-Control: no-store` 로 제공됨(배포 위생).** SPA는 `api.js` / `router.js` / 모든 뷰를 버전 쿼리 스트링 없는 평범한 `<script src>` 로 로드하며 빌드 단계가 없음(콘텐츠 해싱 없음). 그래서 배포 후 브라우저가 **캐시된 옛 번들을 몇 시간 동안 계속 제공**할 수 있었음 → 쿼리 스트링 라우트에서 stale-cache 404(v1.29.2 회귀 중 라이브 관찰됨; 회귀 런 W-001). `server/index.mjs` 가 이제 `express.static` 의 `setHeaders` 훅을 통해 `.js` / `.mjs` / `.css` / `.html` 에 `Cache-Control: no-store` 를 설정하고, SPA 셸 catch-all(`sendFile` 을 사용해 `setHeaders` 를 우회함)에도 명시적으로 설정하여, 브라우저가 라우팅을 구동하는 코드를 항상 재검증하도록 함. 비코드 정적 자산은 `express.static` 의 기본 캐싱을 유지함. 보안 헤더(CSP / nosniff / frame-deny / referrer-policy)는 변경 없음 — 기존 `security-headers` 스위트(8 케이스)가 새 테스트와 함께 그린으로 실행되어 검증됨. 테스트 파일 `tests/asset-cache-control.test.mjs` +1 — 4 케이스(JS 자산 `no-store`, CSS `no-store`, 정적 `index.html` `no-store`, SPA catch-all 딥 라우트 셸 `no-store`), 격리된 `CAREER_OPS_ROOT` 에 대해 실제 앱을 부팅함. 더해 `tests/playwright-smoke.mjs` 의 플레이키 teardown 수정(별도 `test(e2e)` 커밋): 자동 파이프라인 SSE 스모크 테스트가 이제 `finally` 에서 리더를 취소 + fetch 를 중단하고 `after` 훅이 잔존 소켓을 강제로 닫아, v1.54.6 Playwright e2e 잡을 붉게 만들던 teardown 이후 "Error: aborted" 를 제거함. 738 → 742. `fix` · `test: tests/asset-cache-control.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.54.6] — 2026-05-18
 
 **fix(a11y): S-7 — `#/help` 의 back-to-top 버튼이 정규 선택자 클래스 `back-to-top` 를 가짐.** `#/help` 의 플로팅 back-to-top 버튼은 올바르게 작동했으나(라이브 검증됨) 그 클래스 목록(`btn btn-primary help-back-top`)이 spec §2 #28 테스트가 겨냥하는 `.back-to-top` 선택자 컨벤션 밖에 있었음 — 더 엄격한 선택자였다면 플레이키했을 것(회귀 런 S-7, "쉬운 승리"). 이제 버튼은 정규 `back-to-top` 클래스도 가짐. 순수 가산적이며 CSS no-op: `help-back-top`(기존 CSS 훅)은 변경 없고 `back-to-top` 에는 CSS 규칙이 없음 — 안정적인 테스트/자동화 핸들일 뿐. 라이브 검증됨: `document.querySelector('.back-to-top')` 가 버튼을 해석, `aria-label` 유지, 콘솔 오류 0. `tests/help-nav-a11y.test.mjs` 의 기존 #12 케이스를 back-to-top 버튼의 클래스 목록이 정규 `back-to-top` 선택자를 포함한다는 어서션으로 확장(새 파일 없음). `fix(a11y)` · `test: tests/help-nav-a11y.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

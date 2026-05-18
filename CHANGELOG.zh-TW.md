@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.7] — 2026-05-18
+
+**fix: W-001 — 程式碼/樣式資源 + SPA 外殼以 `Cache-Control: no-store` 提供(部署衛生)。** SPA 透過不帶版本查詢字串的純 `<script src>` 載入 `api.js` / `router.js` / 每個視圖,且沒有建置步驟(無內容雜湊),因此部署後瀏覽器可能**繼續提供快取的舊 bundle 達數小時** —— 在查詢字串路由上出現 stale-cache 404(於 v1.29.2 回歸期間線上觀察到;回歸執行 W-001)。`server/index.mjs` 現在透過 `express.static` 的 `setHeaders` 掛鉤在 `.js` / `.mjs` / `.css` / `.html` 上設定 `Cache-Control: no-store`,並在 SPA 外殼 catch-all(它使用 `sendFile` 並繞過 `setHeaders`)上明確設定,使瀏覽器始終重新驗證驅動路由的程式碼。非程式碼靜態資源保留 `express.static` 的預設快取。安全標頭(CSP / nosniff / frame-deny / referrer-policy)不變 —— 由既有的 `security-headers` 套件(8 個案例)與新測試並行跑綠驗證。新增 1 個測試檔 `tests/asset-cache-control.test.mjs` —— 4 個案例(JS 資源 `no-store`、CSS `no-store`、靜態 `index.html` `no-store`、SPA catch-all 深層路由外殼 `no-store`),針對隔離的 `CAREER_OPS_ROOT` 啟動真實應用。另加 `tests/playwright-smoke.mjs` 中的 flaky teardown 修復(單獨的 `test(e2e)` 提交):auto-pipeline 的 SSE 冒煙測試現在於 `finally` 中取消 reader + 中止 fetch,且 `after` 掛鉤強制關閉殘留 socket,消除了使 v1.54.6 Playwright e2e 作業變紅的 teardown 後 "Error: aborted"。738 → 742。`fix` · `test: tests/asset-cache-control.test.mjs`。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.54.6] — 2026-05-18
 
 **fix(a11y): S-7 — `#/help` 的 back-to-top 按鈕攜帶規範選擇器類別 `back-to-top`。** `#/help` 的浮動 back-to-top 按鈕運作正常(已線上驗證),但其類別清單(`btn btn-primary help-back-top`)位於 spec §2 #28 測試所瞄準的 `.back-to-top` 選擇器慣例之外 —— 收緊後的選擇器本會出現 flaky(回歸執行 S-7,「輕鬆取勝」)。該按鈕現在也攜帶規範的 `back-to-top` 類別。純粹增量且為 CSS no-op:`help-back-top`(既有的 CSS 掛鉤)未變,而 `back-to-top` 沒有 CSS 規則 —— 它只是一個穩定的測試/自動化控柄。已線上驗證:`document.querySelector('.back-to-top')` 解析到該按鈕,`aria-label` 完整,0 主控台錯誤。於 `tests/help-nav-a11y.test.mjs` 中擴展了既有的 #12 案例,新增一條斷言:back-to-top 按鈕的類別清單包含規範的 `back-to-top` 選擇器(無新檔)。`fix(a11y)` · `test: tests/help-nav-a11y.test.mjs`。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

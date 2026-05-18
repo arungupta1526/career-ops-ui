@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.7] — 2026-05-18
+
+**fix: W-001 — コード/スタイルのアセット + SPA シェルが `Cache-Control: no-store` で配信されていた(デプロイ衛生)。** SPA は `api.js` / `router.js` / 各ビューをバージョンクエリ文字列なしの素の `<script src>` でロードし、ビルドステップがない(コンテンツハッシュなし)ため、デプロイ後にブラウザが**キャッシュされた古いバンドルを数時間配信し続ける**ことがあった → クエリ文字列ルートで stale-cache 404(v1.29.2 回帰中にライブ観測;回帰ラン W-001)。`server/index.mjs` は今や `express.static` の `setHeaders` フック経由で `.js` / `.mjs` / `.css` / `.html` に `Cache-Control: no-store` を設定し、SPA シェルの catch-all(`sendFile` を使い `setHeaders` を回避する)にも明示的に設定するため、ブラウザはルーティングを駆動するコードを常に再検証する。非コードの静的アセットは `express.static` のデフォルトキャッシングを維持する。セキュリティヘッダー(CSP / nosniff / frame-deny / referrer-policy)は不変 — 既存の `security-headers` スイート(8 ケース)が新テストと並んでグリーンで実行され検証済み。テストファイル `tests/asset-cache-control.test.mjs` を +1 — 4 ケース(JS アセット `no-store`、CSS `no-store`、静的 `index.html` `no-store`、SPA catch-all のディープルートシェル `no-store`)、隔離された `CAREER_OPS_ROOT` に対して実アプリをブート。さらに `tests/playwright-smoke.mjs` のフレーキーな teardown 修正(別の `test(e2e)` コミット):auto-pipeline の SSE スモークテストが今や `finally` でリーダーをキャンセル + fetch を中断し、`after` フックが残存ソケットを強制クローズして、v1.54.6 の Playwright e2e ジョブを赤くしていた teardown 後の "Error: aborted" を排除。738 → 742。`fix` · `test: tests/asset-cache-control.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.54.6] — 2026-05-18
 
 **fix(a11y): S-7 — `#/help` の back-to-top ボタンが正規のセレクタークラス `back-to-top` を持つ。** `#/help` のフローティング back-to-top ボタンは正しく動作していたが(ライブ検証済み)、そのクラスリスト(`btn btn-primary help-back-top`)は spec §2 #28 テストが狙う `.back-to-top` セレクター規約の外にあった — より厳格なセレクターならフレーキーだったはず(回帰ラン S-7、"イージーウィン")。ボタンは今や正規の `back-to-top` クラスも持つ。純粋に加算的で CSS no-op:`help-back-top`(既存の CSS フック)は変わらず、`back-to-top` には CSS ルールがない — 安定したテスト/自動化ハンドルにすぎない。ライブ検証済み:`document.querySelector('.back-to-top')` がボタンを解決、`aria-label` 維持、コンソールエラー 0。`tests/help-nav-a11y.test.mjs` の既存 #12 ケースを、back-to-top ボタンのクラスリストが正規 `back-to-top` セレクターを含むというアサーションで拡張(新ファイルなし)。`fix(a11y)` · `test: tests/help-nav-a11y.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
