@@ -115,3 +115,18 @@ test('every help-bundle keeps the 17-H2 parity contract after v1.29.1 edit', () 
   }
   assert.equal(baseline, 17, `expected 17 H2 sections, got ${baseline}`);
 });
+
+test('WS10: every help-bundle has identical H3 parity (en + 7 locales)', () => {
+  // The CI parity gate historically checked only H2, so en.md drifted
+  // to 70 H3 while the 7 locales stayed at 68 (§17 missed "Reference
+  // adapters" + "Common pitfalls"). WS10 (v1.54.0) closed that and this
+  // locks H3 parity so a future en-only ### addition can't silently
+  // diverge the localized bundles again.
+  let baseline = null;
+  for (const lang of LOCALES) {
+    const h3 = readHelp(lang).split('\n').filter((l) => l.startsWith('### ')).length;
+    if (baseline === null) baseline = h3;
+    assert.equal(h3, baseline, `${lang}.md has ${h3} H3 subsections, expected ${baseline}`);
+  }
+  assert.equal(baseline, 70, `expected 70 H3 subsections per bundle, got ${baseline}`);
+});

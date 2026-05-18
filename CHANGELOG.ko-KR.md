@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.0] — 2026-05-18
+
+**WS10 — canonical-docs 재검증 + help 번들 H3 패리티(최종 수렴 릴리스).** CHANGELOG/구조 CI 게이트가 H2만 검사했기에 `docs/help/en.md`는 조용히 70개 H3 하위 섹션으로 표류한 반면 7개 로컬라이즈 번들은 68에 머물렀음 — 격차는 §17(「Reference adapters」 테이블 + 「Common pitfalls」 목록, 영어 전용). 둘 다 이제 7개 언어 모두로 번역됨(어댑터 파일명 / 링크 / 식별자는 바이트 동일하게 유지); 8개 번들 모두 이제 17 H2 / 70 H3. `help-ru-config-section.test.mjs`의 새로운 H3 패리티 게이트가 이를 잠금(716 → 717). `canonical-docs-coverage.test.mjs` 7/7이 help가 여전히 `career-ops.org/docs`의 5개 가이드를 모두 반영함을 확인; WS2의 UX 감사(v1.41→v1.52의 40건)가 각 화면을 docs와 대조 — 괴리 없음. `docs/sdd/CONVENTIONS.md`를 v1.54.0으로 갱신(테스트 합계, H3 패리티 게이트, 파일 크기 이상치, 새 접근성 규약 섹션). WS0–WS10 완료; WS11만 남음. `fix(docs): WS10 canonical re-validation + H3 parity` · `test(help): H3-parity gate`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.53.0] — 2026-05-18
 
 **WS9 — 셸 표면 테스트 피라미드(마지막 미테스트 계층).** 4개의 `bin/*.sh` 스크립트와 `.githooks/pre-commit` 훅은 커버리지가 **제로**였음; 새로운 `tests/sh-files.test.mjs`가 10개 케이스를 추가해 `bash -n`/`sh -n` 구문, shebang + 실행 비트, 그리고 다른 워크스트림이 의존하는 동작 계약을 고정함: `career-ops-ui.sh` — `help`는 0으로 종료하며 shell-source 누출이 없음(v1.40.0 회귀 가드), 알 수 없는 verb는 2로 종료, `usage()`는 heredoc임; `start.sh` — `NO_OPEN` 존중, Node ≥ 18 요구, 브라우저 띄우기를 `scripts/open-dashboard.mjs`에 위임(v1.43.0 가드); `setup.sh` — strict 모드, `SKIP_START`, 두 저장소 클론; `run_all.sh` — `--quick`/`--no-e2e` 파싱과 4개 스위트; `.githooks/pre-commit`은 WS7 리뷰어를 exec하고 **어떤 셸 파일도 `git --no-verify`를 호출하지 않음**(CLAUDE.md 하드 룰 #7 가드); `install-hooks.mjs`가 `core.hooksPath`를 배선함. `docs/architecture/TESTING.md` — 피라미드 다이어그램에 셸 표면 베이스 계층 추가 + v1.53.0 합계 노트(716개 `node --test` 케이스 / 90개 파일 + 4개 E2E 표면). 706 → 716. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

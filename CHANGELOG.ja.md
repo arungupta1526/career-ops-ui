@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.0] — 2026-05-18
+
+**WS10 — canonical-docs 再検証 + help バンドルの H3 パリティ(最終の収束リリース)。** CHANGELOG/構造の CI ゲートは H2 しか検査していなかったため、`docs/help/en.md` は静かに 70 個の H3 サブセクションへ漂流した一方、7 つのローカライズ済みバンドルは 68 のままだった — ギャップは §17(「Reference adapters」テーブル + 「Common pitfalls」リスト、英語のみ)。両方が今や 7 言語すべてに翻訳され(アダプタのファイル名 / リンク / 識別子はバイト同一に保持);8 バンドルすべてが今 17 H2 / 70 H3。`help-ru-config-section.test.mjs` の新しい H3 パリティゲートがこれをロックする(716 → 717)。`canonical-docs-coverage.test.mjs` 7/7 が、help が依然として `career-ops.org/docs` の 5 ガイドすべてを反映していることを確認;WS2 の UX 監査(v1.41→v1.52 の 40 件)が各画面を docs と照合 — 乖離なし。`docs/sdd/CONVENTIONS.md` を v1.54.0 に更新(テスト合計、H3 パリティゲート、ファイルサイズの外れ値、新しいアクセシビリティ規約セクション)。WS0–WS10 完了;残るは WS11 のみ。`fix(docs): WS10 canonical re-validation + H3 parity` · `test(help): H3-parity gate`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.53.0] — 2026-05-18
 
 **WS9 — シェル表面のテストピラミッド(最後の未テスト層)。** 4 つの `bin/*.sh` スクリプトと `.githooks/pre-commit` フックはカバレッジが**ゼロ**だった;新しい `tests/sh-files.test.mjs` が 10 件を追加し、`bash -n`/`sh -n` 構文、shebang + 実行ビット、そして他のワークストリームが依存する振る舞いの契約を固定する:`career-ops-ui.sh` — `help` は 0 で終了し shell-source の漏れがない(v1.40.0 リグレッションガード)、未知の verb は 2 で終了、`usage()` は heredoc;`start.sh` — `NO_OPEN` を尊重、Node ≥ 18 を要求、ブラウザの前面化を `scripts/open-dashboard.mjs` に委譲(v1.43.0 ガード);`setup.sh` — strict モード、`SKIP_START`、両リポジトリを clone;`run_all.sh` — `--quick`/`--no-e2e` のパースと 4 スイート;`.githooks/pre-commit` は WS7 のレビュアを exec し、**いかなるシェルファイルも `git --no-verify` を呼ばない**(CLAUDE.md ハードルール #7 ガード);`install-hooks.mjs` が `core.hooksPath` を配線する。`docs/architecture/TESTING.md` — ピラミッド図にシェル表面のベース層を追加 + v1.53.0 の合計ノート(716 `node --test` ケース / 90 ファイル + 4 E2E サーフェス)。706 → 716。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

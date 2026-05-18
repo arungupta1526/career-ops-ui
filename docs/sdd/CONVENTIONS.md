@@ -16,11 +16,12 @@
 | 400 – 800 lines | Add `// TODO: split by concern` at top; split at next opportunity. |
 | > 800 lines | Split before merging the PR. |
 
-Current outliers (as of v1.30.0):
+Current outliers (as of **v1.54.0**, post WS2 UX-audit + WS9):
 
 - `server/index.mjs` (~174 LOC after **P-2 phase 2** in v1.9.0). Pure orchestrator — middleware + `register*Routes(app)` calls + SPA catch-all. New routes go into `server/lib/routes/<topic>.mjs` exporting `register<Topic>Routes(app)`. Currently 14 route modules: `activity`, `auto-pipeline`, `batch`, `config`, `content`, `health`, `help`, `jds`, `llm`, `pipeline`, `reports`, `runners`, `scan`, `tracker`.
-- `public/js/views/scan.js` (~670 LOC after v1.29.0 dynamic-dropdown + v1.30.0 paginator). Past the 400-LOC soft target. Flagged for split: extract Active Companies card → `views/scan/active-companies.js`, source-filter logic → `views/scan/source-filter.js`. Touch with caution; this is the most user-facing view.
-- `public/css/app.css` (~958 LOC). Past 800-LOC hard target — split before the next CSS-heavy feature lands. Candidate split: paginator styles → `views/paginator.css`, sidebar styles → `views/sidebar.css`.
+- `public/js/views/scan.js` (~750 LOC; grew with WS2 #5/#6/#21/#24 SSE-a11y — `role=log` console, Stop button, run-state, error banner). Past the 400-LOC soft target. Flagged for split: extract Active Companies card → `views/scan/active-companies.js`, source-filter logic → `views/scan/source-filter.js`. Touch with caution; this is the most user-facing view.
+- `public/js/views/config.js` (~740 LOC; WS1 field-forms + WS2 #2 portals deep-link + #3 WAI-ARIA tabs + #4 confirm-gates). Past the 400-LOC soft target — same split candidates as before (Profile/Modes panels).
+- `public/css/app.css` (~975 LOC). Past 800-LOC hard target — split before the next CSS-heavy feature lands. Candidate split: paginator styles → `views/paginator.css`, sidebar styles → `views/sidebar.css`.
 
 ## Naming
 
@@ -101,7 +102,8 @@ Route reviewers (`web-ui-route-reviewer` agent) flag every miss.
 - Real network is **forbidden** in tests (CI-isolation contract). Source adapters take a `fetchImpl` opt that defaults to `globalThis.fetch`; tests inject a mock that returns canned responses. Safe-fetch supports the same via `_setTransport()`.
 - Long-running tests (E2E): keep them under `tests/e2e*.mjs` / `tests/playwright-*.mjs`, not in the default `npm test` matcher. `npm run test:e2e:browser` drives them.
 - CI gates (run via `npm run test:ci`): unit + acceptance + `scripts/check-no-also-leftovers.mjs` (no `.also(` patterns leaking into views) + `scripts/check-changelog-parity.mjs` (all 8 locales at the same version).
-- Current count as of v1.30.0: **567** unit + acceptance tests, **32** Playwright. Run `npm run test:coverage` for the V8 coverage report.
+- Current count as of **v1.53.0**: **716** `node --test` cases across 90 files (unit + functional + acceptance) + 4 Playwright/E2E surfaces + the shell-surface tier (`tests/sh-files.test.mjs` — `bin/*.sh` + `.githooks` + `install-hooks` wiring, WS9). Run `npm run test:coverage` for the V8 report; see `docs/architecture/TESTING.md` for the 4-tier pyramid.
+- The CHANGELOG-parity gate enforces H2 across all 8 help bundles; `tests/help-ru-config-section.test.mjs` additionally locks **H3 parity** (70 per bundle) since WS10 (v1.54.0) — an en-only H3 addition can no longer silently diverge the localized bundles.
 
 ## LLM provider selection (v1.39.0, WS8.2)
 
@@ -146,6 +148,38 @@ Do NOT add speculative keys for providers the parent doesn't wire.
 - `AI_REVIEW=off git commit …` skips ONLY the AI layer; the floor
   always runs. Never `--no-verify` (CLAUDE.md hard rule #7) — fix the
   cause. CI still runs the full `npm run test:ci` gate regardless.
+
+## Accessibility (WS2 UX-audit, v1.41–v1.52)
+
+A senior UX audit (`.planning/.../UX-AUDIT.md`, 40 findings) shipped one
+fix per release v1.41→v1.52. The patterns it established are now
+conventions — match them in new views:
+
+- **SPA route focus.** `router.js` `focusNewView()` moves focus to the
+  new view's `h1`/`.page-title` on every hashchange (WCAG 2.4.3). New
+  views just need a single `.page-title` `<h1>`.
+- **Destructive actions** go through the focus-trapped `UI.confirm(title,
+  msg, {danger, confirmLabel, cancelLabel})` (`api.js`) — **never**
+  native `confirm()`. It returns `Promise<boolean>`; Esc/backdrop/×/
+  Cancel all resolve `false` via the `_onClose` hook; focus defaults to
+  Cancel.
+- **Tabs** use the full WAI-ARIA pattern: `role=tablist` container with
+  `aria-label`, each tab `role=tab`+`aria-selected`+`aria-controls`+
+  roving `tabindex`, panel `role=tabpanel`+`aria-labelledby`, ←/→/Home/
+  End keyboard nav (see `config.js`).
+- **SSE / streaming** output: `role=log aria-live=polite` for the stream,
+  plus a visually-hidden `role=status aria-live=assertive` for terminal
+  events; a Stop control that closes the `EventSource`; `aria-busy` on
+  the trigger; a persistent `role=alert` error banner with Retry (see
+  `scan.js`).
+- **Every form control** has a programmatic name: explicit
+  `label[htmlFor]`↔`control[id]`, or `aria-labelledby` to a visible
+  heading. Tables: `<th scope="col">`, sortable headers as buttons with
+  `aria-sort`. Mouse-only handlers get `role`+`tabindex`+keydown.
+- **Long async relabels** (button text changing under the user) are
+  announced via a polite `role=status` region.
+- Every user-facing string is i18n-keyed across all 8 locales (the
+  `i18n-coverage` gate enforces it); icons on peer CTAs are consistent.
 
 ## Commits
 

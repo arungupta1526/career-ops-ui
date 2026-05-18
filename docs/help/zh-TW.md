@@ -1456,3 +1456,32 @@ russian_portals:
 在瀏覽器中重新載入 `#/scan`。來源篩選下拉框會自動取得新條目(單一事實來源:`GET /api/scan/sources` → `registry.mjs`)。
 
 **完整程式碼範例(HTML 抓取 adapter、常見陷阱、參考 adapter 表)請參閱本節英文版 [docs/help/en.md §17](https://github.com/Fighter90/career-ops-ui/blob/main/docs/help/en.md#17-how-to-add-a-new-job-portal-source)。**
+
+### 參考 adapter(新來源請鏡像這些)
+
+| adapter 檔案 | 類型 | 說明 |
+|---|---|---|
+| [`hh.mjs`](../../server/lib/sources/hh.mjs) | JSON API | 標準 RU API adapter;地理感知 UA 回退。 |
+| [`trudvsem.mjs`](../../server/lib/sources/trudvsem.mjs) | JSON API | 俄羅斯政府開放資料;無 IP 閘門。 |
+| [`habr.mjs`](../../server/lib/sources/habr.mjs) | HTML 抓取 | 俄羅斯技術板;基於正規表示式的卡片解析器。 |
+| [`getmatch.mjs`](../../server/lib/sources/getmatch.mjs) | HTML 抓取 | 防禦式解析器,解析失敗時回傳 `[]`。 |
+| [`geekjob.mjs`](../../server/lib/sources/geekjob.mjs) | HTML 抓取 | 與 GetMatch 相同的防禦式風格。 |
+| [`greenhouse.mjs`](../../server/lib/sources/greenhouse.mjs) | JSON API | 標準 EN ATS adapter;使用 `tracked_companies` URL 模式。 |
+
+### 常見陷阱
+
+- **`source` 欄位不匹配。** 你的 adapter 寫入的字串必須
+  與 `registry.mjs` 中的 `value` 完全一致。一旦漂移,
+  `#/scan` 篩選下拉框會顯示該來源,但選取它會
+  濾掉每一列(因為相等性檢查是 `r.source === fs`)。
+- **解析失敗時拋出例外。** HTML 抓取器在解析不出卡片的
+  健康 200 時必須回傳 `[]`。拋出例外會破壞多來源
+  dispatcher 迴圈 —— 一個糟糕的 HTML 結構會害死同一查詢的
+  其他所有來源。
+- **遺漏 `fetchImpl` / `signal`。** 沒有它們,你的 adapter
+  無法在不存取真實網路的情況下做單元測試,用戶端
+  斷線也不會傳播(使用者關閉分頁後背景
+  fetch 仍然存活)。
+- **為 RU 信任 `tracked_companies`。** 該清單僅用於 EN ATS
+  來源。RU adapter 改為從
+  `russian_portals.queries` 自驅動 —— 沒有按公司的條目。

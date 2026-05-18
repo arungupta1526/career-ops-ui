@@ -1601,3 +1601,32 @@ russian_portals:
 Recarga `#/scan` en el navegador. El dropdown del filtro de fuente recoge la nueva entrada automáticamente (única fuente de verdad vía `GET /api/scan/sources` → `registry.mjs`).
 
 **Para el ejemplo de código completo (adapter HTML-scrape, pitfalls comunes, tabla de adapters de referencia), consulta la versión inglesa de esta sección en [docs/help/en.md §17](https://github.com/Fighter90/career-ops-ui/blob/main/docs/help/en.md#17-how-to-add-a-new-job-portal-source).**
+
+### Adapters de referencia (úsalos como espejo para nuevas fuentes)
+
+| Archivo del adapter | Tipo | Notas |
+|---|---|---|
+| [`hh.mjs`](../../server/lib/sources/hh.mjs) | JSON API | Adapter de API RU canónico; fallback de UA según geo. |
+| [`trudvsem.mjs`](../../server/lib/sources/trudvsem.mjs) | JSON API | Open-data del gobierno ruso; sin barrera de IP. |
+| [`habr.mjs`](../../server/lib/sources/habr.mjs) | HTML scrape | Tablón tech ruso; parser de tarjetas basado en regex. |
+| [`getmatch.mjs`](../../server/lib/sources/getmatch.mjs) | HTML scrape | Parser defensivo, `[]` si falla el parseo. |
+| [`geekjob.mjs`](../../server/lib/sources/geekjob.mjs) | HTML scrape | Mismo estilo defensivo que GetMatch. |
+| [`greenhouse.mjs`](../../server/lib/sources/greenhouse.mjs) | JSON API | Adapter ATS EN canónico; usa el patrón de URL `tracked_companies`. |
+
+### Pitfalls comunes
+
+- **Desajuste del campo `source`.** El string que escribe tu adapter DEBE
+  coincidir exactamente con el `value` en `registry.mjs`. Si se desincronizan, el
+  dropdown del filtro de `#/scan` mostrará la fuente pero al seleccionarla
+  filtrará todas las filas (porque la comprobación de igualdad es `r.source === fs`).
+- **Lanzar excepción al fallar el parseo.** Los scrapers HTML DEBEN devolver `[]` ante un
+  200 sano sin tarjetas parseables. Lanzar excepción rompe el bucle del
+  dispatcher multi-fuente — una estructura HTML mala mata todas las demás fuentes para
+  la misma consulta.
+- **Olvidar `fetchImpl` / `signal`.** Sin ellos, tu adapter
+  no puede probarse en unit tests sin tocar la red real, y las desconexiones del
+  cliente no se propagan (el fetch en background sigue vivo después de que el
+  usuario cierra la pestaña).
+- **Confiar en `tracked_companies` para RU.** Esa lista es sólo para fuentes
+  ATS EN. Los adapters RU se autoabastecen desde
+  `russian_portals.queries` — sin entradas por empresa.

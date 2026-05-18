@@ -1573,3 +1573,32 @@ russian_portals:
 ブラウザで `#/scan` をリロードしてください。ソースフィルタのドロップダウンは新エントリを自動取得します(`GET /api/scan/sources` → `registry.mjs` が単一情報源)。
 
 **完全なコード例(HTML スクレイプアダプタ、よくある落とし穴、参照アダプタ表)は、本セクションの英語版 [docs/help/en.md §17](https://github.com/Fighter90/career-ops-ui/blob/main/docs/help/en.md#17-how-to-add-a-new-job-portal-source) を参照してください。**
+
+### 参照アダプタ(新ソースはこれらをミラーする)
+
+| アダプタファイル | 種別 | 備考 |
+|---|---|---|
+| [`hh.mjs`](../../server/lib/sources/hh.mjs) | JSON API | 標準 RU API アダプタ。ジオ対応 UA フォールバック。 |
+| [`trudvsem.mjs`](../../server/lib/sources/trudvsem.mjs) | JSON API | ロシア政府オープンデータ。IP ゲートなし。 |
+| [`habr.mjs`](../../server/lib/sources/habr.mjs) | HTML スクレイプ | ロシアの技術系掲示板。正規表現ベースのカードパーサ。 |
+| [`getmatch.mjs`](../../server/lib/sources/getmatch.mjs) | HTML スクレイプ | 防御的パーサ。パース失敗時は `[]`。 |
+| [`geekjob.mjs`](../../server/lib/sources/geekjob.mjs) | HTML スクレイプ | GetMatch と同じ防御的スタイル。 |
+| [`greenhouse.mjs`](../../server/lib/sources/greenhouse.mjs) | JSON API | 標準 EN ATS アダプタ。`tracked_companies` URL パターンを使用。 |
+
+### よくある落とし穴
+
+- **`source` フィールドの不一致。** アダプタが書き込む文字列は
+  `registry.mjs` の `value` と完全に一致しなければなりません。ずれると、
+  `#/scan` のフィルタドロップダウンにはソースが表示されますが、選択すると
+  すべての行が除外されます(等価チェックが `r.source === fs` のため)。
+- **パース失敗時に例外を投げる。** HTML スクレイパは、カードをパースできない
+  健全な 200 では `[]` を返さなければなりません。例外を投げるとマルチソース
+  ディスパッチャのループが壊れ — 一つの不正な HTML 構造が、同じクエリの
+  他のすべてのソースを巻き添えにします。
+- **`fetchImpl` / `signal` の忘れ。** これらがないと、アダプタは
+  実ネットワークに触れずにユニットテストできず、クライアントの
+  切断も伝播しません(ユーザがタブを閉じてもバックグラウンドの
+  フェッチが生き続けます)。
+- **RU で `tracked_companies` を当てにする。** このリストは EN ATS
+  ソース専用です。RU アダプタは代わりに
+  `russian_portals.queries` から自走します — 企業ごとのエントリはありません。

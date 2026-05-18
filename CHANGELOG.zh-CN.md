@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.0] — 2026-05-18
+
+**WS10 —— canonical-docs 再验证 + help 包 H3 对等(最终收敛版本)。** CHANGELOG/结构 CI 闸门只检查 H2,因此 `docs/help/en.md` 已悄然漂移至 70 个 H3 子节,而 7 个本地化包仍停在 68 —— 差距在 §17(「Reference adapters」表 + 「Common pitfalls」列表,仅英文)。两者现已译入全部 7 种语言(适配器文件名 / 链接 / 标识符保持逐字节一致);8 个包现均为 17 H2 / 70 H3。`help-ru-config-section.test.mjs` 中新的 H3 对等闸门锁定之(716 → 717)。`canonical-docs-coverage.test.mjs` 7/7 确认 help 仍镜像 `career-ops.org/docs` 的全部 5 篇指南;WS2 的 UX 审计(v1.41→v1.52 的 40 项)对每个屏幕与 docs 进行校验 —— 无背离。`docs/sdd/CONVENTIONS.md` 更新至 v1.54.0(测试合计、H3 对等闸门、文件尺寸离群项、新增无障碍约定章节)。WS0–WS10 完成;仅余 WS11。`fix(docs): WS10 canonical re-validation + H3 parity` · `test(help): H3-parity gate`。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.53.0] — 2026-05-18
 
 **WS9 —— shell 表面测试金字塔(最后一个未测层)。** 4 个 `bin/*.sh` 脚本与 `.githooks/pre-commit` 钩子此前覆盖率为**零**;新增的 `tests/sh-files.test.mjs` 加入 10 个用例,锁定 `bash -n`/`sh -n` 语法、shebang + 可执行位,以及其他 workstream 所依赖的行为契约:`career-ops-ui.sh` —— `help` 以 0 退出且无 shell-source 泄漏(v1.40.0 回归守卫),未知 verb 以 2 退出,`usage()` 为 heredoc;`start.sh` —— 尊重 `NO_OPEN`、要求 Node ≥ 18,并将浏览器前置委托给 `scripts/open-dashboard.mjs`(v1.43.0 守卫);`setup.sh` —— 严格模式、`SKIP_START`、克隆两个仓库;`run_all.sh` —— `--quick`/`--no-e2e` 解析与 4 个套件;`.githooks/pre-commit` exec WS7 评审器,且**没有任何 shell 文件调用 `git --no-verify`**(CLAUDE.md 硬规则 #7 守卫);`install-hooks.mjs` 接线 `core.hooksPath`。`docs/architecture/TESTING.md` —— 在金字塔图中加入 shell 表面基础层 + v1.53.0 合计注记(716 个 `node --test` 用例 / 90 个文件 + 4 个 E2E 表面)。706 → 716。详见 [`CHANGELOG.md`](CHANGELOG.md)。

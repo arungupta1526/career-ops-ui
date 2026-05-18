@@ -6,6 +6,40 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.54.0] — 2026-05-18
+
+**WS10 — canonical-docs re-validation + help-bundle H3 parity (final convergence release).**
+
+The absolute-last workstream: re-validate the SPA against the 5
+canonical `career-ops.org/docs` guides + the parent project, close the
+last structural doc-divergence, and refresh the SDD spec — shipped as
+its own release per the WS10 mandate.
+
+### 🐛 Fixes
+
+- **`fix(docs): help-bundle H3 parity — en=70 vs locales=68`** — the CHANGELOG/structure CI gate only checked **H2**, so `docs/help/en.md` had silently drifted to 70 `### ` subsections while all 7 localized bundles stayed at 68. The gap was §17 ("How to add a new job-portal source"): the **"Reference adapters"** table + **"Common pitfalls"** list had been added to en only. Both are now translated into es/ja/ko-KR/pt-BR/ru/zh-CN/zh-TW (adapter filenames, relative links, `registry.mjs`, `r.source === fs`, `fetchImpl`/`signal`, `tracked_companies` kept byte-identical). All 8 bundles: **17 H2 / 70 H3**.
+
+### 🧪 Tests
+
+- **`test(help): H3-parity gate`** — `help-ru-config-section.test.mjs` now also asserts every bundle (en + 7) has an identical H3 count (70), not just H2. An en-only `###` addition can no longer silently diverge the localized bundles. 716 → 717.
+
+### 📝 Documentation
+
+- **Canonical re-validation:** `tests/canonical-docs-coverage.test.mjs` (7/7) confirms the help bundles still mirror all 5 canonical guides — *what-is-career-ops*, *scan-job-portals*, *apply-for-a-job*, *batch-evaluate-offers*, *set-up-playwright* — and the WS2 UX-audit (40 findings, every screen Playwright-verified across v1.41→v1.52) validated every screen against documented behaviour. No divergence found.
+- **`docs/sdd/CONVENTIONS.md`** refreshed to v1.54.0 reality: test totals (716 `node --test` + 4 E2E + shell-surface tier), the new H3-parity gate, updated file-size outliers (scan/config grew with WS2), and a new **Accessibility** section codifying the WS2 patterns (focus-trapped `UI.confirm`, WAI-ARIA tabs, SSE live-regions, label binding, sortable-table `aria-sort`, async-relabel announce) as standing conventions.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 717 / 717 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.54.0
+# help bundles: all 8 → 17 H2 / 70 H3 · canonical-docs-coverage 7/7
+```
+
+> WS0–WS10 complete. Only WS11 (qa/ actualization + final QA prompt) remains.
+
+---
+
 ## [1.53.0] — 2026-05-18
 
 **WS9 — shell-surface test pyramid (the last untested layer).**

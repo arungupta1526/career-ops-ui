@@ -1531,3 +1531,32 @@ russian_portals:
 브라우저에서 `#/scan`을 새로 고치세요. 소스 필터 드롭다운이 새 항목을 자동으로 인식합니다(단일 진실 공급원: `GET /api/scan/sources` → `registry.mjs`).
 
 **전체 코드 예시(HTML 스크레이프 어댑터, 일반적인 함정, 참조 어댑터 테이블)는 이 섹션의 영문 버전 [docs/help/en.md §17](https://github.com/Fighter90/career-ops-ui/blob/main/docs/help/en.md#17-how-to-add-a-new-job-portal-source)을 참조하세요.**
+
+### 참조 어댑터 (새 소스는 이것들을 미러링하세요)
+
+| 어댑터 파일 | 유형 | 비고 |
+|---|---|---|
+| [`hh.mjs`](../../server/lib/sources/hh.mjs) | JSON API | 표준 RU API 어댑터; 지오 인식 UA 폴백. |
+| [`trudvsem.mjs`](../../server/lib/sources/trudvsem.mjs) | JSON API | 러시아 정부 오픈 데이터; IP 게이트 없음. |
+| [`habr.mjs`](../../server/lib/sources/habr.mjs) | HTML 스크레이프 | 러시아 기술 게시판; 정규식 기반 카드 파서. |
+| [`getmatch.mjs`](../../server/lib/sources/getmatch.mjs) | HTML 스크레이프 | 방어적 파서, 파싱 실패 시 `[]`. |
+| [`geekjob.mjs`](../../server/lib/sources/geekjob.mjs) | HTML 스크레이프 | GetMatch와 동일한 방어적 스타일. |
+| [`greenhouse.mjs`](../../server/lib/sources/greenhouse.mjs) | JSON API | 표준 EN ATS 어댑터; `tracked_companies` URL 패턴 사용. |
+
+### 일반적인 함정
+
+- **`source` 필드 불일치.** 어댑터가 기록하는 문자열은
+  `registry.mjs`의 `value`와 정확히 일치해야 합니다. 둘이 어긋나면,
+  `#/scan` 필터 드롭다운에는 소스가 표시되지만 선택하면
+  모든 행이 걸러집니다(동등성 검사가 `r.source === fs`이기 때문).
+- **파싱 실패 시 예외 던지기.** HTML 스크레이퍼는 파싱 가능한 카드가 없는
+  정상 200에서 `[]`를 반환해야 합니다. 예외를 던지면 멀티 소스
+  디스패처 루프가 깨집니다 — 잘못된 HTML 구조 하나가 같은 쿼리의
+  다른 모든 소스를 죽입니다.
+- **`fetchImpl` / `signal` 빠뜨리기.** 이것들이 없으면 어댑터는
+  실제 네트워크에 접속하지 않고는 유닛 테스트할 수 없으며, 클라이언트
+  연결 해제도 전파되지 않습니다(사용자가 탭을 닫아도 백그라운드
+  페치가 살아 있습니다).
+- **RU에 `tracked_companies` 의존.** 그 목록은 EN ATS
+  소스 전용입니다. RU 어댑터는 대신
+  `russian_portals.queries`에서 스스로 구동합니다 — 회사별 항목 없음.
