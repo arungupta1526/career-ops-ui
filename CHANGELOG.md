@@ -6,6 +6,22 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.55.8] — 2026-05-19
+
+**feat(tracker): server-side pagination + clickable funnel chips (UX-8).**
+
+### ✨ Features
+
+- **Server:** `GET /api/tracker` gains **optional** `?page` / `?pageSize` / `?status` query params. With none, the response is byte-for-byte the legacy `{ rows: [...] }` (every existing caller/test untouched). With them, it returns `{ rows: slice, total, page, pageSize, funnel }` — `pageSize` clamped to `[1,500]`, `page` clamped to `≥1`, `status` filters `rows`+`total`, and `funnel` is the **whole-history** status→count breakdown (independent of the page or status filter, so the UI chips are always accurate).
+- **`#/tracker`:** a new clickable **funnel summary chip bar** at the top — *"all statuses · N · Applied · N · Interview · N · Offer · N · Rejected · N …"* (ordered Applied → Responded → Interview → Offer → Rejected → Discarded → Evaluated → SKIP). Clicking a chip sets the Status filter (clicking the active chip clears it); the active chip is `aria-pressed` and visually highlighted. The pipeline state is now legible at a glance instead of buried behind a dropdown. Feedback/forms lens.
+- New i18n key `track.funnelAria` ×8 locales; new token-based `.tracker-funnel` / `.tracker-chip` / `.tracker-chip--active` CSS.
+
+### 🧪 Tests
+
+- **`test: tests/tracker-server-paged.test.mjs`** (new, 7 cases, CI-isolated, in-process Express on an ephemeral port + temp `CAREER_OPS_ROOT` applications.md fixture — CLAUDE.md #2/#8): back-compat (no params ⇒ exactly `{rows}`, no envelope leak); `?page&pageSize` slice + `total`+`page`+`pageSize`+full `funnel` summing to N; last partial page with no overlap; out-of-range page ⇒ empty rows + valid total; `?status=` filters total/rows while funnel stays whole-history; `pageSize` cap; plus a source-static lock on the `.tracker-funnel` chip bar (toggle-on-reclick, `aria-pressed`, `track.funnelAria` ×8, CSS). 793 → 800.
+
+---
+
 ## [1.55.7] — 2026-05-19
 
 **feat(pipeline): vanilla-JS row virtualization at >1000 rows (UX-7).**

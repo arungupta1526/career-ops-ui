@@ -559,6 +559,31 @@ body.sidebar-open .sidebar-backdrop { display: block; }
 .scan-advanced > summary::before { content: '⚙ '; }
 .scan-advanced[open] > summary { font-weight: 600; }
 
+/* v1.55.8 — UX-8: #/tracker clickable funnel summary chips. */
+.tracker-funnel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.tracker-chip {
+  font: inherit;
+  font-size: 13px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border, rgba(0,0,0,.12));
+  background: var(--bg-subtle, rgba(0,0,0,.03));
+  color: var(--hof);
+  cursor: pointer;
+}
+.tracker-chip:hover { border-color: var(--rausch); }
+.tracker-chip--active {
+  background: var(--rausch);
+  color: #fff;
+  border-color: var(--rausch-dark);
+  font-weight: 600;
+}
+
 .metric-card {
   display: flex;
   flex-direction: column;

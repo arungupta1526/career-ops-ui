@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.8] — 2026-05-19
+
+**feat(tracker): サーバーサイド・ページネーション + クリック可能なファネルチップ(UX-8)。** **サーバー:** `GET /api/tracker` に**任意**の `?page` / `?pageSize` / `?status` クエリパラメータを追加。無しなら応答は従来の `{ rows: [...] }` とバイト単位で同一(既存の呼び出し元/テストは無影響)。有りなら `{ rows: slice, total, page, pageSize, funnel }` を返す — `pageSize` は `[1,500]`、`page` は `≥1` にクランプ、`status` は `rows`+`total` をフィルタ、`funnel` は**全履歴**のステータス→件数内訳(ページ/フィルタに依存しないのでチップが常に正確)。**`#/tracker`:** 上部に新しい**クリック可能なファネルチップバー** — *「すべてのステータス · N · Applied · N · Interview · N …」*(順序 Applied → Responded → Interview → Offer → Rejected → Discarded → Evaluated → SKIP)。チップのクリックで Status フィルタを設定(アクティブなチップの再クリックで解除);アクティブチップは `aria-pressed` + ハイライト。8 ロケールの新 i18n キー `track.funnelAria`;新しい `.tracker-funnel`/`.tracker-chip`/`.tracker-chip--active` CSS。**`test: tests/tracker-server-paged.test.mjs`**(新規、7 ケース、CI 隔離、エフェメラルポートのインプロセス Express + 一時 `CAREER_OPS_ROOT` applications.md — CLAUDE.md #2/#8):back-compat(パラメータ無しで厳密に `{rows}`);`?page&pageSize` スライス + total/page/pageSize/funnel 合計 N;最後の部分ページで重複なし;範囲外ページ ⇒ 空 rows + 有効 total;`?status=` が total/rows をフィルタしつつ funnel は全履歴;pageSize キャップ;+ チップバーのソース静的ロック。793 → 800。`feat(tracker)` · `test: tests/tracker-server-paged.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.55.7] — 2026-05-19
 
 **feat(pipeline): >1000 行で vanilla-JS の行仮想化(UX-7)。** `#/pipeline` は**全**行を描画(`filtered.forEach(list.appendChild(urlRow))`)していた — スキャンはキューを数千の URL で満たすため、数千の行ノード(各々 flex div + `<a>` + ボタン 2 個)がフィルターのキー入力ごとに同期構築され、DOM とアクセシビリティツリーを溢れさせた。新しい **vanilla-JS 仮想化**(react-window 相当、依存なし):`VIRTUALIZE_THRESHOLD = 1000` 超で `#/pipeline` は固定高(`70vh`)のスクロールビューポートになり、縮まないスペーサー(`flex:0 0 auto`、`height = 行数 × 56px`)が**リスト全体の実スクロールバー**を保ち、rAF スロットルのスクロールリスナーがビューポート ± 5 行バッファのみ描画(一度に N ではなく ~16–19 ノード)。閾値以下では元の単純描画を**バイト単位で維持**するため、典型的なパイプラインと既存テスト/e2e は影響なし。各仮想化行は URL で曖昧性を解消した ▶/✕ `aria-label` を維持(F-V54-B 回帰ロック)。ウィンドウ計算は純粋な `computeWindow()` ヘルパー。**`test: tests/pipeline-virtualize.test.mjs`**(新規、5 ケース、CI 隔離、ソース静的):~1000 の数値閾値;≤閾値分岐は `forEach`→`appendChild` 維持;>閾値分岐は rAF スクロールリスナー + スペーサーで `slice(start,end)` 描画;`computeWindow()` が `[0,total]` ± バッファでクランプ;行が ▶/✕ aria-label 維持。788 → 793。ライブ Playwright プローブ(1200-URL フィクスチャ):`scrollHeight≈67248`、DOM に ~16–19 ノードのみ、ウィンドウがスクロールを端から端まで追従、コンソールエラー 0。`feat(pipeline)` · `test: tests/pipeline-virtualize.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

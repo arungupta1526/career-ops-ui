@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.8] — 2026-05-19
+
+**feat(tracker): 서버 사이드 페이지네이션 + 클릭 가능한 퍼널 칩 (UX-8).** **서버:** `GET /api/tracker` 가 **선택적** `?page` / `?pageSize` / `?status` 쿼리 파라미터를 가짐. 없으면 응답은 기존 `{ rows: [...] }` 와 바이트 단위로 동일(모든 기존 호출자/테스트 무영향). 있으면 `{ rows: slice, total, page, pageSize, funnel }` 반환 — `pageSize` 는 `[1,500]`, `page` 는 `≥1` 로 클램프, `status` 는 `rows`+`total` 필터, `funnel` 은 **전체 이력**의 상태→개수 분포(페이지/필터와 무관하므로 칩이 항상 정확). **`#/tracker`:** 상단에 새 **클릭 가능한 퍼널 칩 바** — *"모든 상태 · N · Applied · N · Interview · N …"*(순서 Applied → Responded → Interview → Offer → Rejected → Discarded → Evaluated → SKIP). 칩 클릭은 Status 필터 설정(활성 칩 재클릭 시 해제); 활성 칩은 `aria-pressed` + 하이라이트. 8개 로케일 새 i18n 키 `track.funnelAria`; 새 `.tracker-funnel`/`.tracker-chip`/`.tracker-chip--active` CSS. **`test: tests/tracker-server-paged.test.mjs`**(신규, 7 케이스, CI-격리, 임시 포트 인프로세스 Express + 임시 `CAREER_OPS_ROOT` applications.md — CLAUDE.md #2/#8): back-compat(파라미터 없으면 정확히 `{rows}`); `?page&pageSize` 슬라이스 + total/page/pageSize/funnel 합 N; 마지막 부분 페이지 비중복; 범위 밖 페이지 ⇒ 빈 rows + 유효 total; `?status=` 가 total/rows 필터하되 funnel 은 전체 이력; pageSize 캡; + 칩 바 소스-정적 잠금. 793 → 800. `feat(tracker)` · `test: tests/tracker-server-paged.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.55.7] — 2026-05-19
 
 **feat(pipeline): >1000행에서 vanilla-JS 행 가상화 (UX-7).** `#/pipeline` 은 **모든** 행을 렌더(`filtered.forEach(list.appendChild(urlRow))`)했음 — 스캔은 큐를 수천 개 URL로 채우므로 수천 개 행 노드(각각 flex div + `<a>` + 버튼 2개)가 필터 키 입력마다 동기적으로 생성되어 DOM 과 접근성 트리를 폭주시켰음. 새 **vanilla-JS 가상화**(react-window 등가, 의존성 없음): `VIRTUALIZE_THRESHOLD = 1000` 초과 시 `#/pipeline` 은 고정 높이(`70vh`) 스크롤 뷰포트가 되고, 줄어들지 않는 스페이서(`flex:0 0 auto`, `height = 행수 × 56px`)가 **전체 목록의 실제 스크롤바**를 보존하며, rAF 스로틀 스크롤 리스너가 뷰포트 ± 5행 버퍼만 렌더(한 번에 N개가 아니라 ~16–19 노드). 임계값 이하에서는 기존 단순 렌더를 **바이트 단위로 유지**하므로 일반 파이프라인과 기존 테스트/e2e 가 영향 없음. 각 가상화 행은 URL 로 구분된 ▶/✕ `aria-label` 유지(F-V54-B 회귀 잠금). 윈도우 계산은 순수 `computeWindow()` 헬퍼. **`test: tests/pipeline-virtualize.test.mjs`**(신규, 5 케이스, CI-격리, 소스-정적): ~1000 수치 임계값; ≤임계 분기는 `forEach`→`appendChild` 유지; >임계 분기는 rAF 스크롤 리스너 + 스페이서로 `slice(start,end)` 렌더; `computeWindow()` 가 `[0,total]` ± 버퍼 클램프; 행이 ▶/✕ aria-label 유지. 788 → 793. 라이브 Playwright 프로브(1200-URL 픽스처): `scrollHeight≈67248`, DOM 에 ~16–19 노드만, 윈도우가 스크롤을 끝까지 추적, 콘솔 에러 0. `feat(pipeline)` · `test: tests/pipeline-virtualize.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

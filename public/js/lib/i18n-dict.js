@@ -629,6 +629,7 @@ window.__I18N_DICT = {
   // Tracker
   'track.title':    { en: 'Application tracker', es: 'Tracker de aplicaciones', 'pt-BR': 'Tracker de aplicações', ko: '지원 트래커', ja: '応募トラッカー', ru: 'Трекер заявок', 'zh-CN': '申请跟踪器', 'zh-TW': '申請追蹤器' },
   'track.allStatus':{ en: 'all statuses', es: 'todos los estados', 'pt-BR': 'todos status', ko: '모든 상태', ja: 'すべてのステータス', ru: 'все статусы', 'zh-CN': '所有状态', 'zh-TW': '所有狀態' },
+  'track.funnelAria': { en: 'Filter by status', es: 'Filtrar por estado', 'pt-BR': 'Filtrar por status', ko: '상태로 필터', ja: 'ステータスでフィルター', ru: 'Фильтр по статусу', 'zh-CN': '按状态筛选', 'zh-TW': '依狀態篩選' },
   'track.anyScore': { en: 'any score', es: 'cualquier score', 'pt-BR': 'qualquer score', ko: '모든 점수', ja: '任意のスコア', ru: 'любой score', 'zh-CN': '任意分数', 'zh-TW': '任意分數' },
   'track.search':   { en: 'Search by company / role…', es: 'Buscar por empresa / rol…', 'pt-BR': 'Buscar por empresa / vaga…', ko: '회사/직무로 검색…', ja: '会社/役割で検索…', ru: 'Поиск по компании / роли…', 'zh-CN': '按公司/职位搜索…', 'zh-TW': '依公司/職位搜尋…' },
 

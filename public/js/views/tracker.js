@@ -17,6 +17,45 @@ Router.register('tracker', async () => {
   ]);
   const filterText = c('input', { className: 'input', placeholder: t('track.search') });
 
+  // v1.55.8 — UX-8: a clickable funnel summary at the top so the
+  // pipeline state is legible at a glance ("12 Applied · 5 Interview
+  // · 2 Offer …"). Counts are the whole-history breakdown (mirrors
+  // the server `funnel` from GET /api/tracker?page=). Clicking a chip
+  // sets the Status filter (clicking the active one clears it).
+  const funnelBar = c('div', {
+    className: 'tracker-funnel',
+    role: 'group',
+    'aria-label': t('track.funnelAria', 'Filter by status'),
+  });
+  const FUNNEL_ORDER = ['Applied', 'Responded', 'Interview', 'Offer', 'Rejected', 'Discarded', 'Evaluated', 'SKIP'];
+  function renderFunnel() {
+    funnelBar.textContent = '';
+    const counts = {};
+    for (const r of rows) {
+      const s = (r && r.status) || '—';
+      counts[s] = (counts[s] || 0) + 1;
+    }
+    const chip = (label, value, n, active) => {
+      const b = c('button', {
+        className: 'tracker-chip' + (active ? ' tracker-chip--active' : ''),
+        'aria-pressed': active ? 'true' : 'false',
+        onClick: () => {
+          filterStatus.value = (filterStatus.value === value) ? '' : value;
+          pager.reset();
+          applyFilters();
+        },
+      }, `${label} · ${n}`);
+      return b;
+    };
+    funnelBar.appendChild(chip(t('track.allStatus', 'All'), '', rows.length, !filterStatus.value));
+    Object.keys(counts)
+      .sort((a, b) => {
+        const ia = FUNNEL_ORDER.indexOf(a); const ib = FUNNEL_ORDER.indexOf(b);
+        return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+      })
+      .forEach((s) => funnelBar.appendChild(chip(s, s, counts[s], filterStatus.value === s)));
+  }
+
   const tbody = c('tbody');
   const pgWrap = c('div'); // paginator container, re-rendered on each filter change
 
@@ -56,6 +95,7 @@ Router.register('tracker', async () => {
   }
 
   function applyFilters() {
+    renderFunnel(); // whole-history chips; reflects the active Status filter
     const all = sorted(filtered());
     const page = pager.slice(all);
     tbody.innerHTML = '';
@@ -152,6 +192,7 @@ Router.register('tracker', async () => {
     ]),
 
     c('div', { className: 'card mb-3' }, [
+      funnelBar,
       c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap' } }, [
         filterStatus, filterScore, filterText,
       ]),

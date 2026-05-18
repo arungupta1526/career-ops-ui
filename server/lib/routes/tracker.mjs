@@ -18,8 +18,31 @@ import { withFileLock } from '../file-lock.mjs';
 const ALLOWED_STATUSES = ['Evaluated', 'Applied', 'Responded', 'Interview', 'Offer', 'Rejected', 'Discarded', 'SKIP'];
 
 export function registerTrackerRoutes(app) {
-  app.get('/api/tracker', (_req, res) => {
-    res.json({ rows: safeReadApps() });
+  // v1.55.8 — UX-8: OPTIONAL server-side pagination + a whole-history
+  // status `funnel`. Back-compat is strict: with NO query params the
+  // response is exactly `{ rows: [...] }` as before (every existing
+  // caller/test unaffected). Pass ?page / ?pageSize (and optionally
+  // ?status) to get `{ rows: slice, total, page, pageSize, funnel }`.
+  // The funnel is computed over the FULL history regardless of the
+  // status filter so the #/tracker chips always show every bucket.
+  app.get('/api/tracker', (req, res) => {
+    const all = safeReadApps();
+    const { page, pageSize, status } = req.query || {};
+    if (page === undefined && pageSize === undefined && status === undefined) {
+      return res.json({ rows: all }); // legacy shape — untouched
+    }
+    const funnel = {};
+    for (const r of all) {
+      const s = (r && r.status) || 'Evaluated';
+      funnel[s] = (funnel[s] || 0) + 1;
+    }
+    const wanted = status ? all.filter((r) => (r && r.status) === status) : all;
+    const total = wanted.length;
+    const ps = Math.min(500, Math.max(1, parseInt(pageSize, 10) || 25));
+    const pg = Math.max(1, parseInt(page, 10) || 1);
+    const start = (pg - 1) * ps;
+    const rows = wanted.slice(start, start + ps);
+    res.json({ rows, total, page: pg, pageSize: ps, funnel });
   });
 
   app.post('/api/tracker', async (req, res) => {

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.8] — 2026-05-19
+
+**feat(tracker):服务端分页 + 可点击的漏斗芯片(UX-8)。** **服务端:**`GET /api/tracker` 新增**可选** `?page` / `?pageSize` / `?status` 查询参数。不带参数时,响应与旧的 `{ rows: [...] }` 逐字节一致(所有现有调用方/测试不受影响)。带参数时返回 `{ rows: slice, total, page, pageSize, funnel }` —— `pageSize` 钳制到 `[1,500]`,`page` 钳制到 `≥1`,`status` 过滤 `rows`+`total`,`funnel` 是**整个历史**的状态→计数细分(与页/过滤无关,故芯片始终准确)。**`#/tracker`:**顶部新增**可点击漏斗芯片栏** —— *“所有状态 · N · Applied · N · Interview · N …”*(顺序 Applied → Responded → Interview → Offer → Rejected → Discarded → Evaluated → SKIP)。点击芯片设置 Status 过滤(再次点击活动芯片则清除);活动芯片为 `aria-pressed` 且高亮。8 个语言新增 i18n 键 `track.funnelAria`;新增 `.tracker-funnel`/`.tracker-chip`/`.tracker-chip--active` CSS。**`test: tests/tracker-server-paged.test.mjs`**(新增,7 个用例,CI 隔离,临时端口进程内 Express + 临时 `CAREER_OPS_ROOT` applications.md —— CLAUDE.md #2/#8):back-compat(无参数 ⇒ 恰为 `{rows}`);`?page&pageSize` 切片 + total/page/pageSize/funnel 合计 N;最后部分页无重叠;越界页 ⇒ 空 rows + 有效 total;`?status=` 过滤 total/rows 而 funnel 为整个历史;pageSize 上限;+ 芯片栏源静态锁定。793 → 800。`feat(tracker)` · `test: tests/tracker-server-paged.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.55.7] — 2026-05-19
 
 **feat(pipeline):>1000 行时的 vanilla-JS 行虚拟化(UX-7)。** `#/pipeline` 此前渲染**每一**行(`filtered.forEach(list.appendChild(urlRow))`)—— 一次扫描会用数千个 URL 填满队列,于是数千个行节点(每个是 flex div + `<a>` + 两个按钮)在每次筛选按键时同步构建,淹没 DOM 与无障碍树。新增 **vanilla-JS 虚拟化**(react-window 等价,无依赖):超过 `VIRTUALIZE_THRESHOLD = 1000` 时 `#/pipeline` 变为固定高度(`70vh`)滚动视口,配一个不可压缩的占位垫(`flex:0 0 auto`,`height = 行数 × 56px`)以保留**整个列表的真实滚动条**,rAF 节流的滚动监听只渲染视口 ± 5 行缓冲(一次约 16–19 个节点而非 N 个)。阈值及以下保持原始简单渲染**逐字节不变**,故典型管道与所有现有测试/e2e 不受影响。每个虚拟化行保留按 URL 区分的 ▶/✕ `aria-label`(F-V54-B 回归锁定)。窗口计算为纯函数 `computeWindow()`。**`test: tests/pipeline-virtualize.test.mjs`**(新增,5 个用例,CI 隔离,源静态):~1000 数值阈值;≤阈值分支保持 `forEach`→`appendChild`;>阈值分支以 rAF 滚动监听 + 占位垫渲染 `slice(start,end)`;`computeWindow()` 在 `[0,total]` ± 缓冲内钳制;行保留 ▶/✕ aria-label。788 → 793。实时 Playwright 探针(1200-URL 夹具):`scrollHeight≈67248`,DOM 中仅约 16–19 个节点,窗口端到端跟随滚动,0 控制台错误。`feat(pipeline)` · `test: tests/pipeline-virtualize.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。
