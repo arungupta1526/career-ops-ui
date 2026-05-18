@@ -8,7 +8,8 @@
 > **Audience.** Claude Code subagents, Cursor / Codex / Aider sessions,
 > any IDE assistant that doesn't auto-load CLAUDE.md.
 >
-> **Repo state.** v1.22.0 (2026-05-14). 474+ unit tests, 32 Playwright,
+> **Repo state.** v1.54.9 (2026-05-18). 747 `node --test` cases across
+> 97 files, 32 Playwright smoke,
 > 7-finding code-review remediation cycle complete.
 
 ---
@@ -31,7 +32,7 @@ data files (`cv.md`, `data/applications.md`, `reports/`,
 
 | Layer | Tech | Where |
 |---|---|---|
-| Server | Node ≥ 18, Express 4, js-yaml, multer | `server/index.mjs` (~130-LOC orchestrator) + `server/lib/routes/*.mjs` (13 modules) |
+| Server | Node ≥ 18, Express 4, js-yaml, multer | `server/index.mjs` (~130-LOC orchestrator) + `server/lib/routes/*.mjs` (14 modules) |
 | Helpers (v1.21+) | ESM, no transpiler | `server/lib/{paths,parsers,runner,security,prompts,store,anthropic,env-config,activity-log,dotenv,safe-fetch,file-lock,rate-limit,en-scanner,ru-scanner}.mjs` + `server/lib/sources/{greenhouse,ashby,lever,workable,smartrecruiters,workday,hh,habr}.mjs` |
 | SPA | Vanilla JS, hash-router | `public/index.html`, `public/js/{app,router,api}.js`, `public/js/views/*.js`, `public/js/lib/{i18n,skills,auto-pipeline,pdf-generate}.js` |
 | Styling | Hand-written CSS + design tokens | `public/css/app.css` |
@@ -39,7 +40,7 @@ data files (`cv.md`, `data/applications.md`, `reports/`,
 | Build | None | Files served as-is from `public/` |
 | CI | GitHub Actions, Node 18/20/22 | `.github/workflows/{ci,release,publish-package,ai-review,dashboard-screenshots}.yml` |
 
-**Test baseline (v1.22.0):** 474/474 unit · 32/32 Playwright · 20/20 smoke E2E · 23/23 comprehensive E2E.
+**Test baseline (v1.54.9):** 747/747 unit · 32/32 Playwright · 20/20 smoke E2E · 23/23 comprehensive E2E.
 
 ---
 
@@ -97,7 +98,7 @@ career-ops-ui/
 │  ├─ setup.sh                                  # bootstrap (clones career-ops + web-ui)
 │  └─ run_all.sh                                # every test surface in one go
 ├─ server/
-│  ├─ index.mjs                                 # orchestrator: middleware + 13 register*Routes(app)
+│  ├─ index.mjs                                 # orchestrator: middleware + 14 register*Routes(app)
 │  └─ lib/
 │     ├─ paths.mjs, parsers.mjs, runner.mjs
 │     ├─ security.mjs                          # isValidJobUrl, sanitizePathName, stripDangerousMarkdown, …
@@ -109,13 +110,13 @@ career-ops-ui/
 │     ├─ en-scanner.mjs, ru-scanner.mjs
 │     ├─ sources/                              # 8 ATS adapter clients
 │     ├─ portals/                              # adapter registry + resolveAdapter()
-│     └─ routes/                               # 13 route modules — one per topic
+│     └─ routes/                               # 14 route modules — one per topic
 ├─ public/
 │  ├─ index.html                               # CSP-locked shell
 │  ├─ css/app.css                              # design tokens, WCAG 2.2 AA + 1.4.1 redundant cues
 │  └─ js/{app,router,api}.js + js/lib/* + js/views/*
 ├─ tests/
-│  ├─ *.test.mjs                               # 474+ unit + integration
+│  ├─ *.test.mjs                               # 747 unit + integration
 │  ├─ playwright-{smoke,full-cycle}.mjs        # 32 browser flows
 │  ├─ e2e{,-comprehensive}.mjs                 # 43 E2E
 │  └─ fixtures/                                # CI-isolated test data
