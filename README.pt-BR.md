@@ -341,6 +341,7 @@ Todos os endpoints estão sob `/api/*`. JSON in / JSON out, salvo indicação em
 | ------ | ------------------------ | --------------------------------------------------------------------------- |
 | GET    | `/api/health`            | `{ ok, warnings, version, parentVersion, checks: [{name, ok, required, value?}] }` |
 | GET    | `/api/dashboard`         | `{ counts, avgScore, byStatus, recent, pipeline, lastReport }`              |
+| GET    | `/api/status/providers`  | `{ activeProvider, activeModel, keysConfigured }` — prontidão de LLM para o banner de onboarding + dica de custo ⚡ (v1.55.3) |
 | GET    | `/api/activity?limit&type` | tail da trilha de auditoria `data/activity.jsonl`                         |
 | GET    | `/api/help/:lang`        | guia do usuário in-app localizado (fallback: `en.md`)                       |
 

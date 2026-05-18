@@ -341,6 +341,7 @@ discuss → spec → plan → execute → verify → review
 | ------ | ------------------------ | --------------------------------------------------------------------------- |
 | GET    | `/api/health`            | `{ ok, warnings, version, parentVersion, checks: [{name, ok, required, value?}] }` |
 | GET    | `/api/dashboard`         | `{ counts, avgScore, byStatus, recent, pipeline, lastReport }`              |
+| GET    | `/api/status/providers`  | `{ activeProvider, activeModel, keysConfigured }` — готовность LLM для онбординг-баннера + ⚡ подсказки стоимости (v1.55.3) |
 | GET    | `/api/activity?limit&type` | хвост аудит-журнала `data/activity.jsonl`                                 |
 | GET    | `/api/help/:lang`        | локализованное руководство в приложении (fallback: `en.md`)                 |
 

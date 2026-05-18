@@ -341,6 +341,7 @@ discuss → spec → plan → execute → verify → review
 | ------ | ------------------------ | ----------------------------------------------------------------------------- |
 | GET    | `/api/health`            | `{ ok, warnings, version, parentVersion, checks: [{name, ok, required, value?}] }` |
 | GET    | `/api/dashboard`         | `{ counts, avgScore, byStatus, recent, pipeline, lastReport }`                |
+| GET    | `/api/status/providers`  | `{ activeProvider, activeModel, keysConfigured }` —— 用于引导横幅 + ⚡ 费用提示的 LLM 就绪状态 (v1.55.3) |
 | GET    | `/api/activity?limit&type` | `data/activity.jsonl` 审计日志尾部                                            |
 | GET    | `/api/help/:lang`        | 本地化的应用内用户手册(回退至 `en.md`)                                      |
 

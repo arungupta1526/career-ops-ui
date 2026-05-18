@@ -341,6 +341,7 @@ discuss → spec → plan → execute → verify → review
 | ------ | ------------------------ | --------------------------------------------------------------------------- |
 | GET    | `/api/health`            | `{ ok, warnings, version, parentVersion, checks: [{name, ok, required, value?}] }` |
 | GET    | `/api/dashboard`         | `{ counts, avgScore, byStatus, recent, pipeline, lastReport }`              |
+| GET    | `/api/status/providers`  | `{ activeProvider, activeModel, keysConfigured }` — 온보딩 배너 + ⚡ 비용 힌트용 LLM 준비 상태 (v1.55.3) |
 | GET    | `/api/activity?limit&type` | `data/activity.jsonl` 감사 추적의 tail                                 |
 | GET    | `/api/help/:lang`        | 현지화된 인앱 사용자 가이드 (폴백: `en.md`)                             |
 

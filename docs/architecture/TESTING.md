@@ -40,8 +40,13 @@ This document explains how the test suite is structured, what each tier guarante
    └──────────────────────────────────────────────────────────────────┘  CLI / hook layer
 ```
 
-> **Totals (v1.55.0):** 757 `node --test` cases across 98 files (Tier 1–3),
-> plus 4 Playwright/E2E surfaces. The shell-surface base was the last
+> **Totals (v1.56.0):** 813 `node --test` cases across 110 files (Tier 1–3),
+> plus 4 Playwright/E2E surfaces. (v1.55.1→v1.56.0 added 12 CI-isolated
+> suites for the consolidated UX fix-prompt: auto-stepper-prerender,
+> cv-editor-a11y, onboarding-key-banner, auto-eta-stop, dashboard-hero,
+> scan-advanced-disclosure, pipeline-virtualize, tracker-server-paged,
+> cv-breadcrumb, run-cost-line, help-toc-autoscroll,
+> dashboard-initial-focus.) The shell-surface base was the last
 > untested layer — `tests/sh-files.test.mjs` (WS9, v1.53.0) added syntax
 > (`bash -n`), shebang/exec-bit, and behavioural-contract coverage for
 > all 4 `bin/*.sh` scripts + the `.githooks/pre-commit` hook + the

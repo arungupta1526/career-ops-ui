@@ -343,6 +343,7 @@ discuss → spec → plan → execute → verify → review
 | ------ | ------------------------ | --------------------------------------------------------------------------- |
 | GET    | `/api/health`            | `{ ok, warnings, version, parentVersion, checks: [{name, ok, required, value?}] }` |
 | GET    | `/api/dashboard`         | `{ counts, avgScore, byStatus, recent, pipeline, lastReport }`              |
+| GET    | `/api/status/providers`  | `{ activeProvider, activeModel, keysConfigured }` — オンボーディングバナー + ⚡ コストヒント用の LLM 準備状況 (v1.55.3) |
 | GET    | `/api/activity?limit&type` | `data/activity.jsonl` 監査証跡の tail                                       |
 | GET    | `/api/help/:lang`        | ローカライズ済みアプリ内ユーザーガイド(フォールバック: `en.md`)            |
 

@@ -334,6 +334,7 @@ All endpoints under `/api/*`. JSON in / JSON out unless noted.
 | ------ | ------------------------ | --------------------------------------------------------------------------- |
 | GET    | `/api/health`            | `{ ok, warnings, version, parentVersion, checks: [{name, ok, required, value?}] }` |
 | GET    | `/api/dashboard`         | `{ counts, avgScore, byStatus, recent, pipeline, lastReport }`              |
+| GET    | `/api/status/providers`  | `{ activeProvider, activeModel, keysConfigured }` — LLM readiness for the onboarding banner + ⚡ cost hint (v1.55.3) |
 | GET    | `/api/activity?limit&type` | tail of `data/activity.jsonl` audit trail                                 |
 | GET    | `/api/help/:lang`        | localized in-app user guide (fallback: `en.md`)                             |
 

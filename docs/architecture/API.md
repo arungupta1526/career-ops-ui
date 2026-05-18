@@ -96,6 +96,16 @@ When `HOST=0.0.0.0`, absolute paths and Node version are replaced with `"hidden"
 
 Aggregates application counts, status histogram, average score, recent applications, recent pipeline URLs, last report.
 
+### `GET /api/status/providers` (v1.55.3)
+
+Read-only LLM-provider readiness for the SPA onboarding banner / chip and the `⚡ Run live` cost hint. No secrets — only provider names + the active model id.
+
+```json
+{ "activeProvider": "openai", "activeModel": "gpt-5-codex", "keysConfigured": ["anthropic", "openai"] }
+```
+
+`keysConfigured` uses the same effective-env view as the `llm.mjs` gate sites (`process.env` ∨ parent `.env`). `activeProvider` is what the OR-router would actually pick (`selectActiveProvider()` walks `providerOrder()`, honoring an `LLM_PROVIDER` pin); `null` when no key is set anywhere.
+
 ---
 
 ## Tracker
@@ -103,6 +113,14 @@ Aggregates application counts, status histogram, average score, recent applicati
 ### `GET /api/tracker` → `{ rows: Application[] }`
 
 Parses `data/applications.md` into rows.
+
+**Optional server-side pagination (v1.55.8).** With **no** query params the response is exactly `{ rows: [...] }` (back-compat — every legacy caller untouched). Pass `?page=&pageSize=&status=` to get a paginated envelope:
+
+```json
+{ "rows": [ ...slice ], "total": 23, "page": 1, "pageSize": 25, "funnel": { "Applied": 12, "Interview": 5, "Offer": 2 } }
+```
+
+`pageSize` is clamped to `[1, 500]`, `page` to `≥1`; `status` filters `rows`+`total`; `funnel` is the whole-history status→count breakdown (independent of the page/filter, so the `#/tracker` funnel chips are always accurate).
 
 ### `POST /api/tracker`
 
