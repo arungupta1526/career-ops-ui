@@ -15,35 +15,48 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
  */
 export const KNOWN_KEYS = [
   // ── LLM provider selection (v1.39.0, WS8.2) ──
-  'LLM_PROVIDER',          // auto | claude | gemini  (auto = Anthropic→Gemini)
-  // ── LLM provider keys (default preferred order: Anthropic > Gemini) ──
+  'LLM_PROVIDER',          // auto | claude | gemini | openai | qwen
+  // ── LLM provider keys. `auto` runs whichever key is set, in this
+  //    preferred order: Anthropic > Gemini > OpenAI > Qwen (v1.55.0). ──
   'ANTHROPIC_API_KEY',
   'ANTHROPIC_MODEL',
   'GEMINI_API_KEY',
   'GEMINI_MODEL',
-  'OPENAI_API_KEY',        // Codex / OpenAI-CLI side (stored; live-eval is claude|gemini)
-  'OPENAI_MODEL',          // Codex / OpenAI model id (stored alongside the key)
+  'OPENAI_API_KEY',        // headless live-eval (v1.55.0) + parent Codex/OpenAI CLI flow
+  'OPENAI_MODEL',
+  'QWEN_API_KEY',          // headless live-eval via DashScope OpenAI-compatible (v1.55.0)
+  'QWEN_MODEL',
   // ── Server runtime ──
   'PORT',
   'HOST',
 ];
 
-/** Valid LLM_PROVIDER values. `auto` = current Anthropic→Gemini fallback. */
-export const LLM_PROVIDERS = ['auto', 'claude', 'gemini'];
+/**
+ * Valid LLM_PROVIDER values. `auto` = first provider whose key is set,
+ * preferring Anthropic → Gemini → OpenAI → Qwen. Explicit values pin
+ * one provider; with no key it falls through to the manual-prompt
+ * path exactly like the pre-v1.39 no-key behaviour.
+ */
+export const LLM_PROVIDERS = ['auto', 'claude', 'gemini', 'openai', 'qwen'];
 
 /**
  * Effective provider preference order from LLM_PROVIDER:
- *   auto (default/unset/unknown) → ['anthropic', 'gemini'] (legacy)
+ *   auto (default/unset/unknown) → ['anthropic','gemini','openai','qwen']
  *   claude                       → ['anthropic']
  *   gemini                       → ['gemini']
- * A forced provider with no key falls through to the manual-prompt
- * path exactly like the pre-v1.39 no-key behaviour.
+ *   openai                       → ['openai']
+ *   qwen                         → ['qwen']
+ * The route gates walk this list and use the first provider whose key
+ * is actually set (the user's "works via OR" requirement); a forced
+ * provider with no key falls through to manual-prompt.
  */
 export function providerOrder(env = process.env) {
   const v = String(env.LLM_PROVIDER || 'auto').trim().toLowerCase();
   if (v === 'claude') return ['anthropic'];
   if (v === 'gemini') return ['gemini'];
-  return ['anthropic', 'gemini'];
+  if (v === 'openai') return ['openai'];
+  if (v === 'qwen') return ['qwen'];
+  return ['anthropic', 'gemini', 'openai', 'qwen'];
 }
 
 /**
@@ -63,12 +76,14 @@ export const KEY_GROUPS = {
   GEMINI_MODEL: 'core',
   OPENAI_API_KEY: 'core',
   OPENAI_MODEL: 'core',
+  QWEN_API_KEY: 'core',
+  QWEN_MODEL: 'core',
   PORT: 'runtime',
   HOST: 'runtime',
 };
 
 /** Keys whose values are secret and must never be returned in plain text. */
-export const SECRET_KEYS = new Set(['ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'OPENAI_API_KEY']);
+export const SECRET_KEYS = new Set(['ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'OPENAI_API_KEY', 'QWEN_API_KEY']);
 
 /**
  * Parse an .env file body into a plain object. Preserves the raw text

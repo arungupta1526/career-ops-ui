@@ -8,25 +8,34 @@ import assert from 'node:assert/strict';
 import { providerOrder, LLM_PROVIDERS, KNOWN_KEYS, SECRET_KEYS } from '../server/lib/env-config.mjs';
 import { parseArgs, buildUpdates, askSecret } from '../scripts/init.mjs';
 
-test('providerOrder: auto/unset/unknown → [anthropic, gemini] (legacy)', () => {
-  assert.deepEqual(providerOrder({}), ['anthropic', 'gemini']);
-  assert.deepEqual(providerOrder({ LLM_PROVIDER: 'auto' }), ['anthropic', 'gemini']);
-  assert.deepEqual(providerOrder({ LLM_PROVIDER: 'banana' }), ['anthropic', 'gemini']);
-  assert.deepEqual(providerOrder({ LLM_PROVIDER: ' AUTO ' }), ['anthropic', 'gemini']);
+test('providerOrder: auto/unset/unknown → full OR order (v1.55.0)', () => {
+  const ALL = ['anthropic', 'gemini', 'openai', 'qwen'];
+  assert.deepEqual(providerOrder({}), ALL);
+  assert.deepEqual(providerOrder({ LLM_PROVIDER: 'auto' }), ALL);
+  assert.deepEqual(providerOrder({ LLM_PROVIDER: 'banana' }), ALL);
+  assert.deepEqual(providerOrder({ LLM_PROVIDER: ' AUTO ' }), ALL);
 });
 
-test('providerOrder: claude → [anthropic] only; gemini → [gemini] only', () => {
+test('providerOrder: each explicit value pins exactly that provider', () => {
   assert.deepEqual(providerOrder({ LLM_PROVIDER: 'claude' }), ['anthropic']);
   assert.deepEqual(providerOrder({ LLM_PROVIDER: 'Gemini' }), ['gemini']);
+  assert.deepEqual(providerOrder({ LLM_PROVIDER: 'openai' }), ['openai']);
+  assert.deepEqual(providerOrder({ LLM_PROVIDER: ' QWEN ' }), ['qwen']);
 });
 
-test('env-config exposes the new provider surface', () => {
-  for (const k of ['LLM_PROVIDER', 'OPENAI_API_KEY']) {
+test('env-config exposes the full v1.55.0 provider surface', () => {
+  for (const k of ['LLM_PROVIDER', 'OPENAI_API_KEY', 'OPENAI_MODEL',
+    'QWEN_API_KEY', 'QWEN_MODEL']) {
     assert.ok(KNOWN_KEYS.includes(k), `KNOWN_KEYS missing ${k}`);
   }
-  assert.ok(SECRET_KEYS.has('OPENAI_API_KEY'), 'OPENAI_API_KEY must be secret');
-  assert.ok(!SECRET_KEYS.has('LLM_PROVIDER'), 'LLM_PROVIDER is not a secret');
-  assert.deepEqual(LLM_PROVIDERS, ['auto', 'claude', 'gemini']);
+  for (const k of ['ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'OPENAI_API_KEY', 'QWEN_API_KEY']) {
+    assert.ok(SECRET_KEYS.has(k), `${k} must be secret`);
+  }
+  // model ids are NOT credentials → never masked
+  for (const k of ['OPENAI_MODEL', 'QWEN_MODEL', 'LLM_PROVIDER']) {
+    assert.ok(!SECRET_KEYS.has(k), `${k} must NOT be secret`);
+  }
+  assert.deepEqual(LLM_PROVIDERS, ['auto', 'claude', 'gemini', 'openai', 'qwen']);
 });
 
 test('init parseArgs: flag-driven', () => {
@@ -60,10 +69,18 @@ test('init buildUpdates: no keys → only LLM_PROVIDER (auto)', () => {
   assert.deepEqual(buildUpdates({ provider: '' }), { LLM_PROVIDER: 'auto' });
 });
 
-test('llm.mjs gates all 6 provider sites with _provGate()', () => {
+test('llm.mjs keeps the 6 Anthropic/Gemini gates + the v1.55.0 OpenAI/Qwen tail', () => {
   const src = require_src();
-  const hits = (src.match(/_provGate\(\)\.want(Anthropic|Gemini) && has(Anthropic|Gemini)Key\(\)/g) || []);
-  assert.equal(hits.length, 6, `expected 6 gated sites, got ${hits.length}`);
+  const ag = (src.match(/_provGate\(\)\.want(Anthropic|Gemini) && has(Anthropic|Gemini)Key\(\)/g) || []);
+  assert.equal(ag.length, 6, `expected 6 Anthropic/Gemini gated sites, got ${ag.length}`);
+  // v1.55.0 — the OR tail: _tailProvider() consulted at the 3 eval
+  // sites (evaluate / deep / mode) after Anthropic+Gemini.
+  assert.match(src, /function _tailProvider\(\)/, '_tailProvider helper missing');
+  assert.match(src, /wantOpenAI: o\.includes\('openai'\), wantQwen: o\.includes\('qwen'\)/,
+    '_provGate must expose wantOpenAI/wantQwen');
+  assert.equal((src.match(/_tailProvider\(\)/g) || []).length >= 4, true,
+    'tail provider must be wired at all 3 eval sites (+ its definition)');
+  assert.match(src, /import \{ runOpenAI, runQwen, hasOpenAIKey, hasQwenKey \} from '\.\.\/openai\.mjs'/);
 });
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

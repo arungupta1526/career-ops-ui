@@ -337,6 +337,20 @@ Evaluate → Reports → Deep research → Apply checklist → Outreach
 
 어느 탭에서 저장하든 즉시 반영됩니다 — 서버 재시작 불필요.
 
+**LLM 공급자 설정 (단계별).** web UI 의 ⚡ 라이브 평가는 *헤드리스*로 실행되며 하나의 API 키를 사용합니다. "OR" 로 동작합니다 — 이 중 **아무거나 하나만** 설정하면 바로 동작하며, 여러 개를 설정하면 `auto` 가 다음 순서로 선호합니다: Anthropic → Gemini → OpenAI → Qwen. (career-ops 자체는 CLI 비종속입니다 — Claude Code, Codex, Gemini, OpenCode, Qwen, Copilot 또는 Kimi 안에서도 실행하며, 그것은 이 헤드리스 키와는 별개입니다.)
+
+1. `#/config` → **API keys & runtime** 탭을 엽니다.
+2. **`LLM_PROVIDER`**에서 공급자를 선택합니다: `auto`(설정된 키를 사용), 또는 `claude` / `gemini` / `openai` / `qwen` 로 강제 지정.
+3. 선택한 공급자의 키 + 모델을 채웁니다:
+   - **Anthropic** — `ANTHROPIC_API_KEY`(console.anthropic.com) 설정, 선택적으로 `ANTHROPIC_MODEL`(기본값 `claude-sonnet-4-6`).
+   - **Gemini** — `GEMINI_API_KEY`(aistudio.google.com/apikey) 설정, 선택적으로 `GEMINI_MODEL`(기본값 `gemini-2.0-flash`).
+   - **OpenAI** — `OPENAI_API_KEY`(platform.openai.com) 설정, 선택적으로 `OPENAI_MODEL`(기본값 `gpt-5-codex`).
+   - **Qwen** — `QWEN_API_KEY`(Alibaba Model Studio / DashScope, dashscope.console.aliyun.com) 설정, 선택적으로 `QWEN_MODEL`(기본값 `qwen-max`). 중국 본토 엔드포인트는 raw `.env` 에서 `QWEN_BASE_URL` 을 설정합니다.
+4. **Save** 를 클릭합니다. 키는 부모 프로젝트의 `.env` 에 기록됩니다; 변경은 즉시 반영됩니다 — 서버 재시작 불필요.
+5. `#/evaluate` 에서 검증합니다: 채용 URL/설명을 붙여넣고 **⚡ Run live** 를 누릅니다. 결과 헤더에 어떤 공급자가 실행됐는지(`anthropic` / `gemini` / `openai` / `qwen`) 표시됩니다. 어디에도 키가 설정되지 않으면 → 복사-붙여넣기 수동 프롬프트가 대신 제공됩니다.
+
+비밀 값은 저장 후 마스킹되며 결코 로깅되지 않습니다. 모델 id 필드(`*_MODEL`)는 비밀이 아닙니다.
+
 ### Profile 탭
 
 > **v1.32.0 — 항목별 폼.** Profile 탭은 더 이상 원본 YAML textarea가 아니라 **지원자 / 내러티브 / 보상** 접이식 섹션 폼입니다. 저장 시 모델링된 14개 스칼라 경로만 전송하며, 서버가 `config/profile.yml`에 **병합**하므로 `archetypes`·`proof_points`·커스텀 키가 **그대로 보존**됩니다. 트레이드오프: 항목 저장은 YAML을 재직렬화하여 **`#` 주석이 사라집니다** — 보존하거나 중첩 배열을 편집하려면 탭 하단의 **Advanced: edit raw YAML** 디스클로저를 사용하세요.

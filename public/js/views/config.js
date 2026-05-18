@@ -41,10 +41,9 @@ Router.register('config', async () => {
     'gemini-1.5-pro',
     'gemini-2.0-flash-thinking-exp',
   ];
-  // Codex / OpenAI-CLI side (parent multi-CLI flow). First entry is the
-  // default when OPENAI_MODEL is unset. web-ui live-eval stays
-  // Anthropic|Gemini — this only feeds the stored env var the parent
-  // Codex / OpenCode CLI reads.
+  // OpenAI (v1.55.0 — now a headless live-eval provider too, not just
+  // the stored parent-Codex key). First entry = default when
+  // OPENAI_MODEL is unset.
   const OPENAI_MODELS = [
     'gpt-5-codex',
     'gpt-5',
@@ -53,14 +52,23 @@ Router.register('config', async () => {
     'o4-mini',
     'o3',
   ];
+  // Qwen via DashScope OpenAI-compatible mode (v1.55.0). First entry =
+  // default when QWEN_MODEL is unset.
+  const QWEN_MODELS = [
+    'qwen-max',
+    'qwen-plus',
+    'qwen-turbo',
+    'qwen2.5-72b-instruct',
+    'qwen2.5-coder-32b-instruct',
+  ];
   const FIELDS = [
     {
       // v1.39.0 (WS8.2) — explicit provider preference.
       key: 'LLM_PROVIDER', secret: false, kind: 'select',
-      options: ['auto', 'claude', 'gemini'], defaultValue: 'auto',
+      options: ['auto', 'claude', 'gemini', 'openai', 'qwen'], defaultValue: 'auto',
       labelKey: 'config.llmProvider', label: 'LLM_PROVIDER',
       hintKey: 'config.llmProviderHint',
-      hintFallback: 'auto = Anthropic then Gemini (default). claude = force Anthropic. gemini = force Gemini. No key for the forced provider → manual-prompt fallback. (Codex/OpenAI is a CLI-side provider — its key is stored below for the parent multi-CLI flow.)',
+      hintFallback: 'auto = use whichever key is set, preferring Anthropic → Gemini → OpenAI → Qwen. claude / gemini / openai / qwen = force that one. A forced provider with no key → manual-prompt fallback.',
     },
     {
       key: 'ANTHROPIC_API_KEY', secret: true,
@@ -89,23 +97,37 @@ Router.register('config', async () => {
       hintFallback: 'Default: gemini-2.0-flash (free-tier, fast). Pro tier: gemini-1.5-pro.',
     },
     {
-      // v1.39.0 (WS8.2) — Codex / OpenAI-CLI provider key. The parent
-      // career-ops multi-CLI flow (Codex / OpenCode) reads this; web-ui
-      // live-eval stays Anthropic|Gemini. Stored + masked like the others.
+      // v1.55.0 — OpenAI is now a headless live-eval provider too
+      // (direct HTTPS, like Anthropic). Still also read by the parent
+      // Codex/OpenAI CLI flow. Stored + masked like the other keys.
       key: 'OPENAI_API_KEY', secret: true,
       labelKey: 'config.openaiKey', label: 'OPENAI_API_KEY',
       hintKey: 'config.openaiHint',
-      hintFallback: 'platform.openai.com → API keys. Used by the Codex / OpenCode CLI side of career-ops (parent multi-CLI flow). web-ui live-eval uses Anthropic or Gemini.',
+      hintFallback: 'platform.openai.com → API keys. v1.55.0: also runs the web-ui ⚡ live eval (3rd in the auto order, after Anthropic & Gemini); still read by the parent Codex/OpenAI CLI flow too.',
     },
     {
-      // v1.54.2 — Codex / OpenAI model id, stored alongside OPENAI_API_KEY.
-      // Read by the parent multi-CLI (Codex / OpenCode) flow; web-ui
-      // live-eval is unaffected (stays Anthropic|Gemini).
       key: 'OPENAI_MODEL', secret: false, kind: 'select',
       options: OPENAI_MODELS, defaultValue: 'gpt-5-codex',
       labelKey: 'config.openaiModel', label: 'OPENAI_MODEL',
       hintKey: 'config.openaiModelHint',
-      hintFallback: 'Default: gpt-5-codex (Codex CLI). gpt-5 / gpt-5-mini for general use; o4-mini / o3 for reasoning. Consumed by the parent Codex / OpenCode CLI flow, not web-ui live-eval.',
+      hintFallback: 'Default: gpt-5-codex. gpt-5 / gpt-5-mini for general use; o4-mini / o3 for reasoning. Used by the web-ui OpenAI live eval and the parent Codex/OpenAI CLI flow.',
+    },
+    {
+      // v1.55.0 — Qwen via DashScope OpenAI-compatible mode. Headless
+      // live-eval provider (4th in the auto order). Override the
+      // endpoint with QWEN_BASE_URL in the raw .env if you need the
+      // mainland-CN host.
+      key: 'QWEN_API_KEY', secret: true,
+      labelKey: 'config.qwenKey', label: 'QWEN_API_KEY',
+      hintKey: 'config.qwenHint',
+      hintFallback: 'Alibaba Model Studio / DashScope API key (dashscope.console.aliyun.com). When set, runs the web-ui ⚡ live eval (4th in the auto order, after OpenAI). OpenAI-compatible endpoint.',
+    },
+    {
+      key: 'QWEN_MODEL', secret: false, kind: 'select',
+      options: QWEN_MODELS, defaultValue: 'qwen-max',
+      labelKey: 'config.qwenModel', label: 'QWEN_MODEL',
+      hintKey: 'config.qwenModelHint',
+      hintFallback: 'Default: qwen-max (strongest). qwen-plus / qwen-turbo for speed/cost; qwen2.5-coder-32b-instruct for code-heavy reasoning.',
     },
     // v1.19.0 — HH_USER_AGENT removed from the UI per user direction.
     // The server still honors the env var if a power user sets it via
@@ -448,6 +470,12 @@ Router.register('config', async () => {
     ]);
   };
   const apiPanel = c('div', { className: 'card' }, [
+    // v1.55.0 — clarify the CLI-agnostic parent vs the headless
+    // web-ui eval (Anthropic|Gemini|OpenAI|Qwen via "OR").
+    c('p', {
+      style: { color: 'var(--foggy)', fontSize: '12px', margin: '0 0 14px', lineHeight: '1.5' },
+    }, t('config.providerModelNote',
+      'career-ops is CLI-agnostic — you run it inside any AI coding CLI (Claude Code · Codex · Gemini · OpenCode · Qwen · Copilot · Kimi). This web UI\'s ⚡ live eval runs headless and uses whichever API key below is set (Anthropic → Gemini → OpenAI → Qwen).')),
     renderGroup('core',     FIELDS.filter((f) => groupOf(f.key) === 'core'),     { forceVisible: true }),
     renderGroup('runtime',  FIELDS.filter((f) => groupOf(f.key) === 'runtime'),  { forceVisible: true }),
     renderGroup('regional', FIELDS.filter((f) => groupOf(f.key) === 'regional')),

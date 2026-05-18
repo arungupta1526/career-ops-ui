@@ -374,6 +374,20 @@ Three tabs:
 
 A save in any tab propagates immediately — no server restart.
 
+**Setting up your LLM provider (step by step).** The web UI's ⚡ live evaluation runs *headless* and uses one API key. It works via "OR" — set **any one** of these and it just works; with several set, `auto` prefers them in this order: Anthropic → Gemini → OpenAI → Qwen. (career-ops itself is CLI-agnostic — you also run it inside Claude Code, Codex, Gemini, OpenCode, Qwen, Copilot or Kimi; that's separate from this headless key.)
+
+1. Open `#/config` → the **API keys & runtime** tab.
+2. Pick your provider in **`LLM_PROVIDER`**: `auto` (use whichever key is set), or force one with `claude` / `gemini` / `openai` / `qwen`.
+3. Fill the key + model for the provider you chose:
+   - **Anthropic** — set `ANTHROPIC_API_KEY` (console.anthropic.com), optionally `ANTHROPIC_MODEL` (default `claude-sonnet-4-6`).
+   - **Gemini** — set `GEMINI_API_KEY` (aistudio.google.com/apikey), optionally `GEMINI_MODEL` (default `gemini-2.0-flash`).
+   - **OpenAI** — set `OPENAI_API_KEY` (platform.openai.com), optionally `OPENAI_MODEL` (default `gpt-5-codex`).
+   - **Qwen** — set `QWEN_API_KEY` (Alibaba Model Studio / DashScope, dashscope.console.aliyun.com), optionally `QWEN_MODEL` (default `qwen-max`). For the mainland-CN endpoint set `QWEN_BASE_URL` in the raw `.env`.
+4. Click **Save**. Keys write to the parent project's `.env`; the change takes effect immediately — no server restart needed.
+5. Verify on `#/evaluate`: paste a job URL/description and press **⚡ Run live**. The result header shows which provider ran (`anthropic` / `gemini` / `openai` / `qwen`). No key set anywhere → you get the copy-paste manual prompt instead.
+
+Secrets are masked after saving and never logged. Model-id fields (`*_MODEL`) are not secret.
+
 ### Profile tab (field form — v1.32.0)
 
 Before v1.32.0 this tab was a single raw-YAML textarea where every

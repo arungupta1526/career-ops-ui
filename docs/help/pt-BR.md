@@ -355,6 +355,20 @@ Duas abas:
 Um save em qualquer aba propaga imediatamente — sem reinício do
 servidor.
 
+**Configurar seu provedor LLM (passo a passo).** A ⚡ avaliação ao vivo do web UI roda *headless* e usa uma chave de API. Funciona via "OR" — defina **qualquer uma** destas e já funciona; com várias definidas, `auto` as prefere nesta ordem: Anthropic → Gemini → OpenAI → Qwen. (o próprio career-ops é agnóstico de CLI — você também o roda dentro de Claude Code, Codex, Gemini, OpenCode, Qwen, Copilot ou Kimi; isso é separado desta chave headless.)
+
+1. Abra `#/config` → a aba **API keys & runtime**.
+2. Escolha seu provedor em **`LLM_PROVIDER`**: `auto` (usa a chave que estiver definida), ou force um com `claude` / `gemini` / `openai` / `qwen`.
+3. Preencha a chave + modelo do provedor que você escolheu:
+   - **Anthropic** — defina `ANTHROPIC_API_KEY` (console.anthropic.com), opcionalmente `ANTHROPIC_MODEL` (default `claude-sonnet-4-6`).
+   - **Gemini** — defina `GEMINI_API_KEY` (aistudio.google.com/apikey), opcionalmente `GEMINI_MODEL` (default `gemini-2.0-flash`).
+   - **OpenAI** — defina `OPENAI_API_KEY` (platform.openai.com), opcionalmente `OPENAI_MODEL` (default `gpt-5-codex`).
+   - **Qwen** — defina `QWEN_API_KEY` (Alibaba Model Studio / DashScope, dashscope.console.aliyun.com), opcionalmente `QWEN_MODEL` (default `qwen-max`). Para o endpoint da China continental defina `QWEN_BASE_URL` no `.env` cru.
+4. Clique em **Save**. As chaves são escritas no `.env` do projeto pai; a mudança surte efeito imediatamente — sem reinício do servidor.
+5. Verifique em `#/evaluate`: cole uma URL/descrição de vaga e pressione **⚡ Run live**. O cabeçalho do resultado mostra qual provedor rodou (`anthropic` / `gemini` / `openai` / `qwen`). Sem nenhuma chave definida → você recebe o prompt manual de copiar-colar.
+
+Os segredos são mascarados após salvar e nunca logados. Campos de id de modelo (`*_MODEL`) não são secretos.
+
 ### Aba Profile
 
 > **v1.32.0 — formulário por campos.** A aba Profile não é mais um textarea de YAML bruto: agora é um formulário com seções recolhíveis **Candidato / Narrativa / Remuneração**. Ao salvar envia apenas os 14 caminhos escalares modelados; o servidor faz **merge** em `config/profile.yml`, então seus `archetypes`, `proof_points` e chaves próprias **são preservados intactos**. Trade-off: o save por campos re-serializa o YAML e **perde comentários `#`** — use o disclosure **Advanced: edit raw YAML** no fim da aba para preservá-los ou editar arrays aninhados.

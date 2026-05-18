@@ -347,6 +347,20 @@ Save 先は `interview-prep/<company>-<role>.md`。
 
 どちらのタブでも、保存は即時に反映されます — サーバ再起動は不要です。
 
+**LLM プロバイダのセットアップ(ステップバイステップ)。** web UI の ⚡ ライブ評価は*ヘッドレス*で実行され、1 つの API キーを使用します。"OR" で動作します — これらの**いずれか 1 つ**を設定すればそれだけで動作し、複数設定した場合は `auto` がこの順で優先します:Anthropic → Gemini → OpenAI → Qwen。(career-ops 自体は CLI 非依存です — Claude Code、Codex、Gemini、OpenCode、Qwen、Copilot または Kimi の中でも実行でき、それはこのヘッドレスキーとは別です。)
+
+1. `#/config` → **API keys & runtime** タブを開きます。
+2. **`LLM_PROVIDER`** でプロバイダを選びます:`auto`(設定されているキーを使用)、または `claude` / `gemini` / `openai` / `qwen` で 1 つに固定。
+3. 選んだプロバイダのキー + モデルを入力します:
+   - **Anthropic** — `ANTHROPIC_API_KEY`(console.anthropic.com)を設定、任意で `ANTHROPIC_MODEL`(既定 `claude-sonnet-4-6`)。
+   - **Gemini** — `GEMINI_API_KEY`(aistudio.google.com/apikey)を設定、任意で `GEMINI_MODEL`(既定 `gemini-2.0-flash`)。
+   - **OpenAI** — `OPENAI_API_KEY`(platform.openai.com)を設定、任意で `OPENAI_MODEL`(既定 `gpt-5-codex`)。
+   - **Qwen** — `QWEN_API_KEY`(Alibaba Model Studio / DashScope、dashscope.console.aliyun.com)を設定、任意で `QWEN_MODEL`(既定 `qwen-max`)。中国本土エンドポイントは raw `.env` で `QWEN_BASE_URL` を設定します。
+4. **Save** をクリックします。キーは親プロジェクトの `.env` に書き込まれます;変更は即時に反映されます — サーバ再起動は不要です。
+5. `#/evaluate` で検証します:求人の URL/説明を貼り付けて **⚡ Run live** を押します。結果ヘッダにどのプロバイダが実行されたか(`anthropic` / `gemini` / `openai` / `qwen`)が表示されます。どこにもキーが設定されていない場合 → 代わりにコピー&ペーストの手動プロンプトが得られます。
+
+シークレットは保存後にマスクされ、決してログ出力されません。モデル id フィールド(`*_MODEL`)はシークレットではありません。
+
 ### Profile タブ
 
 > **v1.32.0 — 項目別フォーム。** Profile タブは生 YAML の textarea ではなく、**候補者 / ナラティブ / 報酬** の折りたたみセクションを持つフォームになりました。保存時はモデル化された 14 のスカラーパスのみ送信し、サーバが `config/profile.yml` に **マージ** するため、`archetypes`・`proof_points`・独自キーは **そのまま保持** されます。トレードオフ: 項目保存は YAML を再シリアライズするため **`#` コメントは失われます** — 保持や入れ子配列の編集にはタブ下部の **Advanced: edit raw YAML** を使用してください。

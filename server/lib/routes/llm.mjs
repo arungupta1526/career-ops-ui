@@ -21,6 +21,7 @@ import { PATHS, path as projPath } from '../paths.mjs';
 import { slugify, today } from '../parsers.mjs';
 import { runNodeScript } from '../runner.mjs';
 import { runAnthropic, hasAnthropicKey, hasGeminiKey } from '../anthropic.mjs';
+import { runOpenAI, runQwen, hasOpenAIKey, hasQwenKey } from '../openai.mjs';
 import { providerOrder } from '../env-config.mjs';
 import { sanitizeJobDescription, sanitizePathName } from '../security.mjs';
 import { llmRateLimit } from '../rate-limit.mjs';
@@ -39,7 +40,24 @@ import {
 // manual-prompt path exactly like the pre-v1.39 no-key case.
 function _provGate() {
   const o = providerOrder();
-  return { wantAnthropic: o.includes('anthropic'), wantGemini: o.includes('gemini') };
+  return {
+    wantAnthropic: o.includes('anthropic'), wantGemini: o.includes('gemini'),
+    wantOpenAI: o.includes('openai'), wantQwen: o.includes('qwen'),
+  };
+}
+
+// v1.55.0 — the "works via OR" tail. OpenAI & Qwen are in-process
+// HTTPS clients (like Anthropic) with no parent filesystem, so the
+// same bundled context must be inlined. Consulted AFTER the existing
+// Anthropic (inline) and Gemini (subprocess) branches so the auto
+// preference Anthropic→Gemini→OpenAI→Qwen is preserved; an explicit
+// LLM_PROVIDER=openai|qwen makes only that one `want*`. Returns the
+// first keyed provider in tail order, or null.
+function _tailProvider() {
+  const g = _provGate();
+  if (g.wantOpenAI && hasOpenAIKey()) return { mode: 'openai', run: runOpenAI };
+  if (g.wantQwen && hasQwenKey()) return { mode: 'qwen', run: runQwen };
+  return null;
 }
 
 // Generic mode endpoints — kept narrow on purpose. Modes that have a
@@ -124,9 +142,25 @@ export function registerLlmRoutes(app) {
       return res.json({ mode: 'gemini', saved, ...result });
     }
 
+    // v1.55.0 — OpenAI / Qwen tail (same inlined context as Anthropic).
+    const tp = _tailProvider();
+    if (tp) {
+      const ctx = bundleProjectContext({ modeSlugs: ['_shared', 'oferta'] });
+      const fullPrompt = ctx + promptText;
+      if (fullPrompt.length > PROMPT_SIZE_SOFT_CAP) {
+        return res.status(413).json({
+          error: 'prompt too large',
+          details: [`assembled prompt is ${fullPrompt.length} bytes; soft cap is ${PROMPT_SIZE_SOFT_CAP}. Truncate the JD or shrink your CV.`],
+        });
+      }
+      const r = await tp.run(fullPrompt, { maxTokens: 8192 });
+      if (r.error) return res.status(502).json({ mode: tp.mode, prompt: promptText, error: r.error, saved });
+      return res.json({ mode: tp.mode, prompt: promptText, markdown: r.markdown, usage: r.usage, saved });
+    }
+
     return res.json({
       mode: 'manual',
-      message: 'No LLM key set — copy this prompt into Claude/ChatGPT/Gemini',
+      message: 'No LLM key set — copy this prompt into Claude/ChatGPT/Gemini/Qwen',
       prompt: promptText,
       saved,
     });
@@ -205,6 +239,23 @@ export function registerLlmRoutes(app) {
         writeFileSync(tmp, prompt);
         const sub = await runNodeScript('gemini-eval.mjs', ['--file', tmp], { timeoutMs: 180_000 });
         result = { markdown: (sub.stdout || '').trim(), code: sub.code };
+      } else {
+        // v1.55.0 — OpenAI / Qwen tail (in-process, inline context).
+        const tp = _tailProvider();
+        if (tp) {
+          mode = tp.mode;
+          const ctx = bundleProjectContext({ modeSlugs: ['_shared', 'deep'] });
+          const fullPrompt = ctx + prompt;
+          if (fullPrompt.length > PROMPT_SIZE_SOFT_CAP) {
+            return res.status(413).json({
+              error: 'prompt too large',
+              details: [`assembled prompt is ${fullPrompt.length} bytes; soft cap is ${PROMPT_SIZE_SOFT_CAP}.`],
+            });
+          }
+          const r = await tp.run(fullPrompt, { maxTokens: 8192 });
+          if (r.error) return res.status(502).json({ mode, prompt, error: r.error });
+          result = { markdown: r.markdown, code: 0 };
+        }
       }
       if (result) {
         let saved = null;
@@ -221,8 +272,8 @@ export function registerLlmRoutes(app) {
     res.json({
       mode: 'manual',
       prompt,
-      message: (hasAnthropicKey() || hasGeminiKey())
-        ? 'Set { run: true } to execute via Anthropic/Gemini, or copy the prompt into Claude Code.'
+      message: (hasAnthropicKey() || hasGeminiKey() || hasOpenAIKey() || hasQwenKey())
+        ? 'Set { run: true } to execute via Anthropic/Gemini/OpenAI/Qwen, or copy the prompt into Claude Code.'
         : 'No API key set. Paste this into Claude Code for full deep research with WebFetch.',
     });
   });
@@ -300,13 +351,28 @@ export function registerLlmRoutes(app) {
         const result = await runNodeScript('gemini-eval.mjs', ['--file', tmp], { timeoutMs: 180_000 });
         return res.json({ mode: 'gemini', slug, prompt, markdown: (result.stdout || '').trim(), code: result.code });
       }
+      // v1.55.0 — OpenAI / Qwen tail (in-process, inline _shared ctx).
+      const tp = _tailProvider();
+      if (tp) {
+        const ctx = bundleProjectContext({ modeSlugs: ['_shared'] });
+        const fullPrompt = ctx + prompt;
+        if (fullPrompt.length > PROMPT_SIZE_SOFT_CAP) {
+          return res.status(413).json({
+            error: 'prompt too large',
+            details: [`assembled prompt is ${fullPrompt.length} bytes; soft cap is ${PROMPT_SIZE_SOFT_CAP}.`],
+          });
+        }
+        const r = await tp.run(fullPrompt);
+        if (r.error) return res.status(502).json({ mode: tp.mode, slug, prompt, error: r.error });
+        return res.json({ mode: tp.mode, slug, prompt, markdown: r.markdown, usage: r.usage });
+      }
     }
     res.json({
       mode: 'manual',
       slug,
       prompt,
-      message: (hasAnthropicKey() || hasGeminiKey())
-        ? 'Set { run: true } to execute via Anthropic/Gemini, or copy this prompt into Claude Code.'
+      message: (hasAnthropicKey() || hasGeminiKey() || hasOpenAIKey() || hasQwenKey())
+        ? 'Set { run: true } to execute via Anthropic/Gemini/OpenAI/Qwen, or copy this prompt into Claude Code.'
         : 'No API key set. Copy this prompt into Claude Code (it has WebFetch/WebSearch).',
     });
   });

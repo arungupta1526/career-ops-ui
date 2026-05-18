@@ -6,6 +6,24 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.55.0] — 2026-05-18
+
+**feat(llm): headless live-eval runs via "OR" — Anthropic | Gemini | OpenAI | Qwen, auto-selected by whichever key is set.**
+
+### ✨ Features
+
+- Per user request, the web-ui ⚡ live eval now works with **whichever API key is set**, not just Anthropic/Gemini. `LLM_PROVIDER` gains `openai` and `qwen`; `auto` (default) uses the first provider whose key is present, preferring **Anthropic → Gemini → OpenAI → Qwen**. An explicit value pins one; a forced provider with no key still falls through to the manual-prompt path.
+- New `server/lib/openai.mjs` — a zero-dependency OpenAI-compatible Chat Completions client (same secure direct-HTTPS pattern as `anthropic.mjs`: `AbortController` timeout, key never logged, `effectiveEnv()` key resolution so a parent-`.env` key works without a restart). One core (`runOpenAICompatible`) backs **`runOpenAI`** (api.openai.com) and **`runQwen`** (Alibaba DashScope OpenAI-compatible mode; override the endpoint with `QWEN_BASE_URL` in the raw `.env` for the mainland-CN host). No SDKs, **no arbitrary CLI execution** — the parent project stays CLI-agnostic (Claude Code · Codex · Gemini · OpenCode · Qwen · Copilot · Kimi); this only extends the *headless* API-key path.
+- The OpenAI/Qwen tail is wired into all eval surfaces: `/api/evaluate`, `/api/deep`, `/api/mode/:slug`, and the `/api/auto-pipeline` SSE — consulted after the existing Anthropic (inline) + Gemini (subprocess) branches so the auto preference is preserved, with the same bundled-context inlining Anthropic uses.
+- `env-config.mjs`: `QWEN_API_KEY` (secret) + `QWEN_MODEL` (not secret) added to `KNOWN_KEYS`/`KEY_GROUPS.core`; `LLM_PROVIDERS` and `providerOrder()` extended; `OPENAI_API_KEY` is now a first-class headless provider key (was stored-only).
+- `#/config` API-keys tab: `LLM_PROVIDER` select gains `openai`/`qwen`; new `QWEN_API_KEY` + `QWEN_MODEL` fields (curated `qwen-max`/`qwen-plus`/`qwen-turbo`/`qwen2.5-*` list); a new top-of-tab note explains the CLI-agnostic parent vs the headless web-ui eval and the OR order. Updated OpenAI/provider hint copy. New i18n keys (`config.providerModelNote`, `config.qwen*`) + 3 updated hints, across all 8 locales.
+
+### 🧪 Tests
+
+- **`test: tests/openai.test.mjs`** (new, 9 cases, CI-isolated): OpenAI/Qwen success + block-array content, Bearer auth, default + `QWEN_BASE_URL`-overridden endpoints, 4xx/5xx/malformed, `max_tokens` clamp, timeout, `effectiveEnv` key detection, no-key-leak canary. **`tests/provider-selector.test.mjs`** updated for the v1.55.0 `providerOrder`/`LLM_PROVIDERS`/SECRET surface + the OpenAI/Qwen tail wiring. 748 → 757.
+
+---
+
 ## [1.54.10] — 2026-05-18
 
 **fix(auto-pipeline): SSE client-disconnect hygiene — kill the flaky Playwright e2e job.**

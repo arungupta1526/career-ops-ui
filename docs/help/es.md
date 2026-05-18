@@ -354,6 +354,20 @@ Dos pestañas:
 Un guardado en cualquiera de las pestañas se propaga al instante — sin
 reiniciar el servidor.
 
+**Configurar tu proveedor LLM (paso a paso).** La ⚡ evaluación en vivo del web UI corre *headless* y usa una clave de API. Funciona vía "OR" — define **cualquiera** de estas y ya funciona; con varias definidas, `auto` las prefiere en este orden: Anthropic → Gemini → OpenAI → Qwen. (career-ops en sí es agnóstico de CLI — también lo ejecutas dentro de Claude Code, Codex, Gemini, OpenCode, Qwen, Copilot o Kimi; eso es independiente de esta clave headless.)
+
+1. Abre `#/config` → la pestaña **API keys & runtime**.
+2. Elige tu proveedor en **`LLM_PROVIDER`**: `auto` (usa la clave que esté definida), o fuerza uno con `claude` / `gemini` / `openai` / `qwen`.
+3. Rellena la clave + modelo del proveedor que elegiste:
+   - **Anthropic** — define `ANTHROPIC_API_KEY` (console.anthropic.com), opcionalmente `ANTHROPIC_MODEL` (default `claude-sonnet-4-6`).
+   - **Gemini** — define `GEMINI_API_KEY` (aistudio.google.com/apikey), opcionalmente `GEMINI_MODEL` (default `gemini-2.0-flash`).
+   - **OpenAI** — define `OPENAI_API_KEY` (platform.openai.com), opcionalmente `OPENAI_MODEL` (default `gpt-5-codex`).
+   - **Qwen** — define `QWEN_API_KEY` (Alibaba Model Studio / DashScope, dashscope.console.aliyun.com), opcionalmente `QWEN_MODEL` (default `qwen-max`). Para el endpoint de China continental define `QWEN_BASE_URL` en el `.env` crudo.
+4. Haz clic en **Save**. Las claves se escriben en el `.env` del proyecto padre; el cambio surte efecto al instante — sin reiniciar el servidor.
+5. Verifica en `#/evaluate`: pega una URL/descripción de vacante y pulsa **⚡ Run live**. El encabezado del resultado muestra qué proveedor corrió (`anthropic` / `gemini` / `openai` / `qwen`). Sin ninguna clave definida → obtienes el prompt manual de copiar-pegar.
+
+Los secretos se enmascaran tras guardar y nunca se registran. Los campos de id de modelo (`*_MODEL`) no son secretos.
+
 ### Pestaña Profile
 
 > **v1.32.0 — formulario por campos.** La pestaña Profile ya no es un textarea de YAML crudo: ahora es un formulario con secciones plegables **Candidato / Narrativa / Compensación**. Al guardar se envían solo las 14 rutas escalares modeladas; el servidor **fusiona** en `config/profile.yml`, así que tus `archetypes`, `proof_points` y claves propias **se conservan intactos**. Compromiso: el guardado por campos re-serializa el YAML y **pierde los comentarios `#`** — usa el desplegable **Advanced: edit raw YAML** al final de la pestaña para preservarlos o editar arrays anidados.

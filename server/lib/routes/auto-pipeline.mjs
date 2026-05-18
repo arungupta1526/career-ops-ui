@@ -34,6 +34,7 @@ import { writeFileSync, readFileSync, mkdirSync, existsSync } from 'node:fs';
 import { PATHS, path as projPath } from '../paths.mjs';
 import { isValidJobUrl, sanitizeJobDescription } from '../security.mjs';
 import { runAnthropic, hasAnthropicKey, hasGeminiKey } from '../anthropic.mjs';
+import { runOpenAI, runQwen, hasOpenAIKey, hasQwenKey } from '../openai.mjs';
 import { runNodeScript } from '../runner.mjs';
 import { bundleProjectContext, buildEvaluationPrompt } from '../prompts.mjs';
 import { stripDangerousMarkdown } from '../security.mjs';
@@ -253,19 +254,26 @@ export function registerAutoPipelineRoutes(app) {
       const promptText = buildEvaluationPrompt(jdText, lang);
 
       if (!evalMode) {
+        // v1.55.0 — "works via OR": first key set wins, Anthropic →
+        // Gemini → OpenAI → Qwen (matches env-config providerOrder).
         if (hasAnthropicKey()) evalMode = 'anthropic';
         else if (hasGeminiKey()) evalMode = 'gemini';
+        else if (hasOpenAIKey()) evalMode = 'openai';
+        else if (hasQwenKey()) evalMode = 'qwen';
         else evalMode = 'manual';
       }
 
-      if (evalMode === 'anthropic') {
+      if (evalMode === 'anthropic' || evalMode === 'openai' || evalMode === 'qwen') {
         const ctx = bundleProjectContext({ modeSlugs: ['_shared', 'oferta'] });
         const full = ctx + promptText;
         if (full.length > PROMPT_SIZE_SOFT_CAP) {
           step(2, 'failed', `prompt ${full.length} > ${PROMPT_SIZE_SOFT_CAP} cap`);
           return fail(2, 'prompt too large');
         }
-        const r = await runAnthropic(full, { maxTokens: 8192, timeoutMs: EVAL_TIMEOUT_MS });
+        const runFn = evalMode === 'openai' ? runOpenAI
+          : evalMode === 'qwen' ? runQwen
+            : runAnthropic;
+        const r = await runFn(full, { maxTokens: 8192, timeoutMs: EVAL_TIMEOUT_MS });
         if (r.error) {
           step(2, 'failed', r.error);
           return fail(2, r.error);

@@ -310,6 +310,20 @@ JD。輔助器會生成逐步的投遞檢查清單:
 
 任一分頁儲存後皆立即生效 — 無需重啟伺服器。
 
+**設定你的 LLM 供應方(逐步)。** web UI 的 ⚡ 即時評估以*無頭*方式執行,使用一個 API 金鑰。它透過 "OR" 運作 —— 設定其中**任意一個**即可正常運作;設定多個時,`auto` 按此順序優先:Anthropic → Gemini → OpenAI → Qwen。(career-ops 本身是 CLI 無關的 —— 你也可以在 Claude Code、Codex、Gemini、OpenCode、Qwen、Copilot 或 Kimi 內執行它;那與此無頭金鑰無關。)
+
+1. 開啟 `#/config` → **API keys & runtime** 分頁。
+2. 在 **`LLM_PROVIDER`** 中選擇你的供應方:`auto`(使用已設定的金鑰),或用 `claude` / `gemini` / `openai` / `qwen` 強制指定一個。
+3. 填寫你所選供應方的金鑰 + 模型:
+   - **Anthropic** —— 設定 `ANTHROPIC_API_KEY`(console.anthropic.com),選擇性 `ANTHROPIC_MODEL`(預設 `claude-sonnet-4-6`)。
+   - **Gemini** —— 設定 `GEMINI_API_KEY`(aistudio.google.com/apikey),選擇性 `GEMINI_MODEL`(預設 `gemini-2.0-flash`)。
+   - **OpenAI** —— 設定 `OPENAI_API_KEY`(platform.openai.com),選擇性 `OPENAI_MODEL`(預設 `gpt-5-codex`)。
+   - **Qwen** —— 設定 `QWEN_API_KEY`(阿里雲百鍊 / DashScope,dashscope.console.aliyun.com),選擇性 `QWEN_MODEL`(預設 `qwen-max`)。中國大陸端點請在 raw `.env` 中設定 `QWEN_BASE_URL`。
+4. 點擊 **Save**。金鑰寫入父專案的 `.env`;變更立即生效 —— 無需重啟伺服器。
+5. 在 `#/evaluate` 上驗證:貼上一個職缺 URL/描述並按 **⚡ Run live**。結果標頭會顯示執行了哪個供應方(`anthropic` / `gemini` / `openai` / `qwen`)。任何地方都未設定金鑰 → 則得到複製貼上的手動 prompt。
+
+密鑰在儲存後被遮罩且從不記錄。模型 id 欄位(`*_MODEL`)不是機密。
+
 ### Profile 分頁
 
 > **v1.32.0 —— 逐欄位表單。** Profile 分頁不再是原始 YAML 文字框,而是帶 **候選人 / 敘述 / 薪酬** 可折疊分區的表單。儲存時僅送出建模的 14 個純量路徑;伺服端**合併**進 `config/profile.yml`,因此 `archetypes`、`proof_points` 與自訂鍵**原樣保留**。權衡:逐欄位儲存會重新序列化 YAML 並**遺失 `#` 註解** —— 如需保留或編輯巢狀陣列,請用分頁底部的 **Advanced: edit raw YAML** 折疊區。

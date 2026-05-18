@@ -40,7 +40,7 @@ This document explains how the test suite is structured, what each tier guarante
    └──────────────────────────────────────────────────────────────────┘  CLI / hook layer
 ```
 
-> **Totals (v1.54.10):** 748 `node --test` cases across 97 files (Tier 1–3),
+> **Totals (v1.55.0):** 757 `node --test` cases across 98 files (Tier 1–3),
 > plus 4 Playwright/E2E surfaces. The shell-surface base was the last
 > untested layer — `tests/sh-files.test.mjs` (WS9, v1.53.0) added syntax
 > (`bash -n`), shebang/exec-bit, and behavioural-contract coverage for
