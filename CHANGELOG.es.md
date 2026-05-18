@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.54.6] — 2026-05-18
+
+**fix(a11y): S-7 — el botón back-to-top de `#/help` lleva la clase selectora canónica `back-to-top`.** El botón flotante back-to-top de `#/help` funcionaba correctamente (verificado en vivo) pero su lista de clases (`btn btn-primary help-back-top`) quedaba fuera de la convención del selector `.back-to-top` que apunta la prueba de spec §2 #28 — un selector más estricto habría flaqueado (corrida de regresión S-7, "victoria fácil"). El botón ahora lleva también la clase canónica `back-to-top`. Puramente aditivo y un no-op de CSS: `help-back-top` (el hook CSS existente) no cambia y `back-to-top` no tiene regla CSS — es solo un asa estable de prueba/automatización. Verificado en vivo: `document.querySelector('.back-to-top')` resuelve el botón, `aria-label` intacto, 0 errores de consola. Se extendió el caso #12 existente en `tests/help-nav-a11y.test.mjs` con una aserción de que la lista de clases del botón back-to-top incluye el selector canónico `back-to-top` (sin archivo nuevo). `fix(a11y)` · `test: tests/help-nav-a11y.test.mjs`. Detalle en [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.54.5] — 2026-05-18
 
 **fix(a11y): F-V54-C — el editor TSV de `#/batch` tiene un nombre accesible.** El `<textarea>` TSV de `#/batch` tenía una pista cableada vía `aria-describedby` pero **ningún nombre accesible** — sin `<label htmlFor>`, sin `aria-label`/`aria-labelledby` (corrida de regresión F-V54-C; WCAG 1.3.1 Info & Relationships / 4.1.2 Name, Role, Value). `aria-describedby` aporta una *descripción*, no un *nombre*, así que un lector de pantalla anunciaba un "edit text" sin etiqueta. El textarea ahora lleva un `aria-label` vía la nueva clave i18n `batch.tsvAria`, consistente con las entradas hermanas de control de corrida que ya usan claves `*Aria`; la pista describedby existente se conserva. Verificado en vivo: `aria-label` presente + localizado, `aria-describedby` intacto, 0 errores de consola. Nueva clave i18n `batch.tsvAria` en los 8 locales. +1 archivo de pruebas `tests/batch-tsv-accessible-name.test.mjs` (2 casos: el bloque `batch-tsv` tiene un `aria-label` vía `t(batch.tsvAria)` manteniendo su pista describedby; `batch.tsvAria` definida en los 8 locales); 736 → 738. `fix(a11y)` · `test: tests/batch-tsv-accessible-name.test.mjs`. Detalle en [`CHANGELOG.md`](CHANGELOG.md).

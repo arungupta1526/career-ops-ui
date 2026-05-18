@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.6] — 2026-05-18
+
+**fix(a11y): S-7 — `#/help` 的 back-to-top 按鈕攜帶規範選擇器類別 `back-to-top`。** `#/help` 的浮動 back-to-top 按鈕運作正常(已線上驗證),但其類別清單(`btn btn-primary help-back-top`)位於 spec §2 #28 測試所瞄準的 `.back-to-top` 選擇器慣例之外 —— 收緊後的選擇器本會出現 flaky(回歸執行 S-7,「輕鬆取勝」)。該按鈕現在也攜帶規範的 `back-to-top` 類別。純粹增量且為 CSS no-op:`help-back-top`(既有的 CSS 掛鉤)未變,而 `back-to-top` 沒有 CSS 規則 —— 它只是一個穩定的測試/自動化控柄。已線上驗證:`document.querySelector('.back-to-top')` 解析到該按鈕,`aria-label` 完整,0 主控台錯誤。於 `tests/help-nav-a11y.test.mjs` 中擴展了既有的 #12 案例,新增一條斷言:back-to-top 按鈕的類別清單包含規範的 `back-to-top` 選擇器(無新檔)。`fix(a11y)` · `test: tests/help-nav-a11y.test.mjs`。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.54.5] — 2026-05-18
 
 **fix(a11y): F-V54-C — `#/batch` TSV 編輯器擁有可存取名稱。** `#/batch` 的 TSV `<textarea>` 此前有一個透過 `aria-describedby` 接線的提示,但**沒有可存取名稱** —— 無 `<label htmlFor>`,無 `aria-label`/`aria-labelledby`(回歸執行 F-V54-C;WCAG 1.3.1 Info & Relationships / 4.1.2 Name, Role, Value)。`aria-describedby` 提供的是*描述*而非*名稱*,因此螢幕閱讀器讀出的是無標籤的「edit text」。該 textarea 現在透過新增 i18n 鍵 `batch.tsvAria` 攜帶 `aria-label`,與已使用 `*Aria` 鍵的同級執行控制輸入保持一致;既有的 describedby 提示得以保留。已線上驗證:`aria-label` 存在且已本地化,`aria-describedby` 完整,0 主控台錯誤。新增 i18n 鍵 `batch.tsvAria` 於全部 8 個語言區。新增 1 個測試檔 `tests/batch-tsv-accessible-name.test.mjs`(2 個案例:`batch-tsv` 區塊在保留其 describedby 提示的同時透過 `t(batch.tsvAria)` 擁有 `aria-label`;`batch.tsvAria` 在全部 8 個語言區中定義);736 → 738。`fix(a11y)` · `test: tests/batch-tsv-accessible-name.test.mjs`。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

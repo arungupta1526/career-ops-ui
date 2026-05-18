@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.6] — 2026-05-18
+
+**fix(a11y): S-7 — кнопка back-to-top на `#/help` несёт канонический класс-селектор `back-to-top`.** Плавающая кнопка back-to-top на `#/help` работала корректно (проверено вживую), но её список классов (`btn btn-primary help-back-top`) находился вне конвенции селектора `.back-to-top`, на который нацелен тест spec §2 #28 — ужесточённый селектор флакнул бы (прогон регрессии S-7, «лёгкая победа»). Теперь кнопка несёт также канонический класс `back-to-top`. Чисто аддитивно и CSS-no-op: `help-back-top` (существующий CSS-хук) не изменён, а у `back-to-top` нет CSS-правила — это лишь стабильная ручка для тестов/автоматизации. Проверено вживую: `document.querySelector('.back-to-top')` разрешает кнопку, `aria-label` цел, 0 ошибок консоли. Существующий случай #12 в `tests/help-nav-a11y.test.mjs` расширен утверждением, что список классов кнопки back-to-top включает канонический селектор `back-to-top` (без нового файла). `fix(a11y)` · `test: tests/help-nav-a11y.test.mjs`. Подробно — [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.54.5] — 2026-05-18
 
 **fix(a11y): F-V54-C — редактор TSV на `#/batch` имеет доступное имя.** TSV `<textarea>` на `#/batch` имел подсказку, подключённую через `aria-describedby`, но **никакого доступного имени** — ни `<label htmlFor>`, ни `aria-label`/`aria-labelledby` (прогон регрессии F-V54-C; WCAG 1.3.1 Info & Relationships / 4.1.2 Name, Role, Value). `aria-describedby` поставляет *описание*, а не *имя*, поэтому скринридер озвучивал «edit text» без метки. Теперь textarea несёт `aria-label` через новый ключ i18n `batch.tsvAria`, согласованно с соседними полями управления прогоном, которые уже используют ключи `*Aria`; существующая подсказка describedby сохранена. Проверено вживую: `aria-label` присутствует + локализован, `aria-describedby` цел, 0 ошибок консоли. Новый ключ i18n `batch.tsvAria` во всех 8 локалях. +1 файл тестов `tests/batch-tsv-accessible-name.test.mjs` (2 случая: блок `batch-tsv` имеет `aria-label` через `t(batch.tsvAria)`, сохраняя подсказку describedby; `batch.tsvAria` определён во всех 8 локалях); 736 → 738. `fix(a11y)` · `test: tests/batch-tsv-accessible-name.test.mjs`. Подробно — [`CHANGELOG.md`](CHANGELOG.md).

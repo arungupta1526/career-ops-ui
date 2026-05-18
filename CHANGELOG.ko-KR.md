@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.6] — 2026-05-18
+
+**fix(a11y): S-7 — `#/help` 의 back-to-top 버튼이 정규 선택자 클래스 `back-to-top` 를 가짐.** `#/help` 의 플로팅 back-to-top 버튼은 올바르게 작동했으나(라이브 검증됨) 그 클래스 목록(`btn btn-primary help-back-top`)이 spec §2 #28 테스트가 겨냥하는 `.back-to-top` 선택자 컨벤션 밖에 있었음 — 더 엄격한 선택자였다면 플레이키했을 것(회귀 런 S-7, "쉬운 승리"). 이제 버튼은 정규 `back-to-top` 클래스도 가짐. 순수 가산적이며 CSS no-op: `help-back-top`(기존 CSS 훅)은 변경 없고 `back-to-top` 에는 CSS 규칙이 없음 — 안정적인 테스트/자동화 핸들일 뿐. 라이브 검증됨: `document.querySelector('.back-to-top')` 가 버튼을 해석, `aria-label` 유지, 콘솔 오류 0. `tests/help-nav-a11y.test.mjs` 의 기존 #12 케이스를 back-to-top 버튼의 클래스 목록이 정규 `back-to-top` 선택자를 포함한다는 어서션으로 확장(새 파일 없음). `fix(a11y)` · `test: tests/help-nav-a11y.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.54.5] — 2026-05-18
 
 **fix(a11y): F-V54-C — `#/batch` TSV 편집기에 접근 가능한 이름이 있음.** `#/batch`의 TSV `<textarea>`는 `aria-describedby`로 연결된 힌트는 있었으나 **접근 가능한 이름이 없었음** — `<label htmlFor>` 없음, `aria-label`/`aria-labelledby` 없음(회귀 런 F-V54-C; WCAG 1.3.1 Info & Relationships / 4.1.2 Name, Role, Value). `aria-describedby`는 *이름*이 아니라 *설명*을 제공하므로, 스크린 리더가 레이블 없는 "edit text"를 안내했음. 이제 textarea는 새 i18n 키 `batch.tsvAria`를 통한 `aria-label`을 가지며, 이미 `*Aria` 키를 쓰는 형제 런-컨트롤 입력과 일관됨; 기존 describedby 힌트는 보존됨. 라이브 검증됨: `aria-label` 존재 + 현지화, `aria-describedby` 유지, 콘솔 오류 0. 새 i18n 키 `batch.tsvAria`를 8개 로케일 전반에 추가. 테스트 파일 `tests/batch-tsv-accessible-name.test.mjs`(2개 케이스: `batch-tsv` 블록이 describedby 힌트를 유지하면서 `t(batch.tsvAria)`를 통한 `aria-label`을 가짐; `batch.tsvAria`가 8개 로케일에 정의됨) +1; 736 → 738. `fix(a11y)` · `test: tests/batch-tsv-accessible-name.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

@@ -107,8 +107,13 @@ Router.register('help', async () => {
 
   // WS2 #12 — floating back-to-top; appears after scrolling down, sends
   // focus back to the page heading (keyboard-safe, CSP-safe handler).
+  // S-7 (v1.54.6, regression run) — also tag with the canonical
+  // `back-to-top` selector class the spec §2 #28 test targets, so a
+  // tighter selector can't flake. Purely additive: `help-back-top`
+  // (existing CSS hook) is unchanged; `back-to-top` has no CSS rule
+  // (CSS-no-op), it's just a stable test/automation handle.
   const backTop = c('button', {
-    className: 'btn btn-primary help-back-top',
+    className: 'btn btn-primary help-back-top back-to-top',
     'aria-label': t('help.backToTop', 'Back to top'),
     style: {
       position: 'fixed', right: '24px', bottom: '24px', zIndex: 50,

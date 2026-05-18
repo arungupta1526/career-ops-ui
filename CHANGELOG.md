@@ -6,6 +6,20 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.54.6] — 2026-05-18
+
+**fix(a11y): S-7 — `#/help` back-to-top button carries the canonical `back-to-top` selector class.**
+
+### 🐛 Fixes
+
+- The `#/help` floating back-to-top button worked correctly (verified live) but its class list (`btn btn-primary help-back-top`) sat outside the `.back-to-top` selector convention the spec §2 #28 test targets — a tightened selector would have flaked (regression run S-7, "easy win"). The button now also carries the canonical `back-to-top` class. Purely additive and a CSS-no-op: `help-back-top` (the existing CSS hook) is unchanged and `back-to-top` has no CSS rule — it's a stable test/automation handle only. Verified live: `document.querySelector('.back-to-top')` resolves the button, `aria-label` intact, 0 console errors.
+
+### 🧪 Tests
+
+- **`test: tests/help-nav-a11y.test.mjs`** — extended the existing #12 case with an assertion that the back-to-top button's class list includes the canonical `back-to-top` selector (no new file; 738 unchanged).
+
+---
+
 ## [1.54.5] — 2026-05-18
 
 **fix(a11y): F-V54-C — `#/batch` TSV editor has an accessible name.**

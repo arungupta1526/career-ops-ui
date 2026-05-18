@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.6] — 2026-05-18
+
+**fix(a11y): S-7 — `#/help` の back-to-top ボタンが正規のセレクタークラス `back-to-top` を持つ。** `#/help` のフローティング back-to-top ボタンは正しく動作していたが(ライブ検証済み)、そのクラスリスト(`btn btn-primary help-back-top`)は spec §2 #28 テストが狙う `.back-to-top` セレクター規約の外にあった — より厳格なセレクターならフレーキーだったはず(回帰ラン S-7、"イージーウィン")。ボタンは今や正規の `back-to-top` クラスも持つ。純粋に加算的で CSS no-op:`help-back-top`(既存の CSS フック)は変わらず、`back-to-top` には CSS ルールがない — 安定したテスト/自動化ハンドルにすぎない。ライブ検証済み:`document.querySelector('.back-to-top')` がボタンを解決、`aria-label` 維持、コンソールエラー 0。`tests/help-nav-a11y.test.mjs` の既存 #12 ケースを、back-to-top ボタンのクラスリストが正規 `back-to-top` セレクターを含むというアサーションで拡張(新ファイルなし)。`fix(a11y)` · `test: tests/help-nav-a11y.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.54.5] — 2026-05-18
 
 **fix(a11y): F-V54-C — `#/batch` の TSV エディターにアクセシブルな名前がある。** `#/batch` の TSV `<textarea>` は `aria-describedby` 経由で配線されたヒントはあったが**アクセシブルな名前がなかった** — `<label htmlFor>` なし、`aria-label`/`aria-labelledby` なし(回帰ラン F-V54-C; WCAG 1.3.1 Info & Relationships / 4.1.2 Name, Role, Value)。`aria-describedby` は*名前*ではなく*説明*を供給するため、スクリーンリーダーはラベルのない "edit text" を読み上げた。textarea は今や新しい i18n キー `batch.tsvAria` 経由の `aria-label` を持ち、すでに `*Aria` キーを使う兄弟のラン制御入力と一貫する;既存の describedby ヒントは保持される。ライブ検証済み:`aria-label` 存在 + ローカライズ、`aria-describedby` 維持、コンソールエラー 0。新しい i18n キー `batch.tsvAria` を 8 ロケール全体に追加。テストファイル `tests/batch-tsv-accessible-name.test.mjs`(2 ケース:`batch-tsv` ブロックが describedby ヒントを保ちつつ `t(batch.tsvAria)` 経由の `aria-label` を持つ;`batch.tsvAria` が 8 ロケールで定義)を +1;736 → 738。`fix(a11y)` · `test: tests/batch-tsv-accessible-name.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

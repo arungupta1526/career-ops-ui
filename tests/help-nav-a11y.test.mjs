@@ -43,6 +43,10 @@ test('#12: a filter input narrows the TOC by heading text', () => {
 
 test('#12: back-to-top button — fixed, focus-returns to h1, listener cleaned up', () => {
   assert.match(HELP, /const backTop = c\('button'/);
+  // S-7 (v1.54.6): canonical `back-to-top` selector class present
+  // alongside the existing `help-back-top` CSS hook, so a tightened
+  // selector can't flake.
+  assert.match(HELP, /className:\s*'btn btn-primary help-back-top back-to-top'/);
   assert.match(HELP, /'aria-label':\s*t\('help\.backToTop'/);
   assert.match(HELP, /window\.scrollTo\(\{ top: 0, behavior: 'smooth' \}\)/);
   assert.match(HELP, /window\.addEventListener\('scroll', onScroll, \{ passive: true \}\)/);
