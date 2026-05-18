@@ -8,6 +8,12 @@
 
 ---
 
+## [1.45.0] — 2026-05-18
+
+**WS2 #3 — #/config 탭: 완전한 WAI-ARIA Tabs 패턴.** #/config의 세 탭(API keys / Profile / Modes)은 클릭 전용으로만 활성화되는 단순 `<button class="tab-btn">`로, `role`도 `aria-selected`도 키보드 모델도 없었음(UX-audit HIGH #3, WCAG 4.1.2 / 2.1.1). `fix(a11y): config.js tabs implement role=tablist/tab/tabpanel` — 이제 `aria-label`이 있는 `role=tablist` 컨테이너; 각 탭은 `role=tab` + `id` + `aria-controls` + `aria-selected`(`activate()`에서 동기화) + 로빙 `tabindex`(활성 0 / 나머지 -1); 패널은 `role=tabpanel` + `tabindex=0` + 활성 탭을 추적하는 `aria-labelledby`. 완전한 키보드 내비게이션: ←/→/↑/↓(래핑) + Home/End가 포커스를 이동하고 활성화도 함. 레거시 `.tab-btn.is-active` CSS 훅은 보존. i18n 키 +1 × 8개 로케일(`config.tablistLabel`); 테스트 +7: `test: tests/config-tabs-aria.test.mjs`. 또한 테스트 전용 수정: `fix(test): retarget 2 stale auto-pipeline smoke tests` — v1.34 이전 Playwright-e2e smoke 테스트 2개가 대시보드 "Auto-pipeline" 버튼이 v1.34.0에서 더 이상 열지 않게 된 일시 모달(→ `Router.go('/auto')`)을 단언하고 있었고, 별도의 Playwright-e2e CI 잡에서 빨간 상태로 남아 있었음. #/auto 화면으로 재타깃. 653 → 660. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.44.0] — 2026-05-18
 
 **WS2 #4 + #9 — 상위 프로젝트 파일의 파괴적 덮어쓰기 전 포커스 트랩 확인.** UX 감사 HIGH 두 건, 모두 데이터 손실: (#4) `config.js`의 `saveProfileRaw`/`saveModesRaw`는 상위 `config/profile.yml` / `_profile.md` 전체를 확인 없이 교체했음; (#9) `tracker.js`의 Normalize/Dedup/Merge는 상위 `data/applications.md`를 확인 없이 제자리에서 재작성했음. `fix(a11y/safety): UI.confirm() gate before whole-file parent overwrites` — `public/js/api.js`에 새 `UI.confirm()` 추가. 기존 WAI-ARIA 모달 인프라를 재사용한 포커스 트랩 다이얼로그로(`_onClose` 훅이 있어 Esc / backdrop / × / Cancel 모든 해제 경로가 `false`로 resolve; 포커스는 기본적으로 Cancel; `Promise<boolean>` 반환; 네이티브 `confirm()` 아님), 세 개의 파괴적 호출은 이제 모두 쓰기 전에 게이트됨. 신규 i18n 키 8개 × 8개 로케일(`{op}` 플레이스홀더는 그대로 보존); 테스트 +8: `test: tests/confirm-gate.test.mjs`, 644 → 652. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

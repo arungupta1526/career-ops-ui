@@ -8,6 +8,12 @@
 
 ---
 
+## [1.45.0] — 2026-05-18
+
+**WS2 #3 — вкладки #/config: полный паттерн WAI-ARIA Tabs.** Три вкладки #/config (API keys / Profile / Modes) были обычными `<button class="tab-btn">` с активацией только по клику: ни `role`, ни `aria-selected`, ни клавиатурной модели (UX-аудит HIGH #3, WCAG 4.1.2 / 2.1.1). `fix(a11y): config.js tabs implement role=tablist/tab/tabpanel` — теперь контейнер `role=tablist` с `aria-label`; каждая вкладка `role=tab` + `id` + `aria-controls` + `aria-selected` (синхронизируется в `activate()`) + блуждающий `tabindex` (0 у активной / -1 у остальных); панель `role=tabpanel` + `tabindex=0` + `aria-labelledby`, отслеживающий активную вкладку. Полная клавиатурная навигация: ←/→/↑/↓ (с зацикливанием) + Home/End перемещают фокус И активируют. Легаси CSS-хук `.tab-btn.is-active` сохранён. +1 ключ i18n × 8 локалей (`config.tablistLabel`); +7 тестов: `test: tests/config-tabs-aria.test.mjs`. Также правка только для тестов: `fix(test): retarget 2 stale auto-pipeline smoke tests` — два smoke-теста Playwright-e2e эпохи до v1.34 проверяли переходную модалку, которую кнопка «Auto-pipeline» на дашборде перестала открывать в v1.34.0 (→ `Router.go('/auto')`); они оставались красными в отдельном CI-джобе Playwright-e2e. Перенацелены на экран #/auto. 653 → 660. Подробно — [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.44.0] — 2026-05-18
 
 **WS2 #4 + #9 — подтверждение с захватом фокуса перед деструктивной перезаписью файлов родительского проекта.** Два HIGH из UX-аудита, оба с потерей данных: (#4) `config.js` `saveProfileRaw`/`saveModesRaw` заменял весь родительский `config/profile.yml` / `_profile.md` без подтверждения; (#9) `tracker.js` Normalize/Dedup/Merge переписывал родительский `data/applications.md` на месте без подтверждения. `fix(a11y/safety): UI.confirm() gate before whole-file parent overwrites` — новый `UI.confirm()` в `public/js/api.js`, диалог с захватом фокуса, переиспользующий существующую WAI-ARIA-инфраструктуру модалок (хук `_onClose` приводит к тому, что Esc / backdrop / × / Cancel — все пути закрытия резолвят `false`; фокус по умолчанию на Cancel; возвращает `Promise<boolean>`; НЕ нативный `confirm()`). Все три деструктивных вызова теперь защищены перед записью. 8 новых ключей i18n × 8 локалей (плейсхолдер `{op}` сохранён дословно); +8 тестов: `test: tests/confirm-gate.test.mjs`, 644 → 652. Подробно — [`CHANGELOG.md`](CHANGELOG.md).

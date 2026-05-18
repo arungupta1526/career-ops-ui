@@ -8,6 +8,12 @@
 
 ---
 
+## [1.45.0] — 2026-05-18
+
+**WS2 #3 —— #/config 分頁:完整的 WAI-ARIA Tabs 模式。** #/config 的三個分頁(API keys / Profile / Modes)曾是僅靠點擊啟用的樸素 `<button class="tab-btn">`:無 `role`、無 `aria-selected`、無鍵盤模型(UX 稽核 HIGH #3,WCAG 4.1.2 / 2.1.1)。`fix(a11y): config.js tabs implement role=tablist/tab/tabpanel` —— 現為帶 `aria-label` 的 `role=tablist` 容器;每個分頁 `role=tab` + `id` + `aria-controls` + `aria-selected`(於 `activate()` 中同步)+ 漫遊 `tabindex`(啟用 0 / 其餘 -1);面板 `role=tabpanel` + `tabindex=0` + 跟隨啟用分頁的 `aria-labelledby`。完整鍵盤導覽:←/→/↑/↓(環繞)+ Home/End 既移動焦點又啟用。遺留 `.tab-btn.is-active` CSS 掛勾予以保留。新增 1 個 i18n 鍵 × 8 個語系(`config.tablistLabel`);測試 +7:`test: tests/config-tabs-aria.test.mjs`。另有一處僅測試的修正:`fix(test): retarget 2 stale auto-pipeline smoke tests` —— 兩個 v1.34 之前的 Playwright-e2e smoke 測試斷言一個儀表板「Auto-pipeline」按鈕在 v1.34.0 起不再開啟的瞬態模態(→ `Router.go('/auto')`);它們在獨立的 Playwright-e2e CI 作業中一直為紅。重新指向 #/auto 畫面。653 → 660。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.44.0] — 2026-05-18
 
 **WS2 #4 + #9 —— 父專案檔案破壞性覆寫前的焦點陷阱確認。** UX 稽核兩項 HIGH,皆為資料遺失:(#4)`config.js` 的 `saveProfileRaw`/`saveModesRaw` 未經確認即整體取代父層 `config/profile.yml` / `_profile.md`;(#9)`tracker.js` 的 Normalize/Dedup/Merge 未經確認即原地重寫父層 `data/applications.md`。`fix(a11y/safety): UI.confirm() gate before whole-file parent overwrites` —— 在 `public/js/api.js` 新增 `UI.confirm()`,一個重用既有 WAI-ARIA 模態基建的焦點陷阱對話框(`_onClose` 掛勾使 Esc / backdrop / × / Cancel 所有關閉路徑皆 resolve `false`;焦點預設落在 Cancel;回傳 `Promise<boolean>`;非原生 `confirm()`)。三處破壞性呼叫現已在寫入前全部加上閘門。新增 8 個 i18n 鍵 × 8 個語系(`{op}` 佔位符逐字保留);測試 +8:`test: tests/confirm-gate.test.mjs`,644 → 652。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

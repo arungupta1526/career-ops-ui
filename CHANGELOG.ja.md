@@ -8,6 +8,12 @@
 
 ---
 
+## [1.45.0] — 2026-05-18
+
+**WS2 #3 — #/config タブ:完全な WAI-ARIA Tabs パターン。** #/config の 3 つのタブ(API keys / Profile / Modes)はクリックのみで起動する素の `<button class="tab-btn">` で、`role` も `aria-selected` もキーボードモデルもなかった(UX-audit HIGH #3、WCAG 4.1.2 / 2.1.1)。`fix(a11y): config.js tabs implement role=tablist/tab/tabpanel` — 今は `aria-label` 付きの `role=tablist` コンテナ;各タブは `role=tab` + `id` + `aria-controls` + `aria-selected`(`activate()` 内で同期)+ ローテーション `tabindex`(アクティブ 0 / その他 -1);パネルは `role=tabpanel` + `tabindex=0` + アクティブタブを追う `aria-labelledby`。完全なキーボードナビ:←/→/↑/↓(ラップ)+ Home/End がフォーカス移動と起動の両方を行う。レガシーの `.tab-btn.is-active` CSS フックは保持。i18n キー +1 × 8 ロケール(`config.tablistLabel`);テスト +7:`test: tests/config-tabs-aria.test.mjs`。さらにテストのみの修正:`fix(test): retarget 2 stale auto-pipeline smoke tests` — v1.34 以前の Playwright-e2e smoke テスト 2 件が、ダッシュボードの「Auto-pipeline」ボタンが v1.34.0 で開かなくなった一時モーダル(→ `Router.go('/auto')`)をアサートしており、別の Playwright-e2e CI ジョブで赤のままだった。#/auto 画面に再ターゲット。653 → 660。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.44.0] — 2026-05-18
 
 **WS2 #4 + #9 — 親プロジェクトファイルの破壊的上書き前にフォーカストラップ付き確認。** UX 監査の HIGH が 2 件、いずれもデータ消失: (#4) `config.js` の `saveProfileRaw`/`saveModesRaw` は親の `config/profile.yml` / `_profile.md` を確認なしでまるごと置換していた; (#9) `tracker.js` の Normalize/Dedup/Merge は親の `data/applications.md` を確認なしでその場で書き換えていた。`fix(a11y/safety): UI.confirm() gate before whole-file parent overwrites` — `public/js/api.js` に新しい `UI.confirm()` を追加。既存の WAI-ARIA モーダル基盤を再利用したフォーカストラップ付きダイアログで(`_onClose` フックにより Esc / backdrop / × / Cancel のすべての解除経路が `false` を解決;フォーカスは既定で Cancel;`Promise<boolean>` を返す;ネイティブ `confirm()` ではない)、3 つの破壊的呼び出しはすべて書き込み前にゲートされる。新規 i18n キー 8 件 × 8 ロケール(`{op}` プレースホルダは逐語的に保持);テスト +8:`test: tests/confirm-gate.test.mjs`、644 → 652。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

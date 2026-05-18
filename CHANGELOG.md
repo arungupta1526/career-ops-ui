@@ -6,6 +6,33 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.45.0] — 2026-05-18
+
+**WS2 #3 — config tabs: full WAI-ARIA Tabs pattern.**
+
+### 🐛 Fixes
+
+- **`fix(a11y): config.js tabs implement role=tablist/tab/tabpanel`** — the three #/config tabs (API keys / Profile / Modes) were plain `<button class="tab-btn">` with click-only activation: no `role`, no `aria-selected`, no keyboard model (UX-audit HIGH #3, WCAG 4.1.2 / 2.1.1). Now: a `role="tablist"` container with an `aria-label`; each tab `role="tab"` + `id` + `aria-controls` + `aria-selected` (synced in `activate()`) + roving `tabindex` (0 active / -1 rest); the panel `role="tabpanel"` + `tabindex="0"` + `aria-labelledby` tracking the active tab. Full keyboard nav: ←/→/↑/↓ (wrapping) + Home/End move focus AND activate. The legacy `.tab-btn.is-active` CSS hook is preserved. Verified live: ArrowRight API→Profile syncs aria-selected + panel labelledby; End→Modes; 0 console errors.
+
+### 🌐 i18n
+
+- 1 new key × 8 locales — `config.tablistLabel` ("Settings sections"). `i18n-coverage` gate green.
+
+### 🧪 Tests
+
+- **`test: tests/config-tabs-aria.test.mjs`** — 7 cases (tablist/tab/tabpanel roles, aria-controls + roving tabindex, activate() aria-selected sync, keyboard map incl. wrap + preventDefault + focus move, legacy textContent-toggle removed, i18n key ×8). Total 653 → 660.
+- **`fix(test): retarget 2 stale auto-pipeline smoke tests`** (commit 5d253ba) — the pre-v1.34 Playwright-e2e smoke tests asserted a transient modal the dashboard "Auto-pipeline" button stopped opening in v1.34.0 (→ `Router.go('/auto')`); they had been red on the separate Playwright-e2e CI job for 10 releases. Retargeted to the #/auto screen. Local smoke 16/16; CI green.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 660 / 660 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.45.0
+# Playwright: #/config ArrowRight/End move + activate tabs, aria-selected synced, 0 errors
+```
+
+---
+
 ## [1.44.0] — 2026-05-18
 
 **WS2 #4 + #9 — focus-trapped confirmation for destructive parent writes.**
