@@ -338,6 +338,8 @@
       c('div', { className: 'card' }, [
         ...cfg.fields.map(field),
         c('div', { className: 'flex gap-3' }, [manualBtn, runLiveBtn]),
+        // v1.56.0 — UX-10: honest cost ballpark before the live run.
+        UI.providerCostHint(t),
       ]),
       c('div', { className: 'mt-5' }, out),
     ]);

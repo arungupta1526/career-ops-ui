@@ -251,6 +251,8 @@ Router.register('auto', async () => {
         runBtn,
         etaHint,
       ]),
+      // v1.56.0 — UX-10: honest cost ballpark before the live run.
+      UI.providerCostHint(t),
       liveRegion,
       stepperEl,
     ]),

@@ -168,8 +168,16 @@ Router.register('cv', async () => {
   const root = c('div', null, [
     c('header', { className: 'page-header' }, [
       c('div', null, [
-        c('h1', { className: 'page-title' }, t('cv.title')),
-        c('p', { className: 'page-subtitle' }, t('cv.subtitle')),
+        // v1.56.0 — UX-9: the page chrome shouldn't shout "CV" louder
+        // than the CV itself. Keep exactly ONE <h1> (F-V54-A: cvMd
+        // shifts the user's own `# Name` to <h2>, so this stays the
+        // page's only <h1>) but render it as a quiet breadcrumb chip
+        // so the user's name in the preview owns the visual space.
+        // The subtitle moves to a `title` tooltip to cut the noise.
+        c('h1', {
+          className: 'page-title cv-breadcrumb',
+          title: t('cv.subtitle'),
+        }, t('cv.title')),
       ]),
       c('div', { className: 'flex gap-3' }, [
         fileInput,

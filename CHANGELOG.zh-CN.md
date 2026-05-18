@@ -8,6 +8,12 @@
 
 ---
 
+## [1.56.0] — 2026-05-19
+
+**feat(ux):LOW 打磨合集 —— UX-9 / UX-10 / UX-11 / UX-12(一个分组的次要发布)。** **UX-9** `#/cv`:页面标题降级为安静的 `.cv-breadcrumb` 面包屑芯片,吵闹的副标题移入 `<h1>` 的 `title` 提示 —— 让用户的简历(预览中的姓名)占据视觉层级。F-V54-A 不变量保持 —— 仍是**恰好一个 `<h1>`**,仍为 `.page-title`。**UX-10** 新增共享助手 `UI.providerCostHint(t)`,置于 `#/auto`、`#/evaluate`、`#/deep` 及每个 `#/<mode>` 的 ⚡ 实时运行旁;复用 `GET /api/status/providers`(v1.55.3):有密钥时显示 *“预计费用:OpenAI gpt-5-codex · ~$0.04/eval”*(数量级,"~");无密钥时说明 ⚡ 复制手动提示(无 API 费用);fail-soft。**UX-11** `#/help`:当 TOC 过滤缩小到**恰好一个**区段时,300ms 空闲后滚动到该处(防抖;0 或 >1 不触发)。**UX-12** `#/dashboard`:首次绘制时将 `<h1>` 设为可聚焦(`tabindex="-1"`),`#content` 保持 `aria-live="polite"`(启动时朗读)—— **不**抢占焦点(避免与跳过链接冲突,v1.41.0 决定)。新增 i18n 键 `cost.estimate`、`cost.manual` ×8;新增 `.cv-breadcrumb`/`.cost-hint` CSS。**测试:**4 个新源静态 CI 隔离套件(cv-breadcrumb 3、run-cost-line 4、help-toc-autoscroll 4、dashboard-initial-focus 3);更新既有 `cv-single-h1`/`help-nav-a11y` 锁(不变量保留)。800 → 813。4 项实时 Playwright 探针,0 控制台错误。`feat(ux)` · 4 test suites。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.55.8] — 2026-05-19
 
 **feat(tracker):服务端分页 + 可点击的漏斗芯片(UX-8)。** **服务端:**`GET /api/tracker` 新增**可选** `?page` / `?pageSize` / `?status` 查询参数。不带参数时,响应与旧的 `{ rows: [...] }` 逐字节一致(所有现有调用方/测试不受影响)。带参数时返回 `{ rows: slice, total, page, pageSize, funnel }` —— `pageSize` 钳制到 `[1,500]`,`page` 钳制到 `≥1`,`status` 过滤 `rows`+`total`,`funnel` 是**整个历史**的状态→计数细分(与页/过滤无关,故芯片始终准确)。**`#/tracker`:**顶部新增**可点击漏斗芯片栏** —— *“所有状态 · N · Applied · N · Interview · N …”*(顺序 Applied → Responded → Interview → Offer → Rejected → Discarded → Evaluated → SKIP)。点击芯片设置 Status 过滤(再次点击活动芯片则清除);活动芯片为 `aria-pressed` 且高亮。8 个语言新增 i18n 键 `track.funnelAria`;新增 `.tracker-funnel`/`.tracker-chip`/`.tracker-chip--active` CSS。**`test: tests/tracker-server-paged.test.mjs`**(新增,7 个用例,CI 隔离,临时端口进程内 Express + 临时 `CAREER_OPS_ROOT` applications.md —— CLAUDE.md #2/#8):back-compat(无参数 ⇒ 恰为 `{rows}`);`?page&pageSize` 切片 + total/page/pageSize/funnel 合计 N;最后部分页无重叠;越界页 ⇒ 空 rows + 有效 total;`?status=` 过滤 total/rows 而 funnel 为整个历史;pageSize 上限;+ 芯片栏源静态锁定。793 → 800。`feat(tracker)` · `test: tests/tracker-server-paged.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。

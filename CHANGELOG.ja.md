@@ -8,6 +8,12 @@
 
 ---
 
+## [1.56.0] — 2026-05-19
+
+**feat(ux): LOW 仕上げバンドル — UX-9 / UX-10 / UX-11 / UX-12(1 つのグループ化マイナーリリース)。** **UX-9** `#/cv`:ページタイトルを控えめな `.cv-breadcrumb` チップに降格し、うるさいサブタイトルは `<h1>` の `title` ツールチップへ移動 — ユーザーの CV(プレビューの名前)が視覚的優先権を持つ。F-V54-A 不変は維持 — 依然 **正確に 1 つの `<h1>`**、依然 `.page-title`。**UX-10** 新しい共有ヘルパー `UI.providerCostHint(t)` を `#/auto`・`#/evaluate`・`#/deep`・各 `#/<mode>` の ⚡ ライブ実行の隣に表示;`GET /api/status/providers`(v1.55.3)を再利用:キーありで *「推定コスト: OpenAI gpt-5-codex · ~$0.04/eval」*(桁レベル、"~")、キーなしで ⚡ は手動プロンプトをコピー(API コストなし)と明示;fail-soft。**UX-11** `#/help`:TOC フィルタが **ちょうど 1 つ** のセクションに絞られたら 300ms アイドル後にそこへスクロール(デバウンス;0 や 2 以上では発火しない)。**UX-12** `#/dashboard`:初回ペイントで `<h1>` をフォーカス可能(`tabindex="-1"`)にし、`#content` は `aria-live="polite"` を維持(起動時に読み上げ)— フォーカスは **奪わない**(skip-link との競合回避、v1.41.0 の決定)。新 i18n キー `cost.estimate`、`cost.manual` ×8;新しい `.cv-breadcrumb`/`.cost-hint` CSS。**テスト:** 4 つの新しいソース静的 CI 隔離スイート(cv-breadcrumb 3、run-cost-line 4、help-toc-autoscroll 4、dashboard-initial-focus 3);既存 `cv-single-h1`/`help-nav-a11y` ロック更新(不変保持)。800 → 813。4 つのライブ Playwright プローブ、コンソールエラー 0。`feat(ux)` · 4 test suites。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.55.8] — 2026-05-19
 
 **feat(tracker): サーバーサイド・ページネーション + クリック可能なファネルチップ(UX-8)。** **サーバー:** `GET /api/tracker` に**任意**の `?page` / `?pageSize` / `?status` クエリパラメータを追加。無しなら応答は従来の `{ rows: [...] }` とバイト単位で同一(既存の呼び出し元/テストは無影響)。有りなら `{ rows: slice, total, page, pageSize, funnel }` を返す — `pageSize` は `[1,500]`、`page` は `≥1` にクランプ、`status` は `rows`+`total` をフィルタ、`funnel` は**全履歴**のステータス→件数内訳(ページ/フィルタに依存しないのでチップが常に正確)。**`#/tracker`:** 上部に新しい**クリック可能なファネルチップバー** — *「すべてのステータス · N · Applied · N · Interview · N …」*(順序 Applied → Responded → Interview → Offer → Rejected → Discarded → Evaluated → SKIP)。チップのクリックで Status フィルタを設定(アクティブなチップの再クリックで解除);アクティブチップは `aria-pressed` + ハイライト。8 ロケールの新 i18n キー `track.funnelAria`;新しい `.tracker-funnel`/`.tracker-chip`/`.tracker-chip--active` CSS。**`test: tests/tracker-server-paged.test.mjs`**(新規、7 ケース、CI 隔離、エフェメラルポートのインプロセス Express + 一時 `CAREER_OPS_ROOT` applications.md — CLAUDE.md #2/#8):back-compat(パラメータ無しで厳密に `{rows}`);`?page&pageSize` スライス + total/page/pageSize/funnel 合計 N;最後の部分ページで重複なし;範囲外ページ ⇒ 空 rows + 有効 total;`?status=` が total/rows をフィルタしつつ funnel は全履歴;pageSize キャップ;+ チップバーのソース静的ロック。793 → 800。`feat(tracker)` · `test: tests/tracker-server-paged.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

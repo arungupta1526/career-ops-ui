@@ -38,7 +38,12 @@ test('#12: a filter input narrows the TOC by heading text', () => {
   assert.match(HELP, /const tocSearch = c\('input'/);
   assert.match(HELP, /'aria-label':\s*t\('help\.tocFilter'/);
   assert.match(HELP, /a\.dataset\.tocText = plain\.toLowerCase\(\)/);
-  assert.match(HELP, /a\.style\.display = \(!q \|\| a\.dataset\.tocText\.includes\(q\)\) \? 'block' : 'none'/);
+  // v1.56.0 — UX-11 restructured onInput (collects a `visible` array
+  // for the 1-match auto-scroll) but the narrow-by-heading-text
+  // invariant is unchanged: still `!q || dataset.tocText.includes(q)`
+  // gating each link's display.
+  assert.match(HELP, /const show = !q \|\| a\.dataset\.tocText\.includes\(q\)/);
+  assert.match(HELP, /a\.style\.display = show \? 'block' : 'none'/);
 });
 
 test('#12: back-to-top button — fixed, focus-returns to h1, listener cleaned up', () => {

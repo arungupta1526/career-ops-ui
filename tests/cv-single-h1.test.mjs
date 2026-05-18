@@ -44,7 +44,11 @@ test('every CV-preview injection point uses cvMd, never raw UI.md', () => {
 });
 
 test('page-title <h1> is still the single top-level heading source', () => {
-  assert.match(CV, /c\('h1', \{ className: 'page-title' \}, t\('cv\.title'\)\)/);
+  // v1.56.0 — UX-9 demoted the page title to a quiet breadcrumb chip
+  // (className 'page-title cv-breadcrumb', subtitle → title tooltip)
+  // but the F-V54-A invariant is unchanged: still exactly ONE <h1>,
+  // still the page title, still .page-title (the focus target).
+  assert.match(CV, /c\('h1',\s*\{[\s\S]*?className: 'page-title cv-breadcrumb'[\s\S]*?\},\s*t\('cv\.title'\)\)/);
   assert.equal((CV.match(/c\('h1'/g) || []).length, 1, 'cv.js builds exactly one <h1>');
 });
 

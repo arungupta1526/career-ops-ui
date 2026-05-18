@@ -42,12 +42,19 @@ window.Router = (function () {
   // Skipped on the very first paint so it doesn't fight the skip-link.
   let firstPaintDone = false;
   function focusNewView(content) {
-    if (!firstPaintDone) { firstPaintDone = true; return; }
     const target =
       content.querySelector('h1, .page-title, [data-autofocus]') || content;
     if (target !== content && !target.hasAttribute('tabindex')) {
       target.setAttribute('tabindex', '-1');
     }
+    // v1.56.0 — UX-12: on the FIRST paint we now make the landing
+    // view's heading programmatically focusable (tabindex=-1 was set
+    // above) so screen-reader / heading navigation lands on it, and
+    // #content is aria-live=polite so the dashboard heading is
+    // announced on boot — but we still do NOT steal focus here, which
+    // would fight the skip-link (the deliberate v1.41.0 behaviour).
+    // Every subsequent route change DOES move focus to the new view.
+    if (!firstPaintDone) { firstPaintDone = true; return; }
     try { target.focus({ preventScroll: false }); } catch { /* jsdom */ }
   }
 

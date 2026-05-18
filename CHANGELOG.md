@@ -6,6 +6,24 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.56.0] — 2026-05-19
+
+**feat(ux): LOW-priority polish bundle — UX-9 / UX-10 / UX-11 / UX-12 (one grouped minor release).**
+
+### ✨ Features
+
+- **UX-9 — `#/cv` breadcrumb (visual hierarchy):** the page title is demoted to a quiet uppercase `.cv-breadcrumb` chip and the loud page-subtitle paragraph moves to the `<h1>` `title` tooltip, so the user's CV (their name, rendered in the preview) owns the visual space. The F-V54-A invariant is intact — still **exactly one `<h1>`**, still `.page-title` (the router focus target); only its weight changed.
+- **UX-10 — honest cost ballpark (trust/feedback):** a new shared `UI.providerCostHint(t)` helper renders next to ⚡ Run live on `#/auto`, `#/evaluate`, `#/deep` and every `#/<mode>`. It reuses `GET /api/status/providers` (v1.55.3): with a key it shows *"Estimated cost: OpenAI gpt-5-codex · ~$0.04/eval"* (order-of-magnitude, deliberately "~"); with no key it states plainly that ⚡ Run live copies a manual prompt at no API cost. Fail-soft (hidden when offline).
+- **UX-11 — `#/help` TOC auto-jump (aesthetic/flow):** when the TOC filter narrows to **exactly one** section, the page smooth-scrolls there after a 300ms idle (debounced — mid-typing keystrokes never yank the page; never fires for 0 or >1 matches), reusing the same scroll+focus path as a TOC click.
+- **UX-12 — `#/dashboard` first-paint a11y (accessibility):** on the very first SPA paint the landing view's `<h1>` is now made programmatically focusable (`tabindex="-1"`) so screen-reader / heading navigation lands on it, and `#content` stays `aria-live="polite"` so the heading is announced on boot — **without** stealing focus (that would fight the skip-link, the deliberate v1.41.0 behaviour). Only subsequent route changes move focus. *(Note: UX-12 as originally specified — "call focusNewView() on boot" — conflicted with the v1.41.0 skip-link decision; resolved conservatively to satisfy the a11y intent without the regression.)*
+- New i18n keys `cost.estimate`, `cost.manual` ×8 locales; new token-based `.cv-breadcrumb` / `.cost-hint` CSS.
+
+### 🧪 Tests
+
+- 4 new CI-isolated source-static suites — **`tests/cv-breadcrumb.test.mjs`** (3), **`tests/run-cost-line.test.mjs`** (4), **`tests/help-toc-autoscroll.test.mjs`** (4), **`tests/dashboard-initial-focus.test.mjs`** (3): single-h1 + breadcrumb class; shared helper exported + fail-soft + present in all 4 views + `cost.*` ×8; debounced exactly-1-match jump gated; tabindex-before-guard ordering + focus-after-guard + `#content` aria-live. The pre-existing `cv-single-h1` and `help-nav-a11y` locks were updated for the new (invariant-preserving) code. 800 → 813. Live Playwright probe of all four (no-key fixture): single h1 13px breadcrumb, cost hint manual note, TOC→1 narrow, h1 tabindex=-1 + aria-live polite, 0 console errors.
+
+---
+
 ## [1.55.8] — 2026-05-19
 
 **feat(tracker): server-side pagination + clickable funnel chips (UX-8).**

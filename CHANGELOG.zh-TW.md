@@ -8,6 +8,12 @@
 
 ---
 
+## [1.56.0] — 2026-05-19
+
+**feat(ux):LOW 打磨合集 —— UX-9 / UX-10 / UX-11 / UX-12(一個分組的次要發佈)。** **UX-9** `#/cv`:頁面標題降級為安靜的 `.cv-breadcrumb` 麵包屑晶片,吵鬧的副標題移入 `<h1>` 的 `title` 提示 —— 讓使用者的履歷(預覽中的姓名)佔據視覺層級。F-V54-A 不變量保持 —— 仍是**恰好一個 `<h1>`**,仍為 `.page-title`。**UX-10** 新增共享輔助 `UI.providerCostHint(t)`,置於 `#/auto`、`#/evaluate`、`#/deep` 及每個 `#/<mode>` 的 ⚡ 即時執行旁;復用 `GET /api/status/providers`(v1.55.3):有金鑰時顯示 *「預估費用:OpenAI gpt-5-codex · ~$0.04/eval」*(數量級,"~");無金鑰時說明 ⚡ 複製手動提示(無 API 費用);fail-soft。**UX-11** `#/help`:當 TOC 過濾縮小到**恰好一個**區段時,300ms 閒置後捲動至該處(防抖;0 或 >1 不觸發)。**UX-12** `#/dashboard`:首次繪製時將 `<h1>` 設為可聚焦(`tabindex="-1"`),`#content` 保持 `aria-live="polite"`(啟動時朗讀)—— **不**搶佔焦點(避免與跳過連結衝突,v1.41.0 決定)。新增 i18n 鍵 `cost.estimate`、`cost.manual` ×8;新增 `.cv-breadcrumb`/`.cost-hint` CSS。**測試:**4 個新源靜態 CI 隔離套件(cv-breadcrumb 3、run-cost-line 4、help-toc-autoscroll 4、dashboard-initial-focus 3);更新既有 `cv-single-h1`/`help-nav-a11y` 鎖(不變量保留)。800 → 813。4 項即時 Playwright 探針,0 主控台錯誤。`feat(ux)` · 4 test suites。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.55.8] — 2026-05-19
 
 **feat(tracker):伺服器端分頁 + 可點擊的漏斗晶片(UX-8)。** **伺服器:**`GET /api/tracker` 新增**可選** `?page` / `?pageSize` / `?status` 查詢參數。不帶參數時,回應與舊的 `{ rows: [...] }` 逐位元組一致(所有現有呼叫方/測試不受影響)。帶參數時回傳 `{ rows: slice, total, page, pageSize, funnel }` —— `pageSize` 箝制到 `[1,500]`,`page` 箝制到 `≥1`,`status` 過濾 `rows`+`total`,`funnel` 是**整個歷史**的狀態→計數細分(與頁/過濾無關,故晶片始終準確)。**`#/tracker`:**頂部新增**可點擊漏斗晶片列** —— *「所有狀態 · N · Applied · N · Interview · N …」*(順序 Applied → Responded → Interview → Offer → Rejected → Discarded → Evaluated → SKIP)。點擊晶片設定 Status 過濾(再次點擊作用中晶片則清除);作用中晶片為 `aria-pressed` 且高亮。8 個語言新增 i18n 鍵 `track.funnelAria`;新增 `.tracker-funnel`/`.tracker-chip`/`.tracker-chip--active` CSS。**`test: tests/tracker-server-paged.test.mjs`**(新增,7 個案例,CI 隔離,臨時埠行程內 Express + 臨時 `CAREER_OPS_ROOT` applications.md —— CLAUDE.md #2/#8):back-compat(無參數 ⇒ 恰為 `{rows}`);`?page&pageSize` 切片 + total/page/pageSize/funnel 合計 N;最後部分頁無重疊;越界頁 ⇒ 空 rows + 有效 total;`?status=` 過濾 total/rows 而 funnel 為整個歷史;pageSize 上限;+ 晶片列源靜態鎖定。793 → 800。`feat(tracker)` · `test: tests/tracker-server-paged.test.mjs`。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

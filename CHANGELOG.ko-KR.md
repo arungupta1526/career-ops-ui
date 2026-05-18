@@ -8,6 +8,12 @@
 
 ---
 
+## [1.56.0] — 2026-05-19
+
+**feat(ux): LOW 다듬기 묶음 — UX-9 / UX-10 / UX-11 / UX-12 (하나의 묶음 마이너 릴리스).** **UX-9** `#/cv`: 페이지 제목을 조용한 `.cv-breadcrumb` 칩으로 격하하고 시끄러운 부제는 `<h1>`의 `title` 툴팁으로 이동 — 사용자 CV(미리보기의 이름)가 시각적 우선권을 가짐. F-V54-A 불변 유지 — 여전히 **정확히 하나의 `<h1>`**, 여전히 `.page-title`. **UX-10** 새 공유 헬퍼 `UI.providerCostHint(t)`를 `#/auto`·`#/evaluate`·`#/deep`·모든 `#/<mode>`의 ⚡ 라이브 실행 옆에 표시; `GET /api/status/providers`(v1.55.3) 재사용: 키 있으면 *"예상 비용: OpenAI gpt-5-codex · ~$0.04/eval"*(자릿수 추정, "~"), 키 없으면 ⚡가 수동 프롬프트를 복사(API 비용 없음)임을 명시; fail-soft. **UX-11** `#/help`: TOC 필터가 **정확히 1개** 섹션으로 좁혀지면 300ms 유휴 후 해당 섹션으로 스크롤(디바운스; 0개나 2개 이상은 안 함). **UX-12** `#/dashboard`: 첫 페인트에서 `<h1>`을 포커스 가능(`tabindex="-1"`)으로 만들고 `#content`는 `aria-live="polite"` 유지(부팅 시 안내) — 포커스는 **훔치지 않음**(skip-link 충돌 회피, v1.41.0 결정). 새 i18n 키 `cost.estimate`, `cost.manual` ×8; 새 `.cv-breadcrumb`/`.cost-hint` CSS. **테스트:** 4개 새 소스-정적 CI-격리 스위트(cv-breadcrumb 3, run-cost-line 4, help-toc-autoscroll 4, dashboard-initial-focus 3); 기존 `cv-single-h1`/`help-nav-a11y` 락 갱신(불변 보존). 800 → 813. 4개 라이브 Playwright 프로브, 콘솔 에러 0. `feat(ux)` · 4 test suites. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.55.8] — 2026-05-19
 
 **feat(tracker): 서버 사이드 페이지네이션 + 클릭 가능한 퍼널 칩 (UX-8).** **서버:** `GET /api/tracker` 가 **선택적** `?page` / `?pageSize` / `?status` 쿼리 파라미터를 가짐. 없으면 응답은 기존 `{ rows: [...] }` 와 바이트 단위로 동일(모든 기존 호출자/테스트 무영향). 있으면 `{ rows: slice, total, page, pageSize, funnel }` 반환 — `pageSize` 는 `[1,500]`, `page` 는 `≥1` 로 클램프, `status` 는 `rows`+`total` 필터, `funnel` 은 **전체 이력**의 상태→개수 분포(페이지/필터와 무관하므로 칩이 항상 정확). **`#/tracker`:** 상단에 새 **클릭 가능한 퍼널 칩 바** — *"모든 상태 · N · Applied · N · Interview · N …"*(순서 Applied → Responded → Interview → Offer → Rejected → Discarded → Evaluated → SKIP). 칩 클릭은 Status 필터 설정(활성 칩 재클릭 시 해제); 활성 칩은 `aria-pressed` + 하이라이트. 8개 로케일 새 i18n 키 `track.funnelAria`; 새 `.tracker-funnel`/`.tracker-chip`/`.tracker-chip--active` CSS. **`test: tests/tracker-server-paged.test.mjs`**(신규, 7 케이스, CI-격리, 임시 포트 인프로세스 Express + 임시 `CAREER_OPS_ROOT` applications.md — CLAUDE.md #2/#8): back-compat(파라미터 없으면 정확히 `{rows}`); `?page&pageSize` 슬라이스 + total/page/pageSize/funnel 합 N; 마지막 부분 페이지 비중복; 범위 밖 페이지 ⇒ 빈 rows + 유효 total; `?status=` 가 total/rows 필터하되 funnel 은 전체 이력; pageSize 캡; + 칩 바 소스-정적 잠금. 793 → 800. `feat(tracker)` · `test: tests/tracker-server-paged.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

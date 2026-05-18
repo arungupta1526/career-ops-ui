@@ -139,6 +139,8 @@ Router.register('deep', async () => {
           },
         }, '⚡ ' + t('deep.showResult', 'Show result')),
       ]),
+      // v1.56.0 — UX-10: honest cost ballpark before the live run.
+      UI.providerCostHint(t),
     ]));
   }
 

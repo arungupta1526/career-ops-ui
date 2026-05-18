@@ -547,5 +547,40 @@ window.UI = (function () {
     }
   }
 
-  return { toast, modal, closeModal, confirm, el, escapeHtml, md, withSpinner, paginate };
+  // v1.56.0 — UX-10: an honest "what will ⚡ Run live cost?" hint,
+  // shared by #/auto, #/evaluate, #/deep and #/<mode>. Reuses
+  // GET /api/status/providers (v1.55.3). Returns a node that fills
+  // async: the active provider + model + a rough per-eval estimate,
+  // or a clear no-cost note when there's no key (manual-prompt mode).
+  // The "~" wording keeps it a ballpark, never a quote.
+  function providerCostHint(t) {
+    const tr = typeof t === 'function' ? t : (_k, f) => f;
+    const node = document.createElement('div');
+    node.className = 'cost-hint';
+    node.setAttribute('role', 'note');
+    // Order-of-magnitude USD per evaluation (one call, long JD +
+    // bundled CV context). Deliberately approximate.
+    const EST = { anthropic: 0.05, gemini: 0.01, openai: 0.04, qwen: 0.01 };
+    const NAME = { anthropic: 'Anthropic', gemini: 'Gemini', openai: 'OpenAI', qwen: 'Qwen' };
+    (async () => {
+      let st = null;
+      try {
+        const r = await fetch('/api/status/providers');
+        if (r.ok) st = await r.json();
+      } catch { /* offline → say nothing */ }
+      if (!st) { node.hidden = true; return; }
+      if (!st.activeProvider) {
+        node.textContent = tr('cost.manual',
+          'No LLM key set — “⚡ Run live” copies a manual prompt (no API cost).');
+        return;
+      }
+      const amt = (EST[st.activeProvider] != null ? EST[st.activeProvider] : 0.03).toFixed(2);
+      const name = NAME[st.activeProvider] || st.activeProvider;
+      node.textContent = tr('cost.estimate', 'Estimated cost') + ': ' + name +
+        (st.activeModel ? ' ' + st.activeModel : '') + ' · ~$' + amt + '/eval';
+    })();
+    return node;
+  }
+
+  return { toast, modal, closeModal, confirm, el, escapeHtml, md, withSpinner, paginate, providerCostHint };
 })();

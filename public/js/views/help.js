@@ -70,10 +70,12 @@ Router.register('help', async () => {
       },
     }, plain);
     a.dataset.tocText = plain.toLowerCase();
+    a.dataset.targetId = h.id; // v1.56.0 — UX-11: filter→1-match scroll
     return a;
   });
 
   // WS2 #12 — in-page filter over the TOC (92-heading doc).
+  let tocScrollTimer = 0; // v1.56.0 — UX-11 debounce handle
   const tocSearch = c('input', {
     className: 'input', type: 'search',
     'aria-label': t('help.tocFilter', 'Filter sections'),
@@ -81,8 +83,26 @@ Router.register('help', async () => {
     style: { width: '100%', marginBottom: '10px', fontSize: '13px' },
     onInput: (e) => {
       const q = e.currentTarget.value.toLowerCase().trim();
+      let visible = [];
       for (const a of tocLinks) {
-        a.style.display = (!q || a.dataset.tocText.includes(q)) ? 'block' : 'none';
+        const show = !q || a.dataset.tocText.includes(q);
+        a.style.display = show ? 'block' : 'none';
+        if (show) visible.push(a);
+      }
+      // v1.56.0 — UX-11: when the filter narrows the TOC to exactly
+      // one section, jump there for the user after a 300ms idle (so
+      // mid-typing keystrokes don't yank the page around). Cancelled
+      // and rescheduled on every keystroke; never fires for 0 or >1.
+      clearTimeout(tocScrollTimer);
+      if (q && visible.length === 1) {
+        const only = visible[0];
+        tocScrollTimer = setTimeout(() => {
+          const target = document.getElementById(only.dataset.targetId);
+          if (!target) return;
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          target.setAttribute('tabindex', '-1');
+          target.focus({ preventScroll: true });
+        }, 300);
       }
     },
   });

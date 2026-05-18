@@ -125,6 +125,8 @@ Router.register('evaluate', async () => {
         c('button', { className: 'btn btn-primary', onClick: (e) => UI.withSpinner(e.currentTarget, run) }, t('eval.btnEval')),
         c('button', { className: 'btn btn-ghost', onClick: () => { jdInput.value = ''; out.innerHTML = ''; } }, t('eval.btnClear')),
       ]),
+      // v1.56.0 — UX-10: honest cost ballpark before the live eval.
+      UI.providerCostHint(t),
     ]),
 
     c('div', { className: 'mt-5' }, out),
