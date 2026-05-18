@@ -6,6 +6,20 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.55.1] — 2026-05-18
+
+**fix(auto): pre-render the 5-stage pipeline stepper on `#/auto` mount (F-V55-E / UX-1, senior obs S-4 reopened).**
+
+### 🐛 Bug Fixes
+
+- `#/auto` now shows the documented five-stage outline — **validate → fetch → evaluate → save report → add tracker** — the moment the screen mounts, instead of staying blank until the first SSE event. Previously `<ol class="auto-stepper">` was created `display:none` and `renderStepper()` was only reached from `setStep()` / `run()`, so a cold-start user never saw the pipeline the docs promise before clicking Run. The stepper is now visible on mount with all five steps in the `pending` state, and carries an `aria-label` (`auto.stepperAria`) so assistive tech announces the region. Closes F-V55-E (a11y/static-guarantee lens) and UX-1 (promise-fidelity lens) — same fix, both lenses.
+
+### 🧪 Tests
+
+- **`test: tests/auto-stepper-prerender.test.mjs`** (new, 4 cases, CI-isolated, source-static like `router.test.mjs`): the `STEPS` array is exactly the 5 canonical stages in order; `stepperEl` is not `display:none` on mount and carries `auto.stepperAria`; a mount-scope `renderStepper()` call precedes `function setStep(`; `auto.stepperAria` is present in all 8 locales. 757 → 761.
+
+---
+
 ## [1.55.0] — 2026-05-18
 
 **feat(llm): headless live-eval runs via "OR" — Anthropic | Gemini | OpenAI | Qwen, auto-selected by whichever key is set.**

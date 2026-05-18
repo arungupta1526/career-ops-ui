@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.1] — 2026-05-18
+
+**fix(auto):在 `#/auto` 挂载时预渲染 5 阶段流水线步进器(F-V55-E / UX-1,资深观察 S-4 重新打开)。** `#/auto` 现在在屏幕挂载的那一刻就显示文档化的五阶段概要 —— **校验 → 抓取 → 评估 → 保存报告 → 加入跟踪器** —— 而不再在首个 SSE 事件前保持空白。此前 `<ol class="auto-stepper">` 以 `display:none` 创建,且 `renderStepper()` 仅从 `setStep()` / `run()` 到达,因此冷启动用户在点击 Run 之前从未见过文档承诺的流水线。步进器现在在挂载时即可见,五个阶段均为 `pending` 状态,并带有 `aria-label`(`auto.stepperAria`)以便辅助技术朗读该区域。关闭 F-V55-E(a11y/静态保证视角)与 UX-1(承诺保真视角)—— 同一修复,两个视角。**`test: tests/auto-stepper-prerender.test.mjs`**(新增,4 个用例,CI 隔离,如 `router.test.mjs` 的源静态):`STEPS` 数组恰好是 5 个规范阶段且按序;`stepperEl` 挂载时非 `display:none` 且带 `auto.stepperAria`;挂载作用域的 `renderStepper()` 调用先于 `function setStep(`;`auto.stepperAria` 存在于全部 8 个语言。757 → 761。`fix(auto)` · `test: tests/auto-stepper-prerender.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.55.0] — 2026-05-18
 
 **feat(llm):无头实时评估通过 "OR" 工作 —— Anthropic | Gemini | OpenAI | Qwen,按设置了哪个密钥自动选择。** 应用户请求,web-ui 的 ⚡ 实时评估现在使用**任何已设置的 API 密钥**工作,而不仅是 Anthropic/Gemini。`LLM_PROVIDER` 新增 `openai` 与 `qwen`;`auto`(默认)使用第一个存在密钥的提供方,优先顺序为 **Anthropic → Gemini → OpenAI → Qwen**。显式值固定为一个;强制指定但无密钥的提供方仍回退到手动提示路径。新增 `server/lib/openai.mjs` —— 一个零依赖的 OpenAI 兼容 Chat Completions 客户端(与 `anthropic.mjs` 相同的安全直连 HTTPS 模式:`AbortController` 超时、密钥从不记录、`effectiveEnv()` 密钥解析使父 `.env` 的密钥无需重启即生效)。单一内核(`runOpenAICompatible`)支撑 **`runOpenAI`**(api.openai.com)与 **`runQwen`**(阿里云 DashScope 的 OpenAI 兼容模式;中国大陆主机在 raw `.env` 中用 `QWEN_BASE_URL` 覆盖端点)。无 SDK、**无任意 CLI 执行** —— 父项目保持 CLI 无关(Claude Code · Codex · Gemini · OpenCode · Qwen · Copilot · Kimi);这仅扩展*无头* API 密钥路径。OpenAI/Qwen 尾部已接入所有评估面:`/api/evaluate`、`/api/deep`、`/api/mode/:slug` 以及 `/api/auto-pipeline` SSE —— 在 Anthropic(内联)+ Gemini(子进程)分支之后被查询以保留 auto 偏好,并使用与 Anthropic 相同的打包上下文内联。`env-config.mjs`:`QWEN_API_KEY`(机密)+ `QWEN_MODEL`(非机密)加入 `KNOWN_KEYS`/`KEY_GROUPS.core`;`LLM_PROVIDERS` 与 `providerOrder()` 扩展;`OPENAI_API_KEY` 现为一级无头提供方密钥(此前仅存储)。`#/config` API 密钥标签页:`LLM_PROVIDER` 选择器新增 `openai`/`qwen`;新增 `QWEN_API_KEY` + `QWEN_MODEL` 字段(精选 `qwen-max`/`qwen-plus`/`qwen-turbo`/`qwen2.5-*` 列表);标签页顶部的新说明解释 CLI 无关的父项目 vs web-ui 无头评估及 OR 顺序。8 个语言全部新增 i18n 键。**`test: tests/openai.test.mjs`**(新增,9 个用例,CI 隔离):OpenAI/Qwen 成功 + 块数组内容、Bearer 认证、默认及 `QWEN_BASE_URL` 覆盖端点、4xx/5xx/格式错误、`max_tokens` 钳制、超时、`effectiveEnv` 密钥检测、密钥无泄漏金丝雀。`tests/provider-selector.test.mjs` 已更新以覆盖 v1.55.0 的 `providerOrder`/`LLM_PROVIDERS`/SECRET 面 + OpenAI/Qwen 尾部接线。748 → 757。`feat(llm)` · `test: tests/openai.test.mjs` · `test: tests/provider-selector.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。

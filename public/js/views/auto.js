@@ -53,7 +53,11 @@ Router.register('auto', async () => {
 
   const stepperEl = c('ol', {
     className: 'auto-stepper',
-    style: { display: 'none', listStyle: 'none', padding: 0, margin: '20px 0 0' },
+    // v1.55.1 — F-V55-E / UX-1: visible on mount (was display:none) so
+    // the documented 5-stage pipeline outline is discoverable BEFORE
+    // the user clicks Run, not just after the first SSE event.
+    'aria-label': t('auto.stepperAria', 'Auto-pipeline stages'),
+    style: { listStyle: 'none', padding: 0, margin: '20px 0 0' },
   });
   const resultEl = c('div', { style: { display: 'none', marginTop: '20px' } });
 
@@ -82,6 +86,12 @@ Router.register('auto', async () => {
       stepperEl.appendChild(li);
     });
   }
+
+  // v1.55.1 — F-V55-E / UX-1 (S-4 reopened): render the 5 pending
+  // steps on mount so the documented pipeline outline (validate →
+  // fetch → evaluate → save report → add tracker) is visible BEFORE
+  // the user clicks Run, not only after the first SSE event.
+  renderStepper();
 
   function setStep(i, status, detail) {
     if (i == null || i < 0 || i >= STEPS.length) return;
