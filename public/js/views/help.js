@@ -25,6 +25,12 @@ Router.register('help', async () => {
   const scratch = document.createElement('div');
   scratch.innerHTML = UI.md(payload.markdown || '');
 
+  // v1.50.0 (WS2 #28) — the doc markdown starts with its own `# Title`
+  // → a SECOND <h1> on a page whose header already provides the single
+  // h1. Strip every article <h1> so there's exactly one h1 and the
+  // hierarchy starts cleanly at the <h2> sections (no h1→h3 skip).
+  scratch.querySelectorAll('h1').forEach((h) => h.remove());
+
   // Assign stable IDs to h2's so the TOC can scroll to them.
   const headings = Array.from(scratch.querySelectorAll('h2'));
   headings.forEach((h, i) => { h.id = 'help-h-' + i; });
@@ -55,14 +61,36 @@ Router.register('help', async () => {
       onClick: (e) => {
         e.preventDefault();
         const target = document.getElementById(h.id);
-        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (!target) return;
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // WS2 #27 — move keyboard/SR focus to the section, not just the
+        // viewport. Headings aren't focusable by default → tabindex=-1.
+        target.setAttribute('tabindex', '-1');
+        target.focus({ preventScroll: true });
       },
     }, plain);
+    a.dataset.tocText = plain.toLowerCase();
     return a;
+  });
+
+  // WS2 #12 — in-page filter over the TOC (92-heading doc).
+  const tocSearch = c('input', {
+    className: 'input', type: 'search',
+    'aria-label': t('help.tocFilter', 'Filter sections'),
+    placeholder: t('help.tocFilter', 'Filter sections'),
+    style: { width: '100%', marginBottom: '10px', fontSize: '13px' },
+    onInput: (e) => {
+      const q = e.currentTarget.value.toLowerCase().trim();
+      for (const a of tocLinks) {
+        a.style.display = (!q || a.dataset.tocText.includes(q)) ? 'block' : 'none';
+      }
+    },
   });
 
   const toc = c('nav', {
     className: 'card help-toc',
+    // WS2 #27 — the TOC landmark was unnamed (two unlabeled <nav>s).
+    'aria-label': t('help.toc', 'On this page'),
     style: {
       // top:110px keeps the TOC below the fixed topbar (which is
       // ~88px tall + a comfortable gap) so it never sits behind it.
@@ -73,8 +101,35 @@ Router.register('help', async () => {
   }, [
     c('strong', { style: { display: 'block', marginBottom: '8px', fontSize: '13px' } },
       t('help.toc', 'On this page')),
+    tocSearch,
     ...tocLinks,
   ]);
+
+  // WS2 #12 — floating back-to-top; appears after scrolling down, sends
+  // focus back to the page heading (keyboard-safe, CSP-safe handler).
+  const backTop = c('button', {
+    className: 'btn btn-primary help-back-top',
+    'aria-label': t('help.backToTop', 'Back to top'),
+    style: {
+      position: 'fixed', right: '24px', bottom: '24px', zIndex: 50,
+      display: 'none', borderRadius: '999px', padding: '10px 14px',
+    },
+    onClick: () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const h1 = document.querySelector('#content .page-title');
+      if (h1) { h1.setAttribute('tabindex', '-1'); h1.focus({ preventScroll: true }); }
+    },
+  }, '↑ ' + t('help.backToTop', 'Back to top'));
+  const onScroll = () => { backTop.style.display = window.scrollY > 600 ? 'block' : 'none'; };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  // Detach the listener when the SPA leaves #/help (hashchange).
+  const cleanup = () => {
+    if (!location.hash.startsWith('#/help')) {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('hashchange', cleanup);
+    }
+  };
+  window.addEventListener('hashchange', cleanup);
 
   return c('div', null, [
     c('header', { className: 'page-header' }, [
@@ -90,5 +145,6 @@ Router.register('help', async () => {
       headings.length ? toc : c('div'),
       article,
     ]),
+    backTop,
   ]);
 });

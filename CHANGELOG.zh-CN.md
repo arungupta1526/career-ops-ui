@@ -8,6 +8,12 @@
 
 ---
 
+## [1.50.0] — 2026-05-18
+
+**WS2 #12 + #27 + #28 —— help 导航无障碍。** 一份 17 个章节、90+ 个标题的指南中,`#/help` 上 UX 审计的三项发现,在 `help.js` 中修复。`fix(a11y): help — single h1, labelled+filterable TOC, focus-on-anchor, back-to-top` —— #28:文档 markdown 以自带的 `# Title` 开头,在页眉已提供规范 h1 的页面上又产生了第二个 `<h1>`;现已剥离文章的所有 `<h1>`,使全页恰有一个 h1,层级从 `<h2>` 章节干净起始。#27:TOC 的 `<nav>` 是无名地标(页面上有两个无标签 `<nav>`);现带 `aria-label`(`help.toc`),点击 TOC 条目时焦点移至章节标题(`tabindex=-1` + `focus()`),而非仅滚动视口。#12:长文档中无从查找;TOC 上方的 `type=search` 过滤器按标题文本实时收窄条目,滚动后出现带 `aria-label` 的浮动「Back to top」按钮,返回顶部并把焦点移回页面 `<h1>`;其 scroll 监听器在离开 `#/help` 的 `hashchange` 时移除。新增 2 个 i18n 键 × 8 个语言区 —— `help.tocFilter`、`help.backToTop`;测试 +6:`test: tests/help-nav-a11y.test.mjs`。685 → 691。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.49.0] — 2026-05-18
 
 **WS2 #10 + #11 + #25 + #26 —— tracker 表格无障碍与排序。** `#/tracker` 上 UX 审计的四项发现,在 `tracker.js` 中修复。`fix(a11y): tracker headers, sortable table, localized fix labels, empty state` —— #10:动作列表头是空字符串,每行的 Report 按钮缺少上下文;现每个 `<th>` 均带 `scope=col`,动作表头与 `Score`/`PDF` 表头改为 i18n 键(原先为空或硬编码英文),Report 按钮获得带公司名的 `aria-label`(`<report> — <company>`)。#11:tracker 没有排序方式;Date / Score / Status 表头现为 `<th>` 内可键盘操作的排序按钮,带 `aria-sort`(`none`/`ascending`/`descending`);`sorted()` 比较器(score 按数值,date/status 按 locale 比较)在分页前运行,点击切换方向并重置分页器。#25:`track.normalize/dedup/merge` 是风险最高的破坏性控件,却在全部 8 个语言区为同一英文(原地重写 `data/applications.md`)—— 现已正确本地化,并新增 `title` 提示。#26:零行首次运行显示与过度筛选列表相同的「no match」消息;`rows.length === 0` 现渲染独立的空状态(标题 + 正文 +「Open pipeline」CTA)。新增 7 个 i18n 键 × 8 个语言区 + 3 个重新本地化;测试 +6:`test: tests/tracker-a11y-sort.test.mjs`。677 → 683。详见 [`CHANGELOG.md`](CHANGELOG.md)。

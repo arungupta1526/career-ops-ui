@@ -8,6 +8,12 @@
 
 ---
 
+## [1.50.0] — 2026-05-18
+
+**WS2 #12 + #27 + #28 — help 내비게이션 접근성.** 17개 섹션·90+개 헤딩 가이드의 `#/help` UX 감사 지적 3건을 `help.js`에서 수정. `fix(a11y): help — single h1, labelled+filterable TOC, focus-on-anchor, back-to-top` — #28: 문서 markdown이 자체 `# Title`로 시작해, 헤더가 이미 정규 h1을 제공하는 페이지에 두 번째 `<h1>`을 만들었음; 이제 기사의 모든 `<h1>`이 제거되어 h1은 정확히 하나이며 계층은 `<h2>` 섹션에서 깔끔하게 시작함. #27: TOC의 `<nav>`는 이름 없는 랜드마크였음(페이지에 라벨 없는 `<nav>` 2개); 이제 `aria-label`(`help.toc`)을 가지며, TOC 항목을 클릭하면 뷰포트 스크롤뿐 아니라 포커스가 섹션 헤딩으로 이동함(`tabindex=-1` + `focus()`). #12: 긴 문서에서 무언가를 찾을 방법이 없었음; TOC 위의 `type=search` 필터가 헤딩 텍스트로 항목을 실시간으로 좁히고, 스크롤 후 `aria-label`이 달린 플로팅 "Back to top" 버튼이 나타나 맨 위로 돌아가 페이지 `<h1>`로 포커스를 되돌림; 그 scroll 리스너는 `#/help`를 벗어나는 `hashchange`에서 제거됨. 신규 i18n 키 2개 × 8개 로케일 — `help.tocFilter`, `help.backToTop`; 테스트 +6: `test: tests/help-nav-a11y.test.mjs`. 685 → 691. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.49.0] — 2026-05-18
 
 **WS2 #10 + #11 + #25 + #26 — tracker 테이블 접근성 및 정렬.** `#/tracker`의 UX 감사 지적 4건을 `tracker.js`에서 수정. `fix(a11y): tracker headers, sortable table, localized fix labels, empty state` — #10: 액션 열 헤더가 빈 문자열이었고 행별 Report 버튼에 맥락이 없었음; 이제 모든 `<th>`가 `scope=col`을 가지며, 액션 헤더와 `Score`/`PDF` 헤더는 i18n 키화되었고(비어 있거나 하드코딩된 영어였음), Report 버튼은 회사명이 담긴 `aria-label`(`<report> — <company>`)을 얻음. #11: 정렬 수단이 없던 tracker; Date / Score / Status 헤더는 이제 `<th>` 안의 키보드 조작 가능한 정렬 버튼이며 `aria-sort`(`none`/`ascending`/`descending`)를 가짐; `sorted()` 비교자(score는 숫자, date/status는 로케일 비교)가 페이지네이션 전에 실행되고, 클릭 시 방향을 토글하고 페이저를 리셋함. #25: `track.normalize/dedup/merge`는 가장 위험도가 높은 파괴적 컨트롤임에도 8개 로케일 모두에서 동일한 영어였음(`data/applications.md`를 제자리에서 다시 씀) — 이제 제대로 현지화되었고, `title` 툴팁도 추가. #26: 0행 첫 실행이 과도하게 필터링된 목록과 동일한 "no match" 메시지를 보였음; `rows.length === 0`은 이제 독립적인 빈 상태(제목 + 본문 + "Open pipeline" CTA)를 렌더링함. 신규 i18n 키 7개 × 8개 로케일 + 3개 재현지화; 테스트 +6: `test: tests/tracker-a11y-sort.test.mjs`. 677 → 683. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

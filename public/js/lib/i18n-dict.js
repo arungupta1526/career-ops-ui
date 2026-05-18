@@ -132,6 +132,8 @@ window.__I18N_DICT = {
   'help.title':     { en: 'Help', es: 'Ayuda', 'pt-BR': 'Ajuda', ko: '도움말', ja: 'ヘルプ', ru: 'Справка', 'zh-CN': '帮助', 'zh-TW': '說明' },
   'help.subtitle':  { en: 'Step-by-step walkthrough of every page.', es: 'Guía paso a paso de cada página.', 'pt-BR': 'Guia passo-a-passo de cada página.', ko: '각 페이지에 대한 단계별 가이드.', ja: '各ページのステップバイステップガイド。', ru: 'Пошаговое руководство по каждой странице.', 'zh-CN': '每个页面的逐步指南。', 'zh-TW': '每個頁面的逐步指南。' },
   'help.toc':       { en: 'On this page', es: 'En esta página', 'pt-BR': 'Nesta página', ko: '이 페이지에서', ja: 'このページの内容', ru: 'На этой странице', 'zh-CN': '本页内容', 'zh-TW': '本頁內容' },
+  'help.tocFilter': { en: 'Filter sections', es: 'Filtrar secciones', 'pt-BR': 'Filtrar seções', ko: '섹션 필터', ja: 'セクションを絞り込む', ru: 'Фильтр разделов', 'zh-CN': '筛选章节', 'zh-TW': '篩選章節' },
+  'help.backToTop': { en: 'Back to top', es: 'Volver arriba', 'pt-BR': 'Voltar ao topo', ko: '맨 위로', ja: 'トップへ戻る', ru: 'Наверх', 'zh-CN': '回到顶部', 'zh-TW': '回到頂部' },
   'nav.config':     { en: 'App settings', es: 'Configuración', 'pt-BR': 'Configurações', ko: '앱 설정', ja: 'アプリ設定', ru: 'Настройки', 'zh-CN': '应用设置', 'zh-TW': '應用設定' },
   'config.title':   { en: 'App settings', es: 'Configuración de la aplicación', 'pt-BR': 'Configurações da aplicação', ko: '앱 설정', ja: 'アプリ設定', ru: 'Настройки приложения', 'zh-CN': '应用设置', 'zh-TW': '應用設定' },
   'config.subtitle':{ en: 'API keys + scanner knobs. Saved to', es: 'Claves API + ajustes del scanner. Guardado en', 'pt-BR': 'Chaves API + ajustes do scanner. Salvo em', ko: 'API 키 + 스캐너 설정. 저장 위치:', ja: 'API キー + スキャナ設定。保存先:', ru: 'API-ключи + параметры сканера. Сохранено в', 'zh-CN': 'API key + 扫描器配置。保存到', 'zh-TW': 'API key + 掃描器設定。儲存到' },

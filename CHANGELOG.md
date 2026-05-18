@@ -6,6 +6,34 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.50.0] — 2026-05-18
+
+**WS2 #12 + #27 + #28 — help navigation accessibility.**
+
+### 🐛 Fixes
+
+- **`fix(a11y): help — single h1, labelled+filterable TOC, focus-on-anchor, back-to-top`** — three `#/help` findings on a 17-section / 90+-heading guide:
+  - **#28** the doc markdown opened with its own `# Title`, producing a SECOND `<h1>` on a page whose header already supplies the canonical h1 (and a h1→h3 jump in some locales). Every article `<h1>` is now stripped, so there is exactly one h1 and the hierarchy starts cleanly at the `<h2>` sections.
+  - **#27** the TOC `<nav>` was an unnamed landmark (two unlabeled `<nav>`s on the page); it now has `aria-label` (`help.toc`). Clicking a TOC entry no longer just scrolls the viewport — focus moves to the section heading (`tabindex=-1` + `focus()`), so keyboard/SR users land in the section.
+  - **#12** no way to find anything in a long doc. A `type="search"` filter above the TOC narrows entries by heading text live; a floating, `aria-label`led **Back to top** button appears after scrolling, returns to top and moves focus back to the page `<h1>`. Its scroll listener is removed on `hashchange` away from `#/help` (no leak).
+
+### 🌐 i18n
+
+- 2 new keys × 8 locales — `help.tocFilter`, `help.backToTop`. `i18n-coverage` gate green.
+
+### 🧪 Tests
+
+- **`test: tests/help-nav-a11y.test.mjs`** — 6 cases (h1 strip, labelled nav, focus-on-anchor, filter narrows, back-to-top + listener cleanup, 2 i18n keys ×8). 685 → 691. Playwright-verified: 1 h1, TOC `aria-label`, filter narrows 17→1 on "scan", 0 console errors.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 691 / 691 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.50.0
+```
+
+---
+
 ## [1.49.0] — 2026-05-18
 
 **WS2 #10 + #11 + #25 + #26 — tracker table accessibility & sort.**

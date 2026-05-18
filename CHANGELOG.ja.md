@@ -8,6 +8,12 @@
 
 ---
 
+## [1.50.0] — 2026-05-18
+
+**WS2 #12 + #27 + #28 — help ナビゲーションのアクセシビリティ。** 17 セクション・90+ 見出しのガイドにおける `#/help` の UX 監査の 3 件の指摘を `help.js` で修正。`fix(a11y): help — single h1, labelled+filterable TOC, focus-on-anchor, back-to-top` — #28:ドキュメントの markdown が独自の `# Title` で始まり、すでにヘッダーが正規の h1 を供給しているページに 2 つ目の `<h1>` を生んでいた;今は記事のすべての `<h1>` が除去され、h1 はちょうど 1 つで、階層は `<h2>` セクションから綺麗に始まる。#27:TOC の `<nav>` は名前の無いランドマークだった(ページ上にラベルの無い `<nav>` が 2 つ);今は `aria-label`(`help.toc`)を持ち、TOC エントリをクリックするとビューポートのスクロールだけでなくフォーカスがセクション見出しへ移る(`tabindex=-1` + `focus()`)。#12:長いドキュメント内で何かを見つける手段が無かった;TOC の上の `type=search` フィルタが見出しテキストでエントリをライブに絞り込み、スクロール後に `aria-label` 付きのフローティング「Back to top」ボタンが現れ、先頭に戻りページの `<h1>` にフォーカスを戻す;その scroll リスナーは `#/help` から離れる `hashchange` で除去される。新規 i18n キー 2 件 × 8 ロケール — `help.tocFilter`、`help.backToTop`;テスト +6:`test: tests/help-nav-a11y.test.mjs`。685 → 691。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.49.0] — 2026-05-18
 
 **WS2 #10 + #11 + #25 + #26 — tracker テーブルのアクセシビリティとソート。** `#/tracker` における UX 監査の 4 件の指摘を `tracker.js` で修正。`fix(a11y): tracker headers, sortable table, localized fix labels, empty state` — #10:アクション列のヘッダーは空文字列で、行ごとの Report ボタンには文脈が無かった;今はすべての `<th>` が `scope=col` を持ち、アクションヘッダーと `Score`/`PDF` ヘッダーは i18n キー化され(空またはハードコードされた英語だった)、Report ボタンは会社名付きの `aria-label`(`<report> — <company>`)を得る。#11:ソート手段の無い tracker;Date / Score / Status ヘッダーは今や `<th>` 内のキーボード操作可能なソートボタンで `aria-sort`(`none`/`ascending`/`descending`)を持つ;`sorted()` コンパレータ(score は数値、date/status はロケール比較)がページネーションの前に走り、クリックで方向をトグルしページャをリセットする。#25:`track.normalize/dedup/merge` は最もリスクの高い破壊的コントロールであるにもかかわらず 8 ロケールすべてで同一の英語だった(`data/applications.md` をその場で書き換える)— 今は適切にローカライズされ、さらに `title` ツールチップを追加。#26:ゼロ行の初回実行が過剰フィルタのリストと同じ「no match」メッセージを表示していた;`rows.length === 0` は今や独立した空状態(タイトル + 本文 +「Open pipeline」CTA)をレンダリングする。新規 i18n キー 7 件 × 8 ロケール + 3 件を再ローカライズ;テスト +6:`test: tests/tracker-a11y-sort.test.mjs`。677 → 683。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
