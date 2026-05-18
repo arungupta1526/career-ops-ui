@@ -25,8 +25,22 @@ test('#10: every th has scope=col; action + score + pdf headers are i18n', () =>
   assert.ok(!/\.map\(\(h\) => c\('th', null, h\)\)/.test(TRK), 'old null-th map must be gone');
 });
 
-test('#10: per-row Report button has an aria-label with the company', () => {
-  assert.match(TRK, /'aria-label':\s*t\('track\.report'\)\s*\+\s*' — '\s*\+\s*\(r\.company \|\| r\.role \|\| ''\)/);
+test('#10: per-row Report button has an aria-label with the company (no trailing dash)', () => {
+  assert.match(TRK, /'aria-label':\s*t\('track\.report'\)\s*\+\s*\(\(r\.company \|\| r\.role\) \? ' — ' \+ \(r\.company \|\| r\.role\) : ''\)/);
+});
+
+test('#11: aria-sort reset only touches sortable headers (WAI-ARIA)', () => {
+  // Must NOT blanket-reset every th — only those that already carry
+  // aria-sort (the 3 sortable ones), else 6 plain columns get a
+  // misleading aria-sort="none".
+  assert.match(TRK, /if \(h\.hasAttribute\('aria-sort'\)\) h\.setAttribute\('aria-sort', 'none'\)/);
+  assert.ok(!/for \(const h of th\.parentElement\.children\) h\.setAttribute\('aria-sort', 'none'\);/.test(TRK),
+    'old blanket aria-sort reset must be gone');
+});
+
+test('#11: sort direction indicator reflects state (▲/▼), aria-hidden', () => {
+  assert.match(TRK, /'aria-hidden':\s*'true'[\s\S]{0,40}'⇅'/);
+  assert.match(TRK, /ind\.textContent = sortDir === 'asc' \? '▲' : '▼'/);
 });
 
 test('#11: sortable headers — button-in-th, aria-sort, dir toggle', () => {

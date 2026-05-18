@@ -79,8 +79,12 @@ Router.register('tracker', async () => {
 
   // WS2 #11 — a sortable column header: a button inside the th so it's
   // keyboard-operable; aria-sort reflects state; click toggles dir.
+  // NOTE date sort is a string compare — correct only because r.date is
+  // ISO YYYY-MM-DD (the parent tracker's canonical format).
   function sortableTh(label, key) {
     const th = c('th', { scope: 'col', 'aria-sort': 'none' });
+    const txt = c('span', null, label);
+    const ind = c('span', { 'aria-hidden': 'true', style: { marginLeft: '4px' } }, '⇅');
     const btn = c('button', {
       className: 'tbl-sort',
       style: { background: 'none', border: 0, font: 'inherit', cursor: 'pointer', color: 'inherit', padding: 0 },
@@ -88,11 +92,19 @@ Router.register('tracker', async () => {
         if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
         else { sortKey = key; sortDir = 'asc'; }
         pager.reset();
-        for (const h of th.parentElement.children) h.setAttribute('aria-sort', 'none');
+        // aria-sort belongs only on sortable headers — reset just those
+        // (not the 6 plain columns), then mark the active one.
+        for (const h of th.parentElement.children) {
+          if (h.hasAttribute('aria-sort')) h.setAttribute('aria-sort', 'none');
+          const i = h.querySelector('.tbl-sort .tbl-sort-ind');
+          if (i) i.textContent = '⇅';
+        }
         th.setAttribute('aria-sort', sortDir === 'asc' ? 'ascending' : 'descending');
+        ind.textContent = sortDir === 'asc' ? '▲' : '▼';
         applyFilters();
       },
-    }, label + ' ⇅');
+    }, [txt, ind]);
+    ind.className = 'tbl-sort-ind';
     th.appendChild(btn);
     return th;
   }
@@ -118,7 +130,7 @@ Router.register('tracker', async () => {
       c('td', null, r.pdfReady ? '✓' : '—'),
       c('td', null, r.reportPath ? c('button', {
         className: 'btn btn-ghost btn-sm',
-        'aria-label': t('track.report') + ' — ' + (r.company || r.role || ''),
+        'aria-label': t('track.report') + ((r.company || r.role) ? ' — ' + (r.company || r.role) : ''),
         onClick: () => Router.go('/reports/' + r.reportPath.replace(/^reports\//, '').replace(/\.md$/, '')),
       }, t('track.report')) : ''),
     ]);
