@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.7] — 2026-05-19
+
+**feat(pipeline):>1000 行时的 vanilla-JS 行虚拟化(UX-7)。** `#/pipeline` 此前渲染**每一**行(`filtered.forEach(list.appendChild(urlRow))`)—— 一次扫描会用数千个 URL 填满队列,于是数千个行节点(每个是 flex div + `<a>` + 两个按钮)在每次筛选按键时同步构建,淹没 DOM 与无障碍树。新增 **vanilla-JS 虚拟化**(react-window 等价,无依赖):超过 `VIRTUALIZE_THRESHOLD = 1000` 时 `#/pipeline` 变为固定高度(`70vh`)滚动视口,配一个不可压缩的占位垫(`flex:0 0 auto`,`height = 行数 × 56px`)以保留**整个列表的真实滚动条**,rAF 节流的滚动监听只渲染视口 ± 5 行缓冲(一次约 16–19 个节点而非 N 个)。阈值及以下保持原始简单渲染**逐字节不变**,故典型管道与所有现有测试/e2e 不受影响。每个虚拟化行保留按 URL 区分的 ▶/✕ `aria-label`(F-V54-B 回归锁定)。窗口计算为纯函数 `computeWindow()`。**`test: tests/pipeline-virtualize.test.mjs`**(新增,5 个用例,CI 隔离,源静态):~1000 数值阈值;≤阈值分支保持 `forEach`→`appendChild`;>阈值分支以 rAF 滚动监听 + 占位垫渲染 `slice(start,end)`;`computeWindow()` 在 `[0,total]` ± 缓冲内钳制;行保留 ▶/✕ aria-label。788 → 793。实时 Playwright 探针(1200-URL 夹具):`scrollHeight≈67248`,DOM 中仅约 16–19 个节点,窗口端到端跟随滚动,0 控制台错误。`feat(pipeline)` · `test: tests/pipeline-virtualize.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.55.6] — 2026-05-19
 
 **feat(scan):将次要筛选收纳进“高级筛选”折叠区(UX-4)。** `#/scan` 此前把所有筛选 —— 自由文本、远程/混合/现场、范围、来源,以及扫描后的 stack/level/dynamic facet 芯片 —— 等权堆叠,形成控件之墙。现在**日常筛选保持可见**(自由文本 + 远程/混合/现场;🌐 扫描按钮已在控件卡中单列),**次要筛选折叠进 `<details class="scan-advanced"><summary>高级筛选</summary>`**:范围 + 来源下拉,以及单独的 facet 芯片簇(现在新结果集以表格而非芯片墙开头,且仅在至少有一行芯片时渲染)。8 个语言新增 i18n 键 `scan.advancedFilters`;新增 `.scan-advanced` 摘要样式(安静的 ⚙ 提示、无标记、展开时加粗)。**`test: tests/scan-advanced-disclosure.test.mjs`**(新增,6 个用例,CI 隔离,源静态):带 `.scan-advanced` 钩子与 `scan.advancedFilters` 标签的 `<details>`/`<summary>` 存在;自由文本 + 远程保持可见;范围 + 来源在折叠区内;`chipsContainer` 为 `<details>`;`.scan-advanced summary` 有样式;`scan.advancedFilters` ×8。782 → 788。`feat(scan)` · `test: tests/scan-advanced-disclosure.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。

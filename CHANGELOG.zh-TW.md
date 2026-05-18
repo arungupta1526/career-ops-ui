@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.7] — 2026-05-19
+
+**feat(pipeline):>1000 列時的 vanilla-JS 列虛擬化(UX-7)。** `#/pipeline` 此前渲染**每一**列(`filtered.forEach(list.appendChild(urlRow))`)—— 一次掃描會用數千個 URL 填滿佇列,於是數千個列節點(每個是 flex div + `<a>` + 兩個按鈕)在每次篩選按鍵時同步建構,淹沒 DOM 與無障礙樹。新增 **vanilla-JS 虛擬化**(react-window 等價,無相依):超過 `VIRTUALIZE_THRESHOLD = 1000` 時 `#/pipeline` 變為固定高度(`70vh`)捲動視口,配一個不可壓縮的佔位墊(`flex:0 0 auto`,`height = 列數 × 56px`)以保留**整個清單的真實捲軸**,rAF 節流的捲動監聽只渲染視口 ± 5 列緩衝(一次約 16–19 個節點而非 N 個)。閾值及以下保持原始簡單渲染**逐位元組不變**,故典型管道與所有現有測試/e2e 不受影響。每個虛擬化列保留按 URL 區分的 ▶/✕ `aria-label`(F-V54-B 回歸鎖定)。視窗計算為純函式 `computeWindow()`。**`test: tests/pipeline-virtualize.test.mjs`**(新增,5 個案例,CI 隔離,源靜態):~1000 數值閾值;≤閾值分支保持 `forEach`→`appendChild`;>閾值分支以 rAF 捲動監聽 + 佔位墊渲染 `slice(start,end)`;`computeWindow()` 在 `[0,total]` ± 緩衝內箝制;列保留 ▶/✕ aria-label。788 → 793。即時 Playwright 探針(1200-URL 夾具):`scrollHeight≈67248`,DOM 中僅約 16–19 個節點,視窗端到端跟隨捲動,0 主控台錯誤。`feat(pipeline)` · `test: tests/pipeline-virtualize.test.mjs`。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.55.6] — 2026-05-19
 
 **feat(scan):將次要篩選收納進「進階篩選」摺疊區(UX-4)。** `#/scan` 此前把所有篩選 —— 自由文字、遠端/混合/現場、範圍、來源,以及掃描後的 stack/level/dynamic facet 晶片 —— 等權堆疊,形成控制項之牆。現在**日常篩選保持可見**(自由文字 + 遠端/混合/現場;🌐 掃描按鈕已在控制項卡中單列),**次要篩選摺疊進 `<details class="scan-advanced"><summary>進階篩選</summary>`**:範圍 + 來源下拉,以及單獨的 facet 晶片簇(現在新結果集以表格而非晶片牆開頭,且僅在至少有一列晶片時渲染)。8 個語言新增 i18n 鍵 `scan.advancedFilters`;新增 `.scan-advanced` 摘要樣式(安靜的 ⚙ 提示、無標記、展開時加粗)。**`test: tests/scan-advanced-disclosure.test.mjs`**(新增,6 個案例,CI 隔離,源靜態):帶 `.scan-advanced` 鉤子與 `scan.advancedFilters` 標籤的 `<details>`/`<summary>` 存在;自由文字 + 遠端保持可見;範圍 + 來源在摺疊區內;`chipsContainer` 為 `<details>`;`.scan-advanced summary` 有樣式;`scan.advancedFilters` ×8。782 → 788。`feat(scan)` · `test: tests/scan-advanced-disclosure.test.mjs`。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

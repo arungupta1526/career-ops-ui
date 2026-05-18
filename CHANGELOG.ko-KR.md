@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.7] — 2026-05-19
+
+**feat(pipeline): >1000행에서 vanilla-JS 행 가상화 (UX-7).** `#/pipeline` 은 **모든** 행을 렌더(`filtered.forEach(list.appendChild(urlRow))`)했음 — 스캔은 큐를 수천 개 URL로 채우므로 수천 개 행 노드(각각 flex div + `<a>` + 버튼 2개)가 필터 키 입력마다 동기적으로 생성되어 DOM 과 접근성 트리를 폭주시켰음. 새 **vanilla-JS 가상화**(react-window 등가, 의존성 없음): `VIRTUALIZE_THRESHOLD = 1000` 초과 시 `#/pipeline` 은 고정 높이(`70vh`) 스크롤 뷰포트가 되고, 줄어들지 않는 스페이서(`flex:0 0 auto`, `height = 행수 × 56px`)가 **전체 목록의 실제 스크롤바**를 보존하며, rAF 스로틀 스크롤 리스너가 뷰포트 ± 5행 버퍼만 렌더(한 번에 N개가 아니라 ~16–19 노드). 임계값 이하에서는 기존 단순 렌더를 **바이트 단위로 유지**하므로 일반 파이프라인과 기존 테스트/e2e 가 영향 없음. 각 가상화 행은 URL 로 구분된 ▶/✕ `aria-label` 유지(F-V54-B 회귀 잠금). 윈도우 계산은 순수 `computeWindow()` 헬퍼. **`test: tests/pipeline-virtualize.test.mjs`**(신규, 5 케이스, CI-격리, 소스-정적): ~1000 수치 임계값; ≤임계 분기는 `forEach`→`appendChild` 유지; >임계 분기는 rAF 스크롤 리스너 + 스페이서로 `slice(start,end)` 렌더; `computeWindow()` 가 `[0,total]` ± 버퍼 클램프; 행이 ▶/✕ aria-label 유지. 788 → 793. 라이브 Playwright 프로브(1200-URL 픽스처): `scrollHeight≈67248`, DOM 에 ~16–19 노드만, 윈도우가 스크롤을 끝까지 추적, 콘솔 에러 0. `feat(pipeline)` · `test: tests/pipeline-virtualize.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.55.6] — 2026-05-19
 
 **feat(scan): 보조 필터를 "고급 필터" 디스클로저 뒤로 정리 (UX-4).** `#/scan` 은 모든 필터 — 자유 텍스트, 원격/하이브리드/온사이트, 범위, 소스, 스캔 후 stack/level/dynamic 패싯 칩 — 를 동일 가중치로 쌓아 컨트롤의 벽이었음. 이제 **일상 필터는 보이게 유지**(자유 텍스트 + 원격/하이브리드/온사이트; 🌐 스캔 버튼은 이미 컨트롤 카드에 별도)하고 **보조 필터는 `<details class="scan-advanced"><summary>고급 필터</summary>` 뒤로 접힘**: 범위 + 소스 셀렉트, 그리고 별도로 패싯 칩 클러스터(이제 새 결과 집합이 칩 벽이 아니라 테이블로 시작하며, 칩 행이 하나 이상일 때만 렌더). 8개 로케일 새 i18n 키 `scan.advancedFilters`; 새 `.scan-advanced` 요약 스타일(은은한 ⚙ 어포던스, 마커 없음, 열림 시 굵게). **`test: tests/scan-advanced-disclosure.test.mjs`**(신규, 6 케이스, CI-격리, 소스-정적): `.scan-advanced` 훅 + `scan.advancedFilters` 라벨의 `<details>`/`<summary>` 존재; 자유 텍스트 + 원격 가시 유지; 범위 + 소스 디스클로저 내부; `chipsContainer` 가 `<details>`; `.scan-advanced summary` 스타일; `scan.advancedFilters` ×8. 782 → 788. `feat(scan)` · `test: tests/scan-advanced-disclosure.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

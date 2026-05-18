@@ -27,6 +27,24 @@ Router.register('pipeline', async () => {
   let previewError = '';   // WS2 #22 — distinct from previewBody
   let previewLoading = false;
 
+  // v1.55.7 — UX-7: a scan can fill the pipeline with 1000s of URLs.
+  // Rendering every row (each a flex div + <a> + 2 buttons) on every
+  // filter keystroke is slow and floods the a11y tree. Above the
+  // threshold we virtualize: render only the scroll viewport ± a
+  // small buffer (a vanilla-JS react-window). At/below it we keep the
+  // original simple full render so typical pipelines are unchanged.
+  const VIRTUALIZE_THRESHOLD = 1000;
+  const ROW_H = 56;   // measured uniform row height (px) incl. gap
+  const BUFFER = 5;   // rows rendered above & below the viewport
+  // Pure window math (no DOM) so it stays unit-checkable.
+  function computeWindow(scrollTop, rowH, total, viewportH, buffer) {
+    const first = Math.floor(scrollTop / rowH);
+    const visible = Math.ceil(viewportH / rowH);
+    const start = Math.max(0, first - buffer);
+    const end = Math.min(total, first + visible + buffer);
+    return { start, end };
+  }
+
   // ── elements ──
   // v1.20.0 — WCAG 1.3.1: every interactive input owns an id +
   // accessible name. `aria-label` covers placeholder-only inputs
@@ -207,20 +225,84 @@ Router.register('pipeline', async () => {
     ]);
   }
 
+  // Virtualization state (closure-scoped so the single scroll
+  // listener always sees the current filtered set).
+  let vFiltered = [];
+  let vVirtual = false;
+  let vInner = null;
+  let vRaf = 0;
+
+  function paintWindow() {
+    if (!vVirtual || !vInner) return;
+    const { start, end } = computeWindow(
+      list.scrollTop, ROW_H, vFiltered.length, list.clientHeight || 600, BUFFER);
+    vInner.textContent = '';
+    for (let i = start; i < end; i++) {
+      const row = urlRow(vFiltered[i]);
+      row.style.position = 'absolute';
+      row.style.left = '0';
+      row.style.right = '0';
+      row.style.top = (i * ROW_H) + 'px';
+      row.style.height = ROW_H + 'px';
+      vInner.appendChild(row);
+    }
+  }
+  // One scroll listener for the element's lifetime; rAF-throttled.
+  list.addEventListener('scroll', () => {
+    if (!vVirtual) return;
+    if (vRaf) return;
+    vRaf = requestAnimationFrame(() => { vRaf = 0; paintWindow(); });
+  });
+
   function renderList() {
     list.innerHTML = '';
     const q = filterQuery.trim().toLowerCase();
     const filtered = q ? allUrls.filter((u) => u.toLowerCase().includes(q)) : allUrls;
+    vFiltered = filtered;
     counter.textContent = `${t('pipe.count', 'In queue')}: ${filtered.length}` +
       (q && filtered.length !== allUrls.length ? ` / ${allUrls.length}` : '');
     if (filtered.length === 0) {
+      vVirtual = false;
+      list.style.removeProperty('max-height');
+      list.style.removeProperty('overflow');
+      list.style.removeProperty('position');
       list.appendChild(c('div', {
         className: 'empty',
         style: { border: 'none', padding: '20px' },
       }, q ? t('pipe.noResults', 'No matches') : t('pipe.empty')));
       return;
     }
-    filtered.forEach((u) => list.appendChild(urlRow(u)));
+    if (filtered.length <= VIRTUALIZE_THRESHOLD) {
+      // Original simple full render — unchanged for typical pipelines.
+      vVirtual = false;
+      vInner = null;
+      list.style.removeProperty('max-height');
+      list.style.removeProperty('overflow');
+      list.style.removeProperty('position');
+      filtered.forEach((u) => list.appendChild(urlRow(u)));
+      return;
+    }
+    // Virtualized: fixed-height scroll viewport + a sized spacer that
+    // preserves the real scrollbar; only the viewport ± BUFFER rows
+    // are in the DOM at any time.
+    vVirtual = true;
+    list.style.position = 'relative';
+    list.style.overflow = 'auto';
+    list.style.maxHeight = '70vh';
+    // `list` keeps its column-flex layout; without flex:0 0 auto the
+    // spacer (a flex item, default flex-shrink:1) would be squashed to
+    // the 70vh container and the scroll range would collapse — the
+    // scrollbar must reflect the FULL virtual height, not the window.
+    vInner = c('div', {
+      style: {
+        position: 'relative',
+        flex: '0 0 auto',
+        height: (filtered.length * ROW_H) + 'px',
+      },
+    });
+    list.appendChild(vInner);
+    list.scrollTop = 0;
+    paintWindow();
   }
 
   async function refresh() {

@@ -6,6 +6,20 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.55.7] — 2026-05-19
+
+**feat(pipeline): vanilla-JS row virtualization at >1000 rows (UX-7).**
+
+### ✨ Features
+
+- `#/pipeline` rendered **every** row (`filtered.forEach(list.appendChild(urlRow))`) — a real scan fills the queue with thousands of URLs, so thousands of row nodes (each a flex div + `<a>` + two buttons) were built synchronously on every filter keystroke, flooding the DOM and the accessibility tree. New **vanilla-JS virtualization** (a react-window equivalent, no deps): above `VIRTUALIZE_THRESHOLD = 1000`, `#/pipeline` becomes a fixed-height (`70vh`) scroll viewport with a non-shrinkable spacer (`flex:0 0 auto`, `height = rows × 56px`) that preserves the **real scrollbar for the full list**, and an rAF-throttled scroll listener renders only the viewport ± a 5-row buffer (~16–19 nodes at a time instead of N). At/below the threshold the original simple full render is kept **byte-for-byte**, so typical pipelines and all existing pipeline tests/e2e are unaffected. Each virtualized row keeps its URL-disambiguated ▶/✕ `aria-label` (F-V54-B regression-locked). Window math is a pure `computeWindow()` helper.
+
+### 🧪 Tests
+
+- **`test: tests/pipeline-virtualize.test.mjs`** (new, 5 cases, CI-isolated, source-static): a numeric ~1000 threshold gates the path; the ≤threshold branch keeps the simple `forEach`→`appendChild`; the >threshold branch renders `slice(start,end)` with a rAF-throttled scroll listener + a scrollbar-preserving spacer; `computeWindow()` clamps `[0,total]` with a ± buffer; rows keep the disambiguated ▶/✕ aria-labels. 788 → 793. Live Playwright probe (1200-URL fixture): `scrollHeight≈67248` (full range), only ~16–19 row nodes in the DOM, window tracks scroll end-to-end (row 0 → 595 → 1199), 0 console errors.
+
+---
+
 ## [1.55.6] — 2026-05-19
 
 **feat(scan): tuck secondary filters behind an "Advanced filters" disclosure (UX-4).**
