@@ -89,9 +89,7 @@
       "Bash(grep -v ':0$')",
       "Bash(perl -ne 'print unless /Workable/')",
       "Bash(lsof -nP -iTCP:4317 -sTCP:LISTEN)",
-      "Bash(grep -n -B2 -A 12 '## \\\\[1.49.0\\\\]' CHANGELOG.__TRACKED_VAR__.md)",
-      "Bash(node -e 'const L=require\\(\"fs\"\\).readFileSync\\(\".claude/settings.json\",\"utf8\"\\).split\\(\"\\\\n\"\\);for\\(let i=88;i<=100;i++\\)if\\(L[i]\\)console.log\\(\\(i+1\\)+\": \"+L[i]\\)')",
-      "Bash(node /tmp/prune-settings.mjs)"
+      "Bash(node -e 'JSON.parse\\(require\\(\"fs\"\\).readFileSync\\(\".claude/settings.json\",\"utf8\"\\)\\);console.log\\(\"valid JSON, allow entries:\",JSON.parse\\(require\\(\"fs\"\\).readFileSync\\(\".claude/settings.json\",\"utf8\"\\)\\).permissions.allow.length\\)')"
     ]
   }
 }
