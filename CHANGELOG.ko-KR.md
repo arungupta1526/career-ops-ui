@@ -8,6 +8,12 @@
 
 ---
 
+## [1.53.0] — 2026-05-18
+
+**WS9 — 셸 표면 테스트 피라미드(마지막 미테스트 계층).** 4개의 `bin/*.sh` 스크립트와 `.githooks/pre-commit` 훅은 커버리지가 **제로**였음; 새로운 `tests/sh-files.test.mjs`가 10개 케이스를 추가해 `bash -n`/`sh -n` 구문, shebang + 실행 비트, 그리고 다른 워크스트림이 의존하는 동작 계약을 고정함: `career-ops-ui.sh` — `help`는 0으로 종료하며 shell-source 누출이 없음(v1.40.0 회귀 가드), 알 수 없는 verb는 2로 종료, `usage()`는 heredoc임; `start.sh` — `NO_OPEN` 존중, Node ≥ 18 요구, 브라우저 띄우기를 `scripts/open-dashboard.mjs`에 위임(v1.43.0 가드); `setup.sh` — strict 모드, `SKIP_START`, 두 저장소 클론; `run_all.sh` — `--quick`/`--no-e2e` 파싱과 4개 스위트; `.githooks/pre-commit`은 WS7 리뷰어를 exec하고 **어떤 셸 파일도 `git --no-verify`를 호출하지 않음**(CLAUDE.md 하드 룰 #7 가드); `install-hooks.mjs`가 `core.hooksPath`를 배선함. `docs/architecture/TESTING.md` — 피라미드 다이어그램에 셸 표면 베이스 계층 추가 + v1.53.0 합계 노트(716개 `node --test` 케이스 / 90개 파일 + 4개 E2E 표면). 706 → 716. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.52.0] — 2026-05-18
 
 **WS2 LOWs #33–#40 — 일괄 다듬기 정리(UX 감사 큐를 닫음).** 저심각도 8건. `fix(a11y/i18n): WS2 LOW batch` — #33: `#/dashboard` — 헤더의 3개 CTA가 불일치했음(2개만 앞 아이콘 있음); "Open Pipeline"이 이제 `📋`를 가져 셋 다 일치함. #34: `#/profile` — 아키타입 `fit`/`level`이 모호한 두 칩으로 렌더링됐음; 이제 접두사(`Fit:` / `Level:`)와 대응 `aria-label`을 가짐. #35: `#/health` — Run-doctor / verify 토스트가 `doctor.mjs`의 원시 문자열을 표시했음; 이제 i18n 키화. #36: `#/health` — 검사 결과가 평탄한 `<div>` 나열이었음; 이제 `role=list` `<ul>`/`<li>`이며 상태 배지가 `aria-label="<check>: <status>"`를 가짐. #37: `#/reports` — 리포트 카드가 마우스 전용 `<div onClick>`이었음; 이제 `role=link` + `tabindex` + Enter/Space 핸들러 + `aria-label`. #38: `#/activity` — 페이지네이터 주석은 "200"이라 했으나 코드는 500을 요청했음; `CAP` 상수로 정합화하고 500 상한이 오래된 이력을 잘라낼 때 `role=note` 알림이 표시됨. #39: `#/batch` — 프로즈 플레이스홀더가 영어 하드코딩이었던 반면 `aria-label`은 localized였음; 4개가 이제 i18n 키화. #40: 모드 페이지가 비동기 프로브 후 주 버튼을 조용히 재라벨했음; 이제 정중한 `role=status` 영역이 이를 안내함. 신규 i18n 키 10개 × 8개 로케일(`{n}` 보존); 테스트 +9: `test: tests/low-sweep.test.mjs`. 697 → 706. WS2의 UX 감사 큐(v1.41→v1.52의 #1–#40)를 닫음; 다음은 WS9 → WS10 → WS11. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

@@ -34,7 +34,23 @@ This document explains how the test suite is structured, what each tier guarante
        │   parsers · security · prompts · file-lock · rate-limit │  helpers, sanitizers,
        │   safe-fetch · env-config · activity-log · scanners-mock│  parsers, math
        └────────────────────────────────────────────────────────┘
+   ┌──────────────────────────────────────────────────────────────────┐
+   │        Shell surface (bin/*.sh · .githooks · scripts/*.mjs)       │  syntax + behaviour
+   │   sh-files.test.mjs · cli-doctor · open-dashboard · ai-precommit  │  contracts for the
+   └──────────────────────────────────────────────────────────────────┘  CLI / hook layer
 ```
+
+> **Totals (v1.53.0):** 716 `node --test` cases across 90 files (Tier 1–3),
+> plus 4 Playwright/E2E surfaces. The shell-surface base was the last
+> untested layer — `tests/sh-files.test.mjs` (WS9, v1.53.0) added syntax
+> (`bash -n`), shebang/exec-bit, and behavioural-contract coverage for
+> all 4 `bin/*.sh` scripts + the `.githooks/pre-commit` hook + the
+> `install-hooks` wiring (the v1.40 help-heredoc, v1.43 browser-raise
+> delegation, WS7 reviewer, CLAUDE.md #7 no-`--no-verify` rule are all
+> regression-guarded). `scripts/*.mjs` logic is covered by
+> `cli-doctor`, `open-dashboard`, `ai-precommit-review`,
+> `provider-selector` (init), and the changelog/also CI-gate scripts
+> run in CI on every push.
 
 ### Tier 1 — Unit (no network, no FS, no spawn)
 

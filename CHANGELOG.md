@@ -6,6 +6,33 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.53.0] — 2026-05-18
+
+**WS9 — shell-surface test pyramid (the last untested layer).**
+
+### 🧪 Tests
+
+- **`test: tests/sh-files.test.mjs`** — the 4 `bin/*.sh` scripts and the `.githooks/pre-commit` hook had **zero** coverage. 10 cases now lock: `bash -n`/`sh -n` syntax, shebang + executable bit, and the behavioural contracts other workstreams depend on:
+  - `career-ops-ui.sh` — `help` exits 0 + prints usage with **no shell-source leak** (v1.40.0 regression guard), unknown verb exits 2 with usage on stderr, `usage()` is a heredoc (not the fragile `sed`-scrape), all dispatcher case-labels present.
+  - `start.sh` — `NO_OPEN` honored, Node ≥ 18 gate, browser-raise delegated to `scripts/open-dashboard.mjs` (v1.43.0 guard), no bare `open "$URL"`.
+  - `setup.sh` — strict mode, `SKIP_START`, clones both repos, `need git`.
+  - `run_all.sh` — `--quick`/`--no-e2e` parsing, runs all 4 suites via `run_suite`.
+  - `.githooks/pre-commit` — execs the WS7 reviewer; **no shell file invokes `git --no-verify`** (CLAUDE.md hard rule #7 guard); `install-hooks.mjs` wires `core.hooksPath` and is the npm `prepare` step.
+- 706 → 716.
+
+### 📝 Documentation
+
+- `docs/architecture/TESTING.md` — added the **shell-surface base layer** to the pyramid diagram + a v1.53.0 totals note (716 `node --test` cases / 90 files + 4 E2E surfaces); documents that `scripts/*.mjs` logic is covered by `cli-doctor`/`open-dashboard`/`ai-precommit-review`/`provider-selector` + the CI-gate scripts.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 716 / 716 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.53.0
+```
+
+---
+
 ## [1.52.0] — 2026-05-18
 
 **WS2 LOWs #33–#40 — batched polish sweep (closes the UX-audit queue).**

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.53.0] — 2026-05-18
+
+**WS9 —— shell 表面測試金字塔(最後一個未測層)。** 4 個 `bin/*.sh` 指令稿與 `.githooks/pre-commit` 掛鉤此前覆蓋率為**零**;新增的 `tests/sh-files.test.mjs` 加入 10 個案例,鎖定 `bash -n`/`sh -n` 語法、shebang + 可執行位,以及其他 workstream 所依賴的行為契約:`career-ops-ui.sh` —— `help` 以 0 結束且無 shell-source 洩漏(v1.40.0 回歸守衛),未知 verb 以 2 結束,`usage()` 為 heredoc;`start.sh` —— 尊重 `NO_OPEN`、要求 Node ≥ 18,並將瀏覽器前置委派給 `scripts/open-dashboard.mjs`(v1.43.0 守衛);`setup.sh` —— 嚴格模式、`SKIP_START`、克隆兩個儲存庫;`run_all.sh` —— `--quick`/`--no-e2e` 解析與 4 個套件;`.githooks/pre-commit` exec WS7 評審器,且**沒有任何 shell 檔案呼叫 `git --no-verify`**(CLAUDE.md 硬規則 #7 守衛);`install-hooks.mjs` 接線 `core.hooksPath`。`docs/architecture/TESTING.md` —— 在金字塔圖中加入 shell 表面基礎層 + v1.53.0 合計註記(716 個 `node --test` 案例 / 90 個檔案 + 4 個 E2E 表面)。706 → 716。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.52.0] — 2026-05-18
 
 **WS2 LOWs #33–#40 —— 批次打磨清掃(收尾 UX 稽核佇列)。** 八項低嚴重度發現。`fix(a11y/i18n): WS2 LOW batch` —— #33:`#/dashboard` —— 頁首的 3 個 CTA 不一致(僅 2 個有前導圖示);「Open Pipeline」現帶 `📋`,三者齊整。#34:`#/profile` —— 原型的 `fit`/`level` 算繪為兩個含糊的 chip;現加前綴(`Fit:` / `Level:`)並配對應的 `aria-label`。#35:`#/health` —— Run-doctor / verify 的 toast 顯示 `doctor.mjs` 的原始字串;現已 i18n 鍵化。#36:`#/health` —— 檢查結果原是扁平的 `<div>` 串;現為 `role=list` 的 `<ul>`/`<li>`,狀態徽章帶 `aria-label="<check>: <status>"`。#37:`#/reports` —— 報告卡原是僅滑鼠的 `<div onClick>`;現為 `role=link` + `tabindex` + Enter/Space 處理器 + `aria-label`。#38:`#/activity` —— 分頁器註解寫「200」而程式碼請求 500;已對齊到 `CAP` 常數,且當 500 上限截斷舊歷史時浮現 `role=note` 通知。#39:`#/batch` —— prose 佔位符為英文硬編碼而其 `aria-label` 已 localized;四個現已 i18n 鍵化。#40:模式頁在非同步探測後靜默重新命名主按鈕;現由禮貌的 `role=status` 區域播報。新增 10 個 i18n 鍵 × 8 個語系(`{n}` 保留);測試 +9:`test: tests/low-sweep.test.mjs`。697 → 706。收尾 WS2 的 UX 稽核佇列(v1.41→v1.52 的 #1–#40);接下來 WS9 → WS10 → WS11。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.53.0] — 2026-05-18
+
+**WS9 — シェル表面のテストピラミッド(最後の未テスト層)。** 4 つの `bin/*.sh` スクリプトと `.githooks/pre-commit` フックはカバレッジが**ゼロ**だった;新しい `tests/sh-files.test.mjs` が 10 件を追加し、`bash -n`/`sh -n` 構文、shebang + 実行ビット、そして他のワークストリームが依存する振る舞いの契約を固定する:`career-ops-ui.sh` — `help` は 0 で終了し shell-source の漏れがない(v1.40.0 リグレッションガード)、未知の verb は 2 で終了、`usage()` は heredoc;`start.sh` — `NO_OPEN` を尊重、Node ≥ 18 を要求、ブラウザの前面化を `scripts/open-dashboard.mjs` に委譲(v1.43.0 ガード);`setup.sh` — strict モード、`SKIP_START`、両リポジトリを clone;`run_all.sh` — `--quick`/`--no-e2e` のパースと 4 スイート;`.githooks/pre-commit` は WS7 のレビュアを exec し、**いかなるシェルファイルも `git --no-verify` を呼ばない**(CLAUDE.md ハードルール #7 ガード);`install-hooks.mjs` が `core.hooksPath` を配線する。`docs/architecture/TESTING.md` — ピラミッド図にシェル表面のベース層を追加 + v1.53.0 の合計ノート(716 `node --test` ケース / 90 ファイル + 4 E2E サーフェス)。706 → 716。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.52.0] — 2026-05-18
 
 **WS2 LOWs #33–#40 — バッチ磨き上げ一掃(UX 監査キューを締める)。** 低重大度の 8 件。`fix(a11y/i18n): WS2 LOW batch` — #33:`#/dashboard` — ヘッダーの 3 つの CTA が不揃いだった(2 つだけ先頭アイコンあり);「Open Pipeline」が今や `📋` を持ち、3 つすべてが揃う。#34:`#/profile` — アーキタイプの `fit`/`level` が曖昧な 2 つのチップとして描画されていた;今は接頭辞付き(`Fit:` / `Level:`)で対応する `aria-label` を持つ。#35:`#/health` — Run-doctor / verify の toast が `doctor.mjs` の生文字列を表示していた;今は i18n キー化。#36:`#/health` — チェック結果はフラットな `<div>` の連なりだった;今は `role=list` の `<ul>`/`<li>` で、ステータスバッジは `aria-label="<check>: <status>"` を持つ。#37:`#/reports` — レポートカードはマウス専用の `<div onClick>` だった;今は `role=link` + `tabindex` + Enter/Space ハンドラ + `aria-label`。#38:`#/activity` — ページネータのコメントは「200」と言うがコードは 500 を要求していた;`CAP` 定数へ整合させ、500 上限が古い履歴を切り詰めると `role=note` の通知が現れる。#39:`#/batch` — プレースホルダ文言が英語ハードコードだった一方で `aria-label` は localized だった;4 つが今は i18n キー化。#40:モードページは非同期プローブ後に主ボタンを黙ってラベル変更していた;今は丁寧な `role=status` 領域がそれをアナウンスする。新規 i18n キー 10 件 × 8 ロケール(`{n}` 保持);テスト +9:`test: tests/low-sweep.test.mjs`。697 → 706。WS2 の UX 監査キュー(v1.41→v1.52 の #1–#40)を締める;次は WS9 → WS10 → WS11。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
