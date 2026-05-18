@@ -8,6 +8,12 @@
 
 ---
 
+## [1.44.0] — 2026-05-18
+
+**WS2 #4 + #9 —— 父项目文件破坏性覆盖前的焦点陷阱确认。** UX 审计两项 HIGH,均为数据丢失:(#4)`config.js` 的 `saveProfileRaw`/`saveModesRaw` 未经确认即整体替换父级 `config/profile.yml` / `_profile.md`;(#9)`tracker.js` 的 Normalize/Dedup/Merge 未经确认即就地重写父级 `data/applications.md`。`fix(a11y/safety): UI.confirm() gate before whole-file parent overwrites` —— 在 `public/js/api.js` 新增 `UI.confirm()`,一个复用既有 WAI-ARIA 模态基建的焦点陷阱对话框(`_onClose` 钩子使 Esc / backdrop / × / Cancel 所有关闭路径均 resolve `false`;焦点默认落在 Cancel;返回 `Promise<boolean>`;非原生 `confirm()`)。三处破坏性调用现已在写入前全部加门控。新增 8 个 i18n 键 × 8 个语言区(`{op}` 占位符逐字保留);测试 +8:`test: tests/confirm-gate.test.mjs`,644 → 652。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.43.0] — 2026-05-18
 
 **用户请求 —— `career-ops-ui open` + autostart 将浏览器置于前台。** 在 `setup`/`run` 之后,当浏览器已在运行时,裸 `open`/`xdg-open` 会让仪表盘标签页停留在后台,用户不得不自行查找。`feat(cli): career-ops-ui open — open AND raise the dashboard tab` —— 新的 `scripts/open-dashboard.mjs` 从 HOST/PORT 构建 URL(将 `0.0.0.0` 绑定改写为 loopback),可选地等待 `/api/health`,打开默认浏览器,然后**强制将其置于前台** —— macOS 用 `osascript` 激活 Chrome/Brave/Edge/Safari/Arc/Firefox 中正在运行的那个,Linux 用 `xdg-open`+`wmctrl`,Windows 用 `start`。作为 `career-ops-ui open` 动词暴露(别名 `dash`、`focus`)。`bin/start.sh` 的 autostart 现委托给它,因此标签页会自动置于前台;`NO_OPEN=1` 在 headless/CI 启动时禁用 auto-open。README ×8 + help §1 ×8 已更新;测试 +8:`test: tests/open-dashboard.test.mjs`,636 → 644。详见 [`CHANGELOG.md`](CHANGELOG.md)。

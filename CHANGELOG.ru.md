@@ -8,6 +8,12 @@
 
 ---
 
+## [1.44.0] — 2026-05-18
+
+**WS2 #4 + #9 — подтверждение с захватом фокуса перед деструктивной перезаписью файлов родительского проекта.** Два HIGH из UX-аудита, оба с потерей данных: (#4) `config.js` `saveProfileRaw`/`saveModesRaw` заменял весь родительский `config/profile.yml` / `_profile.md` без подтверждения; (#9) `tracker.js` Normalize/Dedup/Merge переписывал родительский `data/applications.md` на месте без подтверждения. `fix(a11y/safety): UI.confirm() gate before whole-file parent overwrites` — новый `UI.confirm()` в `public/js/api.js`, диалог с захватом фокуса, переиспользующий существующую WAI-ARIA-инфраструктуру модалок (хук `_onClose` приводит к тому, что Esc / backdrop / × / Cancel — все пути закрытия резолвят `false`; фокус по умолчанию на Cancel; возвращает `Promise<boolean>`; НЕ нативный `confirm()`). Все три деструктивных вызова теперь защищены перед записью. 8 новых ключей i18n × 8 локалей (плейсхолдер `{op}` сохранён дословно); +8 тестов: `test: tests/confirm-gate.test.mjs`, 644 → 652. Подробно — [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.43.0] — 2026-05-18
 
 **По запросу пользователя — `career-ops-ui open` + autostart с подъёмом окна браузера.** После `setup`/`run` голый `open`/`xdg-open` оставлял вкладку дашборда на заднем плане, когда браузер уже был запущен, и пользователю приходилось её искать. `feat(cli): career-ops-ui open — open AND raise the dashboard tab` — новый `scripts/open-dashboard.mjs` строит URL из HOST/PORT (переписывая бинд `0.0.0.0` на loopback), при необходимости ждёт `/api/health`, открывает браузер по умолчанию и затем **принудительно поднимает его на передний план** — macOS через `osascript` активирует тот из Chrome/Brave/Edge/Safari/Arc/Firefox, что запущен, Linux через `xdg-open`+`wmctrl`, Windows через `start`. Представлено как глагол `career-ops-ui open` (алиасы `dash`, `focus`). Autostart в `bin/start.sh` теперь делегирует ему, так что вкладка поднимается автоматически; `NO_OPEN=1` отключает auto-open для headless/CI-запусков. README ×8 + help §1 ×8 обновлены; +8 тестов: `test: tests/open-dashboard.test.mjs`, 636 → 644. Подробно — [`CHANGELOG.md`](CHANGELOG.md).

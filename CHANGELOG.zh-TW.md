@@ -8,6 +8,12 @@
 
 ---
 
+## [1.44.0] — 2026-05-18
+
+**WS2 #4 + #9 —— 父專案檔案破壞性覆寫前的焦點陷阱確認。** UX 稽核兩項 HIGH,皆為資料遺失:(#4)`config.js` 的 `saveProfileRaw`/`saveModesRaw` 未經確認即整體取代父層 `config/profile.yml` / `_profile.md`;(#9)`tracker.js` 的 Normalize/Dedup/Merge 未經確認即原地重寫父層 `data/applications.md`。`fix(a11y/safety): UI.confirm() gate before whole-file parent overwrites` —— 在 `public/js/api.js` 新增 `UI.confirm()`,一個重用既有 WAI-ARIA 模態基建的焦點陷阱對話框(`_onClose` 掛勾使 Esc / backdrop / × / Cancel 所有關閉路徑皆 resolve `false`;焦點預設落在 Cancel;回傳 `Promise<boolean>`;非原生 `confirm()`)。三處破壞性呼叫現已在寫入前全部加上閘門。新增 8 個 i18n 鍵 × 8 個語系(`{op}` 佔位符逐字保留);測試 +8:`test: tests/confirm-gate.test.mjs`,644 → 652。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.43.0] — 2026-05-18
 
 **使用者要求 —— `career-ops-ui open` + autostart 將瀏覽器帶到前景。** 在 `setup`/`run` 之後,當瀏覽器已在執行時,裸 `open`/`xdg-open` 會讓儀表板分頁停留在背景,使用者得自行尋找。`feat(cli): career-ops-ui open — open AND raise the dashboard tab` —— 新的 `scripts/open-dashboard.mjs` 從 HOST/PORT 建構 URL(將 `0.0.0.0` 綁定改寫為 loopback),可選地等待 `/api/health`,開啟預設瀏覽器,然後**強制將其帶到前景** —— macOS 以 `osascript` 啟用 Chrome/Brave/Edge/Safari/Arc/Firefox 中正在執行的那個,Linux 以 `xdg-open`+`wmctrl`,Windows 以 `start`。作為 `career-ops-ui open` 動詞公開(別名 `dash`、`focus`)。`bin/start.sh` 的 autostart 現委派給它,因此分頁會自動帶到前景;`NO_OPEN=1` 在 headless/CI 啟動時停用 auto-open。README ×8 + help §1 ×8 已更新;測試 +8:`test: tests/open-dashboard.test.mjs`,636 → 644。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

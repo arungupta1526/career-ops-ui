@@ -8,6 +8,12 @@
 
 ---
 
+## [1.44.0] — 2026-05-18
+
+**WS2 #4 + #9 — 상위 프로젝트 파일의 파괴적 덮어쓰기 전 포커스 트랩 확인.** UX 감사 HIGH 두 건, 모두 데이터 손실: (#4) `config.js`의 `saveProfileRaw`/`saveModesRaw`는 상위 `config/profile.yml` / `_profile.md` 전체를 확인 없이 교체했음; (#9) `tracker.js`의 Normalize/Dedup/Merge는 상위 `data/applications.md`를 확인 없이 제자리에서 재작성했음. `fix(a11y/safety): UI.confirm() gate before whole-file parent overwrites` — `public/js/api.js`에 새 `UI.confirm()` 추가. 기존 WAI-ARIA 모달 인프라를 재사용한 포커스 트랩 다이얼로그로(`_onClose` 훅이 있어 Esc / backdrop / × / Cancel 모든 해제 경로가 `false`로 resolve; 포커스는 기본적으로 Cancel; `Promise<boolean>` 반환; 네이티브 `confirm()` 아님), 세 개의 파괴적 호출은 이제 모두 쓰기 전에 게이트됨. 신규 i18n 키 8개 × 8개 로케일(`{op}` 플레이스홀더는 그대로 보존); 테스트 +8: `test: tests/confirm-gate.test.mjs`, 644 → 652. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.43.0] — 2026-05-18
 
 **사용자 요청 — `career-ops-ui open` + autostart 브라우저 앞으로 가져오기.** `setup`/`run` 이후 브라우저가 이미 떠 있으면 맨손 `open`/`xdg-open`은 대시보드 탭을 뒤에 남겨, 사용자가 직접 찾아야 했음. `feat(cli): career-ops-ui open — open AND raise the dashboard tab` — 새 `scripts/open-dashboard.mjs`가 HOST/PORT에서 URL을 구성하고(`0.0.0.0` 바인드를 loopback으로 재작성), 선택적으로 `/api/health`를 기다린 뒤 기본 브라우저를 열고 이어서 **강제로 앞으로 가져옴** — macOS는 `osascript`로 실행 중인 Chrome/Brave/Edge/Safari/Arc/Firefox 중 하나를 활성화, Linux는 `xdg-open`+`wmctrl`, Windows는 `start`. `career-ops-ui open` 동사로 노출(별칭 `dash`, `focus`). `bin/start.sh`의 autostart가 이제 여기에 위임하여 탭이 자동으로 앞으로 옴; `NO_OPEN=1`은 headless/CI 시작에서 auto-open을 비활성화함. README ×8 + help §1 ×8 갱신; 테스트 +8: `test: tests/open-dashboard.test.mjs`, 636 → 644. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

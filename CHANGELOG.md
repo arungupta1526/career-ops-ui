@@ -6,6 +6,32 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.44.0] — 2026-05-18
+
+**WS2 #4 + #9 — focus-trapped confirmation for destructive parent writes.**
+
+### 🐛 Fixes
+
+- **`fix(a11y/safety): UI.confirm() gate before whole-file parent overwrites`** — two UX-audit HIGHs, both data-loss: (#4) `config.js` `saveProfileRaw`/`saveModesRaw` replaced the ENTIRE parent `config/profile.yml` / `modes/_profile.md` with no confirmation; (#9) `tracker.js` Normalize/Dedup/Merge rewrote parent `data/applications.md` in place with no confirmation. Added `UI.confirm(title, message, opts)` to `public/js/api.js` — a **focus-trapped** dialog reusing the existing WAI-ARIA modal infra (focus-return, Tab-trap), returning `Promise<boolean>`. A new `_onClose` hook fires from `closeModal()` so EVERY dismissal path (Esc / backdrop / × / Cancel) resolves `false`; only the explicit confirm button resolves `true`. Focus defaults to **Cancel** (safe choice for a destructive op). NOT native `confirm()` (auto-dismissed in embeds, not focus-trapped). All three call sites are now gated before the `API.put`/`API.post`. Verified live: Normalize → focus-trapped "Переписать applications.md?" modal, focus on Cancel, Cancel dismisses with no POST, 0 console errors.
+
+### 🌐 i18n
+
+- 8 new keys × 8 locales — `common.confirm`, `config.rawConfirmTitle/Ok`, `config.profileRawConfirmBody`, `config.modesRawConfirmBody`, `track.fixConfirmTitle/Body/Ok`. The `{op}` placeholder in `track.fixConfirmBody` is preserved verbatim across all locales (runtime-substituted). `i18n-coverage` gate green.
+
+### 🧪 Tests
+
+- **`test: tests/confirm-gate.test.mjs`** — 8 cases: `UI.confirm` exported, `_onClose` resolves false on every dismissal path, Cancel-default focus, `modal()` back-compat onClose arg, all 3 destructive sites gated before their write, no native `confirm()` left, 8 i18n keys present with `{op}` intact. 644 → 652.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 652 / 652 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.44.0
+# Playwright: #/tracker Normalize → focus-trapped modal, focus=Cancel, Cancel→no POST, 0 errors
+```
+
+---
+
 ## [1.43.0] — 2026-05-18
 
 **User-requested — `career-ops-ui open` + autostart browser-raise.**

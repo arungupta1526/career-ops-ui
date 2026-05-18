@@ -8,6 +8,12 @@
 
 ---
 
+## [1.44.0] — 2026-05-18
+
+**WS2 #4 + #9 — 親プロジェクトファイルの破壊的上書き前にフォーカストラップ付き確認。** UX 監査の HIGH が 2 件、いずれもデータ消失: (#4) `config.js` の `saveProfileRaw`/`saveModesRaw` は親の `config/profile.yml` / `_profile.md` を確認なしでまるごと置換していた; (#9) `tracker.js` の Normalize/Dedup/Merge は親の `data/applications.md` を確認なしでその場で書き換えていた。`fix(a11y/safety): UI.confirm() gate before whole-file parent overwrites` — `public/js/api.js` に新しい `UI.confirm()` を追加。既存の WAI-ARIA モーダル基盤を再利用したフォーカストラップ付きダイアログで(`_onClose` フックにより Esc / backdrop / × / Cancel のすべての解除経路が `false` を解決;フォーカスは既定で Cancel;`Promise<boolean>` を返す;ネイティブ `confirm()` ではない)、3 つの破壊的呼び出しはすべて書き込み前にゲートされる。新規 i18n キー 8 件 × 8 ロケール(`{op}` プレースホルダは逐語的に保持);テスト +8:`test: tests/confirm-gate.test.mjs`、644 → 652。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.43.0] — 2026-05-18
 
 **ユーザー要望 — `career-ops-ui open` + autostart によるブラウザ前面化。** `setup`/`run` の後、ブラウザが既に起動しているとむき出しの `open`/`xdg-open` ではダッシュボードのタブが背面に残り、ユーザーが探す羽目になっていた。`feat(cli): career-ops-ui open — open AND raise the dashboard tab` — 新しい `scripts/open-dashboard.mjs` が HOST/PORT から URL を構築し(`0.0.0.0` バインドを loopback に書き換え)、必要なら `/api/health` を待ち、既定ブラウザを開いてから**強制的に前面化**する — macOS は `osascript` で起動中の Chrome/Brave/Edge/Safari/Arc/Firefox のいずれかをアクティブ化、Linux は `xdg-open`+`wmctrl`、Windows は `start`。`career-ops-ui open` 動詞として公開(エイリアス `dash`、`focus`)。`bin/start.sh` の autostart はこれに委譲し、タブが自動的に前面化される;`NO_OPEN=1` は headless/CI 起動で auto-open を無効化する。README ×8 + help §1 ×8 を更新;テスト +8:`test: tests/open-dashboard.test.mjs`、636 → 644。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

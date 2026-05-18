@@ -375,6 +375,15 @@ Router.register('config', async () => {
       UI.toast(t('config.profileEmpty', 'Profile YAML is empty'), 'error');
       return;
     }
+    // WS2 #4 — raw save REPLACES the whole parent config/profile.yml.
+    // Focus-trapped confirm before this destructive, data-loss write.
+    if (!(await UI.confirm(
+      t('config.rawConfirmTitle', 'Overwrite the whole file?'),
+      t('config.profileRawConfirmBody',
+        'This replaces the ENTIRE config/profile.yml in the parent project with the text above. Any keys not shown here will be lost. Continue?'),
+      { danger: true, confirmLabel: t('config.rawConfirmOk', 'Overwrite'), cancelLabel: t('common.cancel', 'Cancel') }))) {
+      return;
+    }
     try {
       const r = await UI.withSpinner(btn, () =>
         API.put('/api/profile', { yaml: profileTextarea.value }));
@@ -550,6 +559,14 @@ Router.register('config', async () => {
   async function saveModesRaw(btn) {
     if (!modesTextarea.value.trim()) {
       UI.toast(t('config.modesEmpty', 'modes/_profile.md is empty'), 'error');
+      return;
+    }
+    // WS2 #4 — raw save REPLACES the whole parent modes/_profile.md.
+    if (!(await UI.confirm(
+      t('config.rawConfirmTitle', 'Overwrite the whole file?'),
+      t('config.modesRawConfirmBody',
+        'This replaces the ENTIRE modes/_profile.md in the parent project with the text above. Sections not shown here will be lost. Continue?'),
+      { danger: true, confirmLabel: t('config.rawConfirmOk', 'Overwrite'), cancelLabel: t('common.cancel', 'Cancel') }))) {
       return;
     }
     try {

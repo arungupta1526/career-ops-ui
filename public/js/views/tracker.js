@@ -109,6 +109,16 @@ Router.register('tracker', async () => {
 });
 
 async function runFix(btn, path, t) {
+  // WS2 #9 — normalize/dedup/merge REWRITE the parent data/applications.md
+  // in place. Focus-trapped confirm before this destructive write.
+  const op = (path.split('/').pop() || 'fix');
+  if (!(await UI.confirm(
+    t('track.fixConfirmTitle', 'Rewrite applications.md?'),
+    t('track.fixConfirmBody', 'This runs "{op}" and rewrites data/applications.md in the parent project in place. This cannot be undone from here. Continue?')
+      .replace('{op}', op),
+    { danger: true, confirmLabel: t('track.fixConfirmOk', 'Run it'), cancelLabel: t('common.cancel', 'Cancel') }))) {
+    return;
+  }
   UI.toast(t('track.runStart'));
   try {
     const r = await UI.withSpinner(btn, () => API.post(path));

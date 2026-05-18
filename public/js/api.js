@@ -190,6 +190,10 @@ window.UI = (function () {
   // that had focus before the modal opened so we can restore it on close
   // (matches the WAI-ARIA Authoring Practices "modal dialog" pattern).
   let _modalFocusReturn = null;
+  // v1.44.0 (WS2 #4/#9) — optional close callback so `confirm()` resolves
+  // false on ANY dismissal path (Esc / backdrop / × / Cancel), all of
+  // which funnel through closeModal().
+  let _onClose = null;
   function _modalFocusables() {
     const m = document.getElementById('modal');
     if (!m) return [];
@@ -212,7 +216,8 @@ window.UI = (function () {
       first.focus();
     }
   }
-  function modal(title, html) {
+  function modal(title, html, onClose) {
+    _onClose = typeof onClose === 'function' ? onClose : null;
     document.getElementById('modal-title').textContent = title;
     const body = document.getElementById('modal-body');
     if (typeof html === 'string') body.innerHTML = html;
@@ -243,6 +248,47 @@ window.UI = (function () {
       try { _modalFocusReturn.focus(); } catch {}
     }
     _modalFocusReturn = null;
+    // Fire the close hook exactly once (confirm() relies on this for
+    // Esc / backdrop / × dismissal → resolve(false)).
+    if (_onClose) { const cb = _onClose; _onClose = null; cb(); }
+  }
+
+  /**
+   * Focus-trapped confirmation dialog. Returns Promise<boolean> — true
+   * only when the user activates the confirm button; false on Cancel,
+   * Esc, backdrop, or × (every path runs closeModal → _onClose).
+   * Replaces native confirm() for destructive parent-file writes
+   * (WS2 UX-audit #4 config raw saves, #9 tracker fix ops).
+   *
+   *   if (await UI.confirm(I18n.t('config.rawConfirmTitle'),
+   *       I18n.t('config.profileRawConfirmBody'), { danger:true,
+   *       confirmLabel:I18n.t('config.rawConfirmOk') })) { …destructive… }
+   */
+  function confirm(title, message, opts = {}) {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (val) => {
+        if (settled) return;
+        settled = true;
+        resolve(val);
+      };
+      const cancelBtn = el('button', {
+        className: 'btn btn-ghost',
+        onClick: () => { finish(false); closeModal(); },
+      }, opts.cancelLabel || (window.I18n && I18n.t('common.cancel', 'Cancel')) || 'Cancel');
+      const okBtn = el('button', {
+        className: 'btn ' + (opts.danger === false ? 'btn-primary' : 'btn-danger'),
+        onClick: () => { finish(true); closeModal(); },
+      }, opts.confirmLabel || (window.I18n && I18n.t('common.confirm', 'Confirm')) || 'Confirm');
+      const body = el('div', null, [
+        el('p', { className: 'modal-msg', style: { margin: '0 0 16px', lineHeight: '1.5' } }, message),
+        el('div', { className: 'flex gap-3' }, [cancelBtn, okBtn]),
+      ]);
+      // onClose fires on Esc / backdrop / × — treat as Cancel.
+      modal(title, body, () => finish(false));
+      // Default focus to Cancel (the safe choice for a destructive op).
+      try { cancelBtn.focus(); } catch { /* jsdom */ }
+    });
   }
   function el(tag, attrs, children) {
     const e = document.createElement(tag);
@@ -497,5 +543,5 @@ window.UI = (function () {
     }
   }
 
-  return { toast, modal, closeModal, el, escapeHtml, md, withSpinner, paginate };
+  return { toast, modal, closeModal, confirm, el, escapeHtml, md, withSpinner, paginate };
 })();
