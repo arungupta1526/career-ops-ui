@@ -6,6 +6,20 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.54.4] — 2026-05-18
+
+**fix(a11y): F-V54-B — `#/pipeline` row-action buttons have accessible names.**
+
+### 🐛 Fixes
+
+- The per-row `▶` (evaluate) and `✕` (delete) buttons on `#/pipeline` were icon-only with only a `title` attribute (regression run F-V54-B; WCAG 4.1.2 Name, Role, Value). `title` is not a reliable accessible name, so a screen-reader user heard a long run of indistinct "button"s and could not tell which row a delete would hit. Both buttons now carry an explicit `aria-label` disambiguated by a compact URL via a new `shortUrl()` helper (`host` + `…/` + last 2 path segments; trailing-slice fallback for unparseable input), so the a11y tree reads e.g. *"Delete: hh.ru/…/vacancy/12345"*. No new i18n keys — reuses `common.delete` / `pipe.evaluateBtn` + the URL. Verified live: 1385 rows, each button name unique per row, 0 console errors.
+
+### 🧪 Tests
+
+- **`test: tests/pipeline-row-action-names.test.mjs`** — 4 cases (both buttons wired with `shortUrl(url)` + exactly two such labels, `shortUrl` declared before use, same-host different-job URLs don't collapse, bare-host / unparseable / empty fallbacks). 732 → 736.
+
+---
+
 ## [1.54.3] — 2026-05-18
 
 **feat(config): structured field-form for the `#/config` "Modes" tab (no more raw markdown).**

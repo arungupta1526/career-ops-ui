@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.4] — 2026-05-18
+
+**fix(a11y): F-V54-B — `#/pipeline` 행 액션 버튼에 접근 가능한 이름이 있음.** `#/pipeline`의 행별 `▶`(평가) 및 `✕`(삭제) 버튼은 `title` 속성만 있는 아이콘 전용이었음(회귀 런 F-V54-B; WCAG 4.1.2 Name, Role, Value). `title`은 신뢰할 수 있는 접근 가능한 이름이 아니므로, 스크린 리더 사용자는 구별 불가능한 "button"의 긴 나열을 들었고 삭제가 어느 행에 적용될지 알 수 없었음. 이제 두 버튼 모두 새 `shortUrl()` 헬퍼를 통한 압축 URL(`host` + `…/` + 마지막 2개 경로 세그먼트; 파싱 불가 입력에는 후행 슬라이스 폴백)로 명확화된 명시적 `aria-label`을 가지므로, a11y 트리가 예컨대 *"Delete: hh.ru/…/vacancy/12345"*로 읽힘. 새 i18n 키 없음 — `common.delete` / `pipe.evaluateBtn` + URL을 재사용. 라이브 검증됨: 1385개 행, 각 버튼 이름이 행마다 고유, 콘솔 오류 0. 테스트 파일 `tests/pipeline-row-action-names.test.mjs`(4개 케이스: 두 버튼 모두 `shortUrl(url)`로 연결 + 정확히 두 개의 그런 레이블, `shortUrl`이 사용 전에 선언됨, 동일 호스트 다른 채용 URL은 합쳐지지 않음, 베어 호스트 / 파싱 불가 / 빈 폴백) +1; 732 → 736. `fix(a11y)` · `test: tests/pipeline-row-action-names.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.54.3] — 2026-05-18
 
 **feat(config): `#/config` "Modes" 탭을 위한 구조화된 필드 폼(더 이상 원시 마크다운 아님).** "Modes" 탭은 `modes/_profile.md`를 `##` 섹션마다 하나의 원시 `<textarea>`로 편집했음(v1.36.0 섹션 단위 세분성). 사용자 요청에 따라, 이제 **문서화된 스키마에서 파생된 구조화된 필드 폼**을 렌더링함(career-ops.org Quick Start §Step-5): `Target Roles` / `Adaptive Framing` / `Comp Targets` → **추가/제거 가능한 반복 레이블 라인 입력**(필드마다 역할/앵글/comp 한 줄, `＋ Add line` / 행마다 `aria-label`이 있는 `✕`); `Exit Narrative` / `Location Policy` → 단일 레이블 산문 `<textarea>`. 각 필드는 i18n 섹션 이름과 함께 `<label htmlFor>`로 바인딩된 실제 컨트롤임. 새 `public/js/lib/modes-form.js`(`window.ModesForm`)가 parse → render → `collect()` 로직을 소유함; 이는 **기존** `PUT /api/modes/_profile { sections }` 머지 경로에 공급되므로, 프리앰블, 순서, 그리고 폼이 건드리지 않는 모든 섹션이 바이트 안정적으로 유지됨(머지-비교체, 서버 강제). **데이터 안전성:** 본문이 순수 불릿 목록이 아닌 정규 목록 섹션(사용자가 거기에 산문을 넣음)과 비정규 `##` 섹션은 설명 노트가 있는 레이블된 그대로의 `<textarea>`로 폴백됨 — 임의 콘텐츠는 그대로 round-trip되며, 결코 조용히 재구성되거나 손실되지 않음. Round-trip 안정성 입증됨: `serialise(parse(body))`가 동일하게 재파싱됨. 전체 파일 원시 마크다운 편집기는 섹션 추가/제거 및 프리앰블 편집을 위한 확인 게이트가 있는 **Advanced** 디스클로저로 남아 있음(WS2 #4 파괴적 저장 게이트 변경 없음). 8개 로케일 전반에 새 i18n 키 10개(`config.modesTargetRoles` … `config.modesUnknownNote`). 테스트 파일 `tests/modes-form.test.mjs`(7개 케이스) +1; 725 → 732. 격리된 `CAREER_OPS_ROOT` 픽스처에 대해 라이브 검증됨: 정규 섹션 5개가 필드로 렌더링됨 + 커스텀 섹션 1개가 레이블된 폴백으로, 편집-후-저장 round-trip이 프리앰블 + 커스텀 섹션을 보존함, 콘솔 오류 0. `feat(config)` · `test: tests/modes-form.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

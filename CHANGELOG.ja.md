@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.4] — 2026-05-18
+
+**fix(a11y): F-V54-B — `#/pipeline` の行アクションボタンにアクセシブルな名前がある。** `#/pipeline` の行ごとの `▶`(評価)および `✕`(削除)ボタンは `title` 属性のみのアイコン専用だった(回帰ラン F-V54-B; WCAG 4.1.2 Name, Role, Value)。`title` は信頼できるアクセシブルな名前ではないため、スクリーンリーダーユーザーは区別のつかない "button" の長い連なりを聞き、削除がどの行に当たるか判別できなかった。両ボタンは今や、新しい `shortUrl()` ヘルパー経由のコンパクトな URL(`host` + `…/` + 末尾 2 つのパスセグメント;パース不能な入力には末尾スライスのフォールバック)で曖昧さを解消した明示的な `aria-label` を持ち、a11y ツリーは例えば *"Delete: hh.ru/…/vacancy/12345"* と読み上げる。新しい i18n キーなし — `common.delete` / `pipe.evaluateBtn` + URL を再利用。ライブ検証済み:1385 行、各ボタン名が行ごとに一意、コンソールエラー 0。テストファイル `tests/pipeline-row-action-names.test.mjs`(4 ケース:両ボタンが `shortUrl(url)` で配線 + ちょうど 2 つのそのラベル、`shortUrl` が使用前に宣言、同一ホスト別求人の URL は collapse しない、ベアホスト / パース不能 / 空のフォールバック)を +1;732 → 736。`fix(a11y)` · `test: tests/pipeline-row-action-names.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.54.3] — 2026-05-18
 
 **feat(config): `#/config` の "Modes" タブ向け構造化フィールドフォーム(もう生の markdown ではない)。** "Modes" タブは `modes/_profile.md` を `##` セクションごとに 1 つの生の `<textarea>` として編集していた(v1.36.0 のセクション単位の粒度)。ユーザー要望により、今や**文書化されたスキーマから派生した構造化フィールドフォーム**をレンダリングする(career-ops.org Quick Start §Step-5): `Target Roles` / `Adaptive Framing` / `Comp Targets` → **追加/削除可能な反復ラベル付きライン入力**(フィールドごとにロール/アングル/comp 1 行、`＋ Add line` / 行ごとに `aria-label` 付き `✕`); `Exit Narrative` / `Location Policy` → 単一のラベル付き散文 `<textarea>`。各フィールドは i18n セクション名を持つ `<label htmlFor>` で紐付けられた実コントロール。新しい `public/js/lib/modes-form.js`(`window.ModesForm`)が parse → render → `collect()` のロジックを保持する;これは**既存**の `PUT /api/modes/_profile { sections }` マージ経路へ供給されるため、前文、順序、およびフォームが触れないすべてのセクションがバイト安定で残る(マージ-非置換、サーバー強制)。**データ安全性:** 本文が純粋な箇条書きでない正規リストセクション(ユーザーがそこに散文を入れた)および非正規 `##` セクションは、説明ノート付きのラベル付きそのままの `<textarea>` にフォールバックする — 任意のコンテンツはそのまま round-trip し、決して暗黙に再構成されたり失われたりしない。Round-trip 安定性を実証:`serialise(parse(body))` が同一に再パースされる。全ファイル生 markdown エディターは、セクションの追加/削除と前文編集のための確認ゲート付き **Advanced** ディスクロージャーとして残る(WS2 #4 破壊的保存ゲートは変更なし)。8 ロケール全体で新しい i18n キー 10 個(`config.modesTargetRoles` … `config.modesUnknownNote`)。テストファイル `tests/modes-form.test.mjs`(7 ケース)を +1;725 → 732。隔離された `CAREER_OPS_ROOT` フィクスチャに対してライブ検証済み:正規セクション 5 個がフィールドとしてレンダリング + カスタムセクション 1 個がラベル付きフォールバックとして、編集して保存の round-trip が前文 + カスタムセクションを保持、コンソールエラー 0。`feat(config)` · `test: tests/modes-form.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

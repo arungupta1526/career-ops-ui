@@ -3,6 +3,22 @@ Router.register('pipeline', async () => {
   const c = UI.el;
   const t = (k, f) => I18n.t(k, f);
 
+  // F-V54-B — compact, screen-reader-friendly URL for row-action
+  // aria-labels: host + the tail of the path (last 2 segments), so two
+  // jobs on the same board don't collapse to an identical announced
+  // name. Falls back to a trailing slice if the URL won't parse.
+  function shortUrl(u) {
+    try {
+      const { hostname, pathname } = new URL(u);
+      const segs = pathname.split('/').filter(Boolean);
+      const tail = segs.slice(-2).join('/');
+      return tail ? `${hostname}/…/${tail}` : hostname;
+    } catch {
+      const s = String(u || '');
+      return s.length > 48 ? '…' + s.slice(-47) : s;
+    }
+  }
+
   // ── state ──
   let allUrls = [];
   let filterQuery = '';
@@ -157,15 +173,23 @@ Router.register('pipeline', async () => {
           style: { display: 'block', fontSize: '12px', color: 'var(--foggy)', wordBreak: 'break-all', marginTop: '2px', textDecoration: 'none' },
         }, url),
       ]),
+      // F-V54-B (v1.54.4) — these row actions were icon-only (▶ / ✕)
+      // with only a `title`. `title` is not a reliable accessible name
+      // (WCAG 4.1.2 Name, Role, Value), and with one pair per row a
+      // screen-reader user heard N identical "button"s. Each now has an
+      // explicit aria-label disambiguated by a truncated URL so the
+      // accessibility tree reads e.g. "Delete: …/jobs/12345".
       c('div', { className: 'flex gap-1' }, [
         c('button', {
           className: 'btn btn-ghost btn-sm',
           title: t('pipe.evaluateBtn'),
+          'aria-label': t('pipe.evaluateBtn') + ': ' + shortUrl(url),
           onClick: (e) => { e.stopPropagation(); Router.go('/evaluate?url=' + encodeURIComponent(url)); },
         }, '▶'),
         c('button', {
           className: 'btn btn-ghost btn-sm pipeline-row-delete',
           title: t('common.delete', 'Delete'),
+          'aria-label': t('common.delete', 'Delete') + ': ' + shortUrl(url),
           onClick: async (e) => {
             e.stopPropagation();
             if (!(await UI.confirm(

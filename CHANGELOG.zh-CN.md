@@ -8,6 +8,12 @@
 
 ---
 
+## [1.54.4] — 2026-05-18
+
+**fix(a11y): F-V54-B — `#/pipeline` 行操作按钮拥有可访问名称。** `#/pipeline` 上每行的 `▶`(评估)和 `✕`(删除)按钮此前是仅含 `title` 属性的纯图标按钮(回归运行 F-V54-B;WCAG 4.1.2 Name, Role, Value)。`title` 不是可靠的可访问名称,因此屏幕阅读器用户听到的是一长串无法区分的“button”,无法判断删除会命中哪一行。两个按钮现在都带有显式 `aria-label`,通过新增的 `shortUrl()` 帮助函数以紧凑 URL 消歧(`host` + `…/` + 最后 2 个路径段;不可解析输入回退为尾部切片),因此 a11y 树读出如 *“Delete: hh.ru/…/vacancy/12345”*。无新增 i18n 键 —— 复用 `common.delete` / `pipe.evaluateBtn` + URL。已在线验证:1385 行,每个按钮名称按行唯一,0 控制台错误。新增 1 个测试文件 `tests/pipeline-row-action-names.test.mjs`(4 个用例:两个按钮均以 `shortUrl(url)` 接线 + 恰好两个此类标签,`shortUrl` 在使用前声明,同主机不同职位的 URL 不会合并,裸主机 / 不可解析 / 空回退);732 → 736。`fix(a11y)` · `test: tests/pipeline-row-action-names.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.54.3] — 2026-05-18
 
 **feat(config): `#/config` "Modes" 标签页的结构化字段表单(不再是原始 markdown)。** "Modes" 标签页此前将 `modes/_profile.md` 按每个 `##` 区块编辑为单个原始 `<textarea>`(v1.36.0 的区块级粒度)。应用户要求,现在改为渲染**从文档化模式派生的结构化字段表单**(career-ops.org Quick Start §Step-5):`Target Roles` / `Adaptive Framing` / `Comp Targets` → **可增删的可重复带标签行输入**(每个字段一行 role/angle/comp,`＋ Add line` / 每行带 `aria-label` 的 `✕`);`Exit Narrative` / `Location Policy` → 单个带标签的散文 `<textarea>`。每个字段都是通过 `<label htmlFor>` 绑定、带 i18n 区块名的真实控件。新增 `public/js/lib/modes-form.js`(`window.ModesForm`)持有 parse → render → `collect()` 逻辑;它馈入**既有**的 `PUT /api/modes/_profile { sections }` 合并路径,因此前导文本、顺序以及表单未触及的任何区块都保持字节稳定(合并而非替换,由服务端强制)。**数据安全:** 正文不是纯项目符号列表的规范列表区块(用户在此放入了散文)以及任何非规范 `##` 区块,会回退为带说明注释的带标签原样 `<textarea>` —— 任意内容原样 round-trip,绝不会被静默重构或丢失。Round-trip 稳定性已验证:`serialise(parse(body))` 重新解析完全一致。整文件原始 markdown 编辑器仍作为带确认门的 **Advanced** 折叠区保留,用于增删区块及编辑前导文本(WS2 #4 破坏性保存门不变)。8 个语言区新增 10 个 i18n 键(`config.modesTargetRoles` … `config.modesUnknownNote`)。新增 1 个测试文件 `tests/modes-form.test.mjs`(7 个用例);725 → 732。已针对隔离的 `CAREER_OPS_ROOT` fixture 在线验证:5 个规范区块渲染为字段 + 1 个自定义区块作为带标签回退,编辑并保存的 round-trip 保留了前导文本 + 自定义区块,0 控制台错误。`feat(config)` · `test: tests/modes-form.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。
