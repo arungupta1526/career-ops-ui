@@ -1,17 +1,18 @@
-# Production Readiness — career-ops-ui v1.30.0
+# Production Readiness — career-ops-ui v1.54.0
 
-> Honest assessment, dated 2026-05-14. Updated each minor / patch release. Use this as the gate before deploying.
+> Honest assessment, dated 2026-05-18. Updated each minor / patch release. Use this as the gate before deploying.
 
 ## TL;DR
 
-`career-ops-ui` v1.30.0 is **ready for single-tenant production use** on a trusted machine (developer's laptop / personal VPS bound to loopback). Multi-tenant deployments and LAN-exposed instances require the v2.0.x P-12 auth gate first.
+`career-ops-ui` v1.54.0 is **ready for single-tenant production use** on a trusted machine (developer's laptop / personal VPS bound to loopback). Multi-tenant deployments and LAN-exposed instances require the v2.0.x P-12 auth gate first.
 
-Since v1.9.1 (the original baseline of this doc) the codebase shipped 14 minor/patch releases — see `qa/REGRESSION-v1.29.2.md §12` for the 14 master invariants now in force (security envelope, multi-phase SSE contract, registry-driven source dispatch, paginator across list views, etc.) and `CHANGELOG.md` for per-release detail.
+Since v1.9.1 (the original baseline of this doc) the codebase shipped through the **P-31 program** (WS0–WS11, v1.31→v1.54): parent-sync, `#/config` field-forms, a complete 40-finding **senior UX/a11y audit** (one fix per release v1.41→v1.52, every screen Playwright-verified), the WS9 test pyramid (shell-surface coverage), and WS10 canonical re-validation (help-bundle H2/H3 parity locked). See `qa/REGRESSION-v1.54.md` for the single authoritative end-to-end spec, `docs/sdd/CONVENTIONS.md` for the codified a11y conventions, and `CHANGELOG.md` (×8 locales) for per-release detail.
 
 | Dimension | Status | Notes |
 |---|---|---|
-| Architecture | ✅ ready | Orchestrator-only `index.mjs` (~174 LOC); 14 focused route modules under `lib/routes/`. v1.29.0 added `server/lib/sources/registry.mjs` as the single source of truth for 11 adapters (6 EN ATS + 5 RU). |
-| Tests | ✅ ready | **567** unit + acceptance + **32** Playwright (as of v1.30.0). ~93 % line / ~83 % branch coverage. `npm run test:ci` gates: tests + `check-no-also-leftovers` + 8-locale CHANGELOG parity. |
+| Architecture | ✅ ready | Orchestrator-only `index.mjs` (~174 LOC); 14 focused route modules under `lib/routes/`. `server/lib/sources/registry.mjs` is the single source of truth for 11 adapters (6 EN ATS + 5 RU). |
+| Tests | ✅ ready | **717** `node --test` cases (unit + functional + acceptance) + 4 E2E surfaces + the shell-surface tier (`bin/*.sh` + `.githooks`, WS9) as of v1.54.0. ~93 % line / ~83 % branch. `npm run test:ci` gates: tests + `check-no-also-leftovers` + 8-locale CHANGELOG parity; `help-ru-config-section.test.mjs` additionally locks H2+H3 help-bundle parity. |
+| Accessibility | ✅ ready | WS2 UX-audit (40 findings) shipped: SPA route-focus, focus-trapped `UI.confirm`, WAI-ARIA tabs, SSE live-regions, bound form labels, sortable-table `aria-sort` — codified in `docs/sdd/CONVENTIONS.md`. |
 | Security (single-tenant loopback) | ✅ ready | CSP, SSRF guard, XSS strip, secret masking, log redaction. |
 | Security (LAN exposure) | ⚠️ partial | No auth gate. **Do not** bind `HOST=0.0.0.0` on untrusted networks until P-12. |
 | Operational | ⚠️ partial | Log rotation deferred to P-13; activity.jsonl + scan-history.tsv grow without bound. |

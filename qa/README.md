@@ -41,11 +41,15 @@ AI-review to LGTM:
 
 | ID | Severity | Title | Target |
 |---|---|---|---|
-| G-005 | Minor (cross-repo) | `oferta.md` report blocks A-G vs canonical career-ops.org A-F | coordinated `santifer/career-ops` commit |
+| G-005 | Minor (cross-repo) | `oferta.md` report blocks A-G vs canonical career-ops.org A-F | [`G-005-closure-kit.md`](./G-005-closure-kit.md) |
 
-**Single open item**, unchanged since v1.27 — intentionally deferred
-(needs the parent repo to rewrite `modes/oferta.md` to A-F first, then a
-web-ui commit to update help §9 + the report-render strip-G logic). All
+**Single open item**, unchanged since v1.27. The full ready-to-apply
+plan is in **[`G-005-closure-kit.md`](./G-005-closure-kit.md)**:
+Step 1 = a parent `santifer/career-ops` commit rewriting
+`modes/oferta.md` to A-F; Step 2 = a one-line web-ui `prompts.mjs`
+follow-up (help §9 ×8 is already canonical A-F since v1.15.0 — no
+change); Step 3 = a lock test. The renderer is schema-tolerant, so
+this is nomenclature drift, not a functional break. All
 other findings — 31 from the v1.10 baseline + 40 from the WS2 UX-audit —
 are shipped and each regression-locked by a `tests/*.test.mjs`.
 

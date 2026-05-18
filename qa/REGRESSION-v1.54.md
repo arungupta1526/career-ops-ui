@@ -116,10 +116,14 @@ or docs-only. No open GAP.
 |---|---|---|---|
 | G-005 | Minor (cross-repo) | `oferta.md` report blocks A-G vs canonical A-F | coordinated parent commit |
 
-**Single open item, unchanged since v1.27** — intentionally deferred
-(needs a `santifer/career-ops` commit first). Everything else from the
-v1.10 baseline (31 prior findings) + the 40 WS2 UX-audit findings is
-shipped and regression-locked by a test.
+**Single open item, unchanged since v1.27.** Ready-to-apply plan:
+**[`G-005-closure-kit.md`](./G-005-closure-kit.md)** — Step 1 a parent
+`santifer/career-ops` `modes/oferta.md` A-F rewrite, Step 2 a one-line
+web-ui `prompts.mjs` follow-up (help §9 ×8 already canonical A-F since
+v1.15.0), Step 3 a lock test. Renderer is schema-tolerant (graceful
+degrade), so this is nomenclature drift, not a functional break.
+Everything else from the v1.10 baseline (31 prior findings) + the 40
+WS2 UX-audit findings is shipped and regression-locked by a test.
 
 ---
 
