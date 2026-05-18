@@ -65,8 +65,7 @@ Router.register('scan', async () => {
   // the 3.5 s toast alone for a failed/aborted scan.
   const errBanner = c('div', {
     id: 'scan-error', role: 'alert',
-    className: 'card',
-    style: { background: '#fdeaea', borderColor: '#e0a0a0', color: '#8a2b2b', marginBottom: '12px' },
+    className: 'card scan-error-banner',
   });
   errBanner.hidden = true;
   const resultsEl = c('div', { id: 'scan-results' });
@@ -157,7 +156,7 @@ Router.register('scan', async () => {
       '✗ ' + t('scan.errBannerTitle', 'Scan failed') + ': '));
     errBanner.appendChild(c('span', null, String(msg || 'unknown error')));
     errBanner.appendChild(c('button', {
-      className: 'btn btn-ghost', style: { marginLeft: '12px' },
+      className: 'btn btn-ghost',
       onClick: () => { clearScanError(); if (lastRunFn) lastRunFn(); },
     }, '↻ ' + t('scan.errRetry', 'Retry scan')));
     errBanner.hidden = false;
