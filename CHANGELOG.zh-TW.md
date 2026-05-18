@@ -8,6 +8,12 @@
 
 ---
 
+## [1.46.0] — 2026-05-18
+
+**WS2 #5 + #6 + #21 + #24 —— scan SSE 無障礙。** `#/scan` 上 UX 稽核的四項發現,於 `scan.js` 中修正。`fix(a11y): scan SSE — live-log region, Stop, run-state, error banner` —— #5:串流主控台現為 `role=log` `aria-live=polite`(+ `aria-label`、`tabindex=0`、可鍵盤捲動),並有一個獨立的視覺隱藏 assertive `role=status` 區域播報終態事件(完成 / 失敗 / 已停止)。#6:Stop 按鈕關閉進行中的 `EventSource`(`es.close()`),取消結果輪詢並重設狀態;僅在 scan 執行時顯示。#21:scan 執行時 Scan 按鈕被停用 + 置 `aria-busy` 並顯示 Stop,兩條串流路徑皆如此(單階段 `streamTo` 與多階段 `runScanAll` —— 後者僅在終態 `done`、`final !== false` 時結束本次執行)。#24:SSE 失敗不再只是 3.5 秒提示列;現由持久的 `role=alert` 橫幅顯示錯誤並附帶重試操作(重新呼叫上次的執行函式),下次執行時清除。新增 8 個 i18n 鍵 × 8 個語系;測試 +7:`test: tests/scan-sse-a11y.test.mjs`。660 → 667。詳見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.45.0] — 2026-05-18
 
 **WS2 #3 —— #/config 分頁:完整的 WAI-ARIA Tabs 模式。** #/config 的三個分頁(API keys / Profile / Modes)曾是僅靠點擊啟用的樸素 `<button class="tab-btn">`:無 `role`、無 `aria-selected`、無鍵盤模型(UX 稽核 HIGH #3,WCAG 4.1.2 / 2.1.1)。`fix(a11y): config.js tabs implement role=tablist/tab/tabpanel` —— 現為帶 `aria-label` 的 `role=tablist` 容器;每個分頁 `role=tab` + `id` + `aria-controls` + `aria-selected`(於 `activate()` 中同步)+ 漫遊 `tabindex`(啟用 0 / 其餘 -1);面板 `role=tabpanel` + `tabindex=0` + 跟隨啟用分頁的 `aria-labelledby`。完整鍵盤導覽:←/→/↑/↓(環繞)+ Home/End 既移動焦點又啟用。遺留 `.tab-btn.is-active` CSS 掛勾予以保留。新增 1 個 i18n 鍵 × 8 個語系(`config.tablistLabel`);測試 +7:`test: tests/config-tabs-aria.test.mjs`。另有一處僅測試的修正:`fix(test): retarget 2 stale auto-pipeline smoke tests` —— 兩個 v1.34 之前的 Playwright-e2e smoke 測試斷言一個儀表板「Auto-pipeline」按鈕在 v1.34.0 起不再開啟的瞬態模態(→ `Router.go('/auto')`);它們在獨立的 Playwright-e2e CI 作業中一直為紅。重新指向 #/auto 畫面。653 → 660。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.46.0] — 2026-05-18
+
+**WS2 #5 + #6 + #21 + #24 — доступность scan SSE.** Четыре замечания UX-аудита на `#/scan`, исправлены в `scan.js`. `fix(a11y): scan SSE — live-log region, Stop, run-state, error banner` — #5: потоковая консоль теперь `role=log` `aria-live=polite` (+ `aria-label`, `tabindex=0`, прокрутка с клавиатуры), с отдельной визуально скрытой assertive-областью `role=status`, объявляющей терминальные события (завершено / провалено / остановлено). #6: кнопка Stop закрывает выполняющийся `EventSource` (`es.close()`), отменяет опрос результата и сбрасывает состояние; показывается только пока идёт scan. #21: кнопка Scan отключается + получает `aria-busy` во время выполнения, а Stop показывается — на обоих путях стрима (однофазном `streamTo` и многофазном `runScanAll` — последний завершает прогон только на терминальном `done`, `final !== false`). #24: сбой SSE больше не только тост на 3,5 с; теперь постоянный баннер `role=alert` показывает ошибку с действием повтора (повторно вызывает последнюю функцию прогона), очищается при следующем прогоне. 8 новых ключей i18n × 8 локалей; +7 тестов: `test: tests/scan-sse-a11y.test.mjs`. 660 → 667. Подробно — [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.45.0] — 2026-05-18
 
 **WS2 #3 — вкладки #/config: полный паттерн WAI-ARIA Tabs.** Три вкладки #/config (API keys / Profile / Modes) были обычными `<button class="tab-btn">` с активацией только по клику: ни `role`, ни `aria-selected`, ни клавиатурной модели (UX-аудит HIGH #3, WCAG 4.1.2 / 2.1.1). `fix(a11y): config.js tabs implement role=tablist/tab/tabpanel` — теперь контейнер `role=tablist` с `aria-label`; каждая вкладка `role=tab` + `id` + `aria-controls` + `aria-selected` (синхронизируется в `activate()`) + блуждающий `tabindex` (0 у активной / -1 у остальных); панель `role=tabpanel` + `tabindex=0` + `aria-labelledby`, отслеживающий активную вкладку. Полная клавиатурная навигация: ←/→/↑/↓ (с зацикливанием) + Home/End перемещают фокус И активируют. Легаси CSS-хук `.tab-btn.is-active` сохранён. +1 ключ i18n × 8 локалей (`config.tablistLabel`); +7 тестов: `test: tests/config-tabs-aria.test.mjs`. Также правка только для тестов: `fix(test): retarget 2 stale auto-pipeline smoke tests` — два smoke-теста Playwright-e2e эпохи до v1.34 проверяли переходную модалку, которую кнопка «Auto-pipeline» на дашборде перестала открывать в v1.34.0 (→ `Router.go('/auto')`); они оставались красными в отдельном CI-джобе Playwright-e2e. Перенацелены на экран #/auto. 653 → 660. Подробно — [`CHANGELOG.md`](CHANGELOG.md).

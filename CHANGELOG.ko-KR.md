@@ -8,6 +8,12 @@
 
 ---
 
+## [1.46.0] — 2026-05-18
+
+**WS2 #5 + #6 + #21 + #24 — scan SSE 접근성.** `#/scan`의 UX 감사 지적 4건을 `scan.js`에서 수정. `fix(a11y): scan SSE — live-log region, Stop, run-state, error banner` — #5: 스트리밍 콘솔이 이제 `role=log` `aria-live=polite`(+ `aria-label`, `tabindex=0`, 키보드 스크롤 가능)이며, 별도의 시각적으로 숨겨진 assertive `role=status` 영역이 종단 이벤트(완료 / 실패 / 중지)를 알림. #6: Stop 버튼이 진행 중인 `EventSource`를 닫고(`es.close()`), 결과 폴링을 취소하고, 상태를 초기화함. Stop은 scan 실행 중에만 표시. #21: scan 실행 중에는 Scan 버튼을 비활성화 + `aria-busy` 부여하고 Stop을 표시함. 두 스트림 경로 모두(단일 페이즈 `streamTo`와 다중 페이즈 `runScanAll` — 후자는 종단 `done`, `final !== false`에서만 실행을 종료) 적용. #24: SSE 실패가 더 이상 3.5초 토스트만이 아니라, 영속적인 `role=alert` 배너가 재시도 액션과 함께 오류를 표시하고(직전 실행 함수를 재호출), 다음 실행에서 지워짐. 신규 i18n 키 8개 × 8개 로케일; 테스트 +7: `test: tests/scan-sse-a11y.test.mjs`. 660 → 667. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.45.0] — 2026-05-18
 
 **WS2 #3 — #/config 탭: 완전한 WAI-ARIA Tabs 패턴.** #/config의 세 탭(API keys / Profile / Modes)은 클릭 전용으로만 활성화되는 단순 `<button class="tab-btn">`로, `role`도 `aria-selected`도 키보드 모델도 없었음(UX-audit HIGH #3, WCAG 4.1.2 / 2.1.1). `fix(a11y): config.js tabs implement role=tablist/tab/tabpanel` — 이제 `aria-label`이 있는 `role=tablist` 컨테이너; 각 탭은 `role=tab` + `id` + `aria-controls` + `aria-selected`(`activate()`에서 동기화) + 로빙 `tabindex`(활성 0 / 나머지 -1); 패널은 `role=tabpanel` + `tabindex=0` + 활성 탭을 추적하는 `aria-labelledby`. 완전한 키보드 내비게이션: ←/→/↑/↓(래핑) + Home/End가 포커스를 이동하고 활성화도 함. 레거시 `.tab-btn.is-active` CSS 훅은 보존. i18n 키 +1 × 8개 로케일(`config.tablistLabel`); 테스트 +7: `test: tests/config-tabs-aria.test.mjs`. 또한 테스트 전용 수정: `fix(test): retarget 2 stale auto-pipeline smoke tests` — v1.34 이전 Playwright-e2e smoke 테스트 2개가 대시보드 "Auto-pipeline" 버튼이 v1.34.0에서 더 이상 열지 않게 된 일시 모달(→ `Router.go('/auto')`)을 단언하고 있었고, 별도의 Playwright-e2e CI 잡에서 빨간 상태로 남아 있었음. #/auto 화면으로 재타깃. 653 → 660. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

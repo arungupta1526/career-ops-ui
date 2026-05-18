@@ -8,6 +8,12 @@
 
 ---
 
+## [1.46.0] — 2026-05-18
+
+**WS2 #5 + #6 + #21 + #24 — scan SSE のアクセシビリティ。** `#/scan` における UX 監査の 4 件の指摘を `scan.js` で修正。`fix(a11y): scan SSE — live-log region, Stop, run-state, error banner` — #5:ストリーミングコンソールは今や `role=log` `aria-live=polite`(+ `aria-label`、`tabindex=0`、キーボードでスクロール可能)で、別の視覚的に隠された assertive な `role=status` 領域がターミナルイベント(完了 / 失敗 / 停止)をアナウンスする。#6:Stop ボタンが進行中の `EventSource` を閉じ(`es.close()`)、結果ポーリングをキャンセルし、状態をリセットする。Stop は scan 実行中のみ表示。#21:scan 実行中は Scan ボタンを無効化 + `aria-busy` を付与し、Stop を表示する。両方のストリームパス(単一フェーズの `streamTo` と多フェーズの `runScanAll` — 後者は終端 `done`、`final !== false` でのみ実行を終える)で適用。#24:SSE 障害はもはや 3.5 秒のトーストだけではなく、永続的な `role=alert` バナーがエラーを再試行アクション付きで表示(直近の実行関数を再呼び出し)し、次回の実行でクリアされる。i18n キー 8 件を新規追加 × 8 ロケール;テスト +7:`test: tests/scan-sse-a11y.test.mjs`。660 → 667。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.45.0] — 2026-05-18
 
 **WS2 #3 — #/config タブ:完全な WAI-ARIA Tabs パターン。** #/config の 3 つのタブ(API keys / Profile / Modes)はクリックのみで起動する素の `<button class="tab-btn">` で、`role` も `aria-selected` もキーボードモデルもなかった(UX-audit HIGH #3、WCAG 4.1.2 / 2.1.1)。`fix(a11y): config.js tabs implement role=tablist/tab/tabpanel` — 今は `aria-label` 付きの `role=tablist` コンテナ;各タブは `role=tab` + `id` + `aria-controls` + `aria-selected`(`activate()` 内で同期)+ ローテーション `tabindex`(アクティブ 0 / その他 -1);パネルは `role=tabpanel` + `tabindex=0` + アクティブタブを追う `aria-labelledby`。完全なキーボードナビ:←/→/↑/↓(ラップ)+ Home/End がフォーカス移動と起動の両方を行う。レガシーの `.tab-btn.is-active` CSS フックは保持。i18n キー +1 × 8 ロケール(`config.tablistLabel`);テスト +7:`test: tests/config-tabs-aria.test.mjs`。さらにテストのみの修正:`fix(test): retarget 2 stale auto-pipeline smoke tests` — v1.34 以前の Playwright-e2e smoke テスト 2 件が、ダッシュボードの「Auto-pipeline」ボタンが v1.34.0 で開かなくなった一時モーダル(→ `Router.go('/auto')`)をアサートしており、別の Playwright-e2e CI ジョブで赤のままだった。#/auto 画面に再ターゲット。653 → 660。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

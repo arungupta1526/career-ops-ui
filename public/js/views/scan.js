@@ -47,7 +47,28 @@ Router.register('scan', async () => {
     /jobs\.ashbyhq\.com|jobs\.lever\.co|job-boards\.greenhouse\.io/.test(co.careers_url || '')
   );
 
-  const consoleEl = c('pre', { className: 'console', id: 'scan-console' }, t('scan.consoleReady'));
+  // v1.46.0 (WS2 #5) — the SSE log is an aria-live log region so SR
+  // users hear each scanned line; tabindex makes it keyboard-scrollable.
+  const consoleEl = c('pre', {
+    className: 'console', id: 'scan-console',
+    role: 'log', 'aria-live': 'polite', 'aria-relevant': 'additions',
+    'aria-label': t('scan.consoleLabel', 'Scan output log'),
+    tabindex: '0',
+  }, t('scan.consoleReady'));
+  // (#5) assertive region for terminal announcements (done / failed /
+  // stopped) — visually hidden, separate from the polite log stream.
+  const statusRegion = c('div', {
+    id: 'scan-status', role: 'status', 'aria-live': 'assertive',
+    className: 'visually-hidden',
+  });
+  // (#24) persistent error banner with a Retry — replaces relying on
+  // the 3.5 s toast alone for a failed/aborted scan.
+  const errBanner = c('div', {
+    id: 'scan-error', role: 'alert',
+    className: 'card',
+    style: { background: '#fdeaea', borderColor: '#e0a0a0', color: '#8a2b2b', marginBottom: '12px' },
+  });
+  errBanner.hidden = true;
   const resultsEl = c('div', { id: 'scan-results' });
 
   const dryRun = c('input', { type: 'checkbox', id: 'dry-run' });
@@ -109,8 +130,51 @@ Router.register('scan', async () => {
     ...apiCompanies.map((co) => c('option', { value: co.name }, co.name)),
   ]);
 
+  // v1.46.0 (WS2 #6/#21/#24) — run-state, Stop, persistent error banner.
+  let activeES = null;   // in-flight EventSource handle (for #6 Stop)
+  let lastRunFn = null;  // for the #24 Retry action
+  const scanBtn = c('button', {
+    className: 'btn btn-primary scan-run-btn',
+    onClick: () => runScanAll(),
+    title: 'Greenhouse + Ashby + Lever + hh.ru + Habr Career',
+  }, '🌐 ' + t('scan.btnRun', 'Scan'));
+  const stopBtn = c('button', {
+    className: 'btn btn-ghost scan-stop-btn',
+    onClick: () => stopScan(),
+  }, '■ ' + t('scan.stop', 'Stop'));
+  stopBtn.hidden = true;
+
+  function setScanRunning(running) {
+    scanBtn.disabled = running;
+    scanBtn.setAttribute('aria-busy', running ? 'true' : 'false');
+    stopBtn.hidden = !running;
+  }
+  function announce(msg) { statusRegion.textContent = msg; }
+  function clearScanError() { errBanner.hidden = true; errBanner.textContent = ''; }
+  function showScanError(msg) {
+    errBanner.textContent = '';
+    errBanner.appendChild(c('strong', null,
+      '✗ ' + t('scan.errBannerTitle', 'Scan failed') + ': '));
+    errBanner.appendChild(c('span', null, String(msg || 'unknown error')));
+    errBanner.appendChild(c('button', {
+      className: 'btn btn-ghost', style: { marginLeft: '12px' },
+      onClick: () => { clearScanError(); if (lastRunFn) lastRunFn(); },
+    }, '↻ ' + t('scan.errRetry', 'Retry scan')));
+    errBanner.hidden = false;
+    announce(t('scan.statusFailed', 'Scan failed') + ': ' + (msg || ''));
+  }
+  function stopScan() {
+    if (activeES) { try { activeES.close(); } catch { /* already closed */ } activeES = null; }
+    __cancelActiveScanPoll();
+    appendMeta(consoleEl, '\n■ ' + t('scan.stopped', 'stopped') + '\n');
+    announce(t('scan.statusStopped', 'Scan stopped'));
+    setScanRunning(false);
+  }
+
   function streamTo(consoleEl, path, kind, onDone) {
     consoleEl.textContent = '';
+    clearScanError();
+    setScanRunning(true);
     UI.toast(`${kind} scan…`, 'success');
     // Cancel any prior in-flight poll so back-to-back scan clicks don't
     // accumulate intervals, and assign the new one to the module-level handle
@@ -120,7 +184,7 @@ Router.register('scan', async () => {
       refreshResults().catch(() => {});
     }, 2500);
 
-    API.stream(path, (ev, data) => {
+    activeES = API.stream(path, (ev, data) => {
       if (ev === 'log') {
         const cls = data.stream === 'stderr' ? ' err' : '';
         const span = c('span', { className: cls }, data.line + '\n');
@@ -130,16 +194,17 @@ Router.register('scan', async () => {
         appendMeta(consoleEl, `▶ ${data.script}\n`);
       } else if (ev === 'done') {
         __cancelActiveScanPoll();
+        activeES = null;
+        setScanRunning(false);
         const okMsg = data.counts
           ? `\n✓ done · raw=${data.counts.raw}, NEW=${data.counts.fresh}` +
             (data.errors ? ` · ${data.errors} non-fatal errors` : '')
           : `\n✓ exit ${data.code}`;
         appendMeta(consoleEl, okMsg + '\n');
         const fresh = data.counts?.fresh;
-        UI.toast(
-          fresh != null ? `${kind}: ${fresh} new offers` : `${kind} done`,
-          'success'
-        );
+        const doneMsg = fresh != null ? `${kind}: ${fresh} new offers` : `${kind} done`;
+        UI.toast(doneMsg, 'success');
+        announce(t('scan.statusDone', 'Scan complete') + ' · ' + doneMsg);
         // Final refresh + onDone, with a small delay so the JSON file
         // is flushed to disk on the server side. v1.22.0 (L-5) — capture
         // the handle so hashchange cleanup can clear it.
@@ -150,8 +215,11 @@ Router.register('scan', async () => {
         }, 300);
       } else if (ev === 'error') {
         __cancelActiveScanPoll();
+        activeES = null;
+        setScanRunning(false);
         appendMeta(consoleEl, `\n✗ ${data.message}\n`);
         UI.toast(data.message, 'error');
+        showScanError(data.message);
       }
     });
   }
@@ -161,6 +229,7 @@ Router.register('scan', async () => {
   // `/api/stream/scan-{en,ru}` aliases stay live with Sunset headers
   // through v1.16 but are no longer the SPA's transport.
   function runEnScan() {
+    lastRunFn = runEnScan;
     const params = new URLSearchParams();
     params.set('source', 'ats');
     if (dryRun.checked) params.set('dryRun', '1');
@@ -169,6 +238,7 @@ Router.register('scan', async () => {
     streamTo(consoleEl, '/api/stream/scan?' + params.toString(), 'ATS', refreshResults);
   }
   function runRuScan() {
+    lastRunFn = runRuScan;
     const params = new URLSearchParams();
     params.set('source', 'regional');
     if (dryRun.checked) params.set('dryRun', '1');
@@ -187,11 +257,14 @@ Router.register('scan', async () => {
     if (company) params.set('company', company);
 
     consoleEl.textContent = '';
+    clearScanError();
+    setScanRunning(true);
+    lastRunFn = runScanAll;
     UI.toast(t('scan.runAll', 'Scanning all sources…'), 'success');
 
     let phase = null;       // 'ats' | 'regional' as we move between phases
     let totalNew = 0;
-    API.stream('/api/stream/scan?' + params.toString(), (ev, data) => {
+    activeES = API.stream('/api/stream/scan?' + params.toString(), (ev, data) => {
       if (ev === 'start') {
         // Inferred from the server-emitted script label so a single stream
         // can carry multiple phases.
@@ -212,11 +285,22 @@ Router.register('scan', async () => {
         // F-011: re-read /api/scan-results so the Active-Companies counter
         // + filters update incrementally between phases.
         refreshResults();
+        // The consolidated `source=both` stream emits an intermediate
+        // `done` with `final:false` (ATS) then a terminal one (Regional,
+        // no `final` field). Only the terminal done ends the run.
+        if (!data || data.final !== false) {
+          activeES = null;
+          setScanRunning(false);
+          announce(t('scan.statusDone', 'Scan complete') + ' · NEW=' + totalNew);
+        }
       } else if (ev === 'error') {
         const label = phase === 'ats' ? 'ATS' : (phase === 'regional' ? 'Regional' : 'scan');
         const msg = (data && data.message) || 'unknown error';
         appendMeta(consoleEl, `\n✗ ${label} error: ${msg}\n`);
+        activeES = null;
+        setScanRunning(false);
         UI.toast(msg, 'error');
+        showScanError(label + ' — ' + msg);
       }
     });
     // EventSource closes on the last `done`; show the summary toast then.
@@ -443,16 +527,13 @@ Router.register('scan', async () => {
         // buttons were noisy; users almost always want everything.
         // Title attribute lists what it actually crawls so the
         // expectation is set on hover.
-        c('button', {
-          className: 'btn btn-primary scan-run-btn',
-          onClick: runScanAll,
-          title: 'Greenhouse + Ashby + Lever + hh.ru + Habr Career',
-        }, '🌐 ' + t('scan.btnRun', 'Scan')),
+        scanBtn,
+        stopBtn,
         c('button', { className: 'btn btn-ghost', onClick: () => Router.go('/pipeline') }, t('scan.btnPipe')),
       ]),
     ]),
 
-    c('div', null, consoleEl),
+    c('div', null, [errBanner, statusRegion, consoleEl]),
 
     c('section', { className: 'section' }, [
       c('div', { className: 'flex-between mb-3', style: { flexWrap: 'wrap', gap: '12px' } }, [

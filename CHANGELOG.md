@@ -6,6 +6,37 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.46.0] — 2026-05-18
+
+**WS2 #5 + #6 + #21 + #24 — scan SSE accessibility.**
+
+### 🐛 Fixes
+
+- **`fix(a11y): scan SSE — live-log region, Stop, run-state, error banner`** — four UX-audit findings on `#/scan`:
+  - **#5** the streaming console (`<pre id="scan-console">`) was a bare element; screen readers got no announcement of scanned lines. Now `role="log" aria-live="polite" aria-relevant="additions"` + an `aria-label` + `tabindex="0"` (keyboard-scrollable). A separate visually-hidden `role="status" aria-live="assertive"` region announces terminal events (complete / failed / stopped).
+  - **#6** an in-flight `EventSource` scan had no abort path. The handle is now captured (`activeES`) and a **Stop** button closes it (`es.close()`), cancels the result poll, and resets state. Stop is shown only while a scan runs.
+  - **#21** the Scan button stayed enabled with no busy cue during a multi-minute crawl. `setScanRunning()` now disables it + sets `aria-busy` and toggles the Stop button across both stream paths (single-phase `streamTo` and multi-phase `runScanAll` — the latter only ends the run on the terminal `done`, `final !== false`).
+  - **#24** an SSE failure was a 3.5 s toast only. A persistent `role="alert"` banner now shows the error with a **Retry scan** action (re-invokes the last run fn); cleared on the next run.
+- All side-effecting closures keep the existing `__cancelActiveScanPoll()` hashchange cleanup.
+
+### 🌐 i18n
+
+- 8 new keys × 8 locales — `scan.consoleLabel/stop/stopped/statusDone/statusFailed/statusStopped/errBannerTitle/errRetry`. `i18n-coverage` gate green.
+
+### 🧪 Tests
+
+- **`test: tests/scan-sse-a11y.test.mjs`** — 7 cases (log-region roles, assertive status, Stop closes EventSource on both paths, run-state aria-busy, persistent alert + Retry, terminal-done gating, 8 i18n keys ×8). 660 → 667.
+
+### Verification
+
+```bash
+$ npm run test:ci
+# 667 / 667 · ✓ no .also( leftovers · ✓ CHANGELOG parity: all 8 locales at v1.46.0
+# Playwright #/scan: console role=log aria-live=polite tabindex=0 · status role=status · error role=alert(hidden) · Stop hidden · 0 errors
+```
+
+---
+
 ## [1.45.0] — 2026-05-18
 
 **WS2 #3 — config tabs: full WAI-ARIA Tabs pattern.**
