@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.6] — 2026-05-19
+
+**feat(scan): 副次フィルターを「詳細フィルター」ディスクロージャの背後へ整理(UX-4)。** `#/scan` は全フィルター — フリーテキスト、リモート/ハイブリッド/オンサイト、スコープ、ソース、スキャン後の stack/level/dynamic ファセットチップ — を同じ重みで積み上げ、コントロールの壁だった。今や**日常フィルターは可視のまま**(フリーテキスト + リモート/ハイブリッド/オンサイト;🌐 スキャンボタンは既にコントロールカードに別置)、**副次は `<details class="scan-advanced"><summary>詳細フィルター</summary>` の背後に折り畳み**:スコープ + ソースのセレクト、そして別途ファセットチップ群(新しい結果集合がチップの壁ではなくテーブルで始まり、チップ行が 1 つ以上ある時のみ描画)。8 ロケールの新 i18n キー `scan.advancedFilters`;新しい `.scan-advanced` サマリースタイル(控えめな ⚙ アフォーダンス、マーカーなし、開時に太字)。**`test: tests/scan-advanced-disclosure.test.mjs`**(新規、6 ケース、CI 隔離、ソース静的):`.scan-advanced` フック + `scan.advancedFilters` ラベルの `<details>`/`<summary>` が存在;フリーテキスト + リモートは可視のまま;スコープ + ソースはディスクロージャ内;`chipsContainer` が `<details>`;`.scan-advanced summary` がスタイル付き;`scan.advancedFilters` ×8。782 → 788。`feat(scan)` · `test: tests/scan-advanced-disclosure.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.55.5] — 2026-05-19
 
 **feat(dashboard): 2 つの P0 CTA + 焦点となる最近のアクティビティヒントのヒーロー(UX-3)。** `#/dashboard` は同じ重みの約 30 ノードで開き、「次に何をすべきか」が不明瞭だった。新しい `.dash-hero` ブロックがページヘッダー直下に配置:2 つの P0 ジャーニー — **✨ URL を自動パイプライン**、**🌐 今すぐスキャン** — を大きな `.btn-hero` ボタンに昇格し、単一の **焦点となる最近のアクティビティヒント**(「最新の評価: `<スコア>` — `<タイトル>`」、レポートへリンク;コールドスタートでは `dash.heroNoEval` の案内空状態)が、再訪ユーザーには中断地点を、新規ユーザーには重要な唯一のアクションを示す。2 つの主要ボタンはヘッダーから削除(副次的な「📋 パイプラインを開く」のみ残置)しアクションの重複を回避。ステータスバケットは目立つ `.badge` から控えめな `.dash-chip` ピルへ降格。8 ロケールの新 i18n キー `dash.lastEval`、`dash.heroNoEval`;新しい `.dash-hero`/`.btn-hero`/`.dash-chip` CSS。**`test: tests/dashboard-hero.test.mjs`**(新規、5 ケース、CI 隔離、ソース静的):`.dash-hero` が存在し Quick-actions グリッドに先行;両 P0 CTA が `/auto`+`/scan` ルートの `.btn-hero`;焦点 `dash.lastEval` + 空状態 `dash.heroNoEval`;バケットが `.dash-chip`;CSS 存在;`dash.lastEval`+`dash.heroNoEval` ×8。777 → 782。`feat(dashboard)` · `test: tests/dashboard-hero.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

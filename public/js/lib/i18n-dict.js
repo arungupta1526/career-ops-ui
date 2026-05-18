@@ -404,6 +404,7 @@ window.__I18N_DICT = {
   'scan.boostedBy': { en: 'Boosted by', es: 'Boost por', 'pt-BR': 'Boost por', ko: '부스트 키워드', ja: 'ブーストキーワード', ru: 'Буст по', 'zh-CN': '提升关键字', 'zh-TW': '提升關鍵字' },
   'scan.allCompanies':{ en: 'all companies', es: 'todas las empresas', 'pt-BR': 'todas as empresas', ko: '모든 회사', ja: 'すべての会社', ru: 'все компании', 'zh-CN': '所有公司', 'zh-TW': '所有公司' },
   'scan.results':   { en: 'Vacancies found', es: 'Vacantes encontradas', 'pt-BR': 'Vagas encontradas', ko: '찾은 채용 공고', ja: '見つかった求人', ru: 'Найденные вакансии', 'zh-CN': '找到的职位', 'zh-TW': '找到的職位' },
+  'scan.advancedFilters': { en: 'Advanced filters', es: 'Filtros avanzados', 'pt-BR': 'Filtros avançados', ko: '고급 필터', ja: '詳細フィルター', ru: 'Расширенные фильтры', 'zh-CN': '高级筛选', 'zh-TW': '進階篩選' },
   'scan.scopeAll':  { en: 'all matching', es: 'todas las coincidencias', 'pt-BR': 'todas correspondências', ko: '모든 일치', ja: 'すべての一致', ru: 'все matching', 'zh-CN': '所有匹配', 'zh-TW': '所有匹配' },
   'scan.scopeFresh':{ en: 'new only', es: 'solo nuevas', 'pt-BR': 'apenas novas', ko: '새로운 것만', ja: '新しいもののみ', ru: 'только новые', 'zh-CN': '仅新的', 'zh-TW': '僅新的' },
   'scan.filterText':{ en: 'filter by company / role / location…', es: 'filtrar por empresa / rol / ubicación…', 'pt-BR': 'filtrar por empresa / vaga / local…', ko: '회사/직무/위치로 필터…', ja: '会社/役割/場所でフィルター…', ru: 'фильтр по компании / роли / локации…', 'zh-CN': '按公司/职位/位置过滤…', 'zh-TW': '依公司/職位/地點篩選…' },

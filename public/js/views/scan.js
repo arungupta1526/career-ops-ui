@@ -386,11 +386,21 @@ Router.register('scan', async () => {
     const script = lang === 'ru' ? 'all' : 'latin';
     const dynKeywords = window.Skills.extractDynamicKeywords(allRows, { limit: 20, script });
     const dynCounts = Object.fromEntries(dynKeywords);
-    const chipsContainer = c('div', { className: 'mb-3', style: { display: 'flex', flexDirection: 'column', gap: '8px' } });
-    if (Object.keys(facets.tech).length) chipsContainer.appendChild(buildChipRow(t('scan.chip.stack'), facets.tech, activeTech));
-    if (Object.keys(facets.level).length) chipsContainer.appendChild(buildChipRow(t('scan.chip.level'), facets.level, activeLevel));
-    if (dynKeywords.length) chipsContainer.appendChild(buildChipRow(t('scan.chip.dynamic', 'Keywords'), dynCounts, activeDynamic));
-    resultsEl.appendChild(chipsContainer);
+    // v1.55.6 — UX-4: the stack / level / dynamic facet chips are a
+    // secondary refinement — collapse them behind the same "Advanced
+    // filters" disclosure so a fresh result set leads with the table,
+    // not a wall of chips. The body keeps the original flex-column.
+    const chipsContainer = c('details', { className: 'mb-3 scan-advanced' });
+    chipsContainer.appendChild(c('summary', null, t('scan.advancedFilters', 'Advanced filters')));
+    const chipsBody = c('div', { style: { display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' } });
+    if (Object.keys(facets.tech).length) chipsBody.appendChild(buildChipRow(t('scan.chip.stack'), facets.tech, activeTech));
+    if (Object.keys(facets.level).length) chipsBody.appendChild(buildChipRow(t('scan.chip.level'), facets.level, activeLevel));
+    if (dynKeywords.length) chipsBody.appendChild(buildChipRow(t('scan.chip.dynamic', 'Keywords'), dynCounts, activeDynamic));
+    // Only surface the cluster when there is at least one chip row.
+    if (chipsBody.childNodes.length) {
+      chipsContainer.appendChild(chipsBody);
+      resultsEl.appendChild(chipsContainer);
+    }
 
     // ── Now apply ALL filters (text/remote/source + chips) ──
     const q = (filterText.value || '').toLowerCase().trim();
@@ -544,8 +554,19 @@ Router.register('scan', async () => {
     c('section', { className: 'section' }, [
       c('div', { className: 'flex-between mb-3', style: { flexWrap: 'wrap', gap: '12px' } }, [
         c('h2', { className: 'section-title', style: { margin: 0 } }, t('scan.results')),
-        c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap' } },
-          [filterScope, filterText, filterRemote, filterSource]),
+        // v1.55.6 — UX-4: everyday filters (free-text + remote /
+        // hybrid / onsite) stay visible; the secondary scope + source
+        // selects move behind an "Advanced filters" disclosure so the
+        // results view isn't a wall of equal-weight controls.
+        c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap', alignItems: 'center' } }, [
+          filterText,
+          filterRemote,
+          c('details', { className: 'scan-advanced' }, [
+            c('summary', null, t('scan.advancedFilters', 'Advanced filters')),
+            c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap', marginTop: '8px' } },
+              [filterScope, filterSource]),
+          ]),
+        ]),
       ]),
       resultsEl,
     ]),

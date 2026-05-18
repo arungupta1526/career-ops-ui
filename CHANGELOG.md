@@ -6,6 +6,21 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.55.6] — 2026-05-19
+
+**feat(scan): tuck secondary filters behind an "Advanced filters" disclosure (UX-4).**
+
+### ✨ Features
+
+- `#/scan` stacked every filter — free-text, remote/hybrid/onsite, scope, source, and the post-scan stack/level/dynamic facet chips — at equal weight, a wall of controls. Now the **everyday filters stay visible** (free-text + Remote/Hybrid/Onsite; the 🌐 Scan button is already separate in the controls card) and the **secondary ones collapse behind a `<details class="scan-advanced"><summary>Advanced filters</summary>`**: the Scope + Source selects, and — separately — the stack/level/dynamic facet-chip cluster (which now leads the fresh result set with the table, not a wall of chips, and only renders when at least one chip row exists). Cognitive-load lens.
+- New i18n key `scan.advancedFilters` across all 8 locales; new token-based `.scan-advanced` summary styling (quiet ⚙ affordance, marker-less, bold when open).
+
+### 🧪 Tests
+
+- **`test: tests/scan-advanced-disclosure.test.mjs`** (new, 6 cases, CI-isolated, source-static): an Advanced-filters `<details>`/`<summary>` exists with the `.scan-advanced` hook and `scan.advancedFilters` label; free-text + remote stay in the always-visible group; scope + source live inside the disclosure; `chipsContainer` is a `<details>`; `.scan-advanced summary` is styled; `scan.advancedFilters` ×8 locales. 782 → 788.
+
+---
+
 ## [1.55.5] — 2026-05-19
 
 **feat(dashboard): hero-promote the 2 P0 CTAs + a focal recent-activity hint (UX-3).**

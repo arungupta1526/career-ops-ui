@@ -543,6 +543,22 @@ body.sidebar-open .sidebar-backdrop { display: block; }
   color: var(--foggy);
 }
 
+/* v1.55.6 — UX-4: #/scan "Advanced filters" disclosure. Quiet,
+   discoverable summary; body indents under it when expanded. */
+.scan-advanced { display: inline-block; }
+.scan-advanced > summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--rausch-text, var(--rausch));
+  -webkit-user-select: none;
+  user-select: none;
+  list-style: none;
+  padding: 6px 2px;
+}
+.scan-advanced > summary::-webkit-details-marker { display: none; }
+.scan-advanced > summary::before { content: '⚙ '; }
+.scan-advanced[open] > summary { font-weight: 600; }
+
 .metric-card {
   display: flex;
   flex-direction: column;

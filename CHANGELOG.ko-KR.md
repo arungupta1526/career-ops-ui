@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.6] — 2026-05-19
+
+**feat(scan): 보조 필터를 "고급 필터" 디스클로저 뒤로 정리 (UX-4).** `#/scan` 은 모든 필터 — 자유 텍스트, 원격/하이브리드/온사이트, 범위, 소스, 스캔 후 stack/level/dynamic 패싯 칩 — 를 동일 가중치로 쌓아 컨트롤의 벽이었음. 이제 **일상 필터는 보이게 유지**(자유 텍스트 + 원격/하이브리드/온사이트; 🌐 스캔 버튼은 이미 컨트롤 카드에 별도)하고 **보조 필터는 `<details class="scan-advanced"><summary>고급 필터</summary>` 뒤로 접힘**: 범위 + 소스 셀렉트, 그리고 별도로 패싯 칩 클러스터(이제 새 결과 집합이 칩 벽이 아니라 테이블로 시작하며, 칩 행이 하나 이상일 때만 렌더). 8개 로케일 새 i18n 키 `scan.advancedFilters`; 새 `.scan-advanced` 요약 스타일(은은한 ⚙ 어포던스, 마커 없음, 열림 시 굵게). **`test: tests/scan-advanced-disclosure.test.mjs`**(신규, 6 케이스, CI-격리, 소스-정적): `.scan-advanced` 훅 + `scan.advancedFilters` 라벨의 `<details>`/`<summary>` 존재; 자유 텍스트 + 원격 가시 유지; 범위 + 소스 디스클로저 내부; `chipsContainer` 가 `<details>`; `.scan-advanced summary` 스타일; `scan.advancedFilters` ×8. 782 → 788. `feat(scan)` · `test: tests/scan-advanced-disclosure.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.55.5] — 2026-05-19
 
 **feat(dashboard): 2개 P0 CTA + 초점 최근 활동 힌트의 히어로 (UX-3).** `#/dashboard` 는 동일 가중치의 ~30개 노드로 열려 "다음에 뭘 할지"가 불명확했음. 새 `.dash-hero` 블록이 이제 페이지 헤더 바로 아래에 위치: 두 P0 여정 — **✨ URL 자동 파이프라인**, **🌐 지금 스캔** — 을 큰 `.btn-hero` 버튼으로 승격하고, 단일 **초점 최근 활동 힌트**("최근 평가: `<점수>` — `<제목>`", 리포트로 링크; 콜드 스타트에서는 `dash.heroNoEval` 안내 빈 상태)가 재방문 사용자에게 멈춘 지점을, 신규 사용자에게 가장 중요한 단 하나의 행동을 알려줌. 두 기본 버튼은 헤더에서 제거(보조 "📋 파이프라인 열기"만 잔류)해 행동 중복 방지. 상태 버킷은 두드러진 `.badge` 에서 조용한 `.dash-chip` 알약으로 격하. 8개 로케일 새 i18n 키 `dash.lastEval`, `dash.heroNoEval`; 새 `.dash-hero`/`.btn-hero`/`.dash-chip` CSS. **`test: tests/dashboard-hero.test.mjs`**(신규, 5 케이스, CI-격리, 소스-정적): `.dash-hero` 존재 및 Quick-actions 그리드 선행; 두 P0 CTA 가 `/auto`+`/scan` 라우트의 `.btn-hero`; 초점 `dash.lastEval` + 빈 상태 `dash.heroNoEval`; 버킷이 `.dash-chip`; CSS 존재; `dash.lastEval`+`dash.heroNoEval` ×8. 777 → 782. `feat(dashboard)` · `test: tests/dashboard-hero.test.mjs`. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

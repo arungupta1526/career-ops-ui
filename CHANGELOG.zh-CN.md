@@ -8,6 +8,12 @@
 
 ---
 
+## [1.55.6] — 2026-05-19
+
+**feat(scan):将次要筛选收纳进“高级筛选”折叠区(UX-4)。** `#/scan` 此前把所有筛选 —— 自由文本、远程/混合/现场、范围、来源,以及扫描后的 stack/level/dynamic facet 芯片 —— 等权堆叠,形成控件之墙。现在**日常筛选保持可见**(自由文本 + 远程/混合/现场;🌐 扫描按钮已在控件卡中单列),**次要筛选折叠进 `<details class="scan-advanced"><summary>高级筛选</summary>`**:范围 + 来源下拉,以及单独的 facet 芯片簇(现在新结果集以表格而非芯片墙开头,且仅在至少有一行芯片时渲染)。8 个语言新增 i18n 键 `scan.advancedFilters`;新增 `.scan-advanced` 摘要样式(安静的 ⚙ 提示、无标记、展开时加粗)。**`test: tests/scan-advanced-disclosure.test.mjs`**(新增,6 个用例,CI 隔离,源静态):带 `.scan-advanced` 钩子与 `scan.advancedFilters` 标签的 `<details>`/`<summary>` 存在;自由文本 + 远程保持可见;范围 + 来源在折叠区内;`chipsContainer` 为 `<details>`;`.scan-advanced summary` 有样式;`scan.advancedFilters` ×8。782 → 788。`feat(scan)` · `test: tests/scan-advanced-disclosure.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.55.5] — 2026-05-19
 
 **feat(dashboard):2 个 P0 CTA + 聚焦近期活动提示的 hero(UX-3)。** `#/dashboard` 此前以约 30 个等权重节点打开 —— 没有清晰的“下一步做什么”。新增 `.dash-hero` 块现位于页头正下方:两个 P0 旅程 —— **✨ URL 自动管道** 与 **🌐 立即扫描** —— 提升为大号 `.btn-hero` 按钮;单一**聚焦近期活动提示**(“最近评估: `<分数>` — `<标题>`”,链接至报告;冷启动时经 `dash.heroNoEval` 显示引导空状态)告诉回访用户停在何处、告诉新用户唯一重要的动作。两个主按钮已从页头移除(仅保留次要的“📋 打开管道”)以避免动作重复。状态计数从醒目的 `.badge` 降级为安静的 `.dash-chip` 胶囊。8 个语言新增 i18n 键 `dash.lastEval`、`dash.heroNoEval`;新增 `.dash-hero`/`.btn-hero`/`.dash-chip` CSS。**`test: tests/dashboard-hero.test.mjs`**(新增,5 个用例,CI 隔离,源静态):`.dash-hero` 存在且先于 Quick-actions 网格;两个 P0 CTA 为带 `/auto`+`/scan` 路由的 `.btn-hero`;聚焦 `dash.lastEval` + 空状态 `dash.heroNoEval`;桶使用 `.dash-chip`;CSS 存在;`dash.lastEval`+`dash.heroNoEval` ×8。777 → 782。`feat(dashboard)` · `test: tests/dashboard-hero.test.mjs`。详见 [`CHANGELOG.md`](CHANGELOG.md)。
