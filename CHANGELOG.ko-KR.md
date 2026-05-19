@@ -8,6 +8,12 @@
 
 ---
 
+## [1.57.0] — 2026-05-19
+
+**feat(provider): OpenRouter를 5번째 헤드리스 라이브 평가 공급자로 추가 + fix(config): 어떤 API 키를 저장해도 「validation failed」 발생하던 버그 수정.** 붙여넣은 키는 흔히 끝에 줄바꿈이나 공백이 붙어 옵니다(OS 클립보드, 공급자 콘솔의 「복사」 버튼). 1.57 이전에는 이것이 **모든** 공급자에서 줄바꿈 가드를 건드렸고, `$` 종단 앵커 `ANTHROPIC_API_KEY` 정규식이 실제 Anthropic 키를 잘못 거부했습니다. 이제 `validateConfig`는 검증 **전에** 모든 값을 정규화(트림)하고, 라우트는 트림된 값을 저장(런타임 인증 성공, `\n`로 인한 `.env` 손상 없음)하며, Anthropic 검사는 견고한 `sk-ant-` 접두사 + 길이로 변경(공통 `isUsableKey()` ≥ 20자 기준이 진짜 「실제 키인가」 게이트). 내부 줄바꿈은 계속 거부(`.env` 인젝션 가드). **OpenRouter**가 1급 공급자가 됨: `/#/config`의 `OPENROUTER_API_KEY` 하나로 300개 이상 모델 접근. `auto` 순서의 **마지막**(Anthropic → Gemini → OpenAI → Qwen → **OpenRouter**)이라 기존 설정이 조용히 재라우팅되지 않으며, `LLM_PROVIDER=openrouter`로 고정. OpenAI/Qwen과 동일한 `_tailProvider()` 경로로 `/api/evaluate`·`/api/deep`·`/api/mode/:slug`에 연결, `/api/status/providers` + Health 대시보드에 노출. OpenAI 호환 클라이언트(새 의존성 없음 — 직접 `fetch`, `AbortController` 타임아웃, 키 미기록), 권장 `HTTP-Referer`/`X-Title` 헤더 포함. 모델 드롭다운은 라이브: `OPENROUTER_MODEL`은 **`GET /api/openrouter/models`**(OpenRouter 공개 카탈로그의 서버 측 프록시 — CSP `connect-src 'self'` 유지)에서 채워지며, 카탈로그 불가 시 선별 폴백, 10분 메모리 캐시. 8개 로케일에 새 i18n 키(`config.openrouter*`). **테스트:** 새 `tests/openrouter-route.test.mjs`·`tests/openrouter-model-selector.test.mjs`, `env-config`/`openai`/`provider-selector` 확장. 831 → 855. 자세한 내용은 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.56.4] — 2026-05-19
 
 **feat(ui): UX-N2 — 전역 검색 입력에 플랫폼 인식 가시 ⌘K / Ctrl K 힌트.** Cmd/Ctrl+K(검색 포커스) 단축키가 `aria-label`/소스에만 있어 시각 사용자는 발견하지 못했고 앱이 실제보다 느리게 느껴졌다. 이제 옅은 `<kbd class="kbd-shortcut">`가 검색 알약 끝에 표시되며 부팅 시 플랫폼 판정(`navigator.platform`/`userAgent`)으로 `data-mac`/`data-other`에서 채워진다: macOS/iOS는 **⌘K**, 그 외는 **Ctrl K**. `aria-hidden="true"`(기존 `aria-label`이 이미 AT에 알리므로 중복 안내 방지)이며 `pointer-events:none`(장식). 기존 Cmd/Ctrl+K 키바인딩 불변. 새 i18n 키 없음(글리프는 공통); 배지는 기존 `.searchbar`의 flex 자식(래퍼/절대 위치 불필요 — input은 이미 `flex:1`). **테스트:** 새 CI 격리 소스 정적 스위트 `tests/cmdk-hint-visible.test.mjs`(5): `.searchbar` 안에 `<kbd class="kbd-shortcut">`; `aria-hidden="true"` + `data-mac`/`data-other` 둘 다; `app.js`가 `navigator` 판정으로 채움; `(e.ctrlKey||e.metaKey)&&e.key==='k'` → `search.focus()` 바인딩 유지(회귀 가드); `app.css`가 `.kbd-shortcut`를 스타일링하고 `display:none` 아님. 826 → 831. `feat(ui)` · `test: tests/cmdk-hint-visible.test.mjs`. 자세히 — [`CHANGELOG.md`](CHANGELOG.md).

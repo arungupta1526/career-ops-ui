@@ -18,7 +18,7 @@
 
 Current outliers (as of **v1.54.0**, post WS2 UX-audit + WS9):
 
-- `server/index.mjs` (~174 LOC after **P-2 phase 2** in v1.9.0). Pure orchestrator — middleware + `register*Routes(app)` calls + SPA catch-all. New routes go into `server/lib/routes/<topic>.mjs` exporting `register<Topic>Routes(app)`. Currently 14 route modules: `activity`, `auto-pipeline`, `batch`, `config`, `content`, `health`, `help`, `jds`, `llm`, `pipeline`, `reports`, `runners`, `scan`, `tracker`.
+- `server/index.mjs` (~174 LOC after **P-2 phase 2** in v1.9.0). Pure orchestrator — middleware + `register*Routes(app)` calls + SPA catch-all. New routes go into `server/lib/routes/<topic>.mjs` exporting `register<Topic>Routes(app)`. Currently 15 route modules: `activity`, `auto-pipeline`, `batch`, `config`, `content`, `health`, `help`, `jds`, `llm`, `openrouter`, `pipeline`, `reports`, `runners`, `scan`, `tracker`.
 - `public/js/views/scan.js` (~750 LOC; grew with WS2 #5/#6/#21/#24 SSE-a11y — `role=log` console, Stop button, run-state, error banner). Past the 400-LOC soft target. Flagged for split: extract Active Companies card → `views/scan/active-companies.js`, source-filter logic → `views/scan/source-filter.js`. Touch with caution; this is the most user-facing view.
 - `public/js/views/config.js` (~740 LOC; WS1 field-forms + WS2 #2 portals deep-link + #3 WAI-ARIA tabs + #4 confirm-gates). Past the 400-LOC soft target — same split candidates as before (Profile/Modes panels).
 - `public/css/app.css` (~975 LOC). Past 800-LOC hard target — split before the next CSS-heavy feature lands. Candidate split: paginator styles → `views/paginator.css`, sidebar styles → `views/sidebar.css`.

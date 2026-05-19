@@ -333,6 +333,8 @@ Si solo quieres puntuar rápido una vacante concreta, salta el recorrido manual.
 El feedback es un **stepper** vertical (lista ordenada, `aria-current` en el paso activo, región viva para lectores de pantalla). Al terminar, la tarjeta enlaza al informe (**Ver informe · N/5**) y al **tracker**. Un paso fallido se marca y el botón se rehabilita para reintentar sin recargar. **¿Sin API key?** Modo manual: pasos 3–5 colapsan y obtienes un prompt para copiar. Enlazable: `#/auto?url=<enc>&go=1` autoarranca.
 > **CLI (v1.38.0).** Un comando hace la cadena: `career-ops-ui setup`. Verbos: `career-ops-ui doctor` (chequeo env/claves/tooling — mismo motor que Health; exit 1 si falla algo requerido), `career-ops-ui run`, `career-ops-ui init` (asistente proveedor+clave, v1.39.0).
 > **Proveedores (v1.39.0).** La pestaña API-keys añade un select `LLM_PROVIDER` (`auto`=Anthropic→Gemini · `claude` · `gemini`) y un campo `OPENAI_API_KEY` (lado Codex/OpenCode CLI). `career-ops-ui init` es el asistente interactivo.
+>
+> **Proveedores (v1.57.0).** La eval en vivo headless abarca **Anthropic → Gemini → OpenAI → Qwen → OpenRouter** (orden `auto`; `LLM_PROVIDER` fija uno). **OpenRouter** — una `OPENROUTER_API_KEY` da acceso a más de 300 modelos; el desplegable `OPENROUTER_MODEL` carga el catálogo en vivo de OpenRouter (proxy del servidor, fallback curado offline). Corregido también: las claves pegadas con salto de línea / espacios se recortan antes de validar, así que `/#/config` ya no muestra «validation failed» para ningún proveedor.
 
 
 

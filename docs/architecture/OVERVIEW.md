@@ -76,6 +76,7 @@
 - **`lib/routes/help.mjs`** *(P-2 phase 2)* — `registerHelpRoutes(app)` for `/api/help/:lang`.
 - **`lib/routes/jds.mjs`** *(P-2 phase 2)* — `registerJdsRoutes(app)` for the `/api/jds*` CRUD.
 - **`lib/routes/llm.mjs`** *(P-2 phase 2)* — `registerLlmRoutes(app)` for `/api/evaluate`, `/api/evaluate/test-{gemini,anthropic}`, `/api/deep`, `/api/mode/:slug`, `/api/apply-helper`, `/api/interview-prep*`. **P-7** added the Anthropic branch in `/api/evaluate` (preferred over Gemini when both keys present) and `/api/evaluate/test-anthropic` smoke endpoint.
+- **`lib/routes/openrouter.mjs`** *(v1.57.0)* — `registerOpenrouterRoutes(app)` for `GET /api/openrouter/models` — server-side proxy of OpenRouter's public model catalogue feeding the `#/config` `OPENROUTER_MODEL` dropdown. Keeps the CSP `connect-src 'self'` envelope intact (no browser→third-party fetch), degrades to a curated namespaced fallback list, 10-min in-memory cache. No auth / no secrets.
 - **`lib/routes/pipeline.mjs`** *(P-2 phase 2)* — `registerPipelineRoutes(app)` for `/api/pipeline*` including the SSRF-safe preview proxy.
 - **`lib/routes/reports.mjs`** *(P-2 phase 2)* — `registerReportsRoutes(app)` for `/api/reports*`.
 - **`lib/routes/runners.mjs`** *(P-2)* — buffered `/api/run/*` table, streaming `/api/stream/{scan,liveness,pdf}`, generated-PDF list/download.

@@ -21,6 +21,7 @@ import {
   parseEnv,
   maskSecret,
   validateConfig,
+  normalizeConfigValue,
   updateEnvFile,
 } from '../env-config.mjs';
 
@@ -69,10 +70,15 @@ export function registerConfigRoutes(app) {
     const body = req.body || {};
     const v = validateConfig(body);
     if (!v.ok) return res.status(400).json({ error: 'validation failed', details: v.errors });
-    // Filter to known keys only — never write attacker-supplied env vars.
+    // Filter to known keys only — never write attacker-supplied env
+    // vars. Normalize (trim) every value so a key pasted with a
+    // trailing newline / stray spaces is stored clean and authenticates
+    // at runtime (v1.57.0 BF).
     const safe = {};
     for (const k of KNOWN_KEYS) {
-      if (Object.prototype.hasOwnProperty.call(body, k)) safe[k] = body[k];
+      if (Object.prototype.hasOwnProperty.call(body, k)) {
+        safe[k] = normalizeConfigValue(body[k]);
+      }
     }
     try {
       mkdirSync(dirname(PATHS.envFile), { recursive: true });

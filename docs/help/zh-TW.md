@@ -332,6 +332,8 @@ JD。輔助器會生成逐步的投遞檢查清單:
 > **v1.35.0 —— 陣列編輯器。** 為 **Target roles**、**Superpowers**(字串清單)、**Archetypes**(name/level/fit)、**Proof points**(name/url/hero-metric)新增增刪列編輯器。相同的 merge-not-replace 保證;清空清單會乾淨地移除該鍵。
 > **v1.54.3 —— Modes 分頁結構化表單。** `modes/_profile.md` 不再是按區塊的原始 markdown 編輯器,而是從已文件化的 schema 衍生的欄位表單。清單型區塊 —— **Target Roles / Adaptive Framing / Comp Targets** —— 渲染為可重複的逐列輸入(增刪列);散文區塊 —— **Exit Narrative / Location Policy** —— 渲染為帶標籤的 textarea;任何未知或非清單區塊回退為帶標籤的逐字 textarea。儲存**仍按區塊合併** —— 前言、未更動區塊與自訂區塊按位元組保留。*Advanced: raw markdown* 折疊區保留,用於整檔編輯:增刪區塊或編輯前言。
 > **供應方(v1.39.0)。** API-keys 分頁新增 `LLM_PROVIDER` 選擇(`auto`=Anthropic→Gemini · `claude` · `gemini`)與 `OPENAI_API_KEY` 欄位(Codex/OpenCode CLI 端)。`career-ops-ui init` 為互動精靈。
+>
+> **供應方(v1.57.0）。** 無頭即時評估現涵蓋 **Anthropic → Gemini → OpenAI → Qwen → OpenRouter**（`auto` 順序；`LLM_PROVIDER` 固定其一）。**OpenRouter** —— 一個 `OPENROUTER_API_KEY` 即接入 300+ 模型；`OPENROUTER_MODEL` 下拉從 OpenRouter 即時目錄載入（伺服器端代理，離線時精選回退）。另修復：帶換行/空白貼上的 key 在驗證前被修剪，`/#/config` 不再對任何供應方顯示「validation failed」。
 
 
 

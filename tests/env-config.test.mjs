@@ -9,8 +9,8 @@ import { mkdtempSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import {
-  KNOWN_KEYS, SECRET_KEYS,
-  parseEnv, maskSecret, validateConfig, updateEnvFile, effectiveEnv,
+  KNOWN_KEYS, SECRET_KEYS, LLM_PROVIDERS, providerOrder,
+  parseEnv, maskSecret, validateConfig, normalizeConfigValue, updateEnvFile, effectiveEnv,
 } from '../server/lib/env-config.mjs';
 
 // ────────────────────── parseEnv ──────────────────────
@@ -85,9 +85,10 @@ test('validateConfig: PORT must be 1-65535', () => {
   assert.match(r.errors[0], /PORT/);
 });
 
-test('validateConfig: rejects newlines', () => {
-  const r = validateConfig({ HH_USER_AGENT: 'line1\nline2' });
+test('validateConfig: rejects internal newlines', () => {
+  const r = validateConfig({ GEMINI_API_KEY: 'line1\nline2' });
   assert.equal(r.ok, false);
+  assert.match(r.errors.join(' '), /newline/);
 });
 
 test('validateConfig: empty values are accepted (means delete the key)', () => {
@@ -95,9 +96,83 @@ test('validateConfig: empty values are accepted (means delete the key)', () => {
   assert.equal(r.ok, true);
 });
 
-test('validateConfig: rejects oversized values', () => {
-  const r = validateConfig({ HH_USER_AGENT: 'x'.repeat(5000) });
+// ── v1.57.0 BF — the reported "validation failed" bug ──
+// Pasted keys routinely arrive with a trailing newline or surrounding
+// spaces (browser/OS clipboard, "copy" buttons on provider consoles).
+// Pre-v1.57 this failed for ANY provider via the newline guard, and
+// for Anthropic via the $-anchored format regex.
+test('validateConfig: trims surrounding whitespace on a real Anthropic key', () => {
+  const r = validateConfig({ ANTHROPIC_API_KEY: '  sk-ant-api03-' + 'x'.repeat(40) + '\n' });
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+});
+
+test('validateConfig: trailing newline on a non-Anthropic key still validates', () => {
+  const r = validateConfig({
+    GEMINI_API_KEY: 'AIza' + 'b'.repeat(35) + '\n',
+    OPENAI_API_KEY: ' sk-proj-' + 'c'.repeat(40) + ' ',
+    OPENROUTER_API_KEY: 'sk-or-v1-' + 'd'.repeat(40) + '\r\n',
+  });
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+});
+
+test('validateConfig: internal newline is still rejected (.env injection guard)', () => {
+  const r = validateConfig({ GEMINI_API_KEY: 'abc\nDROP=evil' });
   assert.equal(r.ok, false);
+});
+
+test('validateConfig: Anthropic format gate tolerates a longer/new key shape', () => {
+  // Resilient to provider prefix changes — only obvious junk is rejected.
+  const r = validateConfig({ ANTHROPIC_API_KEY: 'sk-ant-api99-' + 'Z'.repeat(60) });
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+});
+
+test('validateConfig: rejects oversized values', () => {
+  const r = validateConfig({ GEMINI_API_KEY: 'x'.repeat(5000) });
+  assert.equal(r.ok, false);
+  assert.match(r.errors.join(' '), /4000/);
+});
+
+// ── v1.57.0 — OpenRouter provider (5th headless live-eval provider) ──
+
+test('OpenRouter: OPENROUTER_API_KEY + OPENROUTER_MODEL are known config keys', () => {
+  assert.ok(KNOWN_KEYS.includes('OPENROUTER_API_KEY'));
+  assert.ok(KNOWN_KEYS.includes('OPENROUTER_MODEL'));
+});
+
+test('OpenRouter: OPENROUTER_API_KEY is a secret (masked on read)', () => {
+  assert.ok(SECRET_KEYS.has('OPENROUTER_API_KEY'));
+  assert.ok(!SECRET_KEYS.has('OPENROUTER_MODEL'));
+});
+
+test('OpenRouter: "openrouter" is a valid LLM_PROVIDER value', () => {
+  assert.ok(LLM_PROVIDERS.includes('openrouter'));
+});
+
+test('providerOrder: explicit openrouter pin → [openrouter]', () => {
+  assert.deepEqual(providerOrder({ LLM_PROVIDER: 'openrouter' }), ['openrouter']);
+});
+
+test('providerOrder: auto appends openrouter at the tail (never overrides existing setups)', () => {
+  assert.deepEqual(providerOrder({ LLM_PROVIDER: 'auto' }),
+    ['anthropic', 'gemini', 'openai', 'qwen', 'openrouter']);
+});
+
+test('validateConfig: a real-shape OpenRouter key validates', () => {
+  const r = validateConfig({
+    OPENROUTER_API_KEY: 'sk-or-v1-' + 'a'.repeat(56),
+    OPENROUTER_MODEL: 'anthropic/claude-sonnet-4',
+  });
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+});
+
+test('normalizeConfigValue: trims strings, passes non-strings through untouched', () => {
+  assert.equal(normalizeConfigValue('  sk-x \n'), 'sk-x');
+  assert.equal(normalizeConfigValue('plain'), 'plain');
+  assert.equal(normalizeConfigValue(''), '');
+  assert.equal(normalizeConfigValue(42), 42);          // non-string passthrough
+  assert.equal(normalizeConfigValue(null), null);
+  assert.equal(normalizeConfigValue(undefined), undefined);
+  assert.deepEqual(normalizeConfigValue({ a: 1 }), { a: 1 });
 });
 
 test('validateConfig: rejects non-object body', () => {

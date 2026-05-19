@@ -6,6 +6,25 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.57.0] — 2026-05-19
+
+**feat(provider): OpenRouter as a 5th headless live-eval provider + fix(config): "validation failed" when saving any API key.**
+
+### 🐛 Fixes
+
+- **`/#/config` no longer rejects valid API keys with "validation failed".** Pasted keys routinely arrive with a trailing newline or surrounding spaces (OS clipboard, the "copy" buttons on provider consoles). Pre-1.57 that tripped the newline guard for **every** provider, and the `$`-anchored `ANTHROPIC_API_KEY` charset regex (`/^sk-ant-[A-Za-z0-9_-]{20,}$/`) false-rejected genuine Anthropic keys whose base64url tail / future prefix didn't fit the class. `validateConfig` now normalizes (trims) every value **before** validating, the route persists the trimmed value (so it authenticates at runtime — no stray-newline `.env` quoting), and the Anthropic check is a resilient `sk-ant-` prefix + length sanity check (the shared `isUsableKey()` 20-char floor remains the real "is it real?" gate). Internal newlines are still rejected — that `.env`-injection guard is intact.
+
+### ✨ Features
+
+- **OpenRouter is now a first-class provider.** Add `OPENROUTER_API_KEY` on `/#/config` and one key fronts 300+ models (Anthropic, OpenAI, Google, Meta, Qwen, DeepSeek …). It's the **last** entry of the `auto` order (Anthropic → Gemini → OpenAI → Qwen → **OpenRouter**), so an existing setup is never silently re-routed; `LLM_PROVIDER=openrouter` pins it. Wired into the same `_tailProvider()` path as OpenAI/Qwen across `/api/evaluate`, `/api/deep`, `/api/mode/:slug`, and surfaced by `/api/status/providers` + the Health dashboard. OpenAI-compatible client (zero new deps — direct `fetch`, `AbortController` timeout, key never logged) with the recommended `HTTP-Referer`/`X-Title` attribution headers.
+- **The OpenRouter model dropdown is live.** `OPENROUTER_MODEL` is a dynamic select fed by **`GET /api/openrouter/models`** — a server-side proxy of OpenRouter's public catalogue (keeps the CSP `connect-src 'self'` envelope intact; no browser→third-party fetch). It degrades to a curated namespaced fallback list when the catalogue is unreachable (offline / rate-limited / 5xx), so the dropdown is never empty, and a 10-minute in-memory cache keeps repeat `/#/config` visits from re-hitting OpenRouter. New i18n keys (`config.openrouter*`) across all 8 locales; `config.llmProviderHint` updated.
+
+### 🧪 Tests
+
+- New CI-isolated suites: **`tests/openrouter-route.test.mjs`** (proxy answers 200 with a non-empty namespaced list even offline; leaks no secret) and **`tests/openrouter-model-selector.test.mjs`** (env-config contract + config.js wiring + 8-locale i18n parity). Extended `env-config`, `openai`, and `provider-selector` suites: trim/relax validation, `runOpenRouter`/`hasOpenRouterKey`/`fetchOpenRouterModels`, the appended `auto` tail, and the OpenRouter gate. Two previously-weak `validateConfig` cases (used the no-longer-known `HH_USER_AGENT`, so they passed for the wrong reason) now assert against a real key. 831 → 855.
+
+---
+
 ## [1.56.4] — 2026-05-19
 
 **feat(ui): UX-N2 — visible, platform-aware ⌘K / Ctrl K hint on the global search input.**

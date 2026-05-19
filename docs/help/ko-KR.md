@@ -319,6 +319,8 @@ Evaluate → Reports → Deep research → Apply checklist → Outreach
 피드백은 세로 **스테퍼**(순서 목록, 활성 단계에 `aria-current`, 스크린리더 라이브 영역). 완료 시 카드가 리포트(**리포트 보기 · N/5**)와 **트래커**로 딥링크. 실패 단계는 표시되고 버튼이 재활성화되어 새로고침 없이 재시도. **API 키 없음?** 수동 모드: 3–5단계 접힘 + 복사용 프롬프트. 링크 가능: `#/auto?url=<enc>&go=1` 자동 시작.
 > **CLI (v1.38.0).** 한 명령이 전체 체인: `career-ops-ui setup`. 동사: `career-ops-ui doctor`(env/키/툴링 점검 — Health와 동일 엔진; 필수 실패 시 exit 1), `career-ops-ui run`, `career-ops-ui init`(공급자+키 마법사, v1.39.0).
 > **공급자 (v1.39.0).** API-keys 탭에 `LLM_PROVIDER` select(`auto`=Anthropic→Gemini · `claude` · `gemini`) 및 `OPENAI_API_KEY` 필드(Codex/OpenCode CLI 측) 추가. `career-ops-ui init`이 대화형 마법사.
+>
+> **공급자 (v1.57.0).** 헤드리스 라이브 평가가 **Anthropic → Gemini → OpenAI → Qwen → OpenRouter**(`auto` 순서; `LLM_PROVIDER`로 고정)로 확장. **OpenRouter** — `OPENROUTER_API_KEY` 하나로 300+ 모델 접근; `OPENROUTER_MODEL` 드롭다운은 OpenRouter 라이브 카탈로그를 로드(서버 측 프록시, 오프라인 선별 폴백). 또한 수정: 줄바꿈/공백이 붙어 붙여넣은 키를 검증 전에 트림하므로 `/#/config`에서 더 이상 어떤 공급자에도 「validation failed」가 표시되지 않음.
 
 
 

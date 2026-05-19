@@ -21,7 +21,7 @@ import { PATHS, path as projPath } from '../paths.mjs';
 import { slugify, today } from '../parsers.mjs';
 import { runNodeScript } from '../runner.mjs';
 import { runAnthropic, hasAnthropicKey, hasGeminiKey } from '../anthropic.mjs';
-import { runOpenAI, runQwen, hasOpenAIKey, hasQwenKey } from '../openai.mjs';
+import { runOpenAI, runQwen, runOpenRouter, hasOpenAIKey, hasQwenKey, hasOpenRouterKey } from '../openai.mjs';
 import { providerOrder } from '../env-config.mjs';
 import { sanitizeJobDescription, sanitizePathName } from '../security.mjs';
 import { llmRateLimit } from '../rate-limit.mjs';
@@ -43,6 +43,7 @@ function _provGate() {
   return {
     wantAnthropic: o.includes('anthropic'), wantGemini: o.includes('gemini'),
     wantOpenAI: o.includes('openai'), wantQwen: o.includes('qwen'),
+    wantOpenRouter: o.includes('openrouter'),
   };
 }
 
@@ -57,6 +58,10 @@ function _tailProvider() {
   const g = _provGate();
   if (g.wantOpenAI && hasOpenAIKey()) return { mode: 'openai', run: runOpenAI };
   if (g.wantQwen && hasQwenKey()) return { mode: 'qwen', run: runQwen };
+  // v1.57.0 — OpenRouter is last in the auto tail (a single key fronts
+  // every major model), so an existing Anthropic/Gemini/OpenAI/Qwen
+  // setup is never silently re-routed through it.
+  if (g.wantOpenRouter && hasOpenRouterKey()) return { mode: 'openrouter', run: runOpenRouter };
   return null;
 }
 
@@ -272,8 +277,8 @@ export function registerLlmRoutes(app) {
     res.json({
       mode: 'manual',
       prompt,
-      message: (hasAnthropicKey() || hasGeminiKey() || hasOpenAIKey() || hasQwenKey())
-        ? 'Set { run: true } to execute via Anthropic/Gemini/OpenAI/Qwen, or copy the prompt into Claude Code.'
+      message: (hasAnthropicKey() || hasGeminiKey() || hasOpenAIKey() || hasQwenKey() || hasOpenRouterKey())
+        ? 'Set { run: true } to execute via Anthropic/Gemini/OpenAI/Qwen/OpenRouter, or copy the prompt into Claude Code.'
         : 'No API key set. Paste this into Claude Code for full deep research with WebFetch.',
     });
   });
@@ -371,8 +376,8 @@ export function registerLlmRoutes(app) {
       mode: 'manual',
       slug,
       prompt,
-      message: (hasAnthropicKey() || hasGeminiKey() || hasOpenAIKey() || hasQwenKey())
-        ? 'Set { run: true } to execute via Anthropic/Gemini/OpenAI/Qwen, or copy this prompt into Claude Code.'
+      message: (hasAnthropicKey() || hasGeminiKey() || hasOpenAIKey() || hasQwenKey() || hasOpenRouterKey())
+        ? 'Set { run: true } to execute via Anthropic/Gemini/OpenAI/Qwen/OpenRouter, or copy this prompt into Claude Code.'
         : 'No API key set. Copy this prompt into Claude Code (it has WebFetch/WebSearch).',
     });
   });

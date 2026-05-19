@@ -61,14 +61,32 @@ Router.register('config', async () => {
     'qwen2.5-72b-instruct',
     'qwen2.5-coder-32b-instruct',
   ];
+  // OpenRouter (v1.57.0) — one key fronts 300+ models. The live
+  // catalogue is loaded from GET /api/openrouter/models (server-side
+  // proxy; keeps the CSP connect-src 'self' envelope intact). This
+  // curated list is the offline fallback + the first entry is the
+  // default when OPENROUTER_MODEL is unset. Model ids are namespaced
+  // `vendor/model`; `openrouter/auto` lets OpenRouter pick.
+  const OPENROUTER_MODELS = [
+    'openrouter/auto',
+    'anthropic/claude-sonnet-4',
+    'anthropic/claude-opus-4',
+    'openai/gpt-5',
+    'openai/gpt-5-mini',
+    'google/gemini-2.5-pro',
+    'google/gemini-2.0-flash-001',
+    'meta-llama/llama-3.3-70b-instruct',
+    'qwen/qwen-2.5-72b-instruct',
+    'deepseek/deepseek-chat',
+  ];
   const FIELDS = [
     {
       // v1.39.0 (WS8.2) — explicit provider preference.
       key: 'LLM_PROVIDER', secret: false, kind: 'select',
-      options: ['auto', 'claude', 'gemini', 'openai', 'qwen'], defaultValue: 'auto',
+      options: ['auto', 'claude', 'gemini', 'openai', 'qwen', 'openrouter'], defaultValue: 'auto',
       labelKey: 'config.llmProvider', label: 'LLM_PROVIDER',
       hintKey: 'config.llmProviderHint',
-      hintFallback: 'auto = use whichever key is set, preferring Anthropic → Gemini → OpenAI → Qwen. claude / gemini / openai / qwen = force that one. A forced provider with no key → manual-prompt fallback.',
+      hintFallback: 'auto = use whichever key is set, preferring Anthropic → Gemini → OpenAI → Qwen → OpenRouter. claude / gemini / openai / qwen / openrouter = force that one. A forced provider with no key → manual-prompt fallback.',
     },
     {
       key: 'ANTHROPIC_API_KEY', secret: true,
@@ -129,6 +147,23 @@ Router.register('config', async () => {
       hintKey: 'config.qwenModelHint',
       hintFallback: 'Default: qwen-max (strongest). qwen-plus / qwen-turbo for speed/cost; qwen2.5-coder-32b-instruct for code-heavy reasoning.',
     },
+    {
+      // v1.57.0 — OpenRouter: one key, 300+ models. 5th in the auto
+      // order (tail), so it never silently re-routes an existing
+      // Anthropic/Gemini/OpenAI/Qwen setup.
+      key: 'OPENROUTER_API_KEY', secret: true,
+      labelKey: 'config.openrouterKey', label: 'OPENROUTER_API_KEY',
+      hintKey: 'config.openrouterHint',
+      hintFallback: 'openrouter.ai/keys — one key fronts 300+ models (Anthropic, OpenAI, Google, Meta, Qwen, DeepSeek …). When set, runs the web-ui ⚡ live eval (5th in the auto order, after Qwen).',
+    },
+    {
+      key: 'OPENROUTER_MODEL', secret: false, kind: 'select-remote',
+      remote: '/api/openrouter/models', options: OPENROUTER_MODELS,
+      defaultValue: 'openrouter/auto',
+      labelKey: 'config.openrouterModel', label: 'OPENROUTER_MODEL',
+      hintKey: 'config.openrouterModelHint',
+      hintFallback: 'Default: openrouter/auto (OpenRouter picks). The full live catalogue loads from OpenRouter; pick any vendor/model id. Falls back to a curated list if the catalogue is unreachable.',
+    },
     // v1.19.0 — HH_USER_AGENT removed from the UI per user direction.
     // The server still honors the env var if a power user sets it via
     // career-ops/.env, but it's no longer advertised through #/config —
@@ -159,18 +194,38 @@ Router.register('config', async () => {
     const inputId = 'cfg-' + spec.key.toLowerCase().replace(/_/g, '-');
     const hintId = inputId + '-hint';
     let input;
-    if (spec.kind === 'select') {
+    if (spec.kind === 'select' || spec.kind === 'select-remote') {
       // Dropdown for known-enum fields (model selection).
       // Pre-select the saved value; if unset use the spec's default.
       const current = value || spec.defaultValue || '';
+      // Seed the option set with the curated/fallback list AND the
+      // current value (so a previously-saved custom model id is never
+      // silently dropped while the live catalogue loads).
+      const seed = spec.options.slice();
+      if (current && !seed.includes(current)) seed.unshift(current);
       input = c('select', {
         id: inputId,
         'aria-describedby': hintId,
         className: 'select',
         style: { minWidth: '300px', fontSize: '13px' },
         onChange: () => dirty.add(spec.key),
-      }, spec.options.map((opt) => c('option', { value: opt }, opt)));
+      }, seed.map((opt) => c('option', { value: opt }, opt)));
       input.value = current;
+      if (spec.kind === 'select-remote') {
+        // v1.57.0 — replace the curated seed with the live OpenRouter
+        // catalogue (server-side proxy → CSP-safe). Never blocks the
+        // page: failure leaves the curated fallback in place.
+        API.get(spec.remote).then((data) => {
+          const models = Array.isArray(data && data.models) ? data.models : [];
+          if (!models.length) return;
+          const keep = input.value || current;
+          const ids = models.map((m) => m.id).filter(Boolean);
+          if (keep && !ids.includes(keep)) ids.unshift(keep);
+          input.replaceChildren(
+            ...ids.map((id) => c('option', { value: id }, id)));
+          input.value = keep;
+        }).catch(() => { /* keep the curated fallback */ });
+      }
     } else {
       input = c('input', {
         id: inputId,

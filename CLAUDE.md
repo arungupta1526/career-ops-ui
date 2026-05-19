@@ -10,7 +10,7 @@ Stack at a glance:
 
 | Layer | Tech | Files |
 |---|---|---|
-| Server | Node ≥18, Express 4, js-yaml | `server/index.mjs` (~130 lines, orchestrator only), `server/lib/*.mjs`, `server/lib/routes/*.mjs` (14 modules) |
+| Server | Node ≥18, Express 4, js-yaml | `server/index.mjs` (~130 lines, orchestrator only), `server/lib/*.mjs`, `server/lib/routes/*.mjs` (15 modules) |
 | SPA | Vanilla JS, hash-router, no framework | `public/index.html`, `public/js/{app,router,api}.js`, `public/js/views/*.js` |
 | Styling | Hand-written CSS, docs-style tokens | `public/css/app.css` |
 | Tests | `node --test` (TAP), in-process Express, fetch | `tests/*.test.mjs`, `tests/e2e*.mjs` |
@@ -68,10 +68,10 @@ See `docs/sdd/SDD-GUIDE.md` for the full workflow.
 - **Node ≥ 18.** Use `node:` prefix for built-ins (`node:fs`, `node:path`, `node:url`, …).
 - **No bundlers, no transpilers, no TypeScript.** The SPA loads scripts via `<script src="…">` in `public/index.html`. Adding a build step is a ROADMAP-level decision, not a unilateral one.
 - **No new runtime deps lightly.** Current production deps: `express` and `js-yaml`. Anything else needs justification in a spec.
-- **File size targets** (from `~/.claude/rules/coding-style.md`): <400 lines per file. `server/index.mjs` was 1230 LOC at v1.7.x; **P-2 phase 1** (v1.8.0) split it to 762 LOC, **P-2 phase 2** (v1.9.0) finished the job — now ~130 LOC orchestrator. New routes go into `server/lib/routes/<topic>.mjs` exporting `register<Topic>Routes(app)`. Fourteen route modules cover: activity, auto-pipeline (server-side SSE auto-pipeline), batch (batch evaluate), config, content (cv/profile/portals/modes), health (+ dashboard), help, jds, llm (evaluate/deep/mode/apply/interview-prep), pipeline (+ preview), reports, runners (buffered + streaming + PDFs), scan (in-process), tracker.
+- **File size targets** (from `~/.claude/rules/coding-style.md`): <400 lines per file. `server/index.mjs` was 1230 LOC at v1.7.x; **P-2 phase 1** (v1.8.0) split it to 762 LOC, **P-2 phase 2** (v1.9.0) finished the job — now ~130 LOC orchestrator. New routes go into `server/lib/routes/<topic>.mjs` exporting `register<Topic>Routes(app)`. Fifteen route modules cover: activity, auto-pipeline (server-side SSE auto-pipeline), batch (batch evaluate), config, content (cv/profile/portals/modes), health (+ dashboard), help, jds, llm (evaluate/deep/mode/apply/interview-prep), openrouter (GET /api/openrouter/models — model-catalogue proxy), pipeline (+ preview), reports, runners (buffered + streaming + PDFs), scan (in-process), tracker.
 - **Routes follow REST norms:** `GET /api/<resource>`, `POST /api/<resource>` (create/append), `PUT /api/<resource>` (replace), `DELETE /api/<resource>/:id`. Streaming uses `GET /api/stream/<verb>` with SSE.
 - **Conventional commits:** `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`. Optional scope: `feat(scan): …`, `fix(api): …`. Breaking change: `feat!:`.
-- **Versioning:** `package.json` is the source of truth (currently 1.56.0). The footer reads it via `/api/health`. The parent's `VERSION` file is reported separately as `parentVersion` — they drift independently.
+- **Versioning:** `package.json` is the source of truth (currently 1.57.0). The footer reads it via `/api/health`. The parent's `VERSION` file is reported separately as `parentVersion` — they drift independently.
 
 See `docs/sdd/CONVENTIONS.md` for the complete list (CSS, i18n keys, error handling, logging).
 

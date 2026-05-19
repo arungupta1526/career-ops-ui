@@ -24,7 +24,7 @@ import {
 } from '../store.mjs';
 import { effectiveEnv, selectActiveProvider } from '../env-config.mjs';
 import { hasAnthropicKey, hasGeminiKey } from '../anthropic.mjs';
-import { hasOpenAIKey, hasQwenKey } from '../openai.mjs';
+import { hasOpenAIKey, hasQwenKey, hasOpenRouterKey } from '../openai.mjs';
 
 export function registerHealthRoutes(app) {
   app.get('/api/health', async (_req, res) => {
@@ -109,11 +109,13 @@ export function registerHealthRoutes(app) {
       ['gemini', hasGeminiKey()],
       ['openai', hasOpenAIKey()],
       ['qwen', hasQwenKey()],
+      ['openrouter', hasOpenRouterKey()],
     ].filter(([, set]) => set).map(([p]) => p);
     const activeProvider = selectActiveProvider(keysConfigured);
     const MODEL_KEY = {
       anthropic: 'ANTHROPIC_MODEL', gemini: 'GEMINI_MODEL',
       openai: 'OPENAI_MODEL', qwen: 'QWEN_MODEL',
+      openrouter: 'OPENROUTER_MODEL',
     };
     const activeModel = activeProvider
       ? (effectiveEnv(MODEL_KEY[activeProvider], PATHS.envFile) || null)

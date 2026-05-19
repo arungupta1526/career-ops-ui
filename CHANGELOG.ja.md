@@ -8,6 +8,12 @@
 
 ---
 
+## [1.57.0] — 2026-05-19
+
+**feat(provider): OpenRouter を 5 番目のヘッドレス・ライブ評価プロバイダとして追加 + fix(config): どの API キーを保存しても「validation failed」になる不具合を修正。** 貼り付けたキーは末尾の改行や空白を伴うことが多く（OS のクリップボード、プロバイダコンソールの「コピー」ボタン）、1.57 以前は **すべての** プロバイダで改行ガードに引っかかり、さらに `$` 終端アンカーの `ANTHROPIC_API_KEY` 正規表現が本物の Anthropic キーを誤って弾いていました。`validateConfig` は検証の **前** に各値を正規化（トリム）し、ルートはトリム後の値を保存（ランタイムで認証成功、`\n` による `.env` 破損なし）、Anthropic チェックは堅牢な `sk-ant-` プレフィックス + 長さに変更（共通の `isUsableKey()` ≥ 20 文字が本当の「実在キーか」判定）。内部改行は引き続き拒否（`.env` インジェクション対策）。**OpenRouter** が一級プロバイダに：`/#/config` の `OPENROUTER_API_KEY` 一つで 300 以上のモデルにアクセス。`auto` 順序の **最後**（Anthropic → Gemini → OpenAI → Qwen → **OpenRouter**）なので既存設定が黙ってリルートされることはなく、`LLM_PROVIDER=openrouter` で固定可能。OpenAI/Qwen と同じ `_tailProvider()` 経路で `/api/evaluate`・`/api/deep`・`/api/mode/:slug` に接続、`/api/status/providers` と Health ダッシュボードに表示。OpenAI 互換クライアント（新規依存なし — 直接 `fetch`、`AbortController` タイムアウト、キーは記録しない）で推奨の `HTTP-Referer`/`X-Title` ヘッダ付き。モデルのドロップダウンはライブ：`OPENROUTER_MODEL` は **`GET /api/openrouter/models`**（OpenRouter 公開カタログのサーバ側プロキシ — CSP `connect-src 'self'` を維持）から取得し、取得失敗時は厳選フォールバック、10 分間のメモリキャッシュ。8 ロケールに新 i18n キー（`config.openrouter*`）。**テスト:** 新規 `tests/openrouter-route.test.mjs`・`tests/openrouter-model-selector.test.mjs`、`env-config`/`openai`/`provider-selector` を拡張。831 → 855。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.56.4] — 2026-05-19
 
 **feat(ui): UX-N2 — グローバル検索入力にプラットフォーム対応の可視 ⌘K / Ctrl K ヒント。** Cmd/Ctrl+K(検索にフォーカス)ショートカットは `aria-label`/ソースにしか無く、晴眼ユーザーは発見できずアプリが実際より遅く感じられた。控えめな `<kbd class="kbd-shortcut">` が検索ピル末尾に表示され、起動時にプラットフォーム判定(`navigator.platform`/`userAgent`)で `data-mac`/`data-other` から埋められる:macOS/iOS は **⌘K**、その他は **Ctrl K**。`aria-hidden="true"`(既存の `aria-label` が AT に伝えるため二重通知を避ける)かつ `pointer-events:none`(装飾)。既存の Cmd/Ctrl+K キーバインドは不変。新しい i18n キーなし(グリフは共通);バッジは既存 `.searchbar` の flex 子(ラッパー/絶対配置不要 — input は既に `flex:1`)。**テスト:** 新しい CI 隔離のソース静的スイート `tests/cmdk-hint-visible.test.mjs`(5):`.searchbar` 内に `<kbd class="kbd-shortcut">`;`aria-hidden="true"` + `data-mac`/`data-other` 両方;`app.js` が `navigator` 判定で埋める;`(e.ctrlKey||e.metaKey)&&e.key==='k'` → `search.focus()` バインド健在(リグレッションガード);`app.css` が `.kbd-shortcut` を整形し `display:none` にしない。826 → 831。`feat(ui)` · `test: tests/cmdk-hint-visible.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

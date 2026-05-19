@@ -8,8 +8,8 @@ import assert from 'node:assert/strict';
 import { providerOrder, LLM_PROVIDERS, KNOWN_KEYS, SECRET_KEYS } from '../server/lib/env-config.mjs';
 import { parseArgs, buildUpdates, askSecret } from '../scripts/init.mjs';
 
-test('providerOrder: auto/unset/unknown → full OR order (v1.55.0)', () => {
-  const ALL = ['anthropic', 'gemini', 'openai', 'qwen'];
+test('providerOrder: auto/unset/unknown → full OR order (v1.57.0 + openrouter tail)', () => {
+  const ALL = ['anthropic', 'gemini', 'openai', 'qwen', 'openrouter'];
   assert.deepEqual(providerOrder({}), ALL);
   assert.deepEqual(providerOrder({ LLM_PROVIDER: 'auto' }), ALL);
   assert.deepEqual(providerOrder({ LLM_PROVIDER: 'banana' }), ALL);
@@ -21,21 +21,23 @@ test('providerOrder: each explicit value pins exactly that provider', () => {
   assert.deepEqual(providerOrder({ LLM_PROVIDER: 'Gemini' }), ['gemini']);
   assert.deepEqual(providerOrder({ LLM_PROVIDER: 'openai' }), ['openai']);
   assert.deepEqual(providerOrder({ LLM_PROVIDER: ' QWEN ' }), ['qwen']);
+  assert.deepEqual(providerOrder({ LLM_PROVIDER: 'openrouter' }), ['openrouter']);
 });
 
-test('env-config exposes the full v1.55.0 provider surface', () => {
+test('env-config exposes the full v1.57.0 provider surface', () => {
   for (const k of ['LLM_PROVIDER', 'OPENAI_API_KEY', 'OPENAI_MODEL',
-    'QWEN_API_KEY', 'QWEN_MODEL']) {
+    'QWEN_API_KEY', 'QWEN_MODEL', 'OPENROUTER_API_KEY', 'OPENROUTER_MODEL']) {
     assert.ok(KNOWN_KEYS.includes(k), `KNOWN_KEYS missing ${k}`);
   }
-  for (const k of ['ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'OPENAI_API_KEY', 'QWEN_API_KEY']) {
+  for (const k of ['ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'OPENAI_API_KEY',
+    'QWEN_API_KEY', 'OPENROUTER_API_KEY']) {
     assert.ok(SECRET_KEYS.has(k), `${k} must be secret`);
   }
   // model ids are NOT credentials → never masked
-  for (const k of ['OPENAI_MODEL', 'QWEN_MODEL', 'LLM_PROVIDER']) {
+  for (const k of ['OPENAI_MODEL', 'QWEN_MODEL', 'OPENROUTER_MODEL', 'LLM_PROVIDER']) {
     assert.ok(!SECRET_KEYS.has(k), `${k} must NOT be secret`);
   }
-  assert.deepEqual(LLM_PROVIDERS, ['auto', 'claude', 'gemini', 'openai', 'qwen']);
+  assert.deepEqual(LLM_PROVIDERS, ['auto', 'claude', 'gemini', 'openai', 'qwen', 'openrouter']);
 });
 
 test('init parseArgs: flag-driven', () => {
@@ -80,7 +82,10 @@ test('llm.mjs keeps the 6 Anthropic/Gemini gates + the v1.55.0 OpenAI/Qwen tail'
     '_provGate must expose wantOpenAI/wantQwen');
   assert.equal((src.match(/_tailProvider\(\)/g) || []).length >= 4, true,
     'tail provider must be wired at all 3 eval sites (+ its definition)');
-  assert.match(src, /import \{ runOpenAI, runQwen, hasOpenAIKey, hasQwenKey \} from '\.\.\/openai\.mjs'/);
+  assert.match(src, /import \{ runOpenAI, runQwen, runOpenRouter, hasOpenAIKey, hasQwenKey, hasOpenRouterKey \} from '\.\.\/openai\.mjs'/);
+  // v1.57.0 — OpenRouter is the last entry of the auto tail.
+  assert.match(src, /g\.wantOpenRouter && hasOpenRouterKey\(\)/,
+    '_tailProvider must consult OpenRouter last');
 });
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

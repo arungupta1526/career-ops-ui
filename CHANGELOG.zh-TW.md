@@ -8,6 +8,12 @@
 
 ---
 
+## [1.57.0] — 2026-05-19
+
+**feat(provider): OpenRouter 作為第 5 個無頭即時評估提供方 + fix(config): 儲存任意 API key 時出現「validation failed」的修復。** 貼上的 key 常帶有尾端換行或空白（作業系統剪貼簿、提供方主控台的「複製」按鈕）——1.57 之前這會觸發 **所有** 提供方的換行守衛，且以 `$` 結尾錨定的 `ANTHROPIC_API_KEY` 正則會誤拒真實的 Anthropic key。現在 `validateConfig` 在驗證 **之前** 正規化（trim）每個值，路由持久化已修剪的值（執行期認證成功，不會因 `\n` 破壞 `.env`），Anthropic 檢查改為健全的 `sk-ant-` 前綴 + 長度（共用的 `isUsableKey()` ≥ 20 字元仍是真正的「是否真實 key」門檻）。內部換行仍被拒絕（`.env` 注入守衛）。**OpenRouter** 現為一等提供方：`/#/config` 的 `OPENROUTER_API_KEY` 一個 key 即可接入 300+ 模型。它是 `auto` 順序的**最後一位**（Anthropic → Gemini → OpenAI → Qwen → **OpenRouter**），因此既有設定絕不會被靜默改道；`LLM_PROVIDER=openrouter` 可固定。透過與 OpenAI/Qwen 相同的 `_tailProvider()` 路徑接入 `/api/evaluate`、`/api/deep`、`/api/mode/:slug`，並在 `/api/status/providers` 與 Health 儀表板中呈現。OpenAI 相容用戶端（無新相依——直接 `fetch`、`AbortController` 逾時、key 不記錄），帶建議的 `HTTP-Referer`/`X-Title` 標頭。模型下拉是即時的：`OPENROUTER_MODEL` 由 **`GET /api/openrouter/models`**（OpenRouter 公開目錄的伺服器端代理——保持 CSP `connect-src 'self'`）填充，目錄不可用時回退精選清單，10 分鐘記憶體快取。8 種語言新增 i18n key（`config.openrouter*`）。**測試：** 新增 `tests/openrouter-route.test.mjs`、`tests/openrouter-model-selector.test.mjs`，擴充 `env-config`/`openai`/`provider-selector`。831 → 855。完整細節見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.56.4] — 2026-05-19
 
 **feat(ui):UX-N2 — 全域搜尋輸入框上隨平台變化的可見 ⌘K / Ctrl K 提示。** Cmd/Ctrl+K(聚焦搜尋)快捷鍵此前只存在於 `aria-label`/原始碼,視力使用者無從發現,應用顯得比實際慢。現在搜尋膠囊末端出現一個低調的 `<kbd class="kbd-shortcut">`,啟動時依平台判定(`navigator.platform`/`userAgent`)從 `data-mac`/`data-other` 填入:macOS/iOS 為 **⌘K**,其餘為 **Ctrl K**。它 `aria-hidden="true"`(既有 `aria-label` 已向輔助技術播報——徽章不應重複)且 `pointer-events:none`(裝飾)。既有 Cmd/Ctrl+K 綁定不變。無新增 i18n 鍵(字形通用);徽章是既有 `.searchbar` 的 flex 子元素(無需包裹/絕對定位——input 已 `flex:1`)。**測試:** 新增 CI 隔離原始碼靜態套件 `tests/cmdk-hint-visible.test.mjs`(5):`<kbd class="kbd-shortcut">` 位於 `.searchbar` 內;`aria-hidden="true"` 且含 `data-mac`/`data-other` 兩個變體;`app.js` 經 `navigator` 判定填入;`(e.ctrlKey||e.metaKey)&&e.key==='k'` → `search.focus()` 綁定健在(回歸保護);`app.css` 為 `.kbd-shortcut` 設樣式且非 `display:none`。826 → 831。`feat(ui)` · `test: tests/cmdk-hint-visible.test.mjs`。詳情見 [`CHANGELOG.md`](CHANGELOG.md)。

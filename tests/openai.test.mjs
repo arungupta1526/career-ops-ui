@@ -17,6 +17,7 @@ import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
 let runOpenAI, runQwen, hasOpenAIKey, hasQwenKey, runOpenAICompatible;
+let runOpenRouter, hasOpenRouterKey, fetchOpenRouterModels, OPENROUTER_FALLBACK_MODELS;
 let ROOT, ENV_FILE;
 const savedRoot = process.env.CAREER_OPS_ROOT;
 
@@ -26,7 +27,9 @@ before(async () => {
   writeFileSync(resolve(ROOT, 'cv.md'), '# CV\n');
   writeFileSync(resolve(ROOT, 'portals.yml'), 'tracked_companies: []\n');
   process.env.CAREER_OPS_ROOT = ROOT;
-  ({ runOpenAI, runQwen, hasOpenAIKey, hasQwenKey, runOpenAICompatible } =
+  ({ runOpenAI, runQwen, hasOpenAIKey, hasQwenKey, runOpenAICompatible,
+     runOpenRouter, hasOpenRouterKey, fetchOpenRouterModels,
+     OPENROUTER_FALLBACK_MODELS } =
     await import('../server/lib/openai.mjs'));
 });
 
@@ -112,6 +115,177 @@ test('runQwen: QWEN_BASE_URL (parent .env) overrides the endpoint', async () => 
     if (pa) process.env.QWEN_API_KEY = pa;
     clearParentEnv();
   }
+});
+
+// ── v1.57.0 — OpenRouter (OpenAI-compatible aggregator) ──
+
+test('runOpenRouter: posts to the OpenRouter endpoint with Bearer auth + attribution headers', async () => {
+  let sentUrl, sentModel, sentAuth, sentHdrs;
+  const fakeFetch = async (url, opts) => {
+    sentUrl = url;
+    sentModel = JSON.parse(opts.body).model;
+    sentAuth = opts.headers.Authorization;
+    sentHdrs = opts.headers;
+    return okChat('routed ok');
+  };
+  const r = await runOpenRouter('hi', {
+    apiKey: 'sk-or-v1-test', model: 'anthropic/claude-sonnet-4', fetchImpl: fakeFetch,
+  });
+  assert.equal(r.error, null);
+  assert.equal(r.markdown, 'routed ok');
+  assert.equal(sentUrl, 'https://openrouter.ai/api/v1/chat/completions');
+  assert.equal(sentModel, 'anthropic/claude-sonnet-4');
+  assert.equal(sentAuth, 'Bearer sk-or-v1-test');
+  // OpenRouter recommends HTTP-Referer + X-Title for app attribution.
+  assert.ok(sentHdrs['HTTP-Referer'], 'sends HTTP-Referer');
+  assert.ok(sentHdrs['X-Title'], 'sends X-Title');
+});
+
+test('runOpenRouter: defaults model from OPENROUTER_MODEL (parent .env)', async () => {
+  writeFileSync(ENV_FILE,
+    'OPENROUTER_API_KEY=sk-or-v1-dotenv-aaaaaaaaaaaaaaaaaaaa\nOPENROUTER_MODEL=openai/gpt-5\n');
+  const prev = process.env.OPENROUTER_API_KEY; delete process.env.OPENROUTER_API_KEY;
+  let sentModel, sentAuth;
+  const fakeFetch = async (_u, opts) => {
+    sentModel = JSON.parse(opts.body).model;
+    sentAuth = opts.headers.Authorization;
+    return okChat('ok');
+  };
+  try {
+    const r = await runOpenRouter('hi', { fetchImpl: fakeFetch });
+    assert.equal(r.error, null);
+    assert.equal(sentModel, 'openai/gpt-5', 'model from parent .env');
+    assert.equal(sentAuth, 'Bearer sk-or-v1-dotenv-aaaaaaaaaaaaaaaaaaaa', 'key from parent .env');
+  } finally {
+    if (prev) process.env.OPENROUTER_API_KEY = prev;
+    clearParentEnv();
+  }
+});
+
+test('runOpenRouter: no key → clean error, no markdown', async () => {
+  const prev = process.env.OPENROUTER_API_KEY; delete process.env.OPENROUTER_API_KEY;
+  clearParentEnv();
+  try {
+    const r = await runOpenRouter('hi', { fetchImpl: async () => okChat('nope') });
+    assert.equal(r.markdown, '');
+    assert.match(r.error, /OpenRouter key not set/);
+  } finally {
+    if (prev) process.env.OPENROUTER_API_KEY = prev;
+  }
+});
+
+test('hasOpenRouterKey: process.env wins, else parent .env (v1.54.9 contract)', () => {
+  const prev = process.env.OPENROUTER_API_KEY;
+  delete process.env.OPENROUTER_API_KEY;
+  clearParentEnv();
+  assert.equal(hasOpenRouterKey(), false);
+  writeFileSync(ENV_FILE, 'OPENROUTER_API_KEY=sk-or-v1-dotenv-aaaaaaaaaaaaaaaaaaaa\n');
+  assert.equal(hasOpenRouterKey(), true, 'OpenRouter key from parent .env');
+  // placeholder is rejected by the shared isUsableKey() floor (v1.56.3)
+  writeFileSync(ENV_FILE, 'OPENROUTER_API_KEY=your_key_here\n');
+  assert.equal(hasOpenRouterKey(), false, 'placeholder rejected');
+  clearParentEnv();
+  if (prev) process.env.OPENROUTER_API_KEY = prev;
+});
+
+// ── v1.57.0 — OpenRouter dynamic model catalogue ──
+
+test('fetchOpenRouterModels: parses the /models payload into sorted id list', async () => {
+  let hitUrl;
+  const fakeFetch = async (url) => {
+    hitUrl = url;
+    return jsonResponse(200, { data: [
+      { id: 'openai/gpt-5', name: 'GPT-5', context_length: 400000 },
+      { id: 'anthropic/claude-sonnet-4', name: 'Claude Sonnet 4', context_length: 1000000 },
+      { id: 'meta-llama/llama-3.3-70b', name: 'Llama 3.3 70B' },
+      { id: '', name: 'junk-no-id' },
+    ] });
+  };
+  const out = await fetchOpenRouterModels({ fetchImpl: fakeFetch });
+  assert.equal(hitUrl, 'https://openrouter.ai/api/v1/models');
+  assert.ok(Array.isArray(out.models));
+  // empty id dropped, sorted alphabetically
+  assert.deepEqual(out.models.map((m) => m.id),
+    ['anthropic/claude-sonnet-4', 'meta-llama/llama-3.3-70b', 'openai/gpt-5']);
+  assert.equal(out.models[0].name, 'Claude Sonnet 4');
+  assert.equal(out.fallback, false);
+});
+
+test('fetchOpenRouterModels: network failure → curated fallback list (never throws)', async () => {
+  const boom = async () => { throw new Error('ECONNREFUSED'); };
+  const out = await fetchOpenRouterModels({ fetchImpl: boom });
+  assert.equal(out.fallback, true);
+  assert.ok(out.models.length > 0, 'serves a non-empty curated fallback');
+  assert.ok(out.models.every((m) => typeof m.id === 'string' && m.id.includes('/')),
+    'fallback ids are namespaced vendor/model');
+});
+
+test('fetchOpenRouterModels: HTTP 500 → fallback, not a throw', async () => {
+  const out = await fetchOpenRouterModels({
+    fetchImpl: async () => jsonResponse(500, { error: 'server' }),
+  });
+  assert.equal(out.fallback, true);
+  assert.ok(out.models.length > 0);
+});
+
+test('OPENROUTER_FALLBACK_MODELS is a non-empty namespaced list', () => {
+  assert.ok(Array.isArray(OPENROUTER_FALLBACK_MODELS));
+  assert.ok(OPENROUTER_FALLBACK_MODELS.length >= 4);
+  assert.ok(OPENROUTER_FALLBACK_MODELS.every((id) => id.includes('/')));
+});
+
+test('fetchOpenRouterModels: name falls back to id; context_length only kept when finite', async () => {
+  const fakeFetch = async () => jsonResponse(200, { data: [
+    { id: 'x/no-name' },                                  // name missing → id
+    { id: 'y/blank-name', name: '   ' },                  // blank name → id
+    { id: 'z/has-name', name: 'Zed', context_length: 8192 },
+    { id: 'w/bad-ctx', name: 'Dub', context_length: 'lots' }, // non-finite → null
+  ] });
+  const { models } = await fetchOpenRouterModels({ fetchImpl: fakeFetch });
+  const by = Object.fromEntries(models.map((m) => [m.id, m]));
+  assert.equal(by['x/no-name'].name, 'x/no-name');
+  assert.equal(by['y/blank-name'].name, 'y/blank-name');
+  assert.equal(by['z/has-name'].name, 'Zed');
+  assert.equal(by['z/has-name'].context_length, 8192);
+  assert.equal(by['w/bad-ctx'].context_length, null);
+});
+
+test('fetchOpenRouterModels: payload present but every id empty → fallback', async () => {
+  const out = await fetchOpenRouterModels({
+    fetchImpl: async () => jsonResponse(200, { data: [{ id: '' }, { id: '   ' }, { name: 'no id' }] }),
+  });
+  assert.equal(out.fallback, true);
+  assert.ok(out.models.length > 0);
+});
+
+test('fetchOpenRouterModels: non-array / missing data field → fallback', async () => {
+  const out = await fetchOpenRouterModels({
+    fetchImpl: async () => jsonResponse(200, { notData: 1 }),
+  });
+  assert.equal(out.fallback, true);
+});
+
+test('fetchOpenRouterModels: aborts on timeout → fallback (never hangs the dropdown)', async () => {
+  const hang = (_u, o) => new Promise((_, rej) =>
+    o.signal.addEventListener('abort', () =>
+      rej(Object.assign(new Error('aborted'), { name: 'AbortError' }))));
+  const out = await fetchOpenRouterModels({ fetchImpl: hang, timeoutMs: 30 });
+  assert.equal(out.fallback, true);
+  assert.ok(out.models.length > 0);
+});
+
+test('runOpenRouter: caller extraHeaders are merged on top of the attribution headers', async () => {
+  let hdrs;
+  const fakeFetch = async (_u, o) => { hdrs = o.headers; return okChat('ok'); };
+  const r = await runOpenRouter('hi', {
+    apiKey: 'sk-or-v1-x', fetchImpl: fakeFetch,
+    extraHeaders: { 'X-Title': 'custom-title', 'X-Extra': '1' },
+  });
+  assert.equal(r.error, null);
+  assert.equal(hdrs['HTTP-Referer'], 'https://career-ops.org', 'default referer kept');
+  assert.equal(hdrs['X-Title'], 'custom-title', 'caller overrides X-Title');
+  assert.equal(hdrs['X-Extra'], '1', 'caller can add headers');
+  assert.equal(hdrs.Authorization, 'Bearer sk-or-v1-x', 'auth still wins regardless of order');
 });
 
 test('4xx / 5xx / malformed → error, no markdown', async () => {

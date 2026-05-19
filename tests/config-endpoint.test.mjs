@@ -145,3 +145,81 @@ test('POST /api/config: known keys are filtered before write (no attacker inject
   const text = readFileSync(resolve(projectRoot, '.env'), 'utf8');
   assert.ok(!/UNKNOWN/i.test(text));
 });
+
+// ───────── v1.57.0 — the "validation failed" save flow ─────────
+// End-to-end proof that the reported bug is fixed AND that saving
+// actually persists a usable key (the form's whole job).
+
+test('POST /api/config: Anthropic key pasted with spaces + trailing newline saves (200) and is stored TRIMMED', async () => {
+  const realKey = 'sk-ant-api03-' + 'A1b2C3d4'.repeat(12); // 96-char base64url-ish tail
+  const r = await postJson('/api/config', { ANTHROPIC_API_KEY: `  ${realKey}\n` });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.ok(r.body.written.includes('ANTHROPIC_API_KEY'));
+  const env = parseEnvFile();
+  assert.equal(env.ANTHROPIC_API_KEY, realKey, 'stored value is trimmed — no spaces, no newline, no quoting');
+  // round-trips masked, never echoed in clear
+  const g = await get('/api/config');
+  assert.ok(g.body.values.ANTHROPIC_API_KEY && g.body.values.ANTHROPIC_API_KEY.includes('…'));
+  assert.ok(!g.body.values.ANTHROPIC_API_KEY.includes(realKey));
+});
+
+test('POST /api/config: full OpenRouter triple (provider + key + model) persists; key masked, model clear', async () => {
+  const orKey = 'sk-or-v1-' + 'Zz9'.repeat(20);
+  const r = await postJson('/api/config', {
+    LLM_PROVIDER: 'openrouter',
+    OPENROUTER_API_KEY: `${orKey}\r\n`,
+    OPENROUTER_MODEL: ' anthropic/claude-sonnet-4 ',
+  });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  for (const k of ['LLM_PROVIDER', 'OPENROUTER_API_KEY', 'OPENROUTER_MODEL']) {
+    assert.ok(r.body.written.includes(k), `expected ${k} written`);
+  }
+  const env = parseEnvFile();
+  assert.equal(env.LLM_PROVIDER, 'openrouter');
+  assert.equal(env.OPENROUTER_API_KEY, orKey, 'CRLF-suffixed key stored trimmed');
+  assert.equal(env.OPENROUTER_MODEL, 'anthropic/claude-sonnet-4', 'model trimmed');
+  const g = await get('/api/config');
+  assert.ok(g.body.values.OPENROUTER_API_KEY.includes('…'), 'OPENROUTER_API_KEY masked on read');
+  assert.equal(g.body.values.OPENROUTER_MODEL, 'anthropic/claude-sonnet-4', 'model id is not a secret');
+  assert.equal(g.body.values.LLM_PROVIDER, 'openrouter');
+});
+
+test('POST /api/config: invalid Anthropic key → 400 with a details array naming the format', async () => {
+  const r = await postJson('/api/config', { ANTHROPIC_API_KEY: 'sk-proj-this-is-an-openai-key-not-anthropic' });
+  assert.equal(r.status, 400);
+  assert.match(r.body.error, /validation failed/);
+  assert.ok(Array.isArray(r.body.details));
+  assert.match(r.body.details.join(' '), /sk-ant/);
+});
+
+test('POST /api/config: whitespace-only value is treated as unset (deletes the key)', async () => {
+  const orKey = 'sk-or-v1-' + 'Q'.repeat(40);
+  await postJson('/api/config', { OPENROUTER_API_KEY: orKey });
+  assert.equal(parseEnvFile().OPENROUTER_API_KEY, orKey);
+  const r = await postJson('/api/config', { OPENROUTER_API_KEY: '   \n  ' });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(parseEnvFile().OPENROUTER_API_KEY, undefined, 'whitespace-only unsets the key');
+});
+
+test('POST /api/config: saving a non-secret does NOT wipe an untouched secret (SPA dirty-only contract)', async () => {
+  const orKey = 'sk-or-v1-' + 'k'.repeat(44);
+  await postJson('/api/config', { OPENROUTER_API_KEY: orKey });
+  // SPA only sends secrets the user touched; here we save just the model.
+  await postJson('/api/config', { OPENROUTER_MODEL: 'openai/gpt-5' });
+  const env = parseEnvFile();
+  assert.equal(env.OPENROUTER_API_KEY, orKey, 'untouched secret survives a partial save');
+  assert.equal(env.OPENROUTER_MODEL, 'openai/gpt-5');
+});
+
+function parseEnvFile() {
+  const out = {};
+  const text = readFileSync(resolve(projectRoot, '.env'), 'utf8');
+  for (const line of text.split(/\r?\n/)) {
+    const m = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+    if (!m) continue;
+    let v = m[2];
+    if ((v.startsWith('"') && v.endsWith('"'))) v = v.slice(1, -1).replace(/\\"/g, '"');
+    out[m[1]] = v;
+  }
+  return out;
+}

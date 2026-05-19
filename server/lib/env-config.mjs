@@ -26,6 +26,8 @@ export const KNOWN_KEYS = [
   'OPENAI_MODEL',
   'QWEN_API_KEY',          // headless live-eval via DashScope OpenAI-compatible (v1.55.0)
   'QWEN_MODEL',
+  'OPENROUTER_API_KEY',    // headless live-eval via OpenRouter (v1.57.0); one key → 300+ models
+  'OPENROUTER_MODEL',
   // ── Server runtime ──
   'PORT',
   'HOST',
@@ -37,7 +39,7 @@ export const KNOWN_KEYS = [
  * one provider; with no key it falls through to the manual-prompt
  * path exactly like the pre-v1.39 no-key behaviour.
  */
-export const LLM_PROVIDERS = ['auto', 'claude', 'gemini', 'openai', 'qwen'];
+export const LLM_PROVIDERS = ['auto', 'claude', 'gemini', 'openai', 'qwen', 'openrouter'];
 
 /**
  * Effective provider preference order from LLM_PROVIDER:
@@ -56,7 +58,11 @@ export function providerOrder(env = process.env) {
   if (v === 'gemini') return ['gemini'];
   if (v === 'openai') return ['openai'];
   if (v === 'qwen') return ['qwen'];
-  return ['anthropic', 'gemini', 'openai', 'qwen'];
+  if (v === 'openrouter') return ['openrouter'];
+  // OpenRouter sits at the TAIL of the auto order: a user who already
+  // had Anthropic/Gemini/OpenAI/Qwen working keeps that exact routing;
+  // OpenRouter only kicks in when it's the sole configured key.
+  return ['anthropic', 'gemini', 'openai', 'qwen', 'openrouter'];
 }
 
 /**
@@ -92,12 +98,14 @@ export const KEY_GROUPS = {
   OPENAI_MODEL: 'core',
   QWEN_API_KEY: 'core',
   QWEN_MODEL: 'core',
+  OPENROUTER_API_KEY: 'core',
+  OPENROUTER_MODEL: 'core',
   PORT: 'runtime',
   HOST: 'runtime',
 };
 
 /** Keys whose values are secret and must never be returned in plain text. */
-export const SECRET_KEYS = new Set(['ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'OPENAI_API_KEY', 'QWEN_API_KEY']);
+export const SECRET_KEYS = new Set(['ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'OPENAI_API_KEY', 'QWEN_API_KEY', 'OPENROUTER_API_KEY']);
 
 /**
  * Parse an .env file body into a plain object. Preserves the raw text
@@ -194,27 +202,52 @@ export function maskSecret(value) {
 }
 
 /**
+ * v1.57.0 BF — normalize a single config value the way it will be
+ * persisted: trim surrounding whitespace. Pasted API keys routinely
+ * arrive with a trailing newline or stray spaces (OS clipboard, the
+ * "copy" buttons on provider consoles); persisting that verbatim broke
+ * runtime auth AND tripped validateConfig's newline guard, surfacing as
+ * the reported "validation failed" on /#/config for EVERY provider.
+ * Non-strings pass through untouched (validateConfig flags them).
+ */
+export function normalizeConfigValue(v) {
+  return typeof v === 'string' ? v.trim() : v;
+}
+
+/**
  * Validate a config update. Returns { ok, errors: string[] }.
- * Empty values are allowed (they unset the key).
+ * Empty values are allowed (they unset the key). Values are validated
+ * AFTER normalization (trim) so the check matches what gets written.
  */
 export function validateConfig(body) {
   const errors = [];
   if (typeof body !== 'object' || body === null) {
     return { ok: false, errors: ['body must be an object'] };
   }
-  for (const [k, v] of Object.entries(body)) {
+  for (const [k, raw] of Object.entries(body)) {
     if (!KNOWN_KEYS.includes(k)) {
       errors.push(`${k}: not a known config key`);
       continue;
     }
-    if (v === null || v === '' || v === undefined) continue;
-    if (typeof v !== 'string') {
+    if (raw === null || raw === '' || raw === undefined) continue;
+    if (typeof raw !== 'string') {
       errors.push(`${k}: must be string`);
       continue;
     }
+    const v = normalizeConfigValue(raw);
+    if (v === '') continue; // whitespace-only → treated as unset
     if (v.length > 4000) errors.push(`${k}: longer than 4000 chars`);
+    // Internal newlines are still rejected — that's a real .env
+    // injection guard (a value spanning lines could smuggle a second
+    // KEY=value pair). Leading/trailing newlines were already trimmed.
     if (/[\r\n]/.test(v)) errors.push(`${k}: must not contain newlines`);
-    if (k === 'ANTHROPIC_API_KEY' && !/^sk-ant-[A-Za-z0-9_-]{20,}$/.test(v) && !/^your_/i.test(v)) {
+    // Anthropic sanity check — prefix + plausible length only. Real
+    // keys are `sk-ant-…` with a base64url tail whose exact charset
+    // and length Anthropic may change; a strict $-anchored class
+    // regex false-rejected genuine keys (the v1.57.0 bug). isUsableKey
+    // is the shared "is it real?" floor; here we just catch an
+    // obviously-wrong paste (e.g. an OpenAI key in the Anthropic box).
+    if (k === 'ANTHROPIC_API_KEY' && !/^sk-ant-\S{20,}$/.test(v) && !/^your_/i.test(v)) {
       errors.push(`${k}: expected sk-ant-… format`);
     }
     if (k === 'PORT' && !/^\d{1,5}$/.test(v)) {
