@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.10] — 2026-05-20
+
+**fix(ux): M-2 — 在開啟任何結果模態框前先清空進度 toast。** 在 `#/cv` 點擊 `sync-check` 時,「Running cv-sync-check.mjs…」toast 仍留在右下角,而結果模態框已經打開 — 二者搶奪注意,在窄螢幕上視覺重疊。Health 頁的 Doctor / verify-pipeline 按鈕原本就在 `UI.modal()` 前明確呼叫 `UI.dismissToast()`;cv.js 的 sync-check 是唯一遺漏的入口。修正:[public/js/api.js](public/js/api.js#L272) — `UI.modal()` 現在將 `dismissToast()` 作為首個可執行陳述呼叫(邊界處的縱深防禦)。同時把 cv.js 中硬編碼的英文字串改為 `t('cv.syncCheckRunning')` / `t('cv.syncCheck')`,滿足 BUG-008 不變量(模態框標題 == 本地化按鈕標籤)。在 8 種語言中新增兩個 i18n 鍵。905 → **906** 單元。(M-2)
+
+---
+
 ## [1.58.9] — 2026-05-20
 
 **fix(a11y): M-1 — 在表單欄位上恢復可見的 `:focus-visible` 焦點環(WCAG 2.4.7 Level AA)。** v1.58.3 MASTER 回歸確認 `getComputedStyle(focusedInput)` 回傳 `outline: rgb(255,255,255) none 1.5px` — `none` 關鍵字將每個欄位的焦點環寬度塌陷為 0 px。根因:`.input, .textarea, .select { outline: none }` 與 `.searchbar input { outline: none }` 的基礎規則優先級高於全域 `*:focus-visible`,悄悄消除了每頁 88 個可聚焦元素的鍵盤焦點環。修正於 [public/css/app.css](public/css/app.css) — 明確新增 `.input:focus-visible/.textarea:focus-visible/.select:focus-visible` 與 `.searchbar input:focus-visible` 規則,使用 `outline: 2px solid var(--rausch)` + 半透明 box-shadow;滑鼠焦點(`:focus`)保持乾淨。904 → **905** 單元(靜態契約守衛);Playwright **60 → 61**(Tab 遍歷)。(M-1)

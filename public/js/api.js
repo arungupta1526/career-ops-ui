@@ -270,6 +270,16 @@ window.UI = (function () {
     }
   }
   function modal(title, html, onClose) {
+    // M-2 (v1.58.10) — defence-in-depth: any progress toast that was up
+    // while the work ran (`Running …`) collides visually with a freshly
+    // opened result modal on narrow screens and steals the user's
+    // attention away from the actual result. The Health page's Doctor /
+    // verify-pipeline buttons explicitly call dismissToast() before
+    // modal(); cv.js's sync-check (and any future call site) used to
+    // skip it. Doing it here closes the gap for every entry-point — the
+    // toast is by design transient ("Running cv-sync-check.mjs…"), so
+    // killing it the moment the result modal opens is always correct.
+    dismissToast();
     // If a prior modal with a close hook is still open (e.g. a second
     // modal opens over an unresolved confirm), settle the old one as a
     // dismissal so its Promise never leaks. Then arm the new hook.

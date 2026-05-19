@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.10] — 2026-05-20
+
+**fix(ux): M-2 — 결과 모달 열기 전에 진행 토스트 비우기.** `#/cv` 에서 `sync-check` 클릭 시 "Running cv-sync-check.mjs…" 토스트가 우하단에 남은 상태로 결과 모달이 열려 좁은 화면에서는 시각적으로 겹쳤습니다. Health 페이지 Doctor / verify-pipeline 은 이미 `UI.modal()` 전에 `UI.dismissToast()` 를 명시 호출했으나 cv.js sync-check 만 누락. [public/js/api.js](public/js/api.js#L272) 에서 `UI.modal()` 의 첫 실행 문장으로 `dismissToast()` 를 호출하도록 변경(경계에서의 심층 방어). cv.js 의 하드코딩 영문 문자열을 `t('cv.syncCheckRunning')` / `t('cv.syncCheck')` 로 교체해 BUG-008 불변 조건(모달 타이틀 == 로컬라이즈된 버튼 라벨)도 충족. 새 i18n 키 2 개를 8 개 언어에 추가. 905 → **906** 유닛. (M-2)
+
+---
+
 ## [1.58.9] — 2026-05-20
 
 **fix(a11y): M-1 — 폼 필드에 가시적 `:focus-visible` 링 복원 (WCAG 2.4.7 Level AA).** v1.58.3 MASTER 회귀에서 `getComputedStyle(focusedInput)` 이 `outline: rgb(255,255,255) none 1.5px` 를 반환 — `none` 키워드가 모든 폼 필드의 링 너비를 0 px 로 붕괴시킴을 확인. 근본 원인: `.input, .textarea, .select { outline: none }` 와 `.searchbar input { outline: none }` 의 베이스 규칙이 전역 `*:focus-visible` 보다 명시도가 높아 페이지당 88 개 포커스 가능 요소에서 키보드 포커스 링을 조용히 제거. [public/css/app.css](public/css/app.css) 에 명시적 `.input:focus-visible/.textarea:focus-visible/.select:focus-visible` 와 `.searchbar input:focus-visible` 규칙 추가, `outline: 2px solid var(--rausch)` + 반투명 box-shadow 부여. 마우스 포커스(`:focus`)는 그대로 유지. 904 → **905** 유닛(정적 계약 가드); Playwright **60 → 61**(Tab 순회). (M-1)

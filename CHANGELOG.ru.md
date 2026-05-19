@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.10] — 2026-05-20
+
+**fix(ux): M-2 — гасить прогресс-тост перед открытием любого result-модала.** Клик по `sync-check` на `#/cv` оставлял тост «Running cv-sync-check.mjs…» в правом нижнем углу, пока открывался модал с результатом — оба тянули внимание, а на узких экранах визуально перекрывались. Кнопки Doctor / verify-pipeline на странице Health уже явно вызывали `UI.dismissToast()` перед `UI.modal()`; sync-check в cv.js был единственной точкой входа, где этого не делали. Правка в [public/js/api.js](public/js/api.js#L272) — `UI.modal()` теперь вызывает `dismissToast()` первым исполняемым оператором (эшелонированная защита на границе). Хардкоженые английские строки в cv.js локализованы через `t('cv.syncCheckRunning')` / `t('cv.syncCheck')` (инвариант BUG-008: заголовок модала == локализованная подпись кнопки). Два новых ключа i18n добавлены во все 8 локалей. 905 → **906** модульных. (M-2)
+
+---
+
 ## [1.58.9] — 2026-05-20
 
 **fix(a11y): M-1 — восстановлено видимое кольцо `:focus-visible` на полях форм (WCAG 2.4.7 Уровень AA).** MASTER-регрессия v1.58.3 показала, что `getComputedStyle(focusedInput)` возвращал `outline: rgb(255,255,255) none 1.5px` — ключевое слово `none` стягивало ширину кольца до 0 px на каждом поле. Корень: базовые правила `.input, .textarea, .select { outline: none }` и `.searchbar input { outline: none }` имели более высокую специфичность, чем глобальное `*:focus-visible`, и тихо убивали кольцо клавиатурного фокуса на 88 элементах страницы. Правка в [public/css/app.css](public/css/app.css) — добавлены явные правила `.input:focus-visible/.textarea:focus-visible/.select:focus-visible` и `.searchbar input:focus-visible` с `outline: 2px solid var(--rausch)` + полупрозрачный box-shadow; мышиный фокус (`:focus`) остаётся чистым. 904 → **905** модульных (статический контрактный гард); Playwright **60 → 61** (Tab-обход). (M-1)

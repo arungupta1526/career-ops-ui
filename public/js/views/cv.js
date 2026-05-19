@@ -188,10 +188,17 @@ Router.register('cv', async () => {
             'Upload .md, .txt, .html, .pdf, .docx, .odt, .rtf or .doc — converted server-side, then review and Save.'),
         }, '📁 ' + t('cv.upload', 'Upload CV')),
         c('button', { className: 'btn btn-ghost', onClick: async (e) => {
-          UI.toast('sync-check…');
+          // M-2 (v1.58.10): UI.modal() now auto-dismisses the progress
+          // toast (defence-in-depth in api.js). Localize the toast/modal
+          // strings via t() so the modal title matches the visible
+          // button label (BUG-008 invariant: modal title == localized
+          // button label) instead of the hardcoded English 'sync-check'.
+          UI.toast(t('cv.syncCheckRunning', 'Running cv-sync-check.mjs…'));
           const r = await UI.withSpinner(e.currentTarget, () => API.post('/api/run/sync-check'));
-          UI.modal('sync-check', UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n' + r.stderr : '')));
-        }}, 'sync-check'),
+          UI.modal(t('cv.syncCheck', 'sync-check'),
+            UI.el('pre', { className: 'console' },
+              (r.stdout || '') + (r.stderr ? '\n' + r.stderr : '')));
+        }}, t('cv.syncCheck', 'sync-check')),
         c('button', {
           className: 'btn btn-ghost',
           onClick: (e) => streamPdf(e.currentTarget),

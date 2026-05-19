@@ -30,6 +30,44 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('M-2 (v1.58.10): UI.modal() drains the progress toast at entry (defence-in-depth)', () => {
+  // Health view already calls UI.dismissToast() at every modal-opening
+  // site. cv.js's sync-check used to skip it → 'Running …' toast
+  // overlapped the result modal. Re-route the drain into UI.modal so
+  // every future call site is covered for free.
+  const api = read('public', 'js', 'api.js');
+  // The new auto-drain must be the FIRST executable statement of modal().
+  assert.match(
+    api,
+    /function modal\(title, html, onClose\)\s*\{[\s\S]{0,1500}?dismissToast\(\);[\s\S]{0,400}?if \(_onClose\)/,
+    'UI.modal must call dismissToast() before processing onClose'
+  );
+
+  // cv.js sync-check call site is now localized via t('cv.syncCheck',
+  // 'sync-check') for both button label and modal title, satisfying the
+  // BUG-008 'modal title == localized button label' invariant.
+  const cv = read('public', 'js', 'views', 'cv.js');
+  assert.match(cv, /UI\.toast\(t\('cv\.syncCheckRunning',/,
+    "cv.js sync-check must use t('cv.syncCheckRunning', ...) for the progress toast");
+  assert.match(cv, /UI\.modal\(t\('cv\.syncCheck',\s*'sync-check'\),/,
+    "cv.js sync-check must use t('cv.syncCheck', 'sync-check') as the modal title");
+  assert.ok(!/UI\.toast\('sync-check…'\)/.test(cv),
+    "cv.js must not use the hardcoded English 'sync-check…' toast");
+
+  // i18n parity — both keys present in all 8 locales.
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  for (const key of ['cv.syncCheck', 'cv.syncCheckRunning']) {
+    const re = new RegExp(`'${key.replace('.', '\\.')}':\\s*\\{([^}]*)\\}`);
+    const row = dict.match(re);
+    assert.ok(row, `i18n-dict.js missing '${key}'`);
+    for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+      const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+      assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+        `'${key}' must have a non-empty ${lang} value`);
+    }
+  }
+});
+
 test('M-1 (v1.58.9): form fields get a visible :focus-visible ring (WCAG 2.4.7)', () => {
   // The base .input/.textarea/.select rules in app.css zero `outline`
   // (to avoid mouse-focus ring noise), which silently overrode the

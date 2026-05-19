@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.10] — 2026-05-20
+
+**fix(ux): M-2 — 結果モーダル表示前に進捗トーストを排水。** `#/cv` の `sync-check` クリック時、「Running cv-sync-check.mjs…」トーストが右下に残ったまま結果モーダルが開き、注目を奪い合い狭い画面では視覚的に重なっていた。Health ページの Doctor / verify-pipeline ボタンは `UI.modal()` 前に `UI.dismissToast()` を明示呼び出ししていたが、cv.js の sync-check のみ抜けていた。[public/js/api.js](public/js/api.js#L272) で `UI.modal()` の最初の実行文として `dismissToast()` を呼ぶよう変更(境界での多層防御)。あわせて cv.js のハードコード英語文字列を `t('cv.syncCheckRunning')` / `t('cv.syncCheck')` に置換し、BUG-008 不変条件(モーダルタイトル == ローカライズボタンラベル)も満たす。新規 i18n キー 2 つを 8 言語で追加。905 → **906** ユニット。(M-2)
+
+---
+
 ## [1.58.9] — 2026-05-20
 
 **fix(a11y): M-1 — フォームフィールドに可視 `:focus-visible` リングを復元(WCAG 2.4.7 Level AA)。** v1.58.3 MASTER リグレッションで `getComputedStyle(focusedInput)` が `outline: rgb(255,255,255) none 1.5px` を返し、`none` キーワードがリング幅を 0 px に潰していたことを確認。根本原因:`.input, .textarea, .select { outline: none }` と `.searchbar input { outline: none }` のベース指定がグローバル `*:focus-visible` より優先度が高く、ページあたり 88 個のフォーカス可能要素のキーボードフォーカスリングを静かに消していた。修正は [public/css/app.css](public/css/app.css) — 明示的に `.input:focus-visible/.textarea:focus-visible/.select:focus-visible` と `.searchbar input:focus-visible` を追加し `outline: 2px solid var(--rausch)` + 半透明 box-shadow を付与。マウスフォーカス(`:focus`)は従来通りクリーン。904 → **905** ユニット(静的契約ガード);Playwright **60 → 61**(Tab トラバーサル)。(M-1)

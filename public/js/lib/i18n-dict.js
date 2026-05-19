@@ -664,6 +664,12 @@ window.__I18N_DICT = {
   'cv.preview':     { en: 'Preview', es: 'Vista previa', 'pt-BR': 'Pré-visualização', ko: '미리보기', ja: 'プレビュー', ru: 'Превью', 'zh-CN': '预览', 'zh-TW': '預覽' },
   'cv.upload':      { en: 'Upload CV', es: 'Cargar CV', 'pt-BR': 'Carregar CV', ko: '이력서 업로드', ja: '履歴書をアップロード', ru: 'Загрузить CV', 'zh-CN': '上传简历', 'zh-TW': '上傳履歷' },
   'cv.saved':       { en: 'Saved', es: 'Guardado', 'pt-BR': 'Salvo', ko: '저장됨', ja: '保存済み', ru: 'Сохранено', 'zh-CN': '已保存', 'zh-TW': '已儲存' },
+  // M-2 (v1.58.10) — sync-check button label + progress toast. Modal
+  // title is the same `cv.syncCheck` key as the button (BUG-008
+  // invariant: modal title == localized button label). The script name
+  // is English by convention; toast prefix + modal chrome localize.
+  'cv.syncCheck':         { en: 'sync-check', es: 'sync-check', 'pt-BR': 'sync-check', ko: 'sync-check', ja: 'sync-check', ru: 'sync-check', 'zh-CN': 'sync-check', 'zh-TW': 'sync-check' },
+  'cv.syncCheckRunning':  { en: 'Running cv-sync-check.mjs…', es: 'Ejecutando cv-sync-check.mjs…', 'pt-BR': 'Executando cv-sync-check.mjs…', ko: 'cv-sync-check.mjs 실행 중…', ja: 'cv-sync-check.mjs を実行中…', ru: 'Выполняется cv-sync-check.mjs…', 'zh-CN': '正在运行 cv-sync-check.mjs…', 'zh-TW': '正在執行 cv-sync-check.mjs…' },
   'cv.generatePdf': { en: 'Generate PDF', es: 'Generar PDF', 'pt-BR': 'Gerar PDF', ko: 'PDF 생성', ja: 'PDF を生成', ru: 'Сгенерировать PDF', 'zh-CN': '生成 PDF', 'zh-TW': '產生 PDF' },
   'cv.pdfHint':     { en: 'Run generate-pdf.mjs and save into output/', es: 'Ejecuta generate-pdf.mjs y guarda en output/', 'pt-BR': 'Executar generate-pdf.mjs e salvar em output/', ko: 'generate-pdf.mjs 실행 후 output/ 에 저장', ja: 'generate-pdf.mjs を実行し output/ に保存', ru: 'Запустить generate-pdf.mjs и сохранить в output/', 'zh-CN': '运行 generate-pdf.mjs 并保存到 output/', 'zh-TW': '執行 generate-pdf.mjs 並儲存到 output/' },
   'cv.pdfTitle':    { en: 'Generated PDFs', es: 'PDFs generados', 'pt-BR': 'PDFs gerados', ko: '생성된 PDF', ja: '生成された PDF', ru: 'Сгенерированные PDF', 'zh-CN': '已生成的 PDF', 'zh-TW': '已產生的 PDF' },

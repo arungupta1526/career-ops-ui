@@ -39,7 +39,7 @@ That means every section below = its own version bump and its own PR. No "while 
 | **v1.58.7** ✅ | NEW-2 — isValidJobUrl regex ↔ error-message consistency *(shipped 2026-05-20: Option A — added TEMPLATE_PATTERNS for paired `${…}`/`{{…}}`; ASP/EJS `<%…%>` regression-locked; 2 new url-validation tests; single-brace ATS paths preserved)* | Minor | Security UX |
 | **v1.58.8** ✅ | (user-requested feat) — surface OPENAI / QWEN / OPENROUTER API-key rows on `#/health` analogous to `GEMINI_API_KEY` *(shipped 2026-05-20: same `isUsableKey` gate as `/api/status/providers`; SPA Health view iterates `body.checks` → no per-locale strings)* | feat | — |
 | **v1.58.9** ✅ | M-1 — global `:focus-visible` ring *(shipped 2026-05-20: form-base `outline: none` was higher specificity than `*:focus-visible`; explicit `.input/.textarea/.select/.searchbar input:focus-visible` rules with 2 px `var(--rausch)` + translucent box-shadow; Playwright Tab-traversal asserts ≥1.5 px outline)* | Major (a11y, WCAG 2.4.7) | a11y |
-| **v1.58.10** | M-2 — drain progress-toast before any result modal | Minor | UX |
+| **v1.58.10** ✅ | M-2 — drain progress-toast before any result modal *(shipped 2026-05-20: `UI.modal()` now auto-dismisses on entry — defence-in-depth; cv.js sync-check call site localized via `t('cv.syncCheck')` / `t('cv.syncCheckRunning')`; 8-locale i18n parity + static guard)* | Minor | UX |
 | **v1.58.11** | M-4 — Saved-research card title↔date gap | Minor | UX visual |
 | **v1.58.12** | M-7 — Cost line follows `LLM_PROVIDER` | Major | UX truthfulness |
 | **v1.58.13** | M-8 — Apply checklist becomes interactive | Major | UX promise vs delivery |

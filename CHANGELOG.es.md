@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.58.10] — 2026-05-20
+
+**fix(ux): M-2 — descartar el toast de progreso antes de abrir cualquier modal de resultado.** Hacer clic en `sync-check` en `#/cv` dejaba el toast "Running cv-sync-check.mjs…" abajo a la derecha mientras se abría el modal de resultado — ambos compitiendo por la atención y, en pantallas estrechas, solapándose visualmente. Los botones Doctor / verify-pipeline de la página Health ya llamaban a `UI.dismissToast()` explícitamente antes de `UI.modal()`; el sync-check de cv.js era el único punto de entrada que lo omitía. Corrección en [public/js/api.js](public/js/api.js#L272) — `UI.modal()` ahora invoca `dismissToast()` como primera sentencia, cubriendo cualquier futuro punto de entrada (defensa en profundidad). Además, las cadenas de `cv.js` se localizaron mediante `t('cv.syncCheckRunning')` y `t('cv.syncCheck')` (invariante BUG-008: título del modal == etiqueta localizada del botón). Dos nuevas claves i18n añadidas en los 8 idiomas. 905 → **906** unitarios. (M-2)
+
+---
+
 ## [1.58.9] — 2026-05-20
 
 **fix(a11y): M-1 — restablecer un anillo visible de `:focus-visible` en los campos de formulario (WCAG 2.4.7 Nivel AA).** La regresión MASTER de v1.58.3 confirmó que `getComputedStyle(focusedInput)` devolvía `outline: rgb(255,255,255) none 1.5px` — la palabra clave `none` colapsaba el anillo a 0 px en cada campo. Causa raíz: las reglas base `.input, .textarea, .select { outline: none }` y `.searchbar input { outline: none }` tenían mayor especificidad que el `*:focus-visible` global y anulaban silenciosamente el anillo de teclado en 88 elementos por página. Corrección en [public/css/app.css](public/css/app.css) — añadidas reglas explícitas `.input:focus-visible/.textarea:focus-visible/.select:focus-visible` y `.searchbar input:focus-visible` con `outline: 2px solid var(--rausch)` + sombra translúcida; el foco de ratón sigue limpio (usa `:focus`, no `:focus-visible`). 904 → **905** unitarios (`tests/qa-report-fixes.test.mjs` guarda estática); Playwright **60 → 61** (`tests/playwright-smoke.mjs` Tab-traversal). (M-1)
