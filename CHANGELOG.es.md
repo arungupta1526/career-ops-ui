@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.58.9] — 2026-05-20
+
+**fix(a11y): M-1 — restablecer un anillo visible de `:focus-visible` en los campos de formulario (WCAG 2.4.7 Nivel AA).** La regresión MASTER de v1.58.3 confirmó que `getComputedStyle(focusedInput)` devolvía `outline: rgb(255,255,255) none 1.5px` — la palabra clave `none` colapsaba el anillo a 0 px en cada campo. Causa raíz: las reglas base `.input, .textarea, .select { outline: none }` y `.searchbar input { outline: none }` tenían mayor especificidad que el `*:focus-visible` global y anulaban silenciosamente el anillo de teclado en 88 elementos por página. Corrección en [public/css/app.css](public/css/app.css) — añadidas reglas explícitas `.input:focus-visible/.textarea:focus-visible/.select:focus-visible` y `.searchbar input:focus-visible` con `outline: 2px solid var(--rausch)` + sombra translúcida; el foco de ratón sigue limpio (usa `:focus`, no `:focus-visible`). 904 → **905** unitarios (`tests/qa-report-fixes.test.mjs` guarda estática); Playwright **60 → 61** (`tests/playwright-smoke.mjs` Tab-traversal). (M-1)
+
+---
+
 ## [1.58.8] — 2026-05-20
 
 **feat(health): mostrar `OPENAI_API_KEY`, `QWEN_API_KEY`, `OPENROUTER_API_KEY` en `#/health` (igual que `GEMINI_API_KEY`).** v1.57.0 sumó OpenRouter como 5º proveedor live-eval; v1.55.3 (UX-2) añadió el onboarding de 4 proveedores. La página `#/health` solo reportaba `GEMINI_API_KEY` y `ANTHROPIC_API_KEY` — los otros tres quedaban invisibles aunque `/api/status/providers` ya los enrutaba. Petición del usuario: extender el mismo patrón "set / unset (manual mode)" a cada proveedor headless. [server/lib/routes/health.mjs](server/lib/routes/health.mjs#L57-L71) ahora añade tres filas adicionales de checks opcionales, conectadas al mismo `isUsableKey` (`hasOpenAIKey()`, `hasQwenKey()`, `hasOpenRouterKey()` ya estaban importadas pero sin usar). El texto "manual mode" coincide con la fila GEMINI en los 8 idiomas — la vista Health itera sobre `body.checks` por lo que no se requiere cadena por locale. 903 → **904** unitarios. (Solicitud del usuario)

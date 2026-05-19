@@ -835,6 +835,24 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
   border-color: var(--hof);
   box-shadow: 0 0 0 3px rgba(34,34,34,.08);
 }
+/* M-1 (v1.58.9, WCAG 2.4.7 Level AA) — the `.input/.textarea/.select`
+   baseline above (and `.searchbar input` below) zero `outline`, which
+   silently overrode the global `*:focus-visible` ring on every form
+   field (88 focusable elements per page). Re-establish a visible
+   keyboard-only ring at higher specificity than the form-base rules.
+   Mouse focus stays clean (uses `:focus`, not `:focus-visible`). */
+.input:focus-visible,
+.textarea:focus-visible,
+.select:focus-visible {
+  outline: 2px solid var(--rausch, #ff385c);
+  outline-offset: 0;
+  box-shadow: 0 0 0 3px rgba(255, 56, 92, 0.18);
+  border-color: var(--rausch, #ff385c);
+}
+.searchbar input:focus-visible {
+  outline: 2px solid var(--rausch, #ff385c);
+  outline-offset: 2px;
+}
 .textarea { resize: vertical; min-height: 140px; font-family: ui-monospace, 'SF Mono', Menlo, monospace; line-height: 1.5; }
 .row { display: flex; gap: var(--space-3); }
 .row > * { flex: 1; }

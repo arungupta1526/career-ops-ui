@@ -491,6 +491,72 @@ test('Playwright smoke: POST /api/auto-pipeline SSE — emits start + step event
   await closePage(page);
 });
 
+// ─── M-1 (v1.58.9): keyboard focus reveals a visible ring (WCAG 2.4.7) ───
+
+test('Playwright smoke: M-1 — Tab focus on form fields paints a visible ring (WCAG 2.4.7)', { skip: SKIP }, async () => {
+  const page = await context.newPage();
+  // Use #/config — guaranteed to have visible form inputs out of the box.
+  await page.addInitScript(() => {
+    try { localStorage.setItem('career-ops-ui:lang', 'en'); } catch { /* private mode */ }
+  });
+  await page.goto(baseUrl + '/#/config');
+  await page.waitForSelector('#content', { timeout: 5000 });
+  // Find the first input/textarea/select inside the content area and
+  // focus it via the keyboard pathway (`:focus-visible` only paints on
+  // keyboard-initiated focus; calling .focus() in some engines yields
+  // `:focus` but not `:focus-visible`, so we navigate via Tab).
+  const handle = await page.evaluateHandle(() => {
+    const el = document.querySelector('#content input, #content textarea, #content select');
+    if (el) el.scrollIntoView({ block: 'center' });
+    return el;
+  });
+  if (await handle.evaluate((el) => !el)) {
+    // Fallback — if #/config render didn't produce a field, the test
+    // skips its assertion rather than failing the suite. The static
+    // qa-report-fixes guard already locks the CSS contract.
+    await closePage(page);
+    return;
+  }
+  // Programmatic focus first, then read computed style with a forced
+  // `:focus-visible` heuristic via getComputedStyle on the active
+  // element. Chromium applies focus-visible after a keyboard event, so
+  // simulate one with `page.keyboard.press('Tab')` after blurring.
+  await handle.evaluate((el) => el.blur());
+  await page.evaluate(() => document.body.focus());
+  await page.keyboard.press('Tab');
+  // Walk Tab until the active element matches our target tag.
+  for (let i = 0; i < 60; i++) {
+    const matched = await page.evaluate(() => {
+      const a = document.activeElement;
+      return a && /^(INPUT|TEXTAREA|SELECT)$/i.test(a.tagName) &&
+             a.closest && a.closest('#content');
+    });
+    if (matched) break;
+    await page.keyboard.press('Tab');
+  }
+  const outline = await page.evaluate(() => {
+    const a = document.activeElement;
+    if (!a) return null;
+    const cs = getComputedStyle(a);
+    return {
+      tag: a.tagName,
+      outlineWidth: cs.outlineWidth,
+      outlineStyle: cs.outlineStyle,
+      outlineColor: cs.outlineColor,
+    };
+  });
+  assert.ok(outline, 'no element was focused via Tab');
+  assert.ok(/^(INPUT|TEXTAREA|SELECT)$/i.test(outline.tag),
+    `Tab did not land on a form field, landed on <${outline.tag}>`);
+  // The outline must be solid AND have a non-zero width. CSS 'none'
+  // collapses outline-width to 0px; a missing ring would fail either gate.
+  assert.notEqual(outline.outlineStyle, 'none',
+    `form-field focus-visible must not be 'none', got: ${JSON.stringify(outline)}`);
+  assert.ok(parseFloat(outline.outlineWidth) >= 1.5,
+    `form-field focus-visible must be ≥1.5px wide, got: ${JSON.stringify(outline)}`);
+  await closePage(page);
+});
+
 // ─── NEW-3 (v1.58.5): #/followup `Run live` posts exactly once per click ───
 //
 // The v1.58.3 MASTER regression flagged a possible double-POST to

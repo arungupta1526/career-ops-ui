@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.9] — 2026-05-20
+
+**fix(a11y): M-1 — 폼 필드에 가시적 `:focus-visible` 링 복원 (WCAG 2.4.7 Level AA).** v1.58.3 MASTER 회귀에서 `getComputedStyle(focusedInput)` 이 `outline: rgb(255,255,255) none 1.5px` 를 반환 — `none` 키워드가 모든 폼 필드의 링 너비를 0 px 로 붕괴시킴을 확인. 근본 원인: `.input, .textarea, .select { outline: none }` 와 `.searchbar input { outline: none }` 의 베이스 규칙이 전역 `*:focus-visible` 보다 명시도가 높아 페이지당 88 개 포커스 가능 요소에서 키보드 포커스 링을 조용히 제거. [public/css/app.css](public/css/app.css) 에 명시적 `.input:focus-visible/.textarea:focus-visible/.select:focus-visible` 와 `.searchbar input:focus-visible` 규칙 추가, `outline: 2px solid var(--rausch)` + 반투명 box-shadow 부여. 마우스 포커스(`:focus`)는 그대로 유지. 904 → **905** 유닛(정적 계약 가드); Playwright **60 → 61**(Tab 순회). (M-1)
+
+---
+
 ## [1.58.8] — 2026-05-20
 
 **feat(health): `OPENAI_API_KEY` / `QWEN_API_KEY` / `OPENROUTER_API_KEY` 를 `#/health` 에 표시 (`GEMINI_API_KEY` 와 동일).** v1.57.0 에서 OpenRouter 가 5번째 헤드리스 live-eval 공급자로 추가되었고, v1.55.3 (UX-2) 에서 4-공급자 온보딩 배너가 도입됐지만 `#/health` 페이지는 여전히 `GEMINI_API_KEY` 와 `ANTHROPIC_API_KEY` 만 노출했습니다. 사용자 요청: "set / unset (manual mode)" 행 패턴을 모든 헤드리스 공급자로 확장. [server/lib/routes/health.mjs](server/lib/routes/health.mjs#L57-L71) 에 3 개의 선택적 체크 행을 추가하며 `/api/status/providers` 와 동일한 `isUsableKey` 게이트를 사용. Health 뷰는 `body.checks` 를 순회하므로 8 개 언어 문자열 변경 불필요. 903 → **904** 유닛. (사용자 요청)

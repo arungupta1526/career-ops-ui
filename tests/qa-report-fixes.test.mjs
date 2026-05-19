@@ -30,6 +30,33 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('M-1 (v1.58.9): form fields get a visible :focus-visible ring (WCAG 2.4.7)', () => {
+  // The base .input/.textarea/.select rules in app.css zero `outline`
+  // (to avoid mouse-focus ring noise), which silently overrode the
+  // global `*:focus-visible` ring on every form field. Re-establish a
+  // visible keyboard-only ring at higher specificity than the form-base.
+  const css = read('public', 'css', 'app.css');
+  // The new rule must declare a visible outline on input/textarea/select focus-visible.
+  assert.match(
+    css,
+    /\.input:focus-visible,\s*\n\s*\.textarea:focus-visible,\s*\n\s*\.select:focus-visible\s*\{[^}]*outline:\s*2px solid var\(--rausch[^)]*\)/m,
+    'form-field :focus-visible must declare a 2px solid var(--rausch) outline'
+  );
+  // The searchbar input override (the global ⌘K/Ctrl K search) must also have a focus ring.
+  assert.match(
+    css,
+    /\.searchbar input:focus-visible\s*\{[^}]*outline:\s*2px solid var\(--rausch[^)]*\)/m,
+    'searchbar input :focus-visible must declare a 2px solid var(--rausch) outline'
+  );
+  // The pre-existing global *:focus-visible ring must still be in place
+  // (regression-lock the WCAG 2.4.7 invariant the new rules build on).
+  assert.match(
+    css,
+    /\*:focus-visible\s*\{[^}]*outline:\s*2px solid var\(--rausch[^)]*\)/m,
+    'global *:focus-visible ring must remain in place'
+  );
+});
+
 test('BUG-008-tb: top-bar Doctor modal title equals the localized button label (parity with Health page)', () => {
   // v1.58.6 — pre-fix, app.js passed the hardcoded English 'doctor' as
   // the modal title regardless of locale. Health-page passes

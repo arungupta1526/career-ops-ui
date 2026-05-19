@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.9] — 2026-05-20
+
+**fix(a11y): M-1 — フォームフィールドに可視 `:focus-visible` リングを復元(WCAG 2.4.7 Level AA)。** v1.58.3 MASTER リグレッションで `getComputedStyle(focusedInput)` が `outline: rgb(255,255,255) none 1.5px` を返し、`none` キーワードがリング幅を 0 px に潰していたことを確認。根本原因:`.input, .textarea, .select { outline: none }` と `.searchbar input { outline: none }` のベース指定がグローバル `*:focus-visible` より優先度が高く、ページあたり 88 個のフォーカス可能要素のキーボードフォーカスリングを静かに消していた。修正は [public/css/app.css](public/css/app.css) — 明示的に `.input:focus-visible/.textarea:focus-visible/.select:focus-visible` と `.searchbar input:focus-visible` を追加し `outline: 2px solid var(--rausch)` + 半透明 box-shadow を付与。マウスフォーカス(`:focus`)は従来通りクリーン。904 → **905** ユニット(静的契約ガード);Playwright **60 → 61**(Tab トラバーサル)。(M-1)
+
+---
+
 ## [1.58.8] — 2026-05-20
 
 **feat(health): `OPENAI_API_KEY` / `QWEN_API_KEY` / `OPENROUTER_API_KEY` を `#/health` に表示(`GEMINI_API_KEY` と同様)。** v1.57.0 で OpenRouter が 5 番目のヘッドレス live-eval プロバイダとして追加され、v1.55.3(UX-2)で 4 プロバイダのオンボーディングも表示されるようになった。しかし `#/health` ページでは `GEMINI_API_KEY` と `ANTHROPIC_API_KEY` のみ表示され、残り 3 つはルーティング対象でありながら見えない状態だった。ユーザー要望:「set / unset (manual mode)」行のパターンを全ヘッドレスプロバイダに拡張。[server/lib/routes/health.mjs](server/lib/routes/health.mjs#L57-L71) に 3 つの任意チェック行を追加(`/api/status/providers` と同じ `isUsableKey` ゲートに接続)。`hasOpenAIKey()` / `hasQwenKey()` / `hasOpenRouterKey()` は既にインポート済みで未使用だった。Health ビューは `body.checks` を反復するため 8 言語の文字列追加は不要。903 → **904** ユニット。(ユーザー要望)

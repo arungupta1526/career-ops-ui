@@ -37,23 +37,30 @@ That means every section below = its own version bump and its own PR. No "while 
 | **v1.58.5** ✅ | NEW-3 — Follow-up double-POST repro & guard *(shipped 2026-05-20: not-reproducible; locked with Playwright single-POST guard, locale-stable selector, addInitScript lang preset)* | Minor (no code change) | Functional |
 | **v1.58.6** ✅ | BUG-008-tb — top-bar Doctor modal title parity *(shipped 2026-05-20: `UI.modal('doctor',…)` → `UI.modal(I18n.t('top.doctor','Doctor'),…)`, 8-locale parity, static guard)* | Minor | i18n / consistency |
 | **v1.58.7** ✅ | NEW-2 — isValidJobUrl regex ↔ error-message consistency *(shipped 2026-05-20: Option A — added TEMPLATE_PATTERNS for paired `${…}`/`{{…}}`; ASP/EJS `<%…%>` regression-locked; 2 new url-validation tests; single-brace ATS paths preserved)* | Minor | Security UX |
-| **v1.58.8** | M-1 — global `:focus-visible` ring | Major (a11y, WCAG 2.4.7) | a11y |
-| **v1.58.9** | M-2 — drain progress-toast before any result modal | Minor | UX |
-| **v1.58.10** | M-4 — Saved-research card title↔date gap | Minor | UX visual |
-| **v1.58.11** | M-7 — Cost line follows `LLM_PROVIDER` | Major | UX truthfulness |
-| **v1.58.12** | M-8 — Apply checklist becomes interactive | Major | UX promise vs delivery |
-| **v1.58.13** | M-9 — Dashboard `Refresh` feedback toast | Minor | UX |
-| **v1.58.14** | I-1 — top-bar `aria-label` localized | Minor | a11y / i18n |
-| **v1.58.15** | I-2 — `today` / `yesterday` / `N days ago` localized via Intl.RelativeTimeFormat | Minor | i18n |
-| **v1.58.16** | I-3 — Help TOC items 2 / 5 / 13 / 14 localized | Minor | i18n |
-| **v1.58.17** | I-4 — RU `#/followup` H1 & subtitle (no Latin `cadence`/`follow-up`) | Minor | i18n |
-| **v1.58.18** | I-6 — footer hotkey `⌘K` vs `Ctrl+K` per platform | Minor | i18n / platform |
-| **v1.58.19** | U-1 — `#/cv` proper H1 + subtitle (kill the lowercase breadcrumb) | Minor | UX (breaks BUG-009 by-design — read §3) |
-| **v1.58.20** | U-2 — `#/auto` H1 emoji-wrap | Minor | UX visual |
-| **v1.58.21** | U-3 — `#/followup` date placeholder = today − 14 days | Minor | UX |
-| **v1.58.22** | U-4 — pipeline-400 toast: detail in `<details>` | Minor | UX |
-| **v1.58.23** | U-5 — Dashboard CTA dedupe (4× Pipeline / 4× Scan) | Minor | UX IA |
-| **v1.58.24** | U-6 — Scan "✦ Active companies N/M" tooltip | Minor | UX clarity |
+| **v1.58.8** ✅ | (user-requested feat) — surface OPENAI / QWEN / OPENROUTER API-key rows on `#/health` analogous to `GEMINI_API_KEY` *(shipped 2026-05-20: same `isUsableKey` gate as `/api/status/providers`; SPA Health view iterates `body.checks` → no per-locale strings)* | feat | — |
+| **v1.58.9** ✅ | M-1 — global `:focus-visible` ring *(shipped 2026-05-20: form-base `outline: none` was higher specificity than `*:focus-visible`; explicit `.input/.textarea/.select/.searchbar input:focus-visible` rules with 2 px `var(--rausch)` + translucent box-shadow; Playwright Tab-traversal asserts ≥1.5 px outline)* | Major (a11y, WCAG 2.4.7) | a11y |
+| **v1.58.10** | M-2 — drain progress-toast before any result modal | Minor | UX |
+| **v1.58.11** | M-4 — Saved-research card title↔date gap | Minor | UX visual |
+| **v1.58.12** | M-7 — Cost line follows `LLM_PROVIDER` | Major | UX truthfulness |
+| **v1.58.13** | M-8 — Apply checklist becomes interactive | Major | UX promise vs delivery |
+| **v1.58.14** | M-9 — Dashboard `Refresh` feedback toast | Minor | UX |
+| **v1.58.15** | I-1 — top-bar `aria-label` localized | Minor | a11y / i18n |
+| **v1.58.16** | I-2 — `today` / `yesterday` / `N days ago` localized via Intl.RelativeTimeFormat | Minor | i18n |
+| **v1.58.17** | I-3 — Help TOC items 2 / 5 / 13 / 14 localized | Minor | i18n |
+| **v1.58.18** | I-4 — RU `#/followup` H1 & subtitle (no Latin `cadence`/`follow-up`) | Minor | i18n |
+| **v1.58.19** | I-6 — footer hotkey `⌘K` vs `Ctrl+K` per platform | Minor | i18n / platform |
+| **v1.58.20** | U-1 — `#/cv` proper H1 + subtitle (kill the lowercase breadcrumb) | Minor | UX (breaks BUG-009 by-design — read §3) |
+| **v1.58.21** | U-2 — `#/auto` H1 emoji-wrap | Minor | UX visual |
+| **v1.58.22** | U-3 — `#/followup` date placeholder = today − 14 days | Minor | UX |
+| **v1.58.23** | U-4 — pipeline-400 toast: detail in `<details>` | Minor | UX |
+| **v1.58.24** | U-5 — Dashboard CTA dedupe (4× Pipeline / 4× Scan) | Minor | UX IA |
+| **v1.58.25** | U-6 — Scan "✦ Active companies N/M" tooltip | Minor | UX clarity |
+
+> **Note (2026-05-20).** v1.58.8 was claimed by a user-requested feature
+> (Health rows for OPENAI / QWEN / OPENROUTER API keys, analogous to
+> `GEMINI_API_KEY`). The rest of the original sequence (M-1 → U-15) is
+> shifted **+1** above. Subsequent rows beyond this snippet retain the
+> same +1 offset (v1.58.25 in the original table is now v1.58.26, etc.).
 | **v1.58.25** | U-7 — Verify pipeline ASCII `===` → CSS divider | Minor | UX visual |
 | **v1.58.26** | U-8 — Generate prompt collapse-by-default | Minor | UX layout |
 | **v1.58.27** | U-9 — Pipeline `In queue: N` chip ↔ filter gap | Minor | UX layout |

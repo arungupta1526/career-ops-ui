@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.9] — 2026-05-20
+
+**fix(a11y): M-1 — восстановлено видимое кольцо `:focus-visible` на полях форм (WCAG 2.4.7 Уровень AA).** MASTER-регрессия v1.58.3 показала, что `getComputedStyle(focusedInput)` возвращал `outline: rgb(255,255,255) none 1.5px` — ключевое слово `none` стягивало ширину кольца до 0 px на каждом поле. Корень: базовые правила `.input, .textarea, .select { outline: none }` и `.searchbar input { outline: none }` имели более высокую специфичность, чем глобальное `*:focus-visible`, и тихо убивали кольцо клавиатурного фокуса на 88 элементах страницы. Правка в [public/css/app.css](public/css/app.css) — добавлены явные правила `.input:focus-visible/.textarea:focus-visible/.select:focus-visible` и `.searchbar input:focus-visible` с `outline: 2px solid var(--rausch)` + полупрозрачный box-shadow; мышиный фокус (`:focus`) остаётся чистым. 904 → **905** модульных (статический контрактный гард); Playwright **60 → 61** (Tab-обход). (M-1)
+
+---
+
 ## [1.58.8] — 2026-05-20
 
 **feat(health): показать `OPENAI_API_KEY` / `QWEN_API_KEY` / `OPENROUTER_API_KEY` на `#/health` (по аналогии с `GEMINI_API_KEY`).** В v1.57.0 OpenRouter добавлен как 5-й headless live-eval провайдер, в v1.55.3 (UX-2) появился on-screen-онбординг для 4 провайдеров, но страница `#/health` всё ещё показывала только `GEMINI_API_KEY` и `ANTHROPIC_API_KEY` — остальные три ключа были невидимы, хотя `/api/status/providers` уже маршрутизировал на них evals. По запросу пользователя расширил тот же паттерн строк «set / unset (manual mode)» на все headless-провайдеры. [server/lib/routes/health.mjs](server/lib/routes/health.mjs#L57-L71) теперь добавляет три необязательных строки чека через тот же `isUsableKey`-гейт, что и `/api/status/providers`. Хелперы `hasOpenAIKey()` / `hasQwenKey()` / `hasOpenRouterKey()` были уже импортированы, но не использовались. Формулировка «manual mode» совпадает со строкой GEMINI; локализация не требуется — Health-вью итерирует `body.checks`. 903 → **904** модульных. (Запрос пользователя)

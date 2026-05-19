@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.9] — 2026-05-20
+
+**fix(a11y): M-1 — 在表單欄位上恢復可見的 `:focus-visible` 焦點環(WCAG 2.4.7 Level AA)。** v1.58.3 MASTER 回歸確認 `getComputedStyle(focusedInput)` 回傳 `outline: rgb(255,255,255) none 1.5px` — `none` 關鍵字將每個欄位的焦點環寬度塌陷為 0 px。根因:`.input, .textarea, .select { outline: none }` 與 `.searchbar input { outline: none }` 的基礎規則優先級高於全域 `*:focus-visible`,悄悄消除了每頁 88 個可聚焦元素的鍵盤焦點環。修正於 [public/css/app.css](public/css/app.css) — 明確新增 `.input:focus-visible/.textarea:focus-visible/.select:focus-visible` 與 `.searchbar input:focus-visible` 規則,使用 `outline: 2px solid var(--rausch)` + 半透明 box-shadow;滑鼠焦點(`:focus`)保持乾淨。904 → **905** 單元(靜態契約守衛);Playwright **60 → 61**(Tab 遍歷)。(M-1)
+
+---
+
 ## [1.58.8] — 2026-05-20
 
 **feat(health): 在 `#/health` 顯示 `OPENAI_API_KEY` / `QWEN_API_KEY` / `OPENROUTER_API_KEY`(與 `GEMINI_API_KEY` 類似)。** v1.57.0 加入 OpenRouter 為第 5 個 headless live-eval 供應商;v1.55.3(UX-2)上線 4 供應商引導。但 `#/health` 頁僅顯示 `GEMINI_API_KEY` 與 `ANTHROPIC_API_KEY` — 其餘三個雖然 `/api/status/providers` 已路由,在 Health 卻不可見。使用者要求:將「set / unset (manual mode)」列模式擴充到所有 headless 供應商。[server/lib/routes/health.mjs](server/lib/routes/health.mjs#L57-L71) 新增 3 個可選檢查列,接入與 `/api/status/providers` 相同的 `isUsableKey` 閘。Health 視圖逐項處理 `body.checks`,因此無需新增 8 語言字串。903 → **904** 單元。(使用者請求)
