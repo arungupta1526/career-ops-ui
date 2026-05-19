@@ -136,6 +136,28 @@ test('POST /api/config rejects malformed ANTHROPIC_API_KEY', async () => {
   assert.equal(r.status, 400);
 });
 
+// v1.57.2 — the SPA's api.js auto-attaches `lang` to every JSON POST.
+// Before the fix the config route 400'd EVERY browser Save with
+// "validation failed — lang: not a known config key" (curl repros
+// never sent lang, so it stayed hidden). This reproduces the browser
+// body shape exactly.
+test('POST /api/config tolerates the SPA-injected `lang` field (browser parity)', async () => {
+  const r = await postJson('/api/config', {
+    LLM_PROVIDER: 'manual', PORT: '4317', HOST: '127.0.0.1', lang: 'en',
+  });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.ok(r.body.written.includes('PORT'));
+  // `lang` must never be written to the parent .env
+  const text = readFileSync(resolve(projectRoot, '.env'), 'utf8');
+  assert.ok(!/^lang=/m.test(text), '`lang` must not leak into .env');
+});
+
+test('POST /api/config still rejects a genuine unknown key even with lang present', async () => {
+  const r = await postJson('/api/config', { lang: 'en', EVIL_INJECT: 'x' });
+  assert.equal(r.status, 400, 'attacker-injection guard must stay intact');
+  assert.match(r.body.details.join(' '), /EVIL_INJECT/);
+});
+
 test('POST /api/config: known keys are filtered before write (no attacker injection)', async () => {
   // Even if validation accepted UNKNOWN, the server should never
   // write keys outside KNOWN_KEYS into the .env. validateConfig

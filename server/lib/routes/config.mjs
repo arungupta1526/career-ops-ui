@@ -67,7 +67,19 @@ export function registerConfigRoutes(app) {
   });
 
   app.post('/api/config', (req, res) => {
-    const body = req.body || {};
+    // v1.57.2 — the SPA's API client (public/js/api.js) auto-attaches a
+    // `lang` field to EVERY JSON POST body so LLM-bound routes can pick
+    // up the UI locale. /api/config is NOT an LLM route and `lang` is
+    // not a config key, but validateConfig's (correct, security-relevant)
+    // unknown-key rejection then 400'd every Save with
+    // "validation failed — lang: not a known config key". That was the
+    // real, browser-only "validation failed" users hit (curl/fetch
+    // repros never sent `lang`, so it stayed hidden). `lang` is a
+    // transport concern — strip it here BEFORE validating; the
+    // KNOWN_KEYS write-filter below already drops anything unknown, so
+    // the attacker-injection guard is unchanged for genuine stray keys.
+    const body = { ...(req.body || {}) };
+    delete body.lang;
     const v = validateConfig(body);
     if (!v.ok) return res.status(400).json({ error: 'validation failed', details: v.errors });
     // Filter to known keys only — never write attacker-supplied env

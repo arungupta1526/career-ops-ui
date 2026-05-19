@@ -8,6 +8,12 @@
 
 ---
 
+## [1.57.2] — 2026-05-19
+
+**fix(config)：`/#/config`「validation failed」的真正根因 —— SPA 注入的 `lang` 字段。** `public/js/api.js` 会给*每个* JSON POST 请求体自动附加 `lang`（让 LLM 路由获取 UI 语言）。`/api/config` 不是 LLM 路由，`lang` 也不是配置键，因此 `validateConfig` 的（正确且与安全相关的）未知键拒绝对**每次保存**返回 400：`validation failed — lang: not a known config key`。这只在浏览器出现：curl/进程内复现从不发送 `lang`，所以 v1.57.0/.1 改善了*消息*却未除*根因*。配置路由现在在校验前剥离传输用的 `lang`；`KNOWN_KEYS` 写过滤仍丢弃任何真正未知的键 —— 注入防护不变。由点击真实保存按钮的新 Playwright 表单巡检发现。**测试：** 新增 `tests/playwright-forms.mjs`（26，纳入 `npm run test:e2e:browser`）巡检**所有表单**；`config-endpoint` 增加浏览器等价用例。879 → 881 单元，Playwright 32 → 58。完整细节见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.57.1] — 2026-05-19
 
 **fix(ux)：每个 API 错误现在都说明"什么失败、在哪里、为什么"；输入错误文案尽可能详尽。** 服务端早已返回 `{ error, details: ["字段: 原因", …] }`，但各表单只显示首行（「validation failed」），所以在 `/#/config`（及各处）无法得知哪个字段有误。`api.js` 现在**全站**将逐字段 `details` 合入消息（改一处，所有表单受益），追加请求上下文 `(方法 /路径 · HTTP NNN)`（在哪里），非 JSON 响应显示原始正文片段，网络错误也带方法+路径；并暴露 `err.details`。`validateConfig` 消息改为尽可能详尽（哪里错、如何修）。**密钥字段绝不回显输入值**（仅字符数）——输错的真实 key 不会泄漏到 toast/日志。PORT 范围现真正校验（`99999` 被拒）。`/#/config` 的 PORT/HOST 预填真实默认值（`4317` / `127.0.0.1`）。错误 toast 停留更久（9–20 秒）且换行/滚动而非截断。**测试：** 新增 `tests/config-validation-detail.test.mjs`（12），874 → 879。完整细节见 [`CHANGELOG.md`](CHANGELOG.md)。

@@ -6,6 +6,22 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.57.2] — 2026-05-19
+
+**fix(config): the ACTUAL root cause of `/#/config` "validation failed" — the SPA-injected `lang` field.**
+
+### 🐛 Fixes
+
+- **Saving anything on `/#/config` from the browser always returned `validation failed`.** `public/js/api.js` auto-attaches a `lang` field to *every* JSON POST body (so LLM routes pick up the UI locale). `/api/config` is not an LLM route and `lang` is not a config key, so `validateConfig`'s (correct, security-relevant) unknown-key rejection 400'd **every Save** with `validation failed — lang: not a known config key`. This was browser-only: curl/in-process repros never sent `lang`, which is why v1.57.0/.1 (whitespace-trim, descriptive errors) improved the *message* but didn't fix the *cause*. The config route now strips the transport-only `lang` before validating; the `KNOWN_KEYS` write-filter still drops any genuinely-unknown key, so the attacker-injection guard is unchanged.
+- Found by a new Playwright form sweep that drives the real save button — not the synthetic fetch repros that masked it.
+
+### 🧪 Tests
+
+- New **`tests/playwright-forms.mjs`** (26, wired into `npm run test:e2e:browser`): drives a real Chromium over **every form-bearing route** — asserts no console errors site-wide, the invalid-save toast shows field+reason+request-context, secret fields never echo the typed value, valid saves succeed, and PORT/HOST show their prefilled defaults.
+- `tests/config-endpoint.test.mjs`: browser-parity cases — POST with `lang` succeeds (and `lang` never lands in `.env`), while a real unknown key with `lang` present is still rejected. 879 → 881 unit; Playwright 32 → 58.
+
+---
+
 ## [1.57.1] — 2026-05-19
 
 **fix(ux): every API error now says WHAT failed, WHERE, and WHY — and the input-error text is maximally descriptive.**

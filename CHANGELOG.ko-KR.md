@@ -8,6 +8,12 @@
 
 ---
 
+## [1.57.2] — 2026-05-19
+
+**fix(config): `/#/config`「validation failed」의 진짜 원인 — SPA가 주입하는 `lang` 필드.** `public/js/api.js`는 *모든* JSON POST 본문에 `lang`을 자동 첨부합니다(LLM 라우트가 UI 로케일을 얻도록). `/api/config`는 LLM 라우트가 아니고 `lang`은 설정 키가 아니므로, `validateConfig`의 (정확하고 보안상 중요한) 미지 키 거부가 **매 저장마다** 400을 반환했습니다: `validation failed — lang: not a known config key`. 브라우저 전용 증상으로, curl/인프로세스 재현은 `lang`을 보내지 않아 v1.57.0/.1은 *메시지*만 개선하고 *원인*은 남았습니다. 이제 설정 라우트는 검증 전 전송용 `lang`을 제거합니다. `KNOWN_KEYS` 쓰기 필터는 여전히 진짜 미지 키를 버려 — 인젝션 가드 불변. 실제 저장 버튼을 누르는 새 Playwright 폼 순회로 발견. **테스트:** 새 `tests/playwright-forms.mjs`(26, `npm run test:e2e:browser`에 포함)로 **모든 폼** 순회, `config-endpoint`에 브라우저 동등 케이스. 879 → 881 유닛, Playwright 32 → 58. 자세한 내용은 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.57.1] — 2026-05-19
 
 **fix(ux): 모든 API 오류가 무엇이 실패했고 어디서 왜인지 표시; 입력 오류 문구도 최대한 설명적으로.** 서버는 이전부터 `{ error, details: ["필드: 사유", …] }`를 반환했지만 폼들은 상단 줄(「validation failed」)만 표시해 `/#/config`(및 전 화면)에서 어느 필드가 문제인지 알 수 없었습니다. 이제 `api.js`가 필드별 `details`를 메시지에 **사이트 전역**으로 합치고(한 곳 수정으로 모든 폼이 혜택), 요청 컨텍스트 `(메서드 /경로 · HTTP NNN)`(어디서)를 덧붙이며, 비 JSON 응답은 원문 일부를 표시하고, 네트워크 오류에도 메서드+경로를 포함합니다. `err.details`도 노출. `validateConfig` 메시지는 최대한 설명적(무엇이 잘못됐고 어떻게 고치는지)으로 변경. **시크릿 키는 입력값을 절대 에코하지 않음**(글자 수만) — 실제 키 오타가 토스트/로그로 새지 않습니다. PORT 범위도 실제로 검증(`99999` 거부). `/#/config`의 PORT/HOST는 실제 기본값(`4317` / `127.0.0.1`)으로 미리 채움. 오류 토스트는 더 오래(9–20초) 표시되고 잘리지 않고 줄바꿈/스크롤됩니다. **테스트:** 새 `tests/config-validation-detail.test.mjs`(12), 874 → 879. 자세한 내용은 [`CHANGELOG.md`](CHANGELOG.md).

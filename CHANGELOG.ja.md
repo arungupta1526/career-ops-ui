@@ -8,6 +8,12 @@
 
 ---
 
+## [1.57.2] — 2026-05-19
+
+**fix(config): `/#/config`「validation failed」の真の原因 — SPA が注入する `lang` フィールド。** `public/js/api.js` は *すべての* JSON POST ボディに `lang` を自動付与します（LLM ルートが UI ロケールを拾うため）。`/api/config` は LLM ルートではなく `lang` は設定キーでもないため、`validateConfig` の（正しく、セキュリティ上重要な）未知キー拒否が **毎回の保存** に 400 を返していました：`validation failed — lang: not a known config key`。ブラウザ限定の症状で、curl/インプロセスの再現は `lang` を送らないため v1.57.0/.1 は*メッセージ*を改善しても*原因*は残っていました。設定ルートは検証前にトランスポート用の `lang` を除去するように。`KNOWN_KEYS` 書き込みフィルタは依然として真に未知のキーを破棄 — インジェクション対策は不変。実際の保存ボタンを押す新しい Playwright フォーム巡回で発見。**テスト:** 新規 `tests/playwright-forms.mjs`（26、`npm run test:e2e:browser` に組込）で**全フォーム**を巡回、`config-endpoint` にブラウザ等価ケース。879 → 881 ユニット、Playwright 32 → 58。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.57.1] — 2026-05-19
 
 **fix(ux): すべての API エラーが「何が失敗し、どこで、なぜ」を表示。入力エラー文も最大限に説明的に。** サーバは以前から `{ error, details: ["フィールド: 理由", …] }` を返していましたが、各フォームはトップ行（「validation failed」）しか表示せず、`/#/config`（および全画面）でどのフィールドが不正か分かりませんでした。`api.js` がフィールド単位の `details` をメッセージに**サイト全体で**畳み込み（1 箇所の修正で全フォームが恩恵）、リクエスト文脈 `(メソッド /パス · HTTP NNN)`（どこで）を付与、非 JSON レスポンスは生本文の断片を表示、ネットワークエラーにもメソッド+パスを付与。`err.details` も公開。`validateConfig` のメッセージは最大限に説明的（何が悪く、どう直すか）に。**シークレットキーは入力値を一切エコーしません**（文字数のみ）—実キーの打ち間違いがトースト/ログに漏れません。PORT の範囲も実際に検証（`99999` は拒否）。`/#/config` の PORT/HOST は実デフォルト（`4317` / `127.0.0.1`）を初期表示。エラートーストは長め（9–20 秒）に表示し、折り返し/スクロールして見切れません。**テスト:** 新規 `tests/config-validation-detail.test.mjs`（12）、874 → 879。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
