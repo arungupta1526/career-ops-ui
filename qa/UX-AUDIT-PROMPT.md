@@ -140,7 +140,10 @@ concept it serves:
 ## Baseline — already-closed findings (do NOT re-file these)
 
 The 2026-05-14→18 audit cycle produced 12 UX findings + 2 a11y
-findings; **all shipped and regression-locked** (v1.55.1→v1.56.0).
+findings (v1.55.1→v1.56.0); the follow-on `qa/FIX-PROMPT-FINAL.md`
+cycle then closed an a11y focus-ring regression (v1.56.1), UX-N1
+(v1.56.2), a reported key-detection trust bug (v1.56.3) and UX-N2
+(v1.56.4). **All shipped and regression-locked** (v1.55.1→v1.56.4).
 A fresh audit must treat these as the *current* baseline — only
 re-open one with concrete live evidence that it regressed:
 
@@ -158,6 +161,10 @@ re-open one with concrete live evidence that it regressed:
 | UX-10 — ⚡ Run-live cost hint | v1.56.0 | `run-cost-line.test.mjs` |
 | UX-11 — `#/help` TOC 1-match autoscroll | v1.56.0 | `help-toc-autoscroll.test.mjs` |
 | UX-12 — `#/dashboard` first-paint a11y | v1.56.0 | `dashboard-initial-focus.test.mjs` |
+| a11y — managed-focus ring suppressed (no red `<h1>` box) | v1.56.1 | `managed-focus-no-ring.test.mjs` |
+| UX-N1 — per-route locale-aware `document.title` | v1.56.2 | `document-title-per-route.test.mjs` |
+| key-detection — placeholder/short keys rejected (no false "✓ set", no mis-route) | v1.56.3 | `key-detection-rejects-placeholder.test.mjs` |
+| UX-N2 — visible platform-aware ⌘K / Ctrl K hint | v1.56.4 | `cmdk-hint-visible.test.mjs` |
 
 Senior-obs ledger: S-7→v1.54.6, W-001→v1.54.7, S-1→UX-3, S-2→UX-7,
 S-3→UX-4, S-4→UX-1, S-5→UX-9, S-6→UX-8. The **only open backlog

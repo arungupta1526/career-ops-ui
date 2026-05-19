@@ -198,12 +198,15 @@ non-allowed binary envelopes (415).
 non-trivial logic (`npm run test:coverage`). unit → integration →
 acceptance → e2e all green.
 
-## §11 — v1.55.x→v1.56.0 consolidated UX-fix invariants (regression-locked)
+## §11 — v1.55.x→v1.56.4 consolidated UX-fix invariants (regression-locked)
 
 The 2026-05-14→18 audit's 12 UX findings + 2 v1.55.0 a11y findings
-all shipped one-fix-per-release (v1.55.1→v1.56.0). Each has a
-dedicated `tests/*.test.mjs` static guarantee — none may regress.
-Spot-verify the ★ ones live.
+shipped one-fix-per-release (v1.55.1→v1.56.0); the follow-on
+`qa/FIX-PROMPT-FINAL.md` cycle then closed an a11y focus-ring
+regression (v1.56.1), UX-N1 (v1.56.2), a reported key-detection
+trust bug (v1.56.3) and UX-N2 (v1.56.4). Each has a dedicated
+`tests/*.test.mjs` static guarantee — none may regress. Spot-verify
+the ★ ones live.
 
 - ★ **`#/auto` stepper pre-render** (F-V55-E/UX-1, **CLOSED v1.55.1**):
   `<ol.auto-stepper>` shows the 5 documented stages (validate → fetch
@@ -254,6 +257,31 @@ Spot-verify the ★ ones live.
   `aria-live=polite` **without** stealing focus (v1.41.0 skip-link
   contract preserved). `tests/{cv-breadcrumb,run-cost-line,
   help-toc-autoscroll,dashboard-initial-focus}.test.mjs`.
+- **a11y focus-ring fix** (**CLOSED v1.56.1**): router-managed
+  `tabindex="-1"` heading focus no longer paints the brand
+  `*:focus-visible` ring (a red box around every view's `<h1>`,
+  baked into the dashboard screenshots). Scoped rule
+  `[tabindex="-1"]:focus,[tabindex="-1"]:focus-visible{outline:none}`;
+  global keyboard ring intact (WCAG 2.4.7).
+  `tests/managed-focus-no-ring.test.mjs`.
+- **UX-N1 per-route title** (**CLOSED v1.56.2**): `router.js`
+  `focusNewView()` sets a per-route, locale-aware `document.title`
+  from the view `<h1>` before the first-paint guard (multi-tab /
+  bookmarks / SR page-change). `tests/document-title-per-route.test.mjs`.
+- **key-detection plausibility** (**CLOSED v1.56.3**): a placeholder /
+  too-short secret in a parent `.env` is no longer reported "✓ set"
+  or mis-selected as the active provider. New pure `isUsableKey()`
+  (≥20 chars + not a known placeholder) gates
+  `has{Anthropic,Gemini,OpenAI,Qwen}Key()` and the `/api/health`
+  key rows (now on the same effective+plausible view as
+  `/api/status/providers`). `tests/key-detection-rejects-placeholder.test.mjs`.
+  *(Field note: if `career-ops/.env` pins `LLM_PROVIDER` to a
+  provider with no real key, `activeProvider` is correctly `null` —
+  that is honest, not a regression; it is the user's `.env` to fix.)*
+- **UX-N2 ⌘K hint** (**CLOSED v1.56.4**): a visible, platform-aware
+  `<kbd class="kbd-shortcut">` (⌘K macOS/iOS · Ctrl K else) inside
+  the `.searchbar`; `aria-hidden` (aria-label already announces it),
+  keybinding unchanged. `tests/cmdk-hint-visible.test.mjs`.
 - **Pipeline AI-review** (workflow, regression-locked by file): the
   `.github/workflows/ai-review.yml` `push-review` job runs on every
   push to `main` and posts an advisory commit comment (fail-soft;
@@ -279,7 +307,9 @@ Spot-verify the ★ ones live.
 §0 gate green · §1–§11 every MUST satisfied · `git status` clean ·
 tag `vX` on `origin/main` with the latest CI green on all 4 jobs · no
 open MEDIUM/HIGH finding (the consolidated v1.55.x→v1.56.0 fix-prompt
-is fully closed; **G-005** is the sole open item, MINOR, cross-repo,
-blocked on the parent commit). New findings → one-fix ships
+AND the follow-on `qa/FIX-PROMPT-FINAL.md` cycle — a11y focus-ring
+v1.56.1, UX-N1 v1.56.2, key-detection trust fix v1.56.3, UX-N2
+v1.56.4 — are all fully closed; **G-005** is the sole open item,
+MINOR, cross-repo, blocked on the parent commit). New findings → one-fix ships
 (HIGH→MEDIUM→LOW), each fully shipped (bump + CHANGELOG ×8 + test +
 Playwright-verify + AI-review LGTM + CI-watch) before the next.
