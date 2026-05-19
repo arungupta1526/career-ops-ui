@@ -9,7 +9,7 @@
 > any IDE assistant that doesn't auto-load CLAUDE.md.
 >
 > **Repo state.** v1.58.1 (2026-05-19). 896 `node --test` cases,
-> 32 Playwright smoke. v1.55.1→v1.56.4 consolidated UX fix-prompt
+> 58 Playwright (smoke + full-cycle + forms). v1.55.1→v1.56.4 consolidated UX fix-prompt
 > complete; **v1.57.0** adds OpenRouter as a 5th headless live-eval
 > provider (one key → 300+ models, live `#/config` model dropdown via
 > `GET /api/openrouter/models`) and fixes the `/#/config`
@@ -121,9 +121,9 @@ career-ops-ui/
 │  ├─ css/app.css                              # design tokens, WCAG 2.2 AA + 1.4.1 redundant cues
 │  └─ js/{app,router,api}.js + js/lib/* + js/views/*
 ├─ tests/
-│  ├─ *.test.mjs                               # 813 unit + integration
-│  ├─ playwright-{smoke,full-cycle}.mjs        # 32 browser flows
-│  ├─ e2e{,-comprehensive}.mjs                 # 43 E2E
+│  ├─ *.test.mjs                               # 896 unit + integration
+│  ├─ playwright-{smoke,full-cycle,forms}.mjs  # 58 browser flows
+│  ├─ e2e{,-comprehensive}.mjs                 # 20 + 23 E2E
 │  └─ fixtures/                                # CI-isolated test data
 ├─ docs/
 │  ├─ PROJECT.md, ROADMAP.md, PRODUCTION-READINESS.md, portals-examples.md
