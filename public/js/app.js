@@ -115,7 +115,12 @@ I18n.onChange(() => {
     UI.toast(I18n.t('app.runDoctor', 'Running doctor.mjs…'));
     try {
       const r = await UI.withSpinner(e.currentTarget, () => API.post('/api/run/doctor'));
-      UI.modal('doctor', UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n' + r.stderr : '')));
+      // BUG-008-tb (v1.58.6) — modal title must equal the visible button
+      // label. Pre-v1.58.6 the top-bar passed the hardcoded English
+      // 'doctor' regardless of locale; the Health-page entry already
+      // uses t('health.runDoctor'). Both entries now follow the
+      // ledger BUG-008 invariant: modal-title == localized button label.
+      UI.modal(I18n.t('top.doctor', 'Doctor'), UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n' + r.stderr : '')));
     } catch (err) {
       // err may be undefined / null when a Promise rejects without an Error
       // payload (rare but possible during teardown). Guard the property read.

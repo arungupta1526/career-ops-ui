@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.6] — 2026-05-20
+
+**fix(a11y/i18n): BUG-008-tb — 頂列 `Doctor` 模態框標題現在與本地化按鈕標籤一致。** v1.58.0 已關閉的台帳 BUG-008(*「模態框標題 == 本地化按鈕標籤」*)只涵蓋了 Health 頁面入口。v1.58.3 MASTER 回歸發現**頂列**入口仍違反不變量:無論 UI 語言為何,點擊頂列 `Doctor` 開啟的模態框標題始終為 `doctor`(小寫英文)。修正:[public/js/app.js:118](public/js/app.js#L118) 將字面值 `'doctor'` 替換為 `I18n.t('top.doctor', 'Doctor')`。`top.doctor` 鍵在 8 種語言中皆已存在(EN `Doctor` · ES/pt-BR `Diagnóstico` · KO `진단` · JA `診断` · RU `Диагностика` · zh-CN `诊断` · zh-TW `診斷`),與按鈕透過 `data-i18n="top.doctor"` 宣告的鍵相同。`tests/qa-report-fixes.test.mjs` 新增靜態契約守衛。900 → **901** 單元;Playwright 60/60。(BUG-008-tb)
+
+---
+
 ## [1.58.5] — 2026-05-20
 
 **fix(ui): NEW-3 — `#/followup` Run-live 雙重 POST 判定為 *無法重現*;以 Playwright 回歸守衛鎖定。** v1.58.3 MASTER 回歸透過 monkey-patched `window.fetch` 觀察到:在 `#/followup` 上單擊 Run live 一次(公司/角色/備註已填、日期故意留空)後,~2 秒內出現兩次對 `/api/mode/followup` 的相同 POST。依 fix-prompt 的「先重現」原則,對 `public/js/views/mode-page.js::submit()` 做了原始碼審查:(a) Run live 與 Generate prompt 均為普通 `<button>`,各自只有單一 `onClick`,既沒有父 `<form>` 也沒有 `addEventListener('submit')`,因此不存在雙重觸發路徑;(b) `UI.withSpinner()`(FIX-L1)在請求進行中將 `button.disabled = true`,從源頭阻斷第二次物理點擊。在 `tests/playwright-smoke.mjs` 新增還原回歸劇本的測試 — 填入公司/角色/備註、留空日期、點擊與 Run live 共用 `submit()` 的手動按鈕,於 3 秒視窗內斷言 `POST /api/mode/followup` **恰好 1 次**。選擇器與語言無關(8 種語言中 `▶` 字形相同),並透過 `addInitScript` 預先寫入 `career-ops-ui:lang=en`,避免同一瀏覽器內前一個語言切換測試影響欄位選擇器。Playwright **59 → 60**。原 QA 觀察以劇本形式存檔,無需產品程式碼修改。(NEW-3)

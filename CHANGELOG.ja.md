@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.6] — 2026-05-20
+
+**fix(a11y/i18n): BUG-008-tb — トップバーの `Doctor` モーダルタイトルがローカライズ済みボタンラベルと一致するよう修正。** v1.58.0 でクローズした台帳 BUG-008(*「モーダルタイトル == ローカライズ済みボタンラベル」*)は Health ページのエントリーには適用されていたものの、v1.58.3 の MASTER リグレッションで **トップバー** のエントリーが不変条件に違反していることが判明:UI 言語に関わらず、トップバーの `Doctor` をクリックすると常に `doctor`(英語小文字)というモーダルタイトルが表示されていました。修正は [public/js/app.js:118](public/js/app.js#L118) — リテラル `'doctor'` を `I18n.t('top.doctor', 'Doctor')` に置換。`top.doctor` キーは 8 言語すべてに既に存在(EN `Doctor`、ES/pt-BR `Diagnóstico`、KO `진단`、JA `診断`、RU `Диагностика`、zh-CN `诊断`、zh-TW `診斷`)し、ボタンが `data-i18n="top.doctor"` で宣言しているキーと同一です。`tests/qa-report-fixes.test.mjs` に静的契約ガードを追加。900 → **901** ユニット; Playwright 60/60。(BUG-008-tb)
+
+---
+
 ## [1.58.5] — 2026-05-20
 
 **fix(ui): NEW-3 — `#/followup` Run-live 二重 POST は *再現不能* と判定、Playwright リグレッションガードで施錠。** v1.58.3 の MASTER リグレッションでは(monkey-patch した `window.fetch` で計測)、`#/followup` の Run live を一度クリックしただけで `/api/mode/followup` への同一 POST が約 2 秒以内に **2 件** 観測されました(company/role/notes 入力済み、日付は空欄)。fix-prompt の「まず再現せよ」原則に従い、`public/js/views/mode-page.js::submit()` を精査した結果:(a) Run live と Generate prompt はいずれも `<button>` 要素で `onClick` を 1 つだけ持ち、親 `<form>` も `addEventListener('submit')` もないため二重発火が成立しない、(b) `UI.withSpinner()`(FIX-L1)がリクエスト発火中は `button.disabled = true` を設定し、二度目の物理クリックを根本でブロック、の 2 点が確認できました。`tests/playwright-smoke.mjs` に新規テストを追加し、リグレッションの再現レシピを忠実に踏みます — company/role/notes を入力し、日付を意図的に空欄のままにし、Run live と同じ `submit()` を呼ぶ手動ボタンを 1 回クリックして、3 秒間で `POST /api/mode/followup` が **正確に 1 件** であることを検証します。ロケール非依存のセレクタ(8 言語すべてで `▶` グリフは同一)を採用し、同一ブラウザコンテキスト内で先行する言語切替テストの影響を防ぐため `addInitScript` で `career-ops-ui:lang=en` を事前注入。Playwright **59 → 60**。元の QA 観測はレシピとして記録するに留め、製品コード変更は不要。(NEW-3)

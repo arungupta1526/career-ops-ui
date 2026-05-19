@@ -30,6 +30,37 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('BUG-008-tb: top-bar Doctor modal title equals the localized button label (parity with Health page)', () => {
+  // v1.58.6 — pre-fix, app.js passed the hardcoded English 'doctor' as
+  // the modal title regardless of locale. Health-page passes
+  // t('health.runDoctor'). Both entry-points must follow the
+  // ledger BUG-008 invariant: modal-title == localized button label.
+  const app = read('public', 'js', 'app.js');
+  // The new modal call uses the same i18n key the <button> declares
+  // via data-i18n="top.doctor" in index.html.
+  assert.match(app, /UI\.modal\(I18n\.t\('top\.doctor', 'Doctor'\),/,
+    "top-bar Doctor modal must look up t('top.doctor', 'Doctor') as its title");
+  assert.ok(!/UI\.modal\('doctor',/.test(app),
+    "top-bar Doctor modal title must not be the hardcoded lowercase 'doctor'");
+
+  // The localized strings must exist in every locale so the modal title
+  // never falls back to the English fallback string mid-flow.
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  const row = dict.match(/'top\.doctor':\s*\{([^}]*)\}/);
+  assert.ok(row, "i18n-dict.js missing 'top.doctor' entry");
+  for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+    // i18n-dict uses bare keys for short locales (en, es, ko, ja, ru)
+    // and quoted keys for hyphenated locales (pt-BR, zh-CN, zh-TW).
+    const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+    assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+      `'top.doctor' must have a non-empty ${lang} value`);
+  }
+
+  // And the visible top-bar button declares the same key.
+  const html = read('public', 'index.html');
+  assert.match(html, /id="btn-doctor"[^>]*data-i18n="top\.doctor"/);
+});
+
 test('BUG-001: followup lastContact has an ISO-date pattern; validate() enforces spec.pattern', () => {
   const mp = read('public', 'js', 'views', 'mode-page.js');
   const field = mp.match(/name: 'lastContact'[\s\S]{0,800}?patternMsgFallback/);

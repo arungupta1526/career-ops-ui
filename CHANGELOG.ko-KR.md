@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.6] — 2026-05-20
+
+**fix(a11y/i18n): BUG-008-tb — 상단바 `Doctor` 모달 타이틀이 로컬라이즈된 버튼 라벨과 일치하도록 수정.** v1.58.0 에서 닫힌 원장 BUG-008(*"모달 타이틀 == 로컬라이즈된 버튼 라벨"*)은 Health 페이지 진입점에만 적용되어 있었으나, v1.58.3 MASTER 회귀에서 **상단바** 진입점이 불변 조건을 위반하고 있음이 확인되었습니다 — UI 언어와 무관하게 상단바 `Doctor` 클릭 시 모달 타이틀이 항상 `doctor`(영문 소문자)였습니다. [public/js/app.js:118](public/js/app.js#L118) 에서 리터럴 `'doctor'` 를 `I18n.t('top.doctor', 'Doctor')` 로 교체. `top.doctor` 키는 8개 언어 모두에 이미 존재(EN `Doctor` · ES/pt-BR `Diagnóstico` · KO `진단` · JA `診断` · RU `Диагностика` · zh-CN `诊断` · zh-TW `診斷`)하며 버튼이 `data-i18n="top.doctor"` 로 선언한 키와 동일합니다. `tests/qa-report-fixes.test.mjs` 에 정적 계약 가드 추가. 900 → **901** 유닛; Playwright 60/60. (BUG-008-tb)
+
+---
+
 ## [1.58.5] — 2026-05-20
 
 **fix(ui): NEW-3 — `#/followup` Run-live 이중 POST 은 *재현 불가* 로 분류; Playwright 회귀 가드로 잠금.** v1.58.3 MASTER 회귀에서 monkey-patched `window.fetch` 측정으로, `#/followup` Run live 한 번 클릭(회사/역할/메모 입력 완료, 날짜는 의도적으로 비움) 후 약 2 초 이내에 `/api/mode/followup` 로 동일한 POST 두 건이 관측되었습니다. fix-prompt 의 "먼저 재현" 원칙에 따라 `public/js/views/mode-page.js::submit()` 을 정밀 검토한 결과: (a) Run live 와 Generate prompt 는 모두 일반 `<button>` 으로 각각 단일 `onClick` 만 가지고 있으며, 부모 `<form>` 도 `addEventListener('submit')` 도 없어 이중 발화 경로가 존재하지 않고, (b) `UI.withSpinner()` (FIX-L1) 가 요청이 진행되는 동안 `button.disabled = true` 를 설정하여 두 번째 물리 클릭을 원천 차단합니다. `tests/playwright-smoke.mjs` 에 회귀 레시피를 그대로 따라가는 새 테스트를 추가했습니다 — 회사/역할/메모를 채우고 날짜는 비운 채 Run live 와 동일한 `submit()` 을 호출하는 수동 버튼을 한 번 클릭하면, 3 초 윈도우에서 `POST /api/mode/followup` 가 **정확히 1 건** 임을 검증합니다. 로케일 안정 선택자(8 개 언어 모두 `▶` 글리프 동일) + 동일 브라우저 컨텍스트의 이전 언어 테스트 영향을 막기 위해 `addInitScript` 로 `career-ops-ui:lang=en` 사전 주입. Playwright **59 → 60**. 원본 QA 관찰은 레시피로만 기록되며 제품 코드 변경은 필요 없습니다. (NEW-3)
