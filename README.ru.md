@@ -5,11 +5,11 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | **Русский** | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-907%20passed-brightgreen)](#тесты)
+[![tests](https://img.shields.io/badge/tests-908%20passed-brightgreen)](#тесты)
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#тесты)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#требования)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.58.11-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.11)
+[![release](https://img.shields.io/badge/release-v1.58.12-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.12)
 
 > **Недавнее (v1.55 → v1.58):** **чистый форматированный вывод исследований** (#/deep и Сохранённые исследования убирают echo `<tool_call>`/`<tool_response>`) + прогон багов внешнего QA-отчёта (ISO-дата на `#/followup`, markdown-жирный в блок-цитатах help, честный тост дубля pipeline, `#/outreach` алиас) + **провайдер OpenRouter** (один ключ → 300+ моделей, живой список в `#/config`) + исправление «validation failed» на `#/config` (ключи, вставленные с пробелами/переносом строки, теперь сохраняются), экранный онбординг-баннер + чип активного провайдера, честные подсказки стоимости ⚡ Запуска вживую, ETA на `#/auto`, раскрывашка Расширенных фильтров + заметный Stop на `#/scan`, hero-CTA на `#/dashboard`, виртуализация >1000 строк на `#/pipeline`, серверная пагинация + чипы воронки на `#/tracker`, полировка доступности — детали по версиям в [CHANGELOG.ru.md](CHANGELOG.ru.md).
 

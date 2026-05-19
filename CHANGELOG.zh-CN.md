@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.12] — 2026-05-20
+
+**fix(ux): M-7 — 成本提示跟随当前活跃提供商(OpenRouter 不再回退到伪造数字)。** `UI.providerCostHint()` 已经通过 `/api/status/providers` 实现 provider-aware,但 [public/js/api.js](public/js/api.js#L623-L676) 中的映射只列出 `anthropic`/`gemini`/`openai`/`qwen`。v1.57.0 加入 OpenRouter 为第 5 个提供商后,它会落到通用回退 0.03 并把名字显示为小写字面值 `openrouter`。现在 EST 加入 `openrouter: null`(由路由选择模型,费用因此而异),`=== null` 分支输出本地化的"cost varies (router picks)",而不是误导性的 `~$0.03/eval`。NAME 加入 `openrouter: 'OpenRouter'`。新增 i18n 键 `cost.varies` 覆盖 8 种语言。907 → **908** 单元。(M-7)
+
+---
+
 ## [1.58.11] — 2026-05-20
 
 **fix(ux): M-4 — 已保存研究卡片的标题↔日期间距改为结构化 CSS(原先为内联 margin)。** v1.58.3 MASTER 回归确认部分卡片显示为 `software-engineer-generaltoday`(标题与日期之间无空格),而另一些正常。原因:旧代码依赖两个裸 `<span>` 间的 `style="margin-left: 8px"`,在某些条目中折叠。修复:[public/js/views/deep.js](public/js/views/deep.js#L34-L55) — 将两个 `<span>` 替换为 `.saved-card__title` + 语义化 `<time class="saved-card__date" datetime="…">`,外层包裹 `.saved-card` flex 容器。间距由 `gap: var(--space-2, 8px)` 控制 → 不会再折叠,同时获得 `<time>` 的 a11y/SEO 语义。906 → **907** 单元。(M-4)

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.12] — 2026-05-20
+
+**fix(ux): M-7 — 비용 힌트가 활성 제공자를 따라감 (OpenRouter 가 더 이상 잘못된 고정 금액으로 빠지지 않음).** `UI.providerCostHint()` 는 이미 `/api/status/providers` 를 거쳐 제공자를 인지하고 있었으나, [public/js/api.js](public/js/api.js#L623-L676) 의 매핑이 `anthropic`/`gemini`/`openai`/`qwen` 만 포함. v1.57.0 의 5번째 제공자 OpenRouter 는 일반 폴백 0.03 에 떨어지고 표시 이름도 소문자 `openrouter` 였음. 이제 EST 에 `openrouter: null` 추가 (라우터가 모델을 선택하므로 비용 가변), `=== null` 분기에서 로컬라이즈된 "cost varies (router picks)" 출력. NAME 에 `openrouter: 'OpenRouter'`. 새 i18n 키 `cost.varies` 를 8 언어에 추가. 907 → **908** 유닛. (M-7)
+
+---
+
 ## [1.58.11] — 2026-05-20
 
 **fix(ux): M-4 — 저장된 리서치 카드의 제목↔날짜 간격을 구조적 CSS 로 (기존 인라인 margin).** v1.58.3 MASTER 회귀에서 일부 카드가 `software-engineer-generaltoday` (제목과 날짜 사이 공백 없음)로 표시됨을 확인. 원인은 두 개의 `<span>` 사이의 `style="margin-left: 8px"` 인라인 의존이 특정 항목에서 무너지는 것. [public/js/views/deep.js](public/js/views/deep.js#L34-L55) 수정 — 두 개의 `<span>` 을 `.saved-card__title` + 시맨틱 `<time class="saved-card__date" datetime="…">` 로 교체하고 플렉스 컨테이너 `.saved-card` 로 감쌈. 간격은 `gap: var(--space-2, 8px)` 가 제어 → 더 이상 무너지지 않으며 `<time>` 으로 a11y/SEO 시맨틱도 확보. 906 → **907** 유닛. (M-4)

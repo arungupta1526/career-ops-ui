@@ -625,10 +625,29 @@ window.UI = (function () {
     const node = document.createElement('div');
     node.className = 'cost-hint';
     node.setAttribute('role', 'note');
-    // Order-of-magnitude USD per evaluation (one call, long JD +
-    // bundled CV context). Deliberately approximate.
-    const EST = { anthropic: 0.05, gemini: 0.01, openai: 0.04, qwen: 0.01 };
-    const NAME = { anthropic: 'Anthropic', gemini: 'Gemini', openai: 'OpenAI', qwen: 'Qwen' };
+    // M-7 (v1.58.12) — provider → display name + order-of-magnitude USD
+    // per evaluation (one call, long JD + bundled CV context). The
+    // cost line must follow the active provider returned by
+    // /api/status/providers; v1.58.3 MASTER regression observed it
+    // stayed pinned to "Anthropic claude-sonnet-4-6 · ~$0.05/eval"
+    // because OpenRouter wasn't in the maps and fell through to a
+    // generic 0.03 fallback. Now openrouter has its own slot, and a
+    // `null` cost (= the router picks the model, cost varies) renders
+    // a "cost varies" note instead of a misleading hard number.
+    const EST = {
+      anthropic:  0.05,
+      gemini:     0.01,
+      openai:     0.04,
+      qwen:       0.01,
+      openrouter: null, // router picks the model — cost varies
+    };
+    const NAME = {
+      anthropic:  'Anthropic',
+      gemini:     'Gemini',
+      openai:     'OpenAI',
+      qwen:       'Qwen',
+      openrouter: 'OpenRouter',
+    };
     (async () => {
       let st = null;
       try {
@@ -641,10 +660,21 @@ window.UI = (function () {
           'No LLM key set — “⚡ Run live” copies a manual prompt (no API cost).');
         return;
       }
-      const amt = (EST[st.activeProvider] != null ? EST[st.activeProvider] : 0.03).toFixed(2);
+      const has = Object.prototype.hasOwnProperty.call(EST, st.activeProvider);
       const name = NAME[st.activeProvider] || st.activeProvider;
-      node.textContent = tr('cost.estimate', 'Estimated cost') + ': ' + name +
-        (st.activeModel ? ' ' + st.activeModel : '') + ' · ~$' + amt + '/eval';
+      const prefix = tr('cost.estimate', 'Estimated cost') + ': ' + name +
+        (st.activeModel ? ' ' + st.activeModel : '');
+      if (has && EST[st.activeProvider] != null) {
+        node.textContent = prefix + ' · ~$' + EST[st.activeProvider].toFixed(2) + '/eval';
+      } else if (has && EST[st.activeProvider] === null) {
+        // Known provider whose per-eval cost depends on the routed
+        // model (OpenRouter today). Be honest, never quote a fixed
+        // number that might be wrong.
+        node.textContent = prefix + ' · ' + tr('cost.varies', 'cost varies (router picks)');
+      } else {
+        // Unknown provider — show the name but omit a fabricated number.
+        node.textContent = prefix;
+      }
     })();
     return node;
   }

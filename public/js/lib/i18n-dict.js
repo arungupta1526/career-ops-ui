@@ -440,6 +440,11 @@ window.__I18N_DICT = {
   'onboarding.noKey.cta': { en: 'Set up a key →', es: 'Configurar una clave →', 'pt-BR': 'Configurar uma chave →', ko: '키 설정하기 →', ja: 'キーを設定 →', ru: 'Настроить ключ →', 'zh-CN': '设置密钥 →', 'zh-TW': '設定金鑰 →' },
   'onboarding.activeProvider': { en: 'Live eval', es: 'Eval en vivo', 'pt-BR': 'Eval ao vivo', ko: '라이브 평가', ja: 'ライブ評価', ru: 'Live-eval', 'zh-CN': '实时评估', 'zh-TW': '即時評估' },
   'cost.estimate': { en: 'Estimated cost', es: 'Coste estimado', 'pt-BR': 'Custo estimado', ko: '예상 비용', ja: '推定コスト', ru: 'Оценочная стоимость', 'zh-CN': '预计费用', 'zh-TW': '預估費用' },
+  // M-7 (v1.58.12) — OpenRouter (and any future router-style provider)
+  // picks the underlying model per request, so a fixed per-eval USD
+  // figure would be misleading. Render this short note instead of a
+  // hard number when the active provider's costPerEvalUsd is null.
+  'cost.varies':   { en: 'cost varies (router picks)', es: 'coste variable (lo elige el router)', 'pt-BR': 'custo variável (o router escolhe)', ko: '비용 변동 (라우터가 선택)', ja: 'コストは可変(ルーターが選択)', ru: 'стоимость зависит от выбранной модели', 'zh-CN': '费用因路由选择而异', 'zh-TW': '費用因路由選擇而異' },
   'cost.manual': { en: 'No LLM key set — “⚡ Run live” copies a manual prompt (no API cost).', es: 'Sin clave LLM — “⚡ Ejecutar en vivo” copia un prompt manual (sin coste de API).', 'pt-BR': 'Sem chave LLM — “⚡ Executar ao vivo” copia um prompt manual (sem custo de API).', ko: 'LLM 키 없음 — “⚡ 라이브 실행”은 수동 프롬프트를 복사합니다(API 비용 없음).', ja: 'LLM キー未設定 — 「⚡ ライブ実行」は手動プロンプトをコピーします(API コストなし)。', ru: 'Ключ LLM не задан — «⚡ Запуск вживую» копирует ручной промпт (без затрат API).', 'zh-CN': '未设置 LLM 密钥 ——“⚡ 实时运行”复制手动提示(无 API 费用)。', 'zh-TW': '未設定 LLM 金鑰 ——「⚡ 即時執行」複製手動提示(無 API 費用)。' },
   'router.loading': { en: 'Loading…', es: 'Cargando…', 'pt-BR': 'Carregando…', ko: '로딩 중…', ja: '読み込み中…', ru: 'Загрузка…', 'zh-CN': '加载中…', 'zh-TW': '載入中…' },
   'router.netError':{ en: 'No connection to server', es: 'Sin conexión al servidor', 'pt-BR': 'Sem conexão com servidor', ko: '서버 연결 끊김', ja: 'サーバーに接続できません', ru: 'Нет связи с сервером', 'zh-CN': '与服务器无连接', 'zh-TW': '與伺服器無連線' },

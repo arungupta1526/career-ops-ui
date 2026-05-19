@@ -30,6 +30,33 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('M-7 (v1.58.12): cost hint follows active provider; OpenRouter + null-cost path handled', () => {
+  const api = read('public', 'js', 'api.js');
+  // The EST map must include openrouter (was previously absent → fell
+  // through to a generic 0.03 fallback that misrepresented the cost).
+  assert.match(api, /EST\s*=\s*\{[^}]*openrouter:\s*null/m,
+    'EST map must include openrouter with null (router picks → cost varies)');
+  // The NAME map must also know about openrouter so the visible name
+  // isn't the lowercase literal 'openrouter'.
+  assert.match(api, /NAME\s*=\s*\{[^}]*openrouter:\s*'OpenRouter'/m,
+    "NAME map must map openrouter → 'OpenRouter'");
+  // The render path must branch on null cost and emit cost.varies
+  // (no fabricated hard number for router-picks providers).
+  assert.match(api, /EST\[st\.activeProvider\]\s*===\s*null/,
+    'render path must branch on EST[active] === null');
+  assert.match(api, /tr\('cost\.varies',\s*'cost varies/,
+    "render path must use t('cost.varies', 'cost varies …') for the null-cost case");
+  // i18n parity — cost.varies present in all 8 locales.
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  const row = dict.match(/'cost\.varies':\s*\{([^}]*)\}/);
+  assert.ok(row, "i18n-dict.js missing 'cost.varies'");
+  for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+    const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+    assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+      `'cost.varies' must have a non-empty ${lang} value`);
+  }
+});
+
 test('M-4 (v1.58.11): saved-research card has CSS gap between title and date (no string concat)', () => {
   const deep = read('public', 'js', 'views', 'deep.js');
   // Title and date must be SEPARATE child elements with the new classes,

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.12] — 2026-05-20
+
+**fix(ux): M-7 — コストヒントがアクティブプロバイダに追従(OpenRouter で誤った固定額が出ない)。** `UI.providerCostHint()` は既に `/api/status/providers` 経由でプロバイダ対応していたが、[public/js/api.js](public/js/api.js#L623-L676) のマップに `anthropic`/`gemini`/`openai`/`qwen` のみ。v1.57.0 で OpenRouter が 5 番目のプロバイダとして加わってからも汎用フォールバック 0.03 に落ち、表示名も小文字 `openrouter` のままだった。今回 EST に `openrouter: null` を追加(ルーターがモデルを選ぶためコストは可変)、`=== null` 分岐でローカライズされた「cost varies (router picks)」を出力。NAME には `openrouter: 'OpenRouter'`。新規 i18n キー `cost.varies` を 8 言語で追加。907 → **908** ユニット。(M-7)
+
+---
+
 ## [1.58.11] — 2026-05-20
 
 **fix(ux): M-4 — 保存済みリサーチカードのタイトル↔日付の間隔を構造的 CSS に(従来はインライン margin)。** v1.58.3 の MASTER リグレッションで、一部のカードに `software-engineer-generaltoday`(タイトルと日付の間に空白なし)が確認された。原因は 2 つの裸の `<span>` の間の `style="margin-left: 8px"` インラインに依存しており、特定エントリで崩れていたこと。[public/js/views/deep.js](public/js/views/deep.js#L34-L55) を修正 — 2 つの `<span>` を `.saved-card__title` + セマンティックな `<time class="saved-card__date" datetime="…">` に置き換え、フレックスコンテナ `.saved-card` でラップ。間隔は `gap: var(--space-2, 8px)` で制御するため崩れず、`<time>` で a11y/SEO の意味付けも得られる。906 → **907** ユニット。(M-4)

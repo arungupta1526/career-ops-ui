@@ -5,11 +5,11 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | **日本語** | [Русский](README.ru.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-907%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-908%20passed-brightgreen)](#tests)
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.58.11-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.11)
+[![release](https://img.shields.io/badge/release-v1.58.12-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.12)
 
 > **最近 (v1.55 → v1.58):** **整形済みの調査出力**（#/deep・保存済み調査が `<tool_call>`/`<tool_response>` を除去）+ 外部 QA レポートのバグ一掃（`#/followup` ISO 日付、help 引用内の太字、重複 pipeline トーストの正直化、`#/outreach` エイリアス）+ **OpenRouter プロバイダ**（1 キーで 300+ モデル、`#/config` のライブ・ドロップダウン）+ `#/config` の「validation failed」修正（空白/改行付きで貼り付けたキーも保存可能に）、オンボーディングバナー + アクティブプロバイダチップ、正直な ⚡ ライブ実行コストヒント、`#/auto` ETA、`#/scan` 詳細フィルターディスクロージャ + 目立つ Stop、`#/dashboard` ヒーロー CTA、`#/pipeline` 1000 行超の仮想化、`#/tracker` サーバーページネーション + ファネルチップ、アクセシビリティ調整 — バージョン別詳細は [CHANGELOG.ja.md](CHANGELOG.ja.md)。
 
