@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.8] — 2026-05-20
+
+**feat(health): 在 `#/health` 显示 `OPENAI_API_KEY` / `QWEN_API_KEY` / `OPENROUTER_API_KEY`(与 `GEMINI_API_KEY` 类似)。** v1.57.0 引入 OpenRouter 作为第 5 个 headless live-eval 供应商;v1.55.3(UX-2)上屏 4 供应商引导。但 `#/health` 页面仅显示 `GEMINI_API_KEY` 与 `ANTHROPIC_API_KEY` — 其余三个尽管 `/api/status/providers` 已路由,却在 Health 上不可见。用户要求:将"set / unset (manual mode)"行模式扩展到全部 headless 供应商。[server/lib/routes/health.mjs](server/lib/routes/health.mjs#L57-L71) 新增 3 个可选检查行,接入与 `/api/status/providers` 相同的 `isUsableKey` 闸。Health 视图迭代 `body.checks`,因此无需新增 8 语言字符串。903 → **904** 单元。(用户请求)
+
+---
+
 ## [1.58.7] — 2026-05-20
 
 **fix(security): NEW-2 — `isValidJobUrl` 现在拒绝成对的模板占位符语法(`${…}`、`{{…}}`),与错误消息一致。** `POST /api/pipeline` 的 400 响应声称 *"contain no script or template characters"*,但 v1.58.3 MASTER 回归确认:实际仅 ASP/EJS 形式的 `<%…%>` 被 `[<>"'`\\\s]` 守卫顺带拦截。JS 模板字面量 `${TEST}` 与 Mustache/Handlebars `{{TEST}}` 直接通过 — 正则与错误消息的语义不一致。fix-prompt 选项 A(把正则收紧以匹配消息):在 [server/lib/security.mjs](server/lib/security.mjs) 新增 `TEMPLATE_PATTERNS` 数组,经 `hasTemplatePlaceholder(url)` 在 `new URL(…)` 前检查。**只拒绝成对** 的占位符(`{normal}` 等单括号 ATS 路径继续接受)。901 → **903** 单元。(NEW-2)

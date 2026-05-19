@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.8] — 2026-05-20
+
+**feat(health): `OPENAI_API_KEY` / `QWEN_API_KEY` / `OPENROUTER_API_KEY` を `#/health` に表示(`GEMINI_API_KEY` と同様)。** v1.57.0 で OpenRouter が 5 番目のヘッドレス live-eval プロバイダとして追加され、v1.55.3(UX-2)で 4 プロバイダのオンボーディングも表示されるようになった。しかし `#/health` ページでは `GEMINI_API_KEY` と `ANTHROPIC_API_KEY` のみ表示され、残り 3 つはルーティング対象でありながら見えない状態だった。ユーザー要望:「set / unset (manual mode)」行のパターンを全ヘッドレスプロバイダに拡張。[server/lib/routes/health.mjs](server/lib/routes/health.mjs#L57-L71) に 3 つの任意チェック行を追加(`/api/status/providers` と同じ `isUsableKey` ゲートに接続)。`hasOpenAIKey()` / `hasQwenKey()` / `hasOpenRouterKey()` は既にインポート済みで未使用だった。Health ビューは `body.checks` を反復するため 8 言語の文字列追加は不要。903 → **904** ユニット。(ユーザー要望)
+
+---
+
 ## [1.58.7] — 2026-05-20
 
 **fix(security): NEW-2 — `isValidJobUrl` がペアのテンプレートプレースホルダ構文(`${…}`、`{{…}}`)を拒否するよう修正、エラーメッセージと整合化。** `POST /api/pipeline` の 400 エラーは *「contain no script or template characters」* と謳っていたが、v1.58.3 MASTER リグレッションで実際には ASP/EJS 形式の `<%…%>` のみが `[<>"'`\\\s]` ガードの副作用で阻止されており、JS テンプレートリテラル `${TEST}` と Mustache/Handlebars `{{TEST}}` は素通りだったと確認。fix-prompt の Option A(正規表現をメッセージに合わせる)で、[server/lib/security.mjs](server/lib/security.mjs) に新規 `TEMPLATE_PATTERNS` 配列(`/\$\{[^}]*\}/`、`/\{\{[^}]*\}\}/`)を追加し、`new URL(…)` の前に `hasTemplatePlaceholder(url)` でチェック。**ペア** のみを拒否(`{normal}` のような正当な ATS パスはそのまま許可)。901 → **903** ユニット。(NEW-2)

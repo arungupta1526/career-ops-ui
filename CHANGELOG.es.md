@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.58.8] — 2026-05-20
+
+**feat(health): mostrar `OPENAI_API_KEY`, `QWEN_API_KEY`, `OPENROUTER_API_KEY` en `#/health` (igual que `GEMINI_API_KEY`).** v1.57.0 sumó OpenRouter como 5º proveedor live-eval; v1.55.3 (UX-2) añadió el onboarding de 4 proveedores. La página `#/health` solo reportaba `GEMINI_API_KEY` y `ANTHROPIC_API_KEY` — los otros tres quedaban invisibles aunque `/api/status/providers` ya los enrutaba. Petición del usuario: extender el mismo patrón "set / unset (manual mode)" a cada proveedor headless. [server/lib/routes/health.mjs](server/lib/routes/health.mjs#L57-L71) ahora añade tres filas adicionales de checks opcionales, conectadas al mismo `isUsableKey` (`hasOpenAIKey()`, `hasQwenKey()`, `hasOpenRouterKey()` ya estaban importadas pero sin usar). El texto "manual mode" coincide con la fila GEMINI en los 8 idiomas — la vista Health itera sobre `body.checks` por lo que no se requiere cadena por locale. 903 → **904** unitarios. (Solicitud del usuario)
+
+---
+
 ## [1.58.7] — 2026-05-20
 
 **fix(security): NEW-2 — `isValidJobUrl` ahora rechaza las sintaxis emparejadas de plantillas (`${…}`, `{{…}}`) para coincidir con el mensaje de error.** El 400 a nivel de ruta de `POST /api/pipeline` anuncia *"contain no script or template characters"*, pero la regresión MASTER de v1.58.3 confirmó que solo `<%…%>` estilo ASP/EJS estaba realmente bloqueado (efecto colateral del filtro `[<>"'`\\\s]`). Las plantillas JS (`${TEST}`) y Mustache/Handlebars (`{{TEST}}`) pasaban — un desfase semántico regex↔mensaje. Opción A del fix-prompt (endurecer la regex para coincidir con el mensaje; ligero refuerzo contra inyección por templating en URL): nuevo `TEMPLATE_PATTERNS` en [server/lib/security.mjs](server/lib/security.mjs) consultado vía `hasTemplatePlaceholder(url)` antes de `new URL(…)`. Solo se rechazan placeholders **emparejados** — `{normal}` (token ATS legítimo) sigue aceptándose. 901 → **903** unitarios. (NEW-2)

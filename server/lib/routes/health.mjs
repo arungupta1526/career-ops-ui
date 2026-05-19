@@ -56,8 +56,19 @@ export function registerHealthRoutes(app) {
     // .env placeholder is never reported "set" here either (v1.56.3).
     const geminiSet = hasGeminiKey();
     const anthropicSet = hasAnthropicKey();
+    const openaiSet = hasOpenAIKey();
+    const qwenSet = hasQwenKey();
+    const openrouterSet = hasOpenRouterKey();
     checks.push({ name: 'GEMINI_API_KEY', required: false, ok: geminiSet, value: geminiSet ? 'set' : 'unset (manual mode)' });
     checks.push({ name: 'ANTHROPIC_API_KEY', required: false, ok: anthropicSet, value: anthropicSet ? 'set' : 'unset (set to enable live "Run" buttons)' });
+    // v1.58.8 — every headless live-eval provider gets a row on `#/health`,
+    // mirroring the GEMINI/ANTHROPIC pattern. Same `isUsableKey` gate as
+    // /api/status/providers so a placeholder in the parent `.env` is never
+    // reported "set" here. "manual mode" copy matches GEMINI's wording —
+    // any provider unset just falls back to the prompt-generation flow.
+    checks.push({ name: 'OPENAI_API_KEY',     required: false, ok: openaiSet,     value: openaiSet     ? 'set' : 'unset (manual mode)' });
+    checks.push({ name: 'QWEN_API_KEY',       required: false, ok: qwenSet,       value: qwenSet       ? 'set' : 'unset (manual mode)' });
+    checks.push({ name: 'OPENROUTER_API_KEY', required: false, ok: openrouterSet, value: openrouterSet ? 'set' : 'unset (manual mode)' });
     // v1.28.1 — HH_USER_AGENT health row removed. The hh.ru adapter falls
     // back to a baked-in UA when the env var is unset; the 403-from-non-RU
     // gate is documented in help-bundle §16 troubleshooting and the

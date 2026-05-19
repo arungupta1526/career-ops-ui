@@ -101,6 +101,32 @@ test('GET /api/health: ok=true even when only optional checks fail', async () =>
   }
 });
 
+test('GET /api/health: every headless live-eval provider has an optional check row (v1.58.8)', async () => {
+  // GEMINI_API_KEY and ANTHROPIC_API_KEY were already surfaced; user
+  // request — extend the same "set / unset (manual mode)" pattern to
+  // OPENAI_API_KEY, QWEN_API_KEY and OPENROUTER_API_KEY so the Health
+  // page reports the real state of every provider that
+  // /api/status/providers can route to.
+  const keys = ['OPENAI_API_KEY', 'QWEN_API_KEY', 'OPENROUTER_API_KEY'];
+  const prev = Object.fromEntries(keys.map((k) => [k, process.env[k]]));
+  for (const k of keys) delete process.env[k];
+  try {
+    const { body } = await get('/api/health');
+    for (const k of keys) {
+      const row = body.checks.find((c) => c.name === k);
+      assert.ok(row, `missing /api/health row for ${k}`);
+      assert.equal(row.required, false, `${k} must be OPTIONAL`);
+      assert.equal(row.ok, false, `${k} unset must report ok=false`);
+      assert.match(row.value, /unset \(manual mode\)/,
+        `${k} unset value must match the GEMINI 'unset (manual mode)' wording`);
+    }
+    assert.equal(body.ok, true,
+      'optional provider keys must not flip overall ok');
+  } finally {
+    for (const k of keys) if (prev[k] !== undefined) process.env[k] = prev[k];
+  }
+});
+
 test('GET /api/dashboard → 200 with counts', async () => {
   const { status, body } = await get('/api/dashboard');
   assert.equal(status, 200);

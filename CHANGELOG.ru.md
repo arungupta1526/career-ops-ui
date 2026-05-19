@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.8] — 2026-05-20
+
+**feat(health): показать `OPENAI_API_KEY` / `QWEN_API_KEY` / `OPENROUTER_API_KEY` на `#/health` (по аналогии с `GEMINI_API_KEY`).** В v1.57.0 OpenRouter добавлен как 5-й headless live-eval провайдер, в v1.55.3 (UX-2) появился on-screen-онбординг для 4 провайдеров, но страница `#/health` всё ещё показывала только `GEMINI_API_KEY` и `ANTHROPIC_API_KEY` — остальные три ключа были невидимы, хотя `/api/status/providers` уже маршрутизировал на них evals. По запросу пользователя расширил тот же паттерн строк «set / unset (manual mode)» на все headless-провайдеры. [server/lib/routes/health.mjs](server/lib/routes/health.mjs#L57-L71) теперь добавляет три необязательных строки чека через тот же `isUsableKey`-гейт, что и `/api/status/providers`. Хелперы `hasOpenAIKey()` / `hasQwenKey()` / `hasOpenRouterKey()` были уже импортированы, но не использовались. Формулировка «manual mode» совпадает со строкой GEMINI; локализация не требуется — Health-вью итерирует `body.checks`. 903 → **904** модульных. (Запрос пользователя)
+
+---
+
 ## [1.58.7] — 2026-05-20
 
 **fix(security): NEW-2 — `isValidJobUrl` теперь отклоняет парные синтаксисы плейсхолдеров шаблонов (`${…}`, `{{…}}`) для соответствия сообщению об ошибке.** Ответ 400 у `POST /api/pipeline` декларирует *«contain no script or template characters»*, однако MASTER-регрессия v1.58.3 показала, что фактически блокировалась только ASP/EJS-форма `<%…%>` (побочный эффект `[<>"'`\\\s]`). JS-шаблонные литералы `${TEST}` и Mustache/Handlebars `{{TEST}}` проходили — расхождение regex↔сообщение. Вариант A из fix-prompt (затягиваем regex под сообщение): новый массив `TEMPLATE_PATTERNS` в [server/lib/security.mjs](server/lib/security.mjs), вызываемый через `hasTemplatePlaceholder(url)` перед `new URL(…)`. Отклоняются только **парные** плейсхолдеры (`{normal}` как легитимный ATS-токен остаётся принятым). 901 → **903** модульных. (NEW-2)

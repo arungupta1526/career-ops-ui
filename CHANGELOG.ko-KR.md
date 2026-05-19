@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.8] — 2026-05-20
+
+**feat(health): `OPENAI_API_KEY` / `QWEN_API_KEY` / `OPENROUTER_API_KEY` 를 `#/health` 에 표시 (`GEMINI_API_KEY` 와 동일).** v1.57.0 에서 OpenRouter 가 5번째 헤드리스 live-eval 공급자로 추가되었고, v1.55.3 (UX-2) 에서 4-공급자 온보딩 배너가 도입됐지만 `#/health` 페이지는 여전히 `GEMINI_API_KEY` 와 `ANTHROPIC_API_KEY` 만 노출했습니다. 사용자 요청: "set / unset (manual mode)" 행 패턴을 모든 헤드리스 공급자로 확장. [server/lib/routes/health.mjs](server/lib/routes/health.mjs#L57-L71) 에 3 개의 선택적 체크 행을 추가하며 `/api/status/providers` 와 동일한 `isUsableKey` 게이트를 사용. Health 뷰는 `body.checks` 를 순회하므로 8 개 언어 문자열 변경 불필요. 903 → **904** 유닛. (사용자 요청)
+
+---
+
 ## [1.58.7] — 2026-05-20
 
 **fix(security): NEW-2 — `isValidJobUrl` 가 쌍을 이룬 템플릿 플레이스홀더 구문(`${…}`, `{{…}}`)을 거부하도록 수정, 오류 메시지와 일치.** `POST /api/pipeline` 의 400 응답은 *"contain no script or template characters"* 라고 안내하지만, v1.58.3 MASTER 회귀에서 실제로는 `[<>"'`\\\s]` 가드의 부수 효과로 ASP/EJS 형식 `<%…%>` 만 차단되고 JS 템플릿 리터럴 `${TEST}` 과 Mustache/Handlebars `{{TEST}}` 는 통과하던 것을 확인. fix-prompt Option A(정규식을 메시지에 맞춤): [server/lib/security.mjs](server/lib/security.mjs) 에 `TEMPLATE_PATTERNS` 배열 추가, `new URL(…)` 전에 `hasTemplatePlaceholder(url)` 호출. **쌍을 이룬** 형식만 거부(`{normal}` 같은 단일 중괄호 ATS 패턴은 유지). 901 → **903** 유닛. (NEW-2)
