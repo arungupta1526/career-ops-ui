@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.5] — 2026-05-20
+
+**fix(ui): NEW-3 — `#/followup` Run-live 雙重 POST 判定為 *無法重現*;以 Playwright 回歸守衛鎖定。** v1.58.3 MASTER 回歸透過 monkey-patched `window.fetch` 觀察到:在 `#/followup` 上單擊 Run live 一次(公司/角色/備註已填、日期故意留空)後,~2 秒內出現兩次對 `/api/mode/followup` 的相同 POST。依 fix-prompt 的「先重現」原則,對 `public/js/views/mode-page.js::submit()` 做了原始碼審查:(a) Run live 與 Generate prompt 均為普通 `<button>`,各自只有單一 `onClick`,既沒有父 `<form>` 也沒有 `addEventListener('submit')`,因此不存在雙重觸發路徑;(b) `UI.withSpinner()`(FIX-L1)在請求進行中將 `button.disabled = true`,從源頭阻斷第二次物理點擊。在 `tests/playwright-smoke.mjs` 新增還原回歸劇本的測試 — 填入公司/角色/備註、留空日期、點擊與 Run live 共用 `submit()` 的手動按鈕,於 3 秒視窗內斷言 `POST /api/mode/followup` **恰好 1 次**。選擇器與語言無關(8 種語言中 `▶` 字形相同),並透過 `addInitScript` 預先寫入 `career-ops-ui:lang=en`,避免同一瀏覽器內前一個語言切換測試影響欄位選擇器。Playwright **59 → 60**。原 QA 觀察以劇本形式存檔,無需產品程式碼修改。(NEW-3)
+
+---
+
 ## [1.58.4] — 2026-05-19
 
 **fix(security): NEW-1 — 在每個回應上發送 `Content-Security-Policy`(此前僅在非 loopback 綁定時發送)。** 在 v1.58.4 之前,僅當 `isPubliclyExposed()` 為真(HOST 綁定至 loopback 之外)時才附加 CSP 標頭;在 `127.0.0.1` 上,`/` 與 `/api/health` 皆**無** CSP 回應,`UI.md()` 的 escape-first 契約成為唯一的 XSS 防線。v1.58.3 MASTER 回歸(§5)將其標記為 stop-ship 不變量。現在 CSP 為**無條件**,無論綁定位址為何,在每個回應上皆相同:`default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`。`script-src` 絕不允許 `'unsafe-inline'`/`'unsafe-eval'`。指令集相對此前的「僅對外暴露」策略未變(已適配 SPA — 為 Inter 將 Google Fonts 加入允許清單),無視覺或功能回歸。`tests/security-headers.test.mjs` 已重寫;Playwright 路由巡檢(en/ru/ja/zh-TW × 7 條路由)驗證 **0 次 CSP 違規**。900 單元 · Playwright 58→59 · e2e 20/20+23/23。後續 fix-prompt 項目依專案原則作為後續 one-fix 版本發佈。(NEW-1)

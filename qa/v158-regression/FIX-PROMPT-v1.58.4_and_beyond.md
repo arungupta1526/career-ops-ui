@@ -34,7 +34,7 @@ That means every section below = its own version bump and its own PR. No "while 
 | Release | Fix | Severity | Class |
 |---|---|---|---|
 | **v1.58.4** ✅ | NEW-1 — add Content-Security-Policy header *(shipped 2026-05-20: CSP now unconditional, route-walk Playwright test added)* | **Major / stop-ship** | Security invariant |
-| **v1.58.5** | NEW-3 — Follow-up double-POST repro & guard | Major (if reproduces) / Minor | Functional |
+| **v1.58.5** ✅ | NEW-3 — Follow-up double-POST repro & guard *(shipped 2026-05-20: not-reproducible; locked with Playwright single-POST guard, locale-stable selector, addInitScript lang preset)* | Minor (no code change) | Functional |
 | **v1.58.6** | BUG-008-tb — top-bar Doctor modal title parity | Minor | i18n / consistency |
 | **v1.58.7** | NEW-2 — isValidJobUrl regex ↔ error-message consistency | Minor | Security UX |
 | **v1.58.8** | M-1 — global `:focus-visible` ring | Major (a11y, WCAG 2.4.7) | a11y |

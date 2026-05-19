@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.5] — 2026-05-20
+
+**fix(ui): NEW-3 — `#/followup` Run-live 二重 POST は *再現不能* と判定、Playwright リグレッションガードで施錠。** v1.58.3 の MASTER リグレッションでは(monkey-patch した `window.fetch` で計測)、`#/followup` の Run live を一度クリックしただけで `/api/mode/followup` への同一 POST が約 2 秒以内に **2 件** 観測されました(company/role/notes 入力済み、日付は空欄)。fix-prompt の「まず再現せよ」原則に従い、`public/js/views/mode-page.js::submit()` を精査した結果:(a) Run live と Generate prompt はいずれも `<button>` 要素で `onClick` を 1 つだけ持ち、親 `<form>` も `addEventListener('submit')` もないため二重発火が成立しない、(b) `UI.withSpinner()`(FIX-L1)がリクエスト発火中は `button.disabled = true` を設定し、二度目の物理クリックを根本でブロック、の 2 点が確認できました。`tests/playwright-smoke.mjs` に新規テストを追加し、リグレッションの再現レシピを忠実に踏みます — company/role/notes を入力し、日付を意図的に空欄のままにし、Run live と同じ `submit()` を呼ぶ手動ボタンを 1 回クリックして、3 秒間で `POST /api/mode/followup` が **正確に 1 件** であることを検証します。ロケール非依存のセレクタ(8 言語すべてで `▶` グリフは同一)を採用し、同一ブラウザコンテキスト内で先行する言語切替テストの影響を防ぐため `addInitScript` で `career-ops-ui:lang=en` を事前注入。Playwright **59 → 60**。元の QA 観測はレシピとして記録するに留め、製品コード変更は不要。(NEW-3)
+
+---
+
 ## [1.58.4] — 2026-05-19
 
 **fix(security): NEW-1 — すべてのレスポンスに `Content-Security-Policy` を付与（従来はループバック時に欠落）。** v1.58.4 以前は `isPubliclyExposed()` が真（HOST がループバック外）のときだけ CSP ヘッダーを付与していたため、`127.0.0.1` 上では `/` も `/api/health` も CSP **なし** で応答し、`UI.md()` のエスケープ優先契約が唯一の XSS 防御でした。v1.58.3 の MASTER リグレッション（§5）がこれを stop-ship 不変条件として指摘。CSP は **無条件** となり、バインドアドレスに関係なく全レスポンスで同一です：`default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`。`script-src` は `'unsafe-inline'`/`'unsafe-eval'` を一切許可しません。ディレクティブ集合は従来の公開時専用ポリシーから変更なし（SPA に最適化済み — Inter 用に Google Fonts を許可リスト化）のため、視覚・機能のリグレッションはありません。`tests/security-headers.test.mjs` を書き直し、Playwright のルート巡回（en/ru/ja/zh-TW × 7 ルート）で **CSP 違反 0** を検証。ユニット 900 · Playwright 58→59 · e2e 20/20+23/23。後続の fix-prompt 項目はプロジェクト方針に従い one-fix リリースとして順次公開します。(NEW-1)

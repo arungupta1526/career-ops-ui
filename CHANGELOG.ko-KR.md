@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.5] — 2026-05-20
+
+**fix(ui): NEW-3 — `#/followup` Run-live 이중 POST 은 *재현 불가* 로 분류; Playwright 회귀 가드로 잠금.** v1.58.3 MASTER 회귀에서 monkey-patched `window.fetch` 측정으로, `#/followup` Run live 한 번 클릭(회사/역할/메모 입력 완료, 날짜는 의도적으로 비움) 후 약 2 초 이내에 `/api/mode/followup` 로 동일한 POST 두 건이 관측되었습니다. fix-prompt 의 "먼저 재현" 원칙에 따라 `public/js/views/mode-page.js::submit()` 을 정밀 검토한 결과: (a) Run live 와 Generate prompt 는 모두 일반 `<button>` 으로 각각 단일 `onClick` 만 가지고 있으며, 부모 `<form>` 도 `addEventListener('submit')` 도 없어 이중 발화 경로가 존재하지 않고, (b) `UI.withSpinner()` (FIX-L1) 가 요청이 진행되는 동안 `button.disabled = true` 를 설정하여 두 번째 물리 클릭을 원천 차단합니다. `tests/playwright-smoke.mjs` 에 회귀 레시피를 그대로 따라가는 새 테스트를 추가했습니다 — 회사/역할/메모를 채우고 날짜는 비운 채 Run live 와 동일한 `submit()` 을 호출하는 수동 버튼을 한 번 클릭하면, 3 초 윈도우에서 `POST /api/mode/followup` 가 **정확히 1 건** 임을 검증합니다. 로케일 안정 선택자(8 개 언어 모두 `▶` 글리프 동일) + 동일 브라우저 컨텍스트의 이전 언어 테스트 영향을 막기 위해 `addInitScript` 로 `career-ops-ui:lang=en` 사전 주입. Playwright **59 → 60**. 원본 QA 관찰은 레시피로만 기록되며 제품 코드 변경은 필요 없습니다. (NEW-3)
+
+---
+
 ## [1.58.4] — 2026-05-19
 
 **fix(security): NEW-1 — 모든 응답에 `Content-Security-Policy` 전송 (이전에는 루프백에서 누락).** v1.58.4 이전에는 `isPubliclyExposed()` 가 참일 때(HOST 가 루프백 밖에 바인딩)만 CSP 헤더를 추가했기 때문에 `127.0.0.1` 에서는 `/` 와 `/api/health` 모두 CSP **없이** 응답했고, `UI.md()` 의 escape-first 계약이 유일한 XSS 방어였습니다. v1.58.3 MASTER 회귀 테스트(§5)가 이를 stop-ship 불변 조건으로 지적했습니다. 이제 CSP 는 바인드 주소와 무관하게 모든 응답에서 **무조건** 동일하게 전송됩니다: `default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`. `script-src` 는 `'unsafe-inline'`/`'unsafe-eval'` 를 절대 허용하지 않습니다. 디렉티브 집합은 이전의 노출 전용 정책에서 변경되지 않아(이미 SPA 에 맞게 구성 — Inter 용 Google Fonts 허용) 시각·기능 회귀가 없습니다. `tests/security-headers.test.mjs` 를 다시 작성했고, Playwright 경로 순회(en/ru/ja/zh-TW × 7 경로)에서 **CSP 위반 0** 을 검증합니다. 유닛 900 · Playwright 58→59 · e2e 20/20+23/23. 후속 fix-prompt 항목은 프로젝트 원칙에 따라 one-fix 릴리스로 순차 배포됩니다. (NEW-1)

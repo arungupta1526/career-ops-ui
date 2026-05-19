@@ -8,8 +8,8 @@
 > **Audience.** Claude Code subagents, Cursor / Codex / Aider sessions,
 > any IDE assistant that doesn't auto-load CLAUDE.md.
 >
-> **Repo state.** v1.58.4 (2026-05-20). 900 `node --test` cases,
-> 59 Playwright (smoke + full-cycle + forms). v1.55.1→v1.56.4 consolidated UX fix-prompt
+> **Repo state.** v1.58.5 (2026-05-20). 900 `node --test` cases,
+> 60 Playwright (smoke + full-cycle + forms). v1.55.1→v1.56.4 consolidated UX fix-prompt
 > complete; **v1.57.0** adds OpenRouter as a 5th headless live-eval
 > provider (one key → 300+ models, live `#/config` model dropdown via
 > `GET /api/openrouter/models`) and fixes the `/#/config`
@@ -45,7 +45,7 @@ data files (`cv.md`, `data/applications.md`, `reports/`,
 | Build | None | Files served as-is from `public/` |
 | CI | GitHub Actions, Node 18/20/22 | `.github/workflows/{ci,release,publish-package,ai-review,dashboard-screenshots}.yml` |
 
-**Test baseline (v1.58.4):** 900/900 unit · 59/59 Playwright (smoke + full-cycle + forms) · 20/20 smoke E2E · 23/23 comprehensive E2E.
+**Test baseline (v1.58.5):** 900/900 unit · 60/60 Playwright (smoke + full-cycle + forms) · 20/20 smoke E2E · 23/23 comprehensive E2E.
 
 ---
 
@@ -200,4 +200,5 @@ For trivial work (single file, single concern, < 30 min): just edit, run tests, 
 - **Server diagnostics stay English by policy; the SPA localizes its own chrome.** Don't add one-off i18n to a server error string — it'd be inconsistent with every other server error. Localize client-owned strings only (`api.netError`/`api.netHint`).
 - **Live smoke = GET only.** Write-side endpoints on the deployed server write the real parent `.env`/files. Verify writes via CI-isolated tests with `CAREER_OPS_ROOT=mktemp`.
 - **`cleanLlmMarkdown` (`server/lib/llm-output.mjs`)** strips echoed tool/agent scaffolding from model prose; apply at every provider boundary + on serving saved briefs. It is NOT an HTML sanitizer — `UI.md()` remains the XSS boundary.
+- **Repro before patching (v1.58.5, NEW-3).** The v1.58.3 MASTER regression observed two POSTs to `/api/mode/followup` after a single Run-live click — but source inspection of `public/js/views/mode-page.js::submit()` showed no structural double-bind (single `onClick` per button, no parent `<form>`, no `addEventListener('submit')`), and `UI.withSpinner` (FIX-L1) already disables the button while the request is in flight. Following the fix-prompt's "repro first" doctrine: NEW-3 was triaged **not-reproducible**, and a Playwright test in `tests/playwright-smoke.mjs` was written to *prove* exactly-one-POST under the exact regression recipe (date left blank, manual button shares `submit()` with Run live, 3 s window). When in doubt about a flaky-symptom report, write the regression-locking test first; if it goes green the QA observation is recipe-only, not a shipped code bug. Two practical Playwright lessons reinforced here: (i) cross-test localStorage pollution (a prior language-switcher test leaves `career-ops-ui:lang=ru` in the shared context) — fix with `page.addInitScript(() => localStorage.setItem('career-ops-ui:lang','en'))` so the SPA reads EN at module init *before* any view renders; (ii) use a locale-stable selector (e.g. the `▶` glyph is identical across all 8 locales) instead of localized button text.
 - **CSP is unconditional (v1.58.4, NEW-1).** Before v1.58.4 the `Content-Security-Policy` header was layered on only when `isPubliclyExposed()` was true (HOST bound beyond loopback). The v1.58.3 MASTER regression (§5) flagged that `/` and `/api/health` returned **no** CSP on `127.0.0.1`, leaving `UI.md()`'s escape-first contract as the sole XSS defence — defence-in-depth must not depend on the bind address. CSP is now always emitted with the identical directive set. The directive set itself is unchanged (Google Fonts allowlist preserved for Inter; `script-src 'self'` only, never `'unsafe-inline'`/`'unsafe-eval'`). When you add a new asset/source, update both the policy in `server/index.mjs` *and* the route-walk in `tests/playwright-smoke.mjs` — the latter monkeys console errors for `Refused to … because it violates the following Content Security Policy directive` across en/ru/ja/zh-TW × 7 routes.

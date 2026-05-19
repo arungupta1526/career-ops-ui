@@ -9,7 +9,7 @@
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#тесты)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#требования)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.58.4-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.4)
+[![release](https://img.shields.io/badge/release-v1.58.5-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.5)
 
 > **Недавнее (v1.55 → v1.58):** **чистый форматированный вывод исследований** (#/deep и Сохранённые исследования убирают echo `<tool_call>`/`<tool_response>`) + прогон багов внешнего QA-отчёта (ISO-дата на `#/followup`, markdown-жирный в блок-цитатах help, честный тост дубля pipeline, `#/outreach` алиас) + **провайдер OpenRouter** (один ключ → 300+ моделей, живой список в `#/config`) + исправление «validation failed» на `#/config` (ключи, вставленные с пробелами/переносом строки, теперь сохраняются), экранный онбординг-баннер + чип активного провайдера, честные подсказки стоимости ⚡ Запуска вживую, ETA на `#/auto`, раскрывашка Расширенных фильтров + заметный Stop на `#/scan`, hero-CTA на `#/dashboard`, виртуализация >1000 строк на `#/pipeline`, серверная пагинация + чипы воронки на `#/tracker`, полировка доступности — детали по версиям в [CHANGELOG.ru.md](CHANGELOG.ru.md).
 

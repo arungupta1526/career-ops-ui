@@ -491,6 +491,60 @@ test('Playwright smoke: POST /api/auto-pipeline SSE — emits start + step event
   await closePage(page);
 });
 
+// ─── NEW-3 (v1.58.5): #/followup `Run live` posts exactly once per click ───
+//
+// The v1.58.3 MASTER regression flagged a possible double-POST to
+// /api/mode/followup after a single button click (company/role/notes
+// filled, date intentionally empty). Code inspection of
+// `public/js/views/mode-page.js::submit` shows a single onClick handler
+// per button, no parallel form submit listener, and `UI.withSpinner`
+// (FIX-L1) disables the button for the duration of the in-flight
+// request. Both the manual "Generate prompt" button and the live "Run
+// live" button call the same `submit(btn, run)` function — so a
+// double-bind would affect both paths identically. This test exercises
+// the manual button (always visible, no provider key needed) under the
+// exact field-set the regression named (date left blank) and asserts
+// exactly one POST to `/api/mode/followup`. If the bug returns it will
+// show up here as 2+ requests, regardless of run=true/false branch.
+
+test('Playwright smoke: NEW-3 — single click on #/followup submits exactly one POST', { skip: SKIP }, async () => {
+  const page = await context.newPage();
+  const posts = [];
+  page.on('request', (r) => {
+    if (r.method() === 'POST' && /\/api\/mode\/followup\b/.test(r.url())) posts.push(r.url());
+  });
+  // A prior test in the same browser context may have switched the
+  // SPA's language (the language-switcher test leaves RU in
+  // localStorage). The Generate-prompt label is i18n-driven, so seed
+  // the persisted preference to 'en' BEFORE any page script runs so
+  // i18n.js's module-init read picks EN and the followup view renders
+  // deterministically. addInitScript fires on every navigation in this
+  // page before document scripts; setting localStorage there avoids
+  // the re-render race we'd otherwise hit with post-goto setLang.
+  await page.addInitScript(() => {
+    try { localStorage.setItem('career-ops-ui:lang', 'en'); } catch { /* private mode */ }
+  });
+  await page.goto(baseUrl + '/#/followup');
+  await page.waitForSelector('#mode-followup-company', { timeout: 15000 });
+  await page.fill('#mode-followup-company', 'TestCo');
+  await page.fill('#mode-followup-role', 'QA');
+  await page.fill('#mode-followup-notes', 'note');
+  // lastContact intentionally left empty — the regression recipe.
+
+  // The manual button is the always-visible primary; its onClick is the
+  // same submit() that the live button uses, so it tests the binding
+  // contract just as effectively without needing a real provider key.
+  // Locale-stable selector: the leading ▶ glyph is constant across all 8 locales.
+  await page.click('#content button.btn-primary:has-text("▶")');
+
+  // 3 s window — covers any debounced or microtask-deferred duplicate.
+  await page.waitForTimeout(3000);
+
+  assert.equal(posts.length, 1,
+    `expected exactly 1 POST /api/mode/followup, got ${posts.length}: ${posts.join(' | ')}`);
+  await closePage(page);
+});
+
 // ─── NEW-1 (v1.58.4): CSP is unconditional — zero violations expected ───
 
 test('Playwright smoke: zero CSP violations on a representative route walk', { skip: SKIP }, async () => {

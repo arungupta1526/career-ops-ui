@@ -9,7 +9,7 @@
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.58.4-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.4)
+[![release](https://img.shields.io/badge/release-v1.58.5-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.5)
 
 > **近期 (v1.55 → v1.58):** **整洁、格式化的研究输出**（#/deep 与已保存研究剥离 `<tool_call>`/`<tool_response>`）+ 外部 QA 报告 bug 清扫（`#/followup` ISO 日期、help 引用内粗体、诚实的重复 pipeline 提示、`#/outreach` 别名）+ **OpenRouter 提供方**（一个 key → 300+ 模型，`#/config` 实时下拉）+ `#/config`「validation failed」修复（带空格/换行粘贴的 key 现在可保存）、屏上引导横幅 + 活动提供方徽标、诚实的 ⚡ 实时运行费用提示、`#/auto` ETA、`#/scan` 高级筛选折叠 + 醒目 Stop、`#/dashboard` hero CTA、`#/pipeline` 超 1000 行虚拟化、`#/tracker` 服务端分页 + 漏斗芯片、无障碍打磨 —— 每版本细节见 [CHANGELOG.zh-CN.md](CHANGELOG.zh-CN.md)。
 
