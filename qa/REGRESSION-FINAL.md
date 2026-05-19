@@ -304,12 +304,184 @@ the ★ ones live.
 
 ### Exit criteria
 
-§0 gate green · §1–§11 every MUST satisfied · `git status` clean ·
-tag `vX` on `origin/main` with the latest CI green on all 4 jobs · no
-open MEDIUM/HIGH finding (the consolidated v1.55.x→v1.56.0 fix-prompt
-AND the follow-on `qa/FIX-PROMPT-FINAL.md` cycle — a11y focus-ring
-v1.56.1, UX-N1 v1.56.2, key-detection trust fix v1.56.3, UX-N2
-v1.56.4 — are all fully closed; **G-005** is the sole open item,
-MINOR, cross-repo, blocked on the parent commit). New findings → one-fix ships
+§0 gate green · §1–§11 every MUST satisfied · §A exhaustive matrix
+swept · `git status` clean · tag `vX` on `origin/main` with the
+latest CI green on all 4 jobs · no open MEDIUM/HIGH finding (the
+consolidated v1.55.x→v1.56.0 fix-prompt AND the follow-on
+`qa/FIX-PROMPT-FINAL.md` cycle — a11y focus-ring v1.56.1, UX-N1
+v1.56.2, key-detection trust fix v1.56.3, UX-N2 v1.56.4 — are all
+fully closed; **G-005** is the sole open item, MINOR, cross-repo,
+blocked on the parent commit). New findings → one-fix ships
 (HIGH→MEDIUM→LOW), each fully shipped (bump + CHANGELOG ×8 + test +
 Playwright-verify + AI-review LGTM + CI-watch) before the next.
+
+---
+
+## §A — EXHAUSTIVE MATRIX (every page × every control × 8 locales)
+
+> Run **after** §0–§11 pass. This is the brute-force sweep: every
+> route, every button, every input, every API, every locale, every
+> error path. Mark each cell **PASS / FAIL / PARTIAL / N/A** with
+> evidence (route, exact copy, screenshot, response body, log line).
+> A cell is PASS only if the behaviour is correct **and** legible.
+
+### §A.0 — Locale sweep protocol (do EVERY page in ALL 8)
+
+Locales (exact `i18n` keys): **`en` · `es` · `pt-BR` · `ko` · `ja` ·
+`ru` · `zh-CN` · `zh-TW`**. For each locale:
+
+1. Switch via the header language selector → reload → confirm choice
+   persists (localStorage) and `document.title` updates per route.
+2. On every page below check: **(a)** no untranslated key / raw
+   `key.path` / leftover English in a localized string (e.g. the old
+   "smart questions", `Deep research` H1 on RU — I18N-012/013);
+   **(b)** no clipped/overflowing label (CJK + DE-length: `ko`/`ja`
+   placeholders, `zh` buttons, the `#/help` "Filter sections" box —
+   UX-031); **(c)** `⌘K`/`Ctrl K` hint platform-correct;
+   **(d)** numerals/dates localized where the design localizes them;
+   **(e)** the `(METHOD /path · HTTP NNN)` diagnostic stays literal
+   (by design) while the human sentence around it is localized.
+3. Toasts: trigger at least one success + one error toast per page
+   and confirm the message is localized, wraps (does not clip), and
+   the error dwell is long enough to read.
+
+### §A.1 — Every route renders (incl. aliases & mode slugs)
+
+Canonical: `#/dashboard #/scan #/pipeline #/evaluate #/deep #/cv
+#/tracker #/reports #/activity #/config #/profile #/health #/help
+#/auto #/apply #/batch`. Mode slugs: `#/project #/training #/followup
+#/batch-prompt #/contacto #/interview-prep #/patterns`. Aliases:
+`#/settings`→profile, `#/portals`→config (opens Regional group),
+`#/outreach`→contacto (BUG-004). Unknown route `#/zzz-nope` → 404
+page with a working "Back to Dashboard".
+
+For EACH (× 8 locales): no console error, no `pageerror`, `#content`
+non-empty, exactly one `<h1>` (or the deliberate `#/cv` breadcrumb
+chip — BUG-009 is **by design**, do not refile), page-title +
+descriptive subtitle present (incl. `#/reports` empty state —
+BUG-010), sidebar item highlighted (incl. when reached via a direct
+alias URL — UX-026).
+
+### §A.2 — Every control / button (per page)
+
+For each: keyboard-reachable (Tab), visible focus ring (no spurious
+brand ring on router-managed headings), `aria-label`/label wired,
+`Enter`/`Space` activates, disabled state honoured, double-click /
+in-flight re-entrancy guarded (spinner + disabled), success **and**
+failure both produce a visible localized toast/inline message (no
+silent failure).
+
+- **Global:** sidebar nav (every item), language selector, theme
+  toggle (light/dark — `<html data-theme>` flips instantly, all
+  pages legible), global search (`⌘K`/`Ctrl K` focuses; cleared on
+  route change), connection-lost banner + auto-recovery, modal
+  (Esc / backdrop / × / Cancel all close & restore focus; Tab
+  trapped).
+- **#/dashboard:** every Quick-action / hero CTA (note duplicate
+  paths to Pipeline/Scan — UX-030, verify each actually navigates),
+  Doctor + Verify buttons → progress toast **dismissed** before the
+  result modal (BUG-007), modal title == localized button label
+  (BUG-008), `pre.console` scrollable, modal closes clean.
+- **#/scan:** source checkboxes, Advanced-filters disclosure, **Scan
+  now** (live SSE log streams; per-source rows incl. honest `HTTP
+  404` for dead portals — UX-022 is parent-config, not a code FAIL),
+  prominent **Stop** aborts mid-stream, results table populates.
+- **#/pipeline:** add URL — valid → "Added"; **duplicate → "Already
+  in the queue — skipped" info toast, queue count unchanged**
+  (BUG-005); invalid (`not-a-url`, `javascript:`, `<script>`,
+  loopback) → 400 + humanized sentence-cased message + `(POST
+  /api/pipeline · HTTP 400)` context (BUG-006), security unchanged;
+  row select → preview; delete → focus-trapped confirm (verb in
+  title == verb in body — UX-024) → row gone; >1000 rows virtualized
+  & scroll smooth; filter; "Evaluate first".
+- **#/evaluate:** empty submit → "JD is required" (UX-023); `<50`
+  chars → "min 50"; `<script>` (25 chars) → rejected by length gate
+  after sanitization; valid → manual prompt OR live result (provider
+  honoured); Save JD; cost hint reflects the **actual** active
+  provider/model (UX-028).
+- **#/deep:** empty company → required; valid → manual prompt OR
+  live brief; **rendered brief is clean** (no `<tool_call>{json}`,
+  `<tool_response>`, `<thinking>` — cleanLlmMarkdown), markdown
+  formatted (headings/tables/bold/links/blockquote-bold — BUG-003);
+  saved to interview-prep; Copy / Download .md / Generate PDF.
+- **Saved research / #/interview-prep list:** open a brief saved
+  *before* v1.58 (had scaffolding) → renders clean (cleaned on
+  serve); delete one → confirm → gone; `today`/date chips localized
+  (I18N-016).
+- **#/cv:** Upload CV (multipart; bad file rejected, no corruption),
+  sync-check, Generate PDF (SSE), Save (XSS payloads in 6 forms all
+  stripped via `stripDangerousMarkdown`; side-by-side preview safe).
+- **#/tracker:** funnel chips filter; server-side pagination
+  (first/prev/next/last, clamps when filtered); Dedup / Normalize /
+  Merge TSV → focus-trapped confirm (the quoted action word is
+  English by design — UX-025) → applications.md rewritten via
+  `withFileLock`; row actions accessible-named.
+- **#/config (3 tabs):** API-keys — every field; **PORT/HOST
+  prefilled `4317`/`127.0.0.1`**; save valid → success; save bad
+  PORT/HOST/Anthropic-key → 400 with **per-field** detail
+  (`FIELD: reason — how to fix`) + request context; **secret fields
+  never echo the typed value** (length only); a key pasted with
+  surrounding spaces/newlines saves trimmed; `lang` auto-injected by
+  api.js must NOT 400 (v1.57.2); LLM_PROVIDER select incl.
+  `openrouter`; OPENROUTER_MODEL select loads live catalogue (≥300)
+  with curated offline fallback (never empty). Profile tab — field
+  form + array editors + raw-YAML escape-hatch (destructive →
+  confirm). Modes tab — section form + raw markdown (destructive →
+  confirm). Tab a11y: roving tabindex, ←/→/Home/End, `aria-selected`.
+- **#/auto:** paste URL → stepper (validate→fetch→evaluate→save→
+  track); invalid URL → step 1 fails inline with ✗; Stop; ETA hint;
+  artifact deep-links resolve.
+- **#/batch / #/batch-prompt:** URLs textarea required; merge TSV;
+  `--max-retries N` (1–10) honoured.
+- **Mode pages** (`project/training/followup/contacto/interview-prep/
+  patterns`): required fields enforced; **`#/followup` Last contact
+  optional but if filled must be ISO `YYYY-MM-DD`** (BUG-001 —
+  junk blocked client-side, localized error, no network/credit
+  burn); Generate prompt → output + Copy; Run-live promoted when a
+  key is set.
+- **#/health:** ≥13 checks; **"Profile customized" = NOT-ok for a
+  test-fixture name** (`Acceptance Test`/`Real Person`/… — BUG-002/
+  UX-032) while a real name passes; provider rows match
+  `/api/status/providers`; footer `vX`.
+- **#/help:** TOC filter; every `##`/`>` block renders markdown
+  (bold/code/links inside blockquotes — BUG-003); canonical
+  career-ops.org links present ×8; TOC item labels localized
+  (I18N-011 is the KNOWN open backlog — record, do not refile).
+- **#/reports / #/activity:** list renders; chip/type filters change
+  the URL + list; empty states have subtitle + guidance.
+
+### §A.3 — Every API endpoint (happy + empty + invalid + boundary + security)
+
+GET (read-only, must never write parent): `/api/health`
+`/api/dashboard` `/api/status/providers` `/api/config` `/api/cv`
+`/api/profile` `/api/portals` `/api/reports[/:slug]` `/api/jds[/:name]`
+`/api/tracker` `/api/pipeline` `/api/pipeline/preview`
+`/api/interview-prep[/:name]` `/api/modes[/:name|_profile]`
+`/api/activity` `/api/openrouter/models` `/api/scan-results`
+`/api/scan/sources` `/api/scan/regional/config` `/api/output/pdfs[/:name]`
+`/api/help/:lang`. SSE: `/api/stream/{scan,scan-parent,batch,liveness,
+pdf,pdf/deep,pdf/report}`. Mutations (only on explicit user action):
+POST `/api/pipeline|tracker|evaluate[/test-*]|deep|mode/:slug|
+apply-helper|auto-pipeline|reports|batch/merge|config|stream/pdf/inline`,
+PUT `/api/cv|profile|modes/_profile|batch`, DELETE
+`/api/pipeline|jds/:name|interview-prep/:name`.
+
+Per endpoint: happy 2xx shape correct; empty/missing body → 400 with
+useful message (not 500); invalid type/oversize(>4000)/newline →
+400 per-field; `:name`/`:slug` traversal (`../`, encoded) → sanitized
+404/400; URL-fetching endpoints reject loopback/`file:`/`javascript:`/
+script-chars (isValidJobUrl + safeGet DNS-pin); unknown route → 404
+JSON; no secret in any body/log; `lang` tolerated everywhere.
+
+### §A.4 — Cross-cutting invariants (must hold every release)
+
+CSP (no `unsafe-inline`/`unsafe-eval`, `frame-ancestors 'none'`) ·
+`X-Content-Type-Options`/`X-Frame-Options`/`Referrer-Policy` set ·
+`UI.md()` escape-first remains the XSS boundary (`cleanLlmMarkdown`
+is a declutter step, NOT a sanitizer) · parent files only written on
+explicit user action · `.env` never committed · 8-locale i18n parity
+(`tests/i18n-coverage.test.mjs`) · a11y form wires
+(`tests/a11y-form-wires.test.mjs`) · `PATHS` resolves once per
+process (test path-coupled helpers statically) · pre-commit AI review
+is advisory, **`ci.yml` is the gate** — confirm CI + Release +
+Publish conclusions after every tag push.

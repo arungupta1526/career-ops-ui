@@ -170,7 +170,106 @@ follow-up.
 ### Exit criteria
 
 §0 green · §1–§7 every item PASS (PARTIALs triaged, no FAIL) ·
-§8 the only KNOWN caveat · `git status` clean · tag `vX` on
-`origin/main` with CI green on all jobs. Any FAIL or new PARTIAL →
-a one-fix ship (bump + CHANGELOG ×8 + test + Playwright-verify +
-AI-review LGTM + CI-watch) before the release is called done.
+§F-A exhaustive matrix every item PASS · §8 the only KNOWN caveat ·
+`git status` clean · tag `vX` on `origin/main` with CI green on all
+jobs. Any FAIL or new PARTIAL → a one-fix ship (bump + CHANGELOG ×8 +
+test + Playwright-verify + AI-review LGTM + CI-watch) before the
+release is called done.
+
+---
+
+## §F-A — EXHAUSTIVE FUNCTIONAL MATRIX (every endpoint × every action × 8 locales)
+
+> One row = one verifiable behaviour. Mark **PASS / FAIL / PARTIAL /
+> SKIP** with evidence (request, response body, route, exact copy,
+> server log). PASS only if correct **and** legible to the user. Do
+> every UI action in **all 8 locales** (en · es · pt-BR · ko · ja ·
+> ru · zh-CN · zh-TW) — a behaviour that's correct in `en` but emits
+> an untranslated/clipped message elsewhere is **PARTIAL**.
+
+### §F-A.1 — Read endpoints (GET) — must be correct, complete, side-effect-free
+
+For each: 200 + documented JSON shape; no parent-file write (diff the
+parent before/after — zero changes); `lang` query/body tolerated;
+`:name`/`:slug` path-traversal (`../`, URL-encoded, absolute) →
+sanitized 400/404, never escapes the dir; absent resource → 404 JSON
+(not 500, not HTML); never leaks a secret/key/token.
+
+`/api/health` (≥13 checks, `ok` reflects required-only; "Profile
+customized" = false for fixture names — BUG-002/UX-032) ·
+`/api/dashboard` · `/api/status/providers` (lists every configured
+provider incl. `openrouter`; `activeProvider`/`activeModel` match the
+OR-router) · `/api/config` (secrets masked) · `/api/cv` · `/api/profile`
+· `/api/portals` · `/api/reports[/:slug]` · `/api/jds[/:name]` ·
+`/api/tracker` (server-side pagination params honoured) · `/api/pipeline`
+· `/api/pipeline/preview` (SSRF-gated) · `/api/interview-prep[/:name]`
+(**served clean** — `<tool_call>`/`<tool_response>` stripped even for
+pre-v1.58 saved files) · `/api/modes[/:name|_profile]` · `/api/activity`
+· `/api/openrouter/models` (≥300 ids OR curated fallback — never empty;
+no key required) · `/api/scan-results` · `/api/scan/sources` ·
+`/api/scan/regional/config` · `/api/output/pdfs[/:name]` ·
+`/api/help/:lang` (every one of the 8; unknown lang → en fallback).
+SSE streams open, emit `start`→`log…`→`done`/`error`, close cleanly,
+`Stop` aborts: `/api/stream/{scan,scan-parent,batch,liveness,pdf,
+pdf/deep,pdf/report}`.
+
+### §F-A.2 — Mutation endpoints — only on explicit user action, correct effect
+
+Confirm each writes the parent **only** when the user triggers it,
+via `withFileLock` where it edits `applications.md`/`pipeline.md`,
+and the effect is exactly as claimed:
+
+- `POST /api/pipeline` — valid URL appends; **duplicate → `deduped:true`,
+  no second row** (client shows "Already in queue" — BUG-005);
+  invalid (`not-a-url`, `javascript:`, `<script>`, loopback, `file:`)
+  → 400 humanized message (BUG-006), nothing written.
+- `POST /api/tracker` — appends a row; bad payload → 400, file intact.
+- `POST /api/evaluate` (+ `/test-anthropic` `/test-gemini`) — empty/
+  `<50` → 400 "JD required/too short"; valid → manual prompt OR live
+  result tagged with the real provider; `save` writes a `jds/` file.
+- `POST /api/deep` — empty company → 400; valid → brief **clean +
+  markdown-formatted**, saved to `interview-prep/`.
+- `POST /api/mode/:slug` — only whitelisted slugs; required fields
+  enforced server-side; `#/followup` non-ISO date rejected (BUG-001
+  defends client-side; server still sane).
+- `POST /api/config` — known keys persist; **`lang` injected by
+  api.js MUST NOT 400** (v1.57.2); bad PORT/HOST/Anthropic → 400 with
+  per-field `FIELD: reason` detail; **secret value never echoed**;
+  whitespace/newline-wrapped key stored trimmed & authenticates;
+  applies live (no restart — verify §6).
+- `POST /api/auto-pipeline` — SSE stepper; invalid URL → step-1 fail.
+- `POST /api/batch/merge`, `POST /api/reports`, `POST /api/stream/pdf/inline`.
+- `PUT /api/cv` — XSS payloads stripped (`stripDangerousMarkdown`),
+  round-trips; `PUT /api/profile` — field/array/yaml merge keeps
+  untouched keys; `PUT /api/modes/_profile` — section merge vs
+  confirm-gated rebuild; `PUT /api/batch`.
+- `DELETE /api/pipeline|jds/:name|interview-prep/:name` — confirm-gated
+  in UI, removes exactly the target, 404 if absent.
+
+### §F-A.3 — Every UI action produces its correct, legible effect
+
+Per page (all 8 locales) confirm the *functional* result, not just
+that a control exists: every sidebar link routes; theme toggle
+persists; `⌘K`/`Ctrl K` focuses search and it filters; Doctor/Verify
+show real output then the progress toast is **gone**; Scan streams
+and Stop truly aborts; Pipeline add/dup/invalid/delete behave per
+§F-A.2; Evaluate/Deep/modes produce output + working Copy/Download/
+PDF; CV upload/save/PDF; Tracker funnel/pagination/dedup/normalize/
+merge mutate correctly; Config 3 tabs save & reload reflect; Auto
+stepper completes with resolvable artifact deep-links; Health numbers
+match the APIs; Help TOC filters and links resolve; 404 offers a
+working way back. Each must be **perceivable** — a silent success is
+PARTIAL.
+
+### §F-A.4 — Negative, boundary & abuse cases (must fail safely)
+
+Empty/whitespace-only inputs; max-length (>4000) and 1-over; embedded
+newlines/control chars; Unicode/RTL/emoji in names & JD; duplicate
+submits & rapid double-click; network drop mid-request (localized
+"Network error … (METHOD /path)" + recovery banner); server down then
+up (auto-reconnect); concurrent writes to the same parent file (no
+lost row — `withFileLock`); traversal/SSRF/XSS/`javascript:` all
+rejected with the security envelope intact (CSP, headers,
+`isValidJobUrl`, `safeGet`, `UI.md` escape-first — `cleanLlmMarkdown`
+is declutter, NOT the sanitizer); no secret in any response or log;
+no parent write from any read path.

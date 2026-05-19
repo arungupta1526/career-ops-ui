@@ -181,3 +181,88 @@ Read-only. Never edit parent career-ops files. Never weaken the
 security envelope. Judge against the docs' intent, not personal
 preference — when you disagree with the docs, say so explicitly and
 separately from findings. Cite evidence for every claim.
+
+---
+
+## §UX-A — EXHAUSTIVE UX MATRIX (every page × every control × 8 locales)
+
+> Sweep this in full. For every cell, rate **GOOD / FRICTION /
+> BROKEN** with evidence (screenshot, route, exact copy, locale).
+> "It works" is not enough — judge whether it works *well for the
+> user career-ops.org describes*. One root cause = one finding.
+
+### §UX-A.0 — The 8-locale lens (apply to EVERY page below)
+
+Locales: **en · es · pt-BR · ko · ja · ru · zh-CN · zh-TW**. Per page,
+per locale, judge:
+
+1. **Completeness** — zero untranslated strings / raw `key.path` /
+   leftover English inside a localized sentence (regression class:
+   I18N-012/013 "smart questions"/`Deep research` RU; the open
+   I18N-011 help-TOC). Mixed-language UI is a trust defect, file it.
+2. **Fit & truncation** — CJK (`ko`/`ja`/`zh`) and longer Romance
+   (`es`/`pt-BR`) strings must not clip, wrap mid-word, overflow
+   buttons, or collide (placeholders, tabs, chips, the `#/help`
+   "Filter sections" box, sidebar group headers, toast width).
+3. **Naturalness** — translations read like a native product wrote
+   them, not literal/MT ("Связь/звонок" for Outreach, transliterated
+   section headers). Note awkward copy as FRICTION.
+4. **Consistency** — the same concept uses the same word everywhere
+   (button label == modal title == sidebar item == help section);
+   route URLs stable & bookmarkable (`#/outreach` alias);
+   `document.title` localized per route and updates on lang switch.
+5. **Locale-aware formatting** — dates ("today" → localized), numbers,
+   the `⌘K`/`Ctrl K` hint platform-correct; placeholders that are
+   examples (ISO date) stay neutral but labels around them localize.
+
+### §UX-A.1 — Per-page heuristic pass (all pages, all 8 locales)
+
+For **every** route — `#/dashboard #/scan #/pipeline #/evaluate
+#/deep #/cv #/tracker #/reports #/activity #/config #/profile
+#/health #/help #/auto #/apply #/batch` + mode pages `#/project
+#/training #/followup #/contacto #/interview-prep #/patterns
+#/batch-prompt` + aliases `#/settings #/portals #/outreach` + the
+404 — assess: visual hierarchy (one clear H1 + descriptive subtitle;
+note the `#/cv` breadcrumb-chip is a *deliberate* single-H1 WCAG
+choice — critique only the UX, not as a bug), scan-ability, primary
+action obvious & above the fold, empty states teach the next step
+(incl. `#/reports` empty), loading states honest (spinner + ETA, not
+a frozen screen), error states actionable & legible, no duplicate/
+competing CTAs (the `#/dashboard` Quick-actions vs hero overlap),
+responsive 420 px → 1920 px (toasts must not cover Save on narrow —
+UX-027), dark theme parity on every page.
+
+### §UX-A.2 — Per-control interaction quality
+
+For every button / input / select / link / modal / toast / tab:
+affordance (looks actionable), focus visible & logical Tab order,
+hit-target ≥ 44 px, disabled/busy states clear, double-submit
+impossible, **every outcome legible** — success AND failure produce a
+visible localized message the user can actually read in time (error
+toast dwell scales with length; wraps not clips); destructive actions
+are confirm-gated with the *same verb* in title & body & button;
+progress toasts clear before their result modal (doctor/verify);
+copy-to-clipboard confirms; deep-links resolve.
+
+### §UX-A.3 — Trust & content quality (the product's promise)
+
+Judge the *output*, not just the chrome: a Deep-research / Saved
+brief must read as a clean, well-formatted document — **no raw
+`<tool_call>{json}` / `<tool_response>` / `<thinking>` leakage**,
+correct markdown (headings, tables, bold incl. inside blockquotes),
+sectioned per the docs' intent. The active-provider / cost hint must
+reflect the *actual* provider+model (not a hardcoded one). Health
+must not call a test-fixture profile "customized". Error copy must
+say what went wrong, where, and how to fix it — never an opaque
+"validation failed" or a bare stack/endpoint.
+
+### §UX-A.4 — End-to-end task journeys (the docs' core flows)
+
+Walk each as the target user, 8 locales spot-checked: (a) paste a JD
+→ score → decide (the score→action thresholds from the docs);
+(b) `#/auto` one-URL pipeline end-to-end; (c) scan portals → triage
+→ pipeline → evaluate → track; (d) deep-research a company → saved
+brief → PDF; (e) configure a provider key from zero → first live
+eval; (f) edit CV / profile / modes and see it reflected. Rate
+friction per step; cite where the flow contradicts or under-delivers
+the career-ops.org promise.
