@@ -422,7 +422,7 @@ en caso de éxito.
 
 ---
 
-## 3. Profile (`#/profile` — también accesible como `#/settings`)
+## 3. Perfil (`#/profile` — también accesible como `#/settings`)
 
 Una vista de tarjeta resumen de solo lectura de `config/profile.yml`.
 **Para editar**, ve a **App settings → pestaña Profile** (`#/config`
@@ -748,7 +748,7 @@ canónico de arriba.
 
 ---
 
-## 6. Health (`#/health`)
+## 6. Estado (`#/health`)
 
 Cada gate de setup, en badges OK / OPTIONAL / FAIL. Lee esto antes de
 abrir cualquier issue de "no funciona".
@@ -790,7 +790,7 @@ fingerprinting de tu instalación.
 
 ---
 
-## 7. Scan (`#/scan`)
+## 7. Búsqueda (`#/scan`)
 
 El scanner crawlea cada board habilitado, deduplica contra tu
 historia, y escribe los hits a `data/last-scan.json` y
@@ -911,7 +911,7 @@ Después del scoring, los seguimientos canónicos son:
 
 ---
 
-## 8. Pipeline (`#/pipeline`)
+## 8. Vacantes (`#/pipeline`)
 
 Inbox de URLs esperando ser evaluadas. Vive en `data/pipeline.md`.
 
@@ -957,7 +957,7 @@ segundos.
 
 ---
 
-## 9. Evaluate (`#/evaluate`)
+## 9. Evaluar (`#/evaluate`)
 
 Puntúa una sola Job Description contra `cv.md` y
 `config/profile.yml`. Devuelve una evaluación estructurada A–G según
@@ -1034,7 +1034,7 @@ para los resultados. Flujo completo:
 
 ---
 
-## 10. Reports (`#/reports`)
+## 10. Reportes (`#/reports`)
 
 Navega cada evaluación guardada. Las tarjetas muestran título, fecha,
 flag de legitimidad, y puntuación (color-coded: verde ≥ 4.0,
@@ -1113,7 +1113,7 @@ case-insensitive. Desde el UI, la página Evaluate ofrece un botón
 
 ---
 
-## 12. Deep research (`#/deep`)
+## 12. Investigación (`#/deep`)
 
 Genera un briefing estructurado de la empresa: snapshot, cultura de
 ingeniería, news recientes, sentiment de Glassdoor, proceso de

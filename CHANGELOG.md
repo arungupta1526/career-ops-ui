@@ -6,6 +6,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.58.2] — 2026-05-19
+
+**fix(i18n): I18N-011 — localize the `#/help` table-of-contents in all 7 non-EN locales.** The `#/help` "On this page" TOC is built from the `##` section headings of `docs/help/<lang>.md`. Sections 3/4/6/7/8/9/10/11/12 (Profile, CV, Health, Scan, Pipeline, Evaluate, Reports, Tracker, Deep research) still carried their **English** titles in es/pt-BR/ko/ja/ru/zh-CN/zh-TW, so the TOC showed English while the sidebar nav was translated. Each affected heading is now localized to the **exact same term as the sidebar `nav.*` key** (single source of truth — TOC ↔ sidebar match), preserving the section number and the `(#/route …)` parenthetical verbatim. EN unchanged (canonical). 7–9 headings per locale. Closes the sole open i18n backlog item from the v1.58 QA sweep. Docs-only; 896/896 unit · 33/33 help tests · Playwright 58/58. See `qa/v158-regression/`.
+
+---
+
 ## [1.58.1] — 2026-05-19
 
 **fix(test): CI-isolated `checkProfileCustomized` guard (patch over v1.58.0).** v1.58.0 shipped green on the advisory pre-commit but red on `ci.yml` (Node 18/20/22): the new BUG-002/UX-032 test used a cache-bust dynamic import + `PATHS` rewrite, but `server/lib/paths.mjs` resolves the project root **once per process**, so the temp root never took effect under the shared `npm test` runner (it coincidentally passed locally). Replaced with a robust **static guard** that asserts the `store.mjs` allow-list contains the fixture names AND that the regex is `^(…)$/i` exact-anchored (so a real name merely containing "test" — e.g. `María Testanova` — is provably never false-flagged). No production code changed; this also unblocks `publish-package.yml` (it runs the suite before publishing). 896/896 unit · Playwright 58/58. See `qa/v158-regression/`.

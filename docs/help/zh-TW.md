@@ -374,7 +374,7 @@ JD。輔助器會生成逐步的投遞檢查清單:
 
 ---
 
-## 3. Profile(`#/profile`,也可由 `#/settings` 到達)
+## 3. 個人資料(`#/profile`,也可由 `#/settings` 到達)
 
 `config/profile.yml` 的唯讀摘要卡片視圖。**要編輯** 請去
 **App settings → Profile 分頁**(`#/config` → Profile)。儲存後
@@ -401,7 +401,7 @@ Health 頁面有一項 **Profile customized** 檢查,只要
 
 ---
 
-## 4. CV(`#/cv`)
+## 4. 履歷(`#/cv`)
 
 每次評估、深度研究、求職信的唯一真實來源。檔案位於父專案根目錄
 的 `cv.md`。
@@ -683,7 +683,7 @@ $EDITOR portals.yml
 
 ---
 
-## 6. Health(`#/health`)
+## 6. 健康(`#/health`)
 
 所有設定關卡,以 OK / OPTIONAL / FAIL 徽章呈現。在提交任何
 「不能用」issue 之前請先讀這頁。
@@ -721,7 +721,7 @@ $EDITOR portals.yml
 
 ---
 
-## 7. Scan(`#/scan`)
+## 7. 搜尋(`#/scan`)
 
 掃描器會爬遍每個啟用的職缺板,與你的歷史去重,並把命中寫入
 `data/last-scan.json` 與 `data/pipeline.md`。
@@ -832,7 +832,7 @@ SPA 的 `#/dashboard` 與 `#/tracker` 會標亮每一列 score ≥ 4.0
 
 ---
 
-## 8. Pipeline(`#/pipeline`)
+## 8. 流水線(`#/pipeline`)
 
 等待評估的 URL 收件匣。位於 `data/pipeline.md`。
 
@@ -872,7 +872,7 @@ SPA 的 `#/dashboard` 與 `#/tracker` 會標亮每一列 score ≥ 4.0
 
 ---
 
-## 9. Evaluate(`#/evaluate`)
+## 9. 評估(`#/evaluate`)
 
 針對單一職缺描述,以 `cv.md` 與 `config/profile.yml` 作為依據
 進行評分。回傳按 `modes/oferta.md` 結構化的 A–F 評估與 0–5 score。
@@ -939,7 +939,7 @@ evaluate** 子節(在父專案執行 `./batch/batch-runner.sh`),讓它
 
 ---
 
-## 10. Reports(`#/reports`)
+## 10. 報告(`#/reports`)
 
 瀏覽每份儲存的評估。卡片顯示標題、日期、合法性旗標、score
 (顏色編碼:綠 ≥ 4.0,黃 ≥ 3.0,紅低於)。
@@ -953,7 +953,7 @@ evaluate** 子節(在父專案執行 `./batch/batch-runner.sh`),讓它
 
 ---
 
-## 11. Tracker(`#/tracker`)
+## 11. 追蹤器(`#/tracker`)
 
 CRM。每件申請一列;存於 `data/applications.md` 作為
 GitHub-Flavored Markdown 表格。
@@ -1012,7 +1012,7 @@ tracker」按鈕。
 
 ---
 
-## 12. Deep research(`#/deep`)
+## 12. 深度研究(`#/deep`)
 
 產生結構化的公司簡報:快照、工程文化、近期新聞、Glassdoor 觀感、
 面試流程、議價籌碼、可以問招募人員的三個聰明問題。

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.2] — 2026-05-19
+
+**fix(i18n)：I18N-011 — 在 7 个非 EN 语言中本地化 `#/help` 目录。** TOC 由 `docs/help/<lang>.md` 的 `##` 标题生成。第 3/4/6/7/8/9/10/11/12 节在 es/pt-BR/ko/ja/ru/zh-CN/zh-TW 仍是**英文**标题，导致侧栏已翻译而 TOC 仍英文。现将每个标题本地化为与侧栏 `nav.*` 键**完全相同的术语**（单一事实源 — TOC 与侧栏一致），保留节号与 `(#/route …)` 原文。EN 不变。关闭 v1.58 QA 唯一的 i18n 待办。仅文档；896/896 单元 · 33/33 help · Playwright 58/58。
+
+---
+
 ## [1.58.1] — 2026-05-19
 
 **fix(test)：CI 隔离的 `checkProfileCustomized` 守卫（v1.58.0 补丁）。** v1.58.0 通过了（建议性）pre-commit 但在 `ci.yml`（Node 18/20/22）失败：测试使用 cache-bust 动态 import + 改写 `PATHS`，但 `paths.mjs` **每进程只解析一次**项目根。改为健壮的**静态守卫**（allow-list + `^(…)$/i` 锚定正则；含 "test" 的真实姓名绝不误判）。无生产代码改动；同时解除 `publish-package.yml`。896/896 单元 · Playwright 58/58。见 `qa/v158-regression/`。

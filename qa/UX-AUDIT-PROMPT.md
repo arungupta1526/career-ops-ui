@@ -198,8 +198,10 @@ per locale, judge:
 
 1. **Completeness** — zero untranslated strings / raw `key.path` /
    leftover English inside a localized sentence (regression class:
-   I18N-012/013 "smart questions"/`Deep research` RU; the open
-   I18N-011 help-TOC). Mixed-language UI is a trust defect, file it.
+   I18N-012/013 "smart questions"/`Deep research` RU; I18N-011
+   help-TOC CLOSED v1.58.2 — TOC now matches the sidebar `nav.*`
+   term in all 7 locales, verify it stays so). Mixed-language UI is
+   a trust defect, file it.
 2. **Fit & truncation** — CJK (`ko`/`ja`/`zh`) and longer Romance
    (`es`/`pt-BR`) strings must not clip, wrap mid-word, overflow
    buttons, or collide (placeholders, tabs, chips, the `#/help`

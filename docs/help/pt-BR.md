@@ -423,7 +423,7 @@ sucesso.
 
 ---
 
-## 3. Profile (`#/profile` — também acessível como `#/settings`)
+## 3. Perfil (`#/profile` — também acessível como `#/settings`)
 
 Vista somente-leitura em card de `config/profile.yml`. **Para
 editar**, vá em **App settings → aba Profile** (`#/config` →
@@ -749,7 +749,7 @@ bootstrap canônico acima.
 
 ---
 
-## 6. Health (`#/health`)
+## 6. Saúde (`#/health`)
 
 Cada gate de setup, em badges OK / OPTIONAL / FAIL. Leia isto antes
 de abrir qualquer issue "não funciona".
@@ -789,7 +789,7 @@ fingerprintar sua instalação.
 
 ---
 
-## 7. Scan (`#/scan`)
+## 7. Busca (`#/scan`)
 
 O scanner percorre cada board habilitado, deduplica contra seu
 histórico, e grava hits em `data/last-scan.json` e
@@ -908,7 +908,7 @@ Depois de pontuar, os follow-ups canônicos são:
 
 ---
 
-## 8. Pipeline (`#/pipeline`)
+## 8. Vagas (`#/pipeline`)
 
 Caixa de entrada de URLs aguardando avaliação. Vive em
 `data/pipeline.md`.
@@ -955,7 +955,7 @@ timeout de 15 segundos.
 
 ---
 
-## 9. Evaluate (`#/evaluate`)
+## 9. Avaliar (`#/evaluate`)
 
 Pontua uma única Job Description contra `cv.md` e
 `config/profile.yml`. Retorna uma avaliação estruturada A–G conforme
@@ -1033,7 +1033,7 @@ resultados. Fluxo completo:
 
 ---
 
-## 10. Reports (`#/reports`)
+## 10. Relatórios (`#/reports`)
 
 Navegue por cada avaliação salva. Cards mostram título, data, flag
 de legitimidade e score (com código de cores: verde ≥ 4.0, amarelo
@@ -1112,7 +1112,7 @@ tracker" depois de uma pontuação bem-sucedida.
 
 ---
 
-## 12. Deep research (`#/deep`)
+## 12. Pesquisa (`#/deep`)
 
 Gera um briefing estruturado de empresa: snapshot, cultura de
 engenharia, notícias recentes, sentimento Glassdoor, processo de

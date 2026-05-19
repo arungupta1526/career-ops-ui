@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.2] — 2026-05-19
+
+**fix(i18n): I18N-011 — `#/help` 목차를 비-EN 7개 로케일에서 현지화.** TOC는 `docs/help/<lang>.md`의 `##` 제목으로 생성됩니다. 3/4/6/7/8/9/10/11/12 섹션이 es/pt-BR/ko/ja/ru/zh-CN/zh-TW에서 여전히 **영어** 제목이라 사이드바는 번역됐는데 TOC는 영어였습니다. 각 제목을 사이드바 `nav.*` 키와 **동일한 용어**로 현지화(단일 진실원 — TOC ↔ 사이드바 일치), 섹션 번호와 `(#/route …)`는 원문 유지. EN 불변. v1.58 QA의 유일한 i18n 백로그 해소. 문서 전용; 896/896 유닛 · 33/33 help · Playwright 58/58.
+
+---
+
 ## [1.58.1] — 2026-05-19
 
 **fix(test): CI 격리 `checkProfileCustomized` 가드 (v1.58.0 패치).** v1.58.0은 advisory pre-commit는 통과했지만 `ci.yml`(Node 18/20/22)에서 실패: 테스트가 cache-bust 동적 import + `PATHS` 재작성을 사용했으나 `paths.mjs`는 프로젝트 루트를 **프로세스당 한 번** 해석. 견고한 **정적 가드**(allow-list + `^(…)$/i` 앵커 정규식; "test" 포함 실명 오탐 없음)로 교체. 프로덕션 코드 변경 없음; `publish-package.yml`도 해제. 896/896 유닛 · Playwright 58/58. `qa/v158-regression/` 참고.

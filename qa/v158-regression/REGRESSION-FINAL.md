@@ -131,5 +131,7 @@ confirm **Release**, **AI Review**, **CI**, and (dispatched)
 | Manual matrix B (×8 locales spot-check) | ☐ |
 | Security invariants C | ☐ |
 
-Open backlog after this cycle: I18N-011 (help-TOC localization),
-I18N-014..019, the UX-02x long-tail (see FIX-PROMPT §2).
+Closed in this cycle: I18N-011 (help-TOC localized to sidebar
+`nav.*` in all 7 non-EN locales — v1.58.2).
+Open backlog after this cycle: I18N-014..019, the UX-02x long-tail
+(see FIX-PROMPT §2). Sole cross-repo open item: G-005.

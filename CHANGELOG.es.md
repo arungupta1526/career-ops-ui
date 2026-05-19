@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.58.2] — 2026-05-19
+
+**fix(i18n): I18N-011 — localiza el índice de `#/help` en los 7 idiomas no-EN.** El TOC se construye desde los encabezados `##` de `docs/help/<lang>.md`. Las secciones 3/4/6/7/8/9/10/11/12 aún tenían títulos en **inglés** en es/pt-BR/ko/ja/ru/zh-CN/zh-TW, así que el TOC salía en inglés mientras el sidebar estaba traducido. Cada encabezado afectado se localiza ahora al **mismo término que la clave `nav.*` del sidebar** (fuente única — TOC ↔ sidebar coinciden), conservando el número de sección y el paréntesis `(#/route …)` literal. EN sin cambios. Cierra el único pendiente i18n del barrido QA v1.58. Solo docs; 896/896 unit · 33/33 help · Playwright 58/58.
+
+---
+
 ## [1.58.1] — 2026-05-19
 
 **fix(test): guard `checkProfileCustomized` CI-aislado (parche sobre v1.58.0).** v1.58.0 pasó el pre-commit (consultivo) pero falló en `ci.yml` (Node 18/20/22): el test usaba import dinámico cache-bust + reescritura de `PATHS`, pero `paths.mjs` resuelve la raíz **una vez por proceso**. Reemplazado por un **guard estático** robusto (allow-list + regex `^(…)$/i` anclado; un nombre real con "test" nunca se marca). Sin cambios de código de producción; desbloquea `publish-package.yml`. 896/896 unit · Playwright 58/58. Ver `qa/v158-regression/`.

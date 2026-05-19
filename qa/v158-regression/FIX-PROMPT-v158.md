@@ -64,7 +64,7 @@ effect is a properly formatted document on `#/deep` and Saved research.
 |----|------|
 | BUG-009 (`#/cv` H1 is a quiet breadcrumb chip) | **By design.** Single-`<h1>` WCAG 1.3.1 decision (F-V54-A / G-015 lineage). cv.md's own H1 is demoted h1→h2 so the page keeps exactly one H1. Changing the chrome H1 size risks an a11y regression for zero functional gain. |
 | BUG-002 *data*, UX-022 (`Acceptance Test` profile, real `cv.md`, stale `portals.yml` 404s) | **Parent-owned.** Hard rule #1 forbids this repo editing the parent career-ops project. These are the user's/QA env's files. Code-side detection hardened instead (BUG-002/UX-032). The data cleanup + `portals.yml` pruning is the user's. |
-| I18N-011 (help-bundle TOC untranslated for items 2,3,6–12) | Real, deferred. Large `docs/help/<lang>.md` translation effort across 7 locales; tracked backlog — not bundled into a patch line to avoid a big unreviewed doc churn. |
+| I18N-011 (help-bundle TOC untranslated for items 3,4,6–12) | **CLOSED v1.58.2.** Each affected `## N. <Title>` heading in es/pt-BR/ko/ja/ru/zh-CN/zh-TW localized to the exact sidebar `nav.*` term (TOC is built from these headings → now matches the sidebar). Section number + `(#/route …)` preserved; EN canonical unchanged. |
 | I18N-014..019, UX-020/021/023/024/025/026/027/028/029/030/031 | Real but minor/cosmetic. Tracked backlog. Deferred to keep this change set reviewable. |
 
 ---

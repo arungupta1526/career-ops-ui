@@ -446,7 +446,7 @@ silent failure).
 - **#/help:** TOC filter; every `##`/`>` block renders markdown
   (bold/code/links inside blockquotes — BUG-003); canonical
   career-ops.org links present ×8; TOC item labels localized
-  (I18N-011 is the KNOWN open backlog — record, do not refile).
+  (I18N-011 — CLOSED v1.58.2: TOC headings now localized to the sidebar nav.* term in all 7 locales; verify TOC ↔ sidebar match, do not refile).
 - **#/reports / #/activity:** list renders; chip/type filters change
   the URL + list; empty states have subtitle + guidance.
 
