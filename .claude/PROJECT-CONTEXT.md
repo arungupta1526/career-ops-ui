@@ -8,7 +8,7 @@
 > **Audience.** Claude Code subagents, Cursor / Codex / Aider sessions,
 > any IDE assistant that doesn't auto-load CLAUDE.md.
 >
-> **Repo state.** v1.58.0 (2026-05-19). 896 `node --test` cases,
+> **Repo state.** v1.58.1 (2026-05-19). 896 `node --test` cases,
 > 32 Playwright smoke. v1.55.1→v1.56.4 consolidated UX fix-prompt
 > complete; **v1.57.0** adds OpenRouter as a 5th headless live-eval
 > provider (one key → 300+ models, live `#/config` model dropdown via
@@ -45,7 +45,7 @@ data files (`cv.md`, `data/applications.md`, `reports/`,
 | Build | None | Files served as-is from `public/` |
 | CI | GitHub Actions, Node 18/20/22 | `.github/workflows/{ci,release,publish-package,ai-review,dashboard-screenshots}.yml` |
 
-**Test baseline (v1.58.0):** 896/896 unit · 58/58 Playwright (smoke + full-cycle + forms) · 20/20 smoke E2E · 23/23 comprehensive E2E.
+**Test baseline (v1.58.1):** 896/896 unit · 58/58 Playwright (smoke + full-cycle + forms) · 20/20 smoke E2E · 23/23 comprehensive E2E.
 
 ---
 
@@ -189,3 +189,14 @@ For trivial work (single file, single concern, < 30 min): just edit, run tests, 
 - **`aria-describedby` without matching `id`** — `tests/a11y-form-wires.test.mjs` fails.
 - **New runtime dep** — current production deps are `express`, `js-yaml`, `multer`. Adding more needs a spec.
 - **Real LLM calls in tests** — mock the SDK adapter; never hit Anthropic / Gemini from a unit test.
+
+## Realizations / hard-won notes (v1.57–v1.58)
+
+- **`PATHS` resolves ONCE per process** (`server/lib/paths.mjs`, at module load). Set `CAREER_OPS_ROOT` *before* the first `server/*` import; you cannot switch parent roots mid-process. `node --test` isolates per *file* (child process) — multi-root within one file is infeasible. Path/IO-coupled helpers (`checkProfileCustomized`) → guard **statically** (assert the source contract), not via cache-bust dynamic imports. (v1.58.0 cache-bust test passed locally, failed CI on all Node versions → v1.58.1 static-guard fix.)
+- **Pre-commit AI review is advisory; `ci.yml` is the hard gate.** A green pre-commit + red CI is possible (v1.58.0). Always re-confirm CI/Publish conclusions after a tag push.
+- **`publish-package.yml` runs the test suite** before publishing and is **manual `workflow_dispatch`** — the `GITHUB_TOKEN`-created Release does NOT trigger it. A failing test reds both CI *and* Publish.
+- **`api.js` is parsed as binary by `grep`** (stray byte) — use `grep -a` or `sed`.
+- **The SPA's `api.js` auto-injects `lang` into every JSON POST body.** Non-LLM routes that strictly reject unknown keys must `delete body.lang` before validating (this was the real `/#/config` "validation failed" root cause, v1.57.2).
+- **Server diagnostics stay English by policy; the SPA localizes its own chrome.** Don't add one-off i18n to a server error string — it'd be inconsistent with every other server error. Localize client-owned strings only (`api.netError`/`api.netHint`).
+- **Live smoke = GET only.** Write-side endpoints on the deployed server write the real parent `.env`/files. Verify writes via CI-isolated tests with `CAREER_OPS_ROOT=mktemp`.
+- **`cleanLlmMarkdown` (`server/lib/llm-output.mjs`)** strips echoed tool/agent scaffolding from model prose; apply at every provider boundary + on serving saved briefs. It is NOT an HTML sanitizer — `UI.md()` remains the XSS boundary.

@@ -6,6 +6,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.58.1] — 2026-05-19
+
+**fix(test): CI-isolated `checkProfileCustomized` guard (patch over v1.58.0).** v1.58.0 shipped green on the advisory pre-commit but red on `ci.yml` (Node 18/20/22): the new BUG-002/UX-032 test used a cache-bust dynamic import + `PATHS` rewrite, but `server/lib/paths.mjs` resolves the project root **once per process**, so the temp root never took effect under the shared `npm test` runner (it coincidentally passed locally). Replaced with a robust **static guard** that asserts the `store.mjs` allow-list contains the fixture names AND that the regex is `^(…)$/i` exact-anchored (so a real name merely containing "test" — e.g. `María Testanova` — is provably never false-flagged). No production code changed; this also unblocks `publish-package.yml` (it runs the suite before publishing). 896/896 unit · Playwright 58/58. See `qa/v158-regression/`.
+
+---
+
 ## [1.58.0] — 2026-05-19
 
 **fix(qa): external QA-report bug sweep + clean, formatted research output.**

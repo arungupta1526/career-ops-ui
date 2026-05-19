@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.1] — 2026-05-19
+
+**fix(test)：CI 隔离的 `checkProfileCustomized` 守卫（v1.58.0 补丁）。** v1.58.0 通过了（建议性）pre-commit 但在 `ci.yml`（Node 18/20/22）失败：测试使用 cache-bust 动态 import + 改写 `PATHS`，但 `paths.mjs` **每进程只解析一次**项目根。改为健壮的**静态守卫**（allow-list + `^(…)$/i` 锚定正则；含 "test" 的真实姓名绝不误判）。无生产代码改动；同时解除 `publish-package.yml`。896/896 单元 · Playwright 58/58。见 `qa/v158-regression/`。
+
+---
+
 ## [1.58.0] — 2026-05-19
 
 **fix(qa)：外部 QA 报告 bug 清扫 + 整洁、格式化的研究输出。** 修复：**BUG-001** `#/followup` 在客户端按 ISO `YYYY-MM-DD` 校验可选日期；**BUG-003** 块引用内的 `**粗体**`/`` `代码` ``/链接现已渲染（所有帮助页）；**BUG-005** 重复 URL 显示「已在队列中 — 已跳过」；**BUG-006** 无效 URL 文案人性化（`(POST /api/pipeline · HTTP 400)` 上下文按设计保留）；**BUG-007/008** 「Running doctor.mjs…」toast 在弹窗前关闭（新增 `UI.dismissToast()`），弹窗标题=按钮本地化文案；**BUG-010** `#/reports` 空状态补副标题；**BUG-002/UX-032** `checkProfileCustomized()` 将测试夹具名判为「未自定义」（不动父项目 `profile.yml`/`cv.md` — 规则 #1）；**I18N-012/013** 俄语 Deep research 真正翻译。**新增：** `cleanLlmMarkdown()` 从 `#/deep` 与已保存研究中剥离智能体脚手架（`<tool_call>{…}</tool_call>`、`<tool_response>`、`<thinking>` …），覆盖所有提供方及已保存文件读取；`#/outreach`→`#/contacto` 别名（BUG-004）；客户端网络错误经 `I18n.t()` 本地化（8 语言；服务端 `details` 按设计为英文诊断）。**测试：** 新增 `tests/qa-report-fixes.test.mjs`（10）、`tests/llm-output.test.mjs`（5），881 → 896 单元，Playwright 58/58。**未改（含理由）：** BUG-009（`#/cv` H1 按设计，WCAG single-h1）、父数据（parent-owned）、minor i18n/UX 长尾列入待办。完整细节见 [`CHANGELOG.md`](CHANGELOG.md)。

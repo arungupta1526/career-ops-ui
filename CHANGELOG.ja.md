@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.1] — 2026-05-19
+
+**fix(test): CI 隔離の `checkProfileCustomized` ガード（v1.58.0 へのパッチ）。** v1.58.0 は助言的 pre-commit は通過したが `ci.yml`（Node 18/20/22）で失敗：テストが cache-bust 動的 import + `PATHS` 書換を使用したが `paths.mjs` はプロジェクトルートを**プロセスごとに一度**解決するため無効だった。堅牢な**静的ガード**（allow-list + `^(…)$/i` アンカー済み正規表現；"test" を含む実名は誤検知しない）に置換。プロダクションコード変更なし；`publish-package.yml` も解除。896/896 ユニット · Playwright 58/58。`qa/v158-regression/` 参照。
+
+---
+
 ## [1.58.0] — 2026-05-19
 
 **fix(qa): 外部 QA レポートのバグ一掃 + 整形済みの調査出力。** 修正: **BUG-001** `#/followup` の任意の日付をクライアントで ISO `YYYY-MM-DD` 検証; **BUG-003** ブロック引用内でも `**太字**`/`` `code` ``/リンクが描画（全 Help ページ）; **BUG-005** 重複 URL は「すでにキューにあります — スキップ」; **BUG-006** 無効 URL メッセージを人間向けに（`(POST /api/pipeline · HTTP 400)` 文脈は意図的に維持）; **BUG-007/008** 「Running doctor.mjs…」トーストをモーダル前に消す（新 `UI.dismissToast()`）、モーダル題はボタンのローカライズ済みラベル; **BUG-010** `#/reports` 空状態にサブタイトル; **BUG-002/UX-032** `checkProfileCustomized()` がテストフィクスチャ名を「未カスタマイズ」と判定（親の `profile.yml`/`cv.md` は不変 — ルール #1）; **I18N-012/013** ロシア語 Deep research を実翻訳。**新規:** `cleanLlmMarkdown()` がエージェント足場（`<tool_call>{…}</tool_call>`, `<tool_response>`, `<thinking>` …）を `#/deep`・保存済み調査から除去（全プロバイダ＋保存済みファイル配信時）; `#/outreach`→`#/contacto` エイリアス（BUG-004）; クライアントのネットワークエラーを `I18n.t()` で多言語化（8 ロケール; サーバの `details` は意図的に英語の診断）。**テスト:** 新規 `tests/qa-report-fixes.test.mjs`（10）・`tests/llm-output.test.mjs`（5）、881 → 896 ユニット、Playwright 58/58。**未変更（理由付き）:** BUG-009（`#/cv` H1 は設計上、WCAG single-h1）、親データ（parent-owned）、minor i18n/UX のロングテールはバックログ。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

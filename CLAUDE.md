@@ -71,7 +71,7 @@ See `docs/sdd/SDD-GUIDE.md` for the full workflow.
 - **File size targets** (from `~/.claude/rules/coding-style.md`): <400 lines per file. `server/index.mjs` was 1230 LOC at v1.7.x; **P-2 phase 1** (v1.8.0) split it to 762 LOC, **P-2 phase 2** (v1.9.0) finished the job — now ~130 LOC orchestrator. New routes go into `server/lib/routes/<topic>.mjs` exporting `register<Topic>Routes(app)`. Fifteen route modules cover: activity, auto-pipeline (server-side SSE auto-pipeline), batch (batch evaluate), config, content (cv/profile/portals/modes), health (+ dashboard), help, jds, llm (evaluate/deep/mode/apply/interview-prep), openrouter (GET /api/openrouter/models — model-catalogue proxy), pipeline (+ preview), reports, runners (buffered + streaming + PDFs), scan (in-process), tracker.
 - **Routes follow REST norms:** `GET /api/<resource>`, `POST /api/<resource>` (create/append), `PUT /api/<resource>` (replace), `DELETE /api/<resource>/:id`. Streaming uses `GET /api/stream/<verb>` with SSE.
 - **Conventional commits:** `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`. Optional scope: `feat(scan): …`, `fix(api): …`. Breaking change: `feat!:`.
-- **Versioning:** `package.json` is the source of truth (currently 1.58.0). The footer reads it via `/api/health`. The parent's `VERSION` file is reported separately as `parentVersion` — they drift independently.
+- **Versioning:** `package.json` is the source of truth (currently 1.58.1). The footer reads it via `/api/health`. The parent's `VERSION` file is reported separately as `parentVersion` — they drift independently.
 
 See `docs/sdd/CONVENTIONS.md` for the complete list (CSS, i18n keys, error handling, logging).
 
@@ -102,7 +102,8 @@ This repo is a **viewer + thin write-through** for career-ops. The contract is d
 1. Re-read `docs/architecture/OVERVIEW.md`.
 2. Run `npm test` — the suite documents existing invariants better than any prose.
 3. Search the changelog (`CHANGELOG.md`) for the feature area — recent entries explain why things are the way they are.
-4. Ask the user. Don't guess at security-sensitive code.
+4. Read **`.claude/PROJECT-CONTEXT.md` → "Realizations / hard-won notes"** and the latest `qa/v*-regression/FIX-PROMPT-*.md` — they record non-obvious traps (PATHS-resolves-once-per-process, CI-vs-pre-commit gate, the SPA `lang` injection, server-English-by-policy, GET-only live smoke, `cleanLlmMarkdown` ≠ XSS boundary).
+5. Ask the user. Don't guess at security-sensitive code.
 
 ---
 

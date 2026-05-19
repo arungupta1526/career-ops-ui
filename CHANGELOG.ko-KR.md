@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.1] — 2026-05-19
+
+**fix(test): CI 격리 `checkProfileCustomized` 가드 (v1.58.0 패치).** v1.58.0은 advisory pre-commit는 통과했지만 `ci.yml`(Node 18/20/22)에서 실패: 테스트가 cache-bust 동적 import + `PATHS` 재작성을 사용했으나 `paths.mjs`는 프로젝트 루트를 **프로세스당 한 번** 해석. 견고한 **정적 가드**(allow-list + `^(…)$/i` 앵커 정규식; "test" 포함 실명 오탐 없음)로 교체. 프로덕션 코드 변경 없음; `publish-package.yml`도 해제. 896/896 유닛 · Playwright 58/58. `qa/v158-regression/` 참고.
+
+---
+
 ## [1.58.0] — 2026-05-19
 
 **fix(qa): 외부 QA 리포트 버그 일괄 수정 + 깔끔하게 포맷된 조사 출력.** 수정: **BUG-001** `#/followup` 선택 날짜를 클라이언트에서 ISO `YYYY-MM-DD` 검증; **BUG-003** 블록 인용 내부에서도 `**굵게**`/`` `코드` ``/링크 렌더링(모든 Help 페이지); **BUG-005** 중복 URL은 「이미 대기열에 있음 — 건너뜀」; **BUG-006** 잘못된 URL 메시지 사람 친화적으로(`(POST /api/pipeline · HTTP 400)` 컨텍스트는 의도적으로 유지); **BUG-007/008** 「Running doctor.mjs…」 토스트를 모달 전에 제거(새 `UI.dismissToast()`), 모달 제목 = 버튼의 현지화 라벨; **BUG-010** `#/reports` 빈 상태에 부제목; **BUG-002/UX-032** `checkProfileCustomized()`가 테스트 픽스처 이름을 「미설정」으로 표시(부모 `profile.yml`/`cv.md` 미변경 — 규칙 #1); **I18N-012/013** 러시아어 Deep research 실제 번역. **신규:** `cleanLlmMarkdown()`가 에이전트 스캐폴딩(`<tool_call>{…}</tool_call>`, `<tool_response>`, `<thinking>` …)을 `#/deep`·저장된 조사에서 제거(모든 제공자 + 저장 파일 제공 시); `#/outreach`→`#/contacto` 별칭(BUG-004); 클라이언트 네트워크 오류 `I18n.t()` 현지화(8개 로케일; 서버 `details`는 의도적으로 영어 진단). **테스트:** 새 `tests/qa-report-fixes.test.mjs`(10)·`tests/llm-output.test.mjs`(5), 881 → 896 유닛, Playwright 58/58. **미변경(근거 포함):** BUG-009(`#/cv` H1 — 설계상 WCAG single-h1), 부모 데이터(parent-owned), minor i18n/UX 롱테일은 백로그. 자세한 내용은 [`CHANGELOG.md`](CHANGELOG.md).
