@@ -109,7 +109,11 @@ window.API = (function () {
       res = await fetch(path, opts);
     } catch (netErr) {
       setConnectionState(true, netErr.message || 'network error');
-      const err = new Error('Network error: ' + (netErr.message || 'Failed to fetch'));
+      // v1.57.1 — say WHAT failed and WHERE: include the verb + path so
+      // a toast like "Network error … (POST /api/config)" tells the user
+      // which action didn't go through, not just "save failed".
+      const err = new Error('Network error: ' + (netErr.message || 'Failed to fetch')
+        + ` (${method} ${path}) — the server may be down; run: bash web-ui/bin/start.sh`);
       err.network = true;
       throw err;
     }
@@ -123,9 +127,35 @@ window.API = (function () {
       data = { raw: text };
     }
     if (!res.ok) {
-      const err = new Error(data.error || res.statusText || ('HTTP ' + res.status));
+      // v1.57.1 — surface per-field validation detail SITE-WIDE. The
+      // server returns `{ error, details: ["FIELD: reason", …] }`; until
+      // now every form's `catch (e) { UI.toast(e.message) }` showed only
+      // the opaque top line ("validation failed"), so the user could not
+      // tell WHICH field was wrong. Fold the field-level reasons into
+      // the thrown message so the existing toast handlers display them
+      // verbatim — no per-view change needed. `err.details` is kept
+      // separately for views that want to render them inline.
+      let msg = data.error || res.statusText || ('HTTP ' + res.status);
+      const details = Array.isArray(data.details)
+        ? data.details.filter((d) => typeof d === 'string' && d.trim())
+        : [];
+      if (details.length) {
+        // WHY: the field-level reasons, verbatim from the server.
+        msg += ' — ' + details.join(' · ');
+      } else if (data && typeof data.raw === 'string' && data.raw.trim()) {
+        // Non-JSON error body (HTML 500 page, proxy error, …): show a
+        // trimmed snippet so the user/dev sees the actual server reason
+        // instead of a bare "HTTP 500".
+        msg += ' — ' + data.raw.trim().replace(/\s+/g, ' ').slice(0, 300);
+      }
+      // WHERE: which request failed, and the HTTP status, so an opaque
+      // "validation failed" becomes "validation failed — … (POST
+      // /api/config · HTTP 400)". Applied to every API error site-wide.
+      msg += ` (${method} ${path} · HTTP ${res.status})`;
+      const err = new Error(msg);
       err.status = res.status;
       err.data = data;
+      err.details = details;
       throw err;
     }
     return data;
@@ -184,7 +214,16 @@ window.UI = (function () {
     t.className = 'toast ' + (type || '');
     t.hidden = false;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => (t.hidden = true), 3500);
+    // v1.57.1 — error toasts now carry a full what/where/why message
+    // (field-level validation reasons + the failing request). 3.5s is
+    // too short to read that; scale the dwell time with message length
+    // and give errors a longer floor so a detailed input error is
+    // actually readable. Success/info keep the snappy 3.5s.
+    const isErr = type === 'error';
+    const dwell = isErr
+      ? Math.min(20000, Math.max(9000, 60 * msg.length))
+      : 3500;
+    toastTimer = setTimeout(() => (t.hidden = true), dwell);
   }
   // v1.17.0 — a11y: focus management + Tab trap. Remembers the element
   // that had focus before the modal opened so we can restore it on close

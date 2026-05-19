@@ -224,23 +224,37 @@ export function validateConfig(body) {
   if (typeof body !== 'object' || body === null) {
     return { ok: false, errors: ['body must be an object'] };
   }
+  // v1.57.1 — every message says WHAT is wrong, in WHICH field, and HOW
+  // to fix it. The offending value is echoed back ONLY for non-secret
+  // keys (PORT/HOST/models/LLM_PROVIDER); for SECRET_KEYS we describe
+  // the value's shape (length) but never echo it, so a mistyped real
+  // key can't leak into a toast / log.
+  const showVal = (key, val) => {
+    if (SECRET_KEYS.has(key)) return `the ${val.length}-character value you entered`;
+    const t = val.length > 60 ? val.slice(0, 60) + '…' : val;
+    return `you entered "${t}"`;
+  };
   for (const [k, raw] of Object.entries(body)) {
     if (!KNOWN_KEYS.includes(k)) {
-      errors.push(`${k}: not a known config key`);
+      errors.push(`${k}: not a known config key — this setting is not recognized and was ignored. Recognized keys: ${KNOWN_KEYS.join(', ')}.`);
       continue;
     }
     if (raw === null || raw === '' || raw === undefined) continue;
     if (typeof raw !== 'string') {
-      errors.push(`${k}: must be string`);
+      errors.push(`${k}: must be string — expected a text value but received ${Array.isArray(raw) ? 'an array' : typeof raw}.`);
       continue;
     }
     const v = normalizeConfigValue(raw);
     if (v === '') continue; // whitespace-only → treated as unset
-    if (v.length > 4000) errors.push(`${k}: longer than 4000 chars`);
+    if (v.length > 4000) {
+      errors.push(`${k}: value too long — it is ${v.length} characters but the maximum allowed is 4000. Shorten the value.`);
+    }
     // Internal newlines are still rejected — that's a real .env
     // injection guard (a value spanning lines could smuggle a second
     // KEY=value pair). Leading/trailing newlines were already trimmed.
-    if (/[\r\n]/.test(v)) errors.push(`${k}: must not contain newlines`);
+    if (/[\r\n]/.test(v)) {
+      errors.push(`${k}: must not contain newlines — the value spans more than one line. Re-paste it as a single line (a stray line break is the usual cause).`);
+    }
     // Anthropic sanity check — prefix + plausible length only. Real
     // keys are `sk-ant-…` with a base64url tail whose exact charset
     // and length Anthropic may change; a strict $-anchored class
@@ -248,13 +262,16 @@ export function validateConfig(body) {
     // is the shared "is it real?" floor; here we just catch an
     // obviously-wrong paste (e.g. an OpenAI key in the Anthropic box).
     if (k === 'ANTHROPIC_API_KEY' && !/^sk-ant-\S{20,}$/.test(v) && !/^your_/i.test(v)) {
-      errors.push(`${k}: expected sk-ant-… format`);
+      errors.push(`${k}: expected sk-ant-… format — an Anthropic key starts with "sk-ant-" followed by at least 20 characters. ${showVal(k, v)}, which doesn't match. If you pasted an OpenAI / Gemini / Qwen / OpenRouter key, put it in that provider's field instead. Get an Anthropic key at console.anthropic.com → API keys.`);
     }
     if (k === 'PORT' && !/^\d{1,5}$/.test(v)) {
-      errors.push(`${k}: must be 1-65535`);
+      errors.push(`PORT: must be 1-65535 — a whole number, digits only (the default is 4317); ${showVal(k, v)}.`);
+    }
+    if (k === 'PORT' && /^\d{1,5}$/.test(v) && (Number(v) < 1 || Number(v) > 65535)) {
+      errors.push(`PORT: must be 1-65535 — ${v} is outside the valid TCP port range.`);
     }
     if (k === 'HOST' && !/^[a-zA-Z0-9.:_-]+$/.test(v)) {
-      errors.push(`${k}: invalid hostname/ip`);
+      errors.push(`HOST: invalid hostname/ip — only letters, digits and the characters . : - _ are allowed (e.g. 127.0.0.1 for loopback, or 0.0.0.0 to expose on your LAN); ${showVal(k, v)}.`);
     }
   }
   return { ok: errors.length === 0, errors };

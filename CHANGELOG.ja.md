@@ -8,6 +8,12 @@
 
 ---
 
+## [1.57.1] — 2026-05-19
+
+**fix(ux): すべての API エラーが「何が失敗し、どこで、なぜ」を表示。入力エラー文も最大限に説明的に。** サーバは以前から `{ error, details: ["フィールド: 理由", …] }` を返していましたが、各フォームはトップ行（「validation failed」）しか表示せず、`/#/config`（および全画面）でどのフィールドが不正か分かりませんでした。`api.js` がフィールド単位の `details` をメッセージに**サイト全体で**畳み込み（1 箇所の修正で全フォームが恩恵）、リクエスト文脈 `(メソッド /パス · HTTP NNN)`（どこで）を付与、非 JSON レスポンスは生本文の断片を表示、ネットワークエラーにもメソッド+パスを付与。`err.details` も公開。`validateConfig` のメッセージは最大限に説明的（何が悪く、どう直すか）に。**シークレットキーは入力値を一切エコーしません**（文字数のみ）—実キーの打ち間違いがトースト/ログに漏れません。PORT の範囲も実際に検証（`99999` は拒否）。`/#/config` の PORT/HOST は実デフォルト（`4317` / `127.0.0.1`）を初期表示。エラートーストは長め（9–20 秒）に表示し、折り返し/スクロールして見切れません。**テスト:** 新規 `tests/config-validation-detail.test.mjs`（12）、874 → 879。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.57.0] — 2026-05-19
 
 **feat(provider): OpenRouter を 5 番目のヘッドレス・ライブ評価プロバイダとして追加 + fix(config): どの API キーを保存しても「validation failed」になる不具合を修正。** 貼り付けたキーは末尾の改行や空白を伴うことが多く（OS のクリップボード、プロバイダコンソールの「コピー」ボタン）、1.57 以前は **すべての** プロバイダで改行ガードに引っかかり、さらに `$` 終端アンカーの `ANTHROPIC_API_KEY` 正規表現が本物の Anthropic キーを誤って弾いていました。`validateConfig` は検証の **前** に各値を正規化（トリム）し、ルートはトリム後の値を保存（ランタイムで認証成功、`\n` による `.env` 破損なし）、Anthropic チェックは堅牢な `sk-ant-` プレフィックス + 長さに変更（共通の `isUsableKey()` ≥ 20 文字が本当の「実在キーか」判定）。内部改行は引き続き拒否（`.env` インジェクション対策）。**OpenRouter** が一級プロバイダに：`/#/config` の `OPENROUTER_API_KEY` 一つで 300 以上のモデルにアクセス。`auto` 順序の **最後**（Anthropic → Gemini → OpenAI → Qwen → **OpenRouter**）なので既存設定が黙ってリルートされることはなく、`LLM_PROVIDER=openrouter` で固定可能。OpenAI/Qwen と同じ `_tailProvider()` 経路で `/api/evaluate`・`/api/deep`・`/api/mode/:slug` に接続、`/api/status/providers` と Health ダッシュボードに表示。OpenAI 互換クライアント（新規依存なし — 直接 `fetch`、`AbortController` タイムアウト、キーは記録しない）で推奨の `HTTP-Referer`/`X-Title` ヘッダ付き。モデルのドロップダウンはライブ：`OPENROUTER_MODEL` は **`GET /api/openrouter/models`**（OpenRouter 公開カタログのサーバ側プロキシ — CSP `connect-src 'self'` を維持）から取得し、取得失敗時は厳選フォールバック、10 分間のメモリキャッシュ。8 ロケールに新 i18n キー（`config.openrouter*`）。**テスト:** 新規 `tests/openrouter-route.test.mjs`・`tests/openrouter-model-selector.test.mjs`、`env-config`/`openai`/`provider-selector` を拡張。831 → 855。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

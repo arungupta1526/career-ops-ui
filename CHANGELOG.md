@@ -6,6 +6,27 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.57.1] — 2026-05-19
+
+**fix(ux): every API error now says WHAT failed, WHERE, and WHY — and the input-error text is maximally descriptive.**
+
+### 🐛 Fixes
+
+- **"validation failed" was opaque.** The server already returned `{ error, details: ["FIELD: reason", …] }`, but every form's `catch (e) { UI.toast(e.message) }` showed only the top line, so on `/#/config` (and everywhere) the user couldn't tell *which* field was wrong. `api.js` now folds the per-field `details` into the thrown message **site-wide** (one change, every form benefits), appends the request context `(METHOD /path · HTTP NNN)` so the toast says *where* it failed, falls back to a trimmed raw-body snippet for non-JSON errors, and includes the verb+path on network errors. `err.details` is also exposed for inline rendering.
+- **Input-error messages are now maximally descriptive.** `validateConfig` explains what's wrong and how to fix it — e.g. `PORT: must be 1-65535 — a whole number, digits only (the default is 4317); you entered "abc"`; `HOST: invalid hostname/ip — only letters, digits and . : - _ are allowed (e.g. 127.0.0.1 …)`; the Anthropic message now points to console.anthropic.com and tells you to use the right provider's field. **Secret keys never echo the entered value** (only its character length), so a mistyped real key can't leak into a toast or log.
+- **PORT range is now actually enforced** — a 5-digit value above 65535 (e.g. `99999`) was previously accepted; it's now rejected with a clear reason.
+
+### ✨ UX
+
+- **`/#/config` PORT and HOST are pre-filled with their real defaults** (`4317` / `127.0.0.1`) instead of looking empty/unconfigured.
+- **Error toasts stay on screen long enough to read** — dwell time scales with message length (9–20 s for errors; success/info keep the snappy 3.5 s) and the toast wraps + scrolls instead of clipping a detailed message to one line.
+
+### 🧪 Tests
+
+- New `tests/config-validation-detail.test.mjs` (12): api.js detail-folding + WHERE/WHY context + toast dwell (static guards); config.js PORT/HOST defaults; server contract that every error is a field-prefixed string; descriptive-message assertions; **secret-no-echo leak guard**; the 1–65535 range fix. 874 → 879.
+
+---
+
 ## [1.57.0] — 2026-05-19
 
 **feat(provider): OpenRouter as a 5th headless live-eval provider + fix(config): "validation failed" when saving any API key.**

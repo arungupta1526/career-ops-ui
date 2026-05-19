@@ -170,13 +170,13 @@ Router.register('config', async () => {
     // the bundled default UA in server/lib/sources/hh.mjs handles
     // non-RU IPs well enough for most users.
     {
-      key: 'PORT', secret: false,
+      key: 'PORT', secret: false, defaultValue: '4317',
       labelKey: 'config.port', label: 'PORT',
       hintKey: 'config.portHint',
       hintFallback: 'Default 4317. Restart the server after changing.',
     },
     {
-      key: 'HOST', secret: false,
+      key: 'HOST', secret: false, defaultValue: '127.0.0.1',
       labelKey: 'config.host', label: 'HOST',
       hintKey: 'config.hostHint',
       hintFallback: 'Default 127.0.0.1 (loopback). 0.0.0.0 exposes the UI to your LAN — only do that on a trusted network.',
@@ -239,7 +239,10 @@ Router.register('config', async () => {
         onInput: () => dirty.add(spec.key),
       });
       // Only pre-populate if NOT secret (we never echo secrets back).
-      if (!spec.secret) input.value = value;
+      // v1.57.1 — when the key is unset, prefill the spec's default
+      // (PORT 4317 / HOST 127.0.0.1) so the field shows the value the
+      // server actually uses instead of looking empty/unconfigured.
+      if (!spec.secret) input.value = value || spec.defaultValue || '';
     }
     fields[spec.key] = input;
     return c('div', { className: 'field', style: { marginBottom: '20px' } }, [

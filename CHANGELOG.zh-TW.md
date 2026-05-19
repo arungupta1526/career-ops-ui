@@ -8,6 +8,12 @@
 
 ---
 
+## [1.57.1] — 2026-05-19
+
+**fix(ux)：每個 API 錯誤現在都說明「什麼失敗、在哪裡、為什麼」；輸入錯誤文案盡可能詳盡。** 伺服器早已回傳 `{ error, details: ["欄位: 原因", …] }`，但各表單只顯示首行（「validation failed」），因此在 `/#/config`（及各處）無法得知哪個欄位有誤。`api.js` 現在**全站**將逐欄位 `details` 併入訊息（改一處，所有表單受益），附加請求上下文 `(方法 /路徑 · HTTP NNN)`（在哪裡），非 JSON 回應顯示原始內文片段，網路錯誤也帶方法+路徑；並暴露 `err.details`。`validateConfig` 訊息改為盡可能詳盡（哪裡錯、如何修）。**密鑰欄位絕不回顯輸入值**（僅字元數）——輸錯的真實 key 不會洩漏到 toast/日誌。PORT 範圍現真正驗證（`99999` 被拒）。`/#/config` 的 PORT/HOST 預填真實預設值（`4317` / `127.0.0.1`）。錯誤 toast 停留更久（9–20 秒）且換行/捲動而非截斷。**測試：** 新增 `tests/config-validation-detail.test.mjs`（12），874 → 879。完整細節見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.57.0] — 2026-05-19
 
 **feat(provider): OpenRouter 作為第 5 個無頭即時評估提供方 + fix(config): 儲存任意 API key 時出現「validation failed」的修復。** 貼上的 key 常帶有尾端換行或空白（作業系統剪貼簿、提供方主控台的「複製」按鈕）——1.57 之前這會觸發 **所有** 提供方的換行守衛，且以 `$` 結尾錨定的 `ANTHROPIC_API_KEY` 正則會誤拒真實的 Anthropic key。現在 `validateConfig` 在驗證 **之前** 正規化（trim）每個值，路由持久化已修剪的值（執行期認證成功，不會因 `\n` 破壞 `.env`），Anthropic 檢查改為健全的 `sk-ant-` 前綴 + 長度（共用的 `isUsableKey()` ≥ 20 字元仍是真正的「是否真實 key」門檻）。內部換行仍被拒絕（`.env` 注入守衛）。**OpenRouter** 現為一等提供方：`/#/config` 的 `OPENROUTER_API_KEY` 一個 key 即可接入 300+ 模型。它是 `auto` 順序的**最後一位**（Anthropic → Gemini → OpenAI → Qwen → **OpenRouter**），因此既有設定絕不會被靜默改道；`LLM_PROVIDER=openrouter` 可固定。透過與 OpenAI/Qwen 相同的 `_tailProvider()` 路徑接入 `/api/evaluate`、`/api/deep`、`/api/mode/:slug`，並在 `/api/status/providers` 與 Health 儀表板中呈現。OpenAI 相容用戶端（無新相依——直接 `fetch`、`AbortController` 逾時、key 不記錄），帶建議的 `HTTP-Referer`/`X-Title` 標頭。模型下拉是即時的：`OPENROUTER_MODEL` 由 **`GET /api/openrouter/models`**（OpenRouter 公開目錄的伺服器端代理——保持 CSP `connect-src 'self'`）填充，目錄不可用時回退精選清單，10 分鐘記憶體快取。8 種語言新增 i18n key（`config.openrouter*`）。**測試：** 新增 `tests/openrouter-route.test.mjs`、`tests/openrouter-model-selector.test.mjs`，擴充 `env-config`/`openai`/`provider-selector`。831 → 855。完整細節見 [`CHANGELOG.md`](CHANGELOG.md)。

@@ -1025,6 +1025,12 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
   font-size: 14px;
   z-index: 1000;
   max-width: 360px;
+  /* v1.57.1 — detailed what/where/why error messages must wrap and stay
+     readable instead of being clipped to one line. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-height: 50vh;
+  overflow-y: auto;
   animation: slide-in 200ms ease-out;
 }
 .toast.error { background: var(--rausch); }

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.57.1] — 2026-05-19
+
+**fix(ux): 모든 API 오류가 무엇이 실패했고 어디서 왜인지 표시; 입력 오류 문구도 최대한 설명적으로.** 서버는 이전부터 `{ error, details: ["필드: 사유", …] }`를 반환했지만 폼들은 상단 줄(「validation failed」)만 표시해 `/#/config`(및 전 화면)에서 어느 필드가 문제인지 알 수 없었습니다. 이제 `api.js`가 필드별 `details`를 메시지에 **사이트 전역**으로 합치고(한 곳 수정으로 모든 폼이 혜택), 요청 컨텍스트 `(메서드 /경로 · HTTP NNN)`(어디서)를 덧붙이며, 비 JSON 응답은 원문 일부를 표시하고, 네트워크 오류에도 메서드+경로를 포함합니다. `err.details`도 노출. `validateConfig` 메시지는 최대한 설명적(무엇이 잘못됐고 어떻게 고치는지)으로 변경. **시크릿 키는 입력값을 절대 에코하지 않음**(글자 수만) — 실제 키 오타가 토스트/로그로 새지 않습니다. PORT 범위도 실제로 검증(`99999` 거부). `/#/config`의 PORT/HOST는 실제 기본값(`4317` / `127.0.0.1`)으로 미리 채움. 오류 토스트는 더 오래(9–20초) 표시되고 잘리지 않고 줄바꿈/스크롤됩니다. **테스트:** 새 `tests/config-validation-detail.test.mjs`(12), 874 → 879. 자세한 내용은 [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.57.0] — 2026-05-19
 
 **feat(provider): OpenRouter를 5번째 헤드리스 라이브 평가 공급자로 추가 + fix(config): 어떤 API 키를 저장해도 「validation failed」 발생하던 버그 수정.** 붙여넣은 키는 흔히 끝에 줄바꿈이나 공백이 붙어 옵니다(OS 클립보드, 공급자 콘솔의 「복사」 버튼). 1.57 이전에는 이것이 **모든** 공급자에서 줄바꿈 가드를 건드렸고, `$` 종단 앵커 `ANTHROPIC_API_KEY` 정규식이 실제 Anthropic 키를 잘못 거부했습니다. 이제 `validateConfig`는 검증 **전에** 모든 값을 정규화(트림)하고, 라우트는 트림된 값을 저장(런타임 인증 성공, `\n`로 인한 `.env` 손상 없음)하며, Anthropic 검사는 견고한 `sk-ant-` 접두사 + 길이로 변경(공통 `isUsableKey()` ≥ 20자 기준이 진짜 「실제 키인가」 게이트). 내부 줄바꿈은 계속 거부(`.env` 인젝션 가드). **OpenRouter**가 1급 공급자가 됨: `/#/config`의 `OPENROUTER_API_KEY` 하나로 300개 이상 모델 접근. `auto` 순서의 **마지막**(Anthropic → Gemini → OpenAI → Qwen → **OpenRouter**)이라 기존 설정이 조용히 재라우팅되지 않으며, `LLM_PROVIDER=openrouter`로 고정. OpenAI/Qwen과 동일한 `_tailProvider()` 경로로 `/api/evaluate`·`/api/deep`·`/api/mode/:slug`에 연결, `/api/status/providers` + Health 대시보드에 노출. OpenAI 호환 클라이언트(새 의존성 없음 — 직접 `fetch`, `AbortController` 타임아웃, 키 미기록), 권장 `HTTP-Referer`/`X-Title` 헤더 포함. 모델 드롭다운은 라이브: `OPENROUTER_MODEL`은 **`GET /api/openrouter/models`**(OpenRouter 공개 카탈로그의 서버 측 프록시 — CSP `connect-src 'self'` 유지)에서 채워지며, 카탈로그 불가 시 선별 폴백, 10분 메모리 캐시. 8개 로케일에 새 i18n 키(`config.openrouter*`). **테스트:** 새 `tests/openrouter-route.test.mjs`·`tests/openrouter-model-selector.test.mjs`, `env-config`/`openai`/`provider-selector` 확장. 831 → 855. 자세한 내용은 [`CHANGELOG.md`](CHANGELOG.md).
