@@ -30,6 +30,28 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('M-4 (v1.58.11): saved-research card has CSS gap between title and date (no string concat)', () => {
+  const deep = read('public', 'js', 'views', 'deep.js');
+  // Title and date must be SEPARATE child elements with the new classes,
+  // not concatenated strings. The date element must be semantic <time>
+  // with a datetime attribute (a11y) — assert all three.
+  assert.match(deep, /className: 'saved-card__title'/,
+    'saved-research card must have a .saved-card__title element');
+  assert.match(deep, /c\('time',\s*\{[^}]*className: 'saved-card__date'[^}]*datetime:/,
+    'saved-research date must be a <time class="saved-card__date" datetime=...>');
+  // The pre-fix inline marginLeft: 8px must be gone — gap is now structural CSS.
+  assert.ok(!/marginLeft: '8px'.*formatRelative/s.test(deep),
+    'pre-fix inline marginLeft string-concat must be removed');
+
+  // CSS must define the .saved-card flex container with non-zero gap so
+  // a future tweak to the JSX can't reintroduce the collapsed-margin bug.
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /\.saved-card\s*\{[^}]*display:\s*inline-flex[^}]*gap:\s*var\(--space-2[^)]*\)/m,
+    '.saved-card must declare inline-flex + gap');
+  assert.match(css, /\.saved-card__title\b/, 'CSS must define .saved-card__title');
+  assert.match(css, /\.saved-card__date\b/,  'CSS must define .saved-card__date');
+});
+
 test('M-2 (v1.58.10): UI.modal() drains the progress toast at entry (defence-in-depth)', () => {
   // Health view already calls UI.dismissToast() at every modal-opening
   // site. cv.js's sync-check used to skip it → 'Running …' toast

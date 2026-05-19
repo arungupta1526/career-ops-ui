@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.11] — 2026-05-20
+
+**fix(ux): M-4 — 保存済みリサーチカードのタイトル↔日付の間隔を構造的 CSS に(従来はインライン margin)。** v1.58.3 の MASTER リグレッションで、一部のカードに `software-engineer-generaltoday`(タイトルと日付の間に空白なし)が確認された。原因は 2 つの裸の `<span>` の間の `style="margin-left: 8px"` インラインに依存しており、特定エントリで崩れていたこと。[public/js/views/deep.js](public/js/views/deep.js#L34-L55) を修正 — 2 つの `<span>` を `.saved-card__title` + セマンティックな `<time class="saved-card__date" datetime="…">` に置き換え、フレックスコンテナ `.saved-card` でラップ。間隔は `gap: var(--space-2, 8px)` で制御するため崩れず、`<time>` で a11y/SEO の意味付けも得られる。906 → **907** ユニット。(M-4)
+
+---
+
 ## [1.58.10] — 2026-05-20
 
 **fix(ux): M-2 — 結果モーダル表示前に進捗トーストを排水。** `#/cv` の `sync-check` クリック時、「Running cv-sync-check.mjs…」トーストが右下に残ったまま結果モーダルが開き、注目を奪い合い狭い画面では視覚的に重なっていた。Health ページの Doctor / verify-pipeline ボタンは `UI.modal()` 前に `UI.dismissToast()` を明示呼び出ししていたが、cv.js の sync-check のみ抜けていた。[public/js/api.js](public/js/api.js#L272) で `UI.modal()` の最初の実行文として `dismissToast()` を呼ぶよう変更(境界での多層防御)。あわせて cv.js のハードコード英語文字列を `t('cv.syncCheckRunning')` / `t('cv.syncCheck')` に置換し、BUG-008 不変条件(モーダルタイトル == ローカライズボタンラベル)も満たす。新規 i18n キー 2 つを 8 言語で追加。905 → **906** ユニット。(M-2)

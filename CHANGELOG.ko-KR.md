@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.11] — 2026-05-20
+
+**fix(ux): M-4 — 저장된 리서치 카드의 제목↔날짜 간격을 구조적 CSS 로 (기존 인라인 margin).** v1.58.3 MASTER 회귀에서 일부 카드가 `software-engineer-generaltoday` (제목과 날짜 사이 공백 없음)로 표시됨을 확인. 원인은 두 개의 `<span>` 사이의 `style="margin-left: 8px"` 인라인 의존이 특정 항목에서 무너지는 것. [public/js/views/deep.js](public/js/views/deep.js#L34-L55) 수정 — 두 개의 `<span>` 을 `.saved-card__title` + 시맨틱 `<time class="saved-card__date" datetime="…">` 로 교체하고 플렉스 컨테이너 `.saved-card` 로 감쌈. 간격은 `gap: var(--space-2, 8px)` 가 제어 → 더 이상 무너지지 않으며 `<time>` 으로 a11y/SEO 시맨틱도 확보. 906 → **907** 유닛. (M-4)
+
+---
+
 ## [1.58.10] — 2026-05-20
 
 **fix(ux): M-2 — 결과 모달 열기 전에 진행 토스트 비우기.** `#/cv` 에서 `sync-check` 클릭 시 "Running cv-sync-check.mjs…" 토스트가 우하단에 남은 상태로 결과 모달이 열려 좁은 화면에서는 시각적으로 겹쳤습니다. Health 페이지 Doctor / verify-pipeline 은 이미 `UI.modal()` 전에 `UI.dismissToast()` 를 명시 호출했으나 cv.js sync-check 만 누락. [public/js/api.js](public/js/api.js#L272) 에서 `UI.modal()` 의 첫 실행 문장으로 `dismissToast()` 를 호출하도록 변경(경계에서의 심층 방어). cv.js 의 하드코딩 영문 문자열을 `t('cv.syncCheckRunning')` / `t('cv.syncCheck')` 로 교체해 BUG-008 불변 조건(모달 타이틀 == 로컬라이즈된 버튼 라벨)도 충족. 새 i18n 키 2 개를 8 개 언어에 추가. 905 → **906** 유닛. (M-2)

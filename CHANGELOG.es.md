@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.58.11] — 2026-05-20
+
+**fix(ux): M-4 — el espaciado entre título y fecha en la tarjeta de investigación guardada ahora es CSS estructural (antes margen inline).** La regresión MASTER de v1.58.3 verificó que algunas tarjetas mostraban `software-engineer-generaltoday` (sin espacio entre título y fecha), mientras otras estaban bien — el código previo dependía de `style="margin-left: 8px"` entre dos `<span>` sueltos, que colapsaba en ciertos casos. Corrección en [public/js/views/deep.js](public/js/views/deep.js#L34-L55) — sustituye los dos `<span>` por `.saved-card__title` + un `<time class="saved-card__date" datetime="…">` semántico, envueltos en un contenedor flex `.saved-card`. El espaciado ahora lo controla `gap: var(--space-2, 8px)`, no puede colapsar (y se gana semántica a11y/SEO con `<time>`). 906 → **907** unitarios. (M-4)
+
+---
+
 ## [1.58.10] — 2026-05-20
 
 **fix(ux): M-2 — descartar el toast de progreso antes de abrir cualquier modal de resultado.** Hacer clic en `sync-check` en `#/cv` dejaba el toast "Running cv-sync-check.mjs…" abajo a la derecha mientras se abría el modal de resultado — ambos compitiendo por la atención y, en pantallas estrechas, solapándose visualmente. Los botones Doctor / verify-pipeline de la página Health ya llamaban a `UI.dismissToast()` explícitamente antes de `UI.modal()`; el sync-check de cv.js era el único punto de entrada que lo omitía. Corrección en [public/js/api.js](public/js/api.js#L272) — `UI.modal()` ahora invoca `dismissToast()` como primera sentencia, cubriendo cualquier futuro punto de entrada (defensa en profundidad). Además, las cadenas de `cv.js` se localizaron mediante `t('cv.syncCheckRunning')` y `t('cv.syncCheck')` (invariante BUG-008: título del modal == etiqueta localizada del botón). Dos nuevas claves i18n añadidas en los 8 idiomas. 905 → **906** unitarios. (M-2)

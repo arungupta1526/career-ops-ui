@@ -32,14 +32,27 @@ Router.register('deep', async () => {
     archive.appendChild(c('h3', { className: 'section-title' }, t('deep.archiveTitle', 'Saved research')));
     const list = c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap' } });
     for (const f of files) {
+      // M-4 (v1.58.11) — saved-research card title↔date spacing.
+      // The pre-fix layout was two <span>s with an inline marginLeft:
+      // 8px on the second; on some cards the title ran straight into
+      // the date (e.g. "software-engineer-generaltoday"). The fix uses
+      // a dedicated `.saved-card` flex container with CSS `gap`, plus a
+      // semantic <time> element with a datetime attribute (a11y +
+      // machine-parseable; matches the WCAG `<time>` recommendation).
+      // Spacing comes from `gap`, not from string concatenation or an
+      // inline margin that some reset / flex-shrink path could collapse.
+      const iso = new Date(f.mtime).toISOString();
       const btn = c('button', {
-        className: 'btn btn-ghost btn-sm',
+        className: 'btn btn-ghost btn-sm saved-card',
         title: new Date(f.mtime).toLocaleString(),
         onClick: async (e) => {
           const r = await UI.withSpinner(e.currentTarget, () => API.get('/api/interview-prep/' + encodeURIComponent(f.name)));
           showResult(f.name, r.markdown, { saved: f.name });
         },
-      }, [c('span', null, f.name.replace(/\.md$/, '')), c('span', { style: { marginLeft: '8px', color: 'var(--foggy)' } }, formatRelative(f.mtime))]);
+      }, [
+        c('span', { className: 'saved-card__title' }, f.name.replace(/\.md$/, '')),
+        c('time', { className: 'saved-card__date', datetime: iso }, formatRelative(f.mtime)),
+      ]);
       list.appendChild(btn);
     }
     archive.appendChild(list);

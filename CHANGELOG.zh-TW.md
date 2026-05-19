@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.11] — 2026-05-20
+
+**fix(ux): M-4 — 已儲存研究卡片的標題↔日期間距改為結構化 CSS(原為內聯 margin)。** v1.58.3 MASTER 回歸確認部分卡片顯示為 `software-engineer-generaltoday`(標題與日期之間無空格),其餘正常。原因:舊程式依賴兩個裸 `<span>` 間的 `style="margin-left: 8px"`,在某些項目中崩塌。修正:[public/js/views/deep.js](public/js/views/deep.js#L34-L55) — 將兩個 `<span>` 替換為 `.saved-card__title` + 語義化 `<time class="saved-card__date" datetime="…">`,外層包裹 `.saved-card` flex 容器。間距由 `gap: var(--space-2, 8px)` 控制 → 不再崩塌,同時取得 `<time>` 的 a11y/SEO 語義。906 → **907** 單元。(M-4)
+
+---
+
 ## [1.58.10] — 2026-05-20
 
 **fix(ux): M-2 — 在開啟任何結果模態框前先清空進度 toast。** 在 `#/cv` 點擊 `sync-check` 時,「Running cv-sync-check.mjs…」toast 仍留在右下角,而結果模態框已經打開 — 二者搶奪注意,在窄螢幕上視覺重疊。Health 頁的 Doctor / verify-pipeline 按鈕原本就在 `UI.modal()` 前明確呼叫 `UI.dismissToast()`;cv.js 的 sync-check 是唯一遺漏的入口。修正:[public/js/api.js](public/js/api.js#L272) — `UI.modal()` 現在將 `dismissToast()` 作為首個可執行陳述呼叫(邊界處的縱深防禦)。同時把 cv.js 中硬編碼的英文字串改為 `t('cv.syncCheckRunning')` / `t('cv.syncCheck')`,滿足 BUG-008 不變量(模態框標題 == 本地化按鈕標籤)。在 8 種語言中新增兩個 i18n 鍵。905 → **906** 單元。(M-2)
