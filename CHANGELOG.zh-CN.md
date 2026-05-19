@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.14] — 2026-05-20
+
+**fix(ux): M-9 — 连接横幅的"刷新"按钮现在提供反馈(之前为静默重载)。** 在 v1.58.13 之前,处理器直接调用 `location.reload()`。现在点击会立即弹出"刷新中…"的 toast,设置 `sessionStorage['refreshedToast']`,把按钮置为 `disabled` 防止双击叠加,并把 reload 延迟 200ms 让 toast 渲染。下次启动时 app.js 检测到标记,弹出成功 toast"已刷新"。在 8 种语言中新增 2 个 i18n 键(`common.refreshing`, `common.refreshed`)。909 → **910** 单元。(M-9)
+
+---
+
 ## [1.58.13] — 2026-05-20
 
 **fix(ux): M-8 — `#/apply` 清单变为可交互。** 在 v1.58.13 之前,"▶ 生成清单"把 0…7 号条目以等宽 `<pre>` 块呈现 — 只读、无法勾选。现在每个条目渲染为真正的 `<input type="checkbox">`,外层包裹 `<label>`(点击区域为整行,WCAG 2.5.5)。状态按 URL 持久化到 `localStorage['applyChecklist:'+slug]` — 勾选 3 项 → 刷新 → 3 项仍保持。按钮:**复制未勾选项**(把仍未完成的条目以 `- markdown` 子弹输出)与 **重置**。在 8 种语言中新增 5 个 i18n 键(`apply.checklist.copyUnchecked`, `resetBtn`, `copied`, `copyFailed`, `reset`)。解析器找不到条目时有防御性回退。908 → **909** 单元。(M-8)

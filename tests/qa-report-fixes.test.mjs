@@ -30,6 +30,47 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('M-9 (v1.58.14): connection-banner Refresh emits a localized toast (no silent reload)', () => {
+  const app = read('public', 'js', 'app.js');
+  // Click handler must show the in-flight toast (synchronous before
+  // the reload steals the page).
+  assert.match(app, /UI\.toast\(I18n\.t\('common\.refreshing',/,
+    "Refresh click must show t('common.refreshing', …) before reload");
+  // Reload must be deferred via setTimeout so the toast paints before
+  // navigation; immediate location.reload() would swallow the toast.
+  assert.match(app, /setTimeout\(\(\)\s*=>\s*location\.reload\(\),\s*\d+\)/,
+    'Refresh reload must be deferred via setTimeout');
+  // Per-button disabled guard prevents toast stacking on rapid clicks.
+  assert.match(app, /refreshBtn\.disabled\s*=\s*true/,
+    'Refresh button must disable itself to swallow rapid double-clicks');
+  // sessionStorage handoff so the success toast survives the navigation.
+  assert.match(app, /sessionStorage\.setItem\('refreshedToast'/,
+    "Refresh must set sessionStorage['refreshedToast'] before reload");
+  assert.match(app, /sessionStorage\.getItem\('refreshedToast'\)/,
+    'next page boot must check sessionStorage for the pending toast');
+  assert.match(app, /UI\.toast\(I18n\.t\('common\.refreshed',[^)]*\),\s*'success'\)/,
+    "next page boot must emit t('common.refreshed', …) as a success toast");
+  // Pre-fix silent `location.reload()` direct call (no toast, no
+  // sessionStorage) must be gone.
+  assert.ok(
+    !/conn-refresh-btn[^\n]*addEventListener\('click',\s*\(\)\s*=>\s*location\.reload\(\)\)/.test(app),
+    'pre-fix silent location.reload() handler must be replaced'
+  );
+
+  // i18n parity — both new keys present in all 8 locales.
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  for (const key of ['common.refreshing', 'common.refreshed']) {
+    const re = new RegExp(`'${key.replace(/\./g, '\\.')}':\\s*\\{([^}]*)\\}`);
+    const row = dict.match(re);
+    assert.ok(row, `i18n-dict.js missing '${key}'`);
+    for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+      const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+      assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+        `'${key}' must have a non-empty ${lang} value`);
+    }
+  }
+});
+
 test('M-8 (v1.58.13): apply checklist renders interactive checkboxes + persists per URL', () => {
   const apply = read('public', 'js', 'views', 'apply.js');
   // Items render as real <input type="checkbox"> with index data attr.

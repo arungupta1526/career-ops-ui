@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.14] — 2026-05-20
+
+**fix(ux): M-9 — 連線橫幅的「重新整理」按鈕現在提供回饋(之前為靜默重新載入)。** 在 v1.58.13 之前,處理器直接呼叫 `location.reload()`。現在點擊會立即彈出「重新整理中…」的 toast,設定 `sessionStorage['refreshedToast']`,把按鈕設為 `disabled` 防止雙擊堆疊,並把 reload 延遲 200ms 讓 toast 繪製。下次啟動時 app.js 偵測到旗標,彈出成功 toast「已重新整理」。在 8 種語言中新增 2 個 i18n 鍵(`common.refreshing`, `common.refreshed`)。909 → **910** 單元。(M-9)
+
+---
+
 ## [1.58.13] — 2026-05-20
 
 **fix(ux): M-8 — `#/apply` 清單變為可互動。** 在 v1.58.13 之前,「▶ 產生清單」把 0…7 號項目以等寬 `<pre>` 區塊呈現 — 唯讀、無法勾選。現在每個項目渲染為真正的 `<input type="checkbox">`,外層包裹 `<label>`(點擊區域為整行,WCAG 2.5.5)。狀態依 URL 持久化至 `localStorage['applyChecklist:'+slug]` — 勾選 3 項 → 重新整理 → 3 項仍維持。按鈕:**複製未勾選項**(將尚未完成的項目以 `- markdown` 條列輸出)與 **重設**。在 8 種語言中新增 5 個 i18n 鍵(`apply.checklist.copyUnchecked`, `resetBtn`, `copied`, `copyFailed`, `reset`)。解析器找不到項目時有防禦性退路。908 → **909** 單元。(M-8)

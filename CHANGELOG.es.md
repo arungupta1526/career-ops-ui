@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.58.14] — 2026-05-20
+
+**fix(ux): M-9 — el botón `Actualizar` del banner de conexión ahora da feedback (antes era una recarga silenciosa).** Hasta v1.58.13 el handler llamaba directamente a `location.reload()`. Ahora muestra un toast `Actualizando…`, marca `sessionStorage['refreshedToast']`, desactiva el botón para evitar dobles clics, y difiere la recarga 200 ms para que el toast pinte. En el arranque siguiente, app.js detecta la marca y emite un toast de éxito `Actualizado`. 2 nuevas claves i18n (`common.refreshing`, `common.refreshed`) en los 8 idiomas. 909 → **910** unitarios. (M-9)
+
+---
+
 ## [1.58.13] — 2026-05-20
 
 **fix(ux): M-8 — el checklist de `#/apply` ahora es interactivo.** Antes de v1.58.13, `▶ Generar checklist` mostraba los ítems 0…7 como un bloque monoespaciado `<pre>` no editable. Ahora cada ítem se renderiza como `<input type="checkbox">` real, envuelto en `<label>` (área de clic ≥44 px, WCAG 2.5.5). El estado se persiste por URL en `localStorage['applyChecklist:'+slug]` — marca 3 ítems, recarga, los 3 siguen marcados. Botones: **Copiar sin marcar** (copia los ítems abiertos como bullets `- markdown`) y **Restablecer**. 5 nuevas claves i18n (`apply.checklist.copyUnchecked`, `resetBtn`, `copied`, `copyFailed`, `reset`) en los 8 idiomas. Fallback defensivo si el parser no encuentra ítems. 908 → **909** unitarios. (M-8)

@@ -128,8 +128,37 @@ I18n.onChange(() => {
     }
   });
   document.getElementById('btn-quick-scan').addEventListener('click', () => Router.go('/scan'));
-  // connection-banner refresh button (was inline onclick — moved out for CSP)
-  document.getElementById('conn-refresh-btn')?.addEventListener('click', () => location.reload());
+  // M-9 (v1.58.14) — connection-banner Refresh used to call
+  // location.reload() silently; v1.58.3 MASTER regression: "click
+  // Refresh → silence. User can't tell if anything happened." Now we:
+  //   1. show a transient "Refreshing…" toast,
+  //   2. set sessionStorage['refreshedToast'] so the *next* page can
+  //      surface a success toast (the current toast is swallowed by
+  //      the page navigation),
+  //   3. disable the button to swallow rapid double-clicks (no
+  //      stacking),
+  //   4. reload after a short delay so the user sees the in-flight
+  //      toast before the navigation.
+  const refreshBtn = document.getElementById('conn-refresh-btn');
+  refreshBtn?.addEventListener('click', () => {
+    if (refreshBtn.disabled) return;
+    refreshBtn.disabled = true;
+    UI.toast(I18n.t('common.refreshing', 'Refreshing…'));
+    try { sessionStorage.setItem('refreshedToast', '1'); } catch { /* private mode */ }
+    setTimeout(() => location.reload(), 200);
+  });
+  // M-9 (v1.58.14) — surface the "Refreshed" success toast on the
+  // *next* page load, since the toast emitted before location.reload
+  // is destroyed with the page. sessionStorage clears on tab close, so
+  // the flag never survives past a single refresh cycle.
+  try {
+    if (sessionStorage.getItem('refreshedToast')) {
+      sessionStorage.removeItem('refreshedToast');
+      // Defer slightly so the toast root exists and the layout has
+      // settled — Router.render() runs synchronously from hashchange.
+      setTimeout(() => UI.toast(I18n.t('common.refreshed', 'Refreshed'), 'success'), 200);
+    }
+  } catch { /* private mode — ignore */ }
 
   // v1.12.0 — Theme toggle. Click cycles light → dark → light and persists.
   // The icon swaps to ☀ in dark mode so the affordance reads correctly.
