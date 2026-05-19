@@ -42,10 +42,10 @@ A MASTER pass = all four green/triaged **and** §1–§6 below satisfied.
 
 ```bash
 vX=$(node -p "require('./package.json').version")
-npm ci && npm test                 # MUST: N/N pass (vX baseline; ≥900 @ v1.58.3)
+npm ci && npm test                 # MUST: N/N pass (vX baseline; ≥905 @ v1.58.9)
 npm run test:e2e                   # MUST: passed: N · failed: 0   (20)
 npm run test:e2e:full              # MUST: 23/23 steps · 0 failed
-npm run test:e2e:browser           # MUST: 58/58 (smoke+full-cycle+forms)
+npm run test:e2e:browser           # MUST: ≥61/61 @ v1.58.9 (smoke+full-cycle+forms)
 node scripts/check-no-also-leftovers.mjs   # MUST: ✓
 career-ops-ui doctor               # MUST: exit 0
 ```
