@@ -197,24 +197,28 @@ jobs:
             exit 0
           fi
 
-          # Build a JSON-safe Messages API request (python3 is on the
-          # ubuntu-latest image; no Node project install needed here).
-          python3 - <<'PY' > /tmp/req.json
-          import json, os
-          diff = open('/tmp/pr.diff','r',encoding='utf-8',errors='replace').read()
-          rubric = os.environ.get('REVIEW_RUBRIC','Review this diff for bugs and security.')
-          subject = os.environ.get('SUBJECT','(no subject)')
-          prompt = (rubric
-                    + "\n\nCommit subject: " + subject
-                    + "\n\n=== DIFF ===\n" + diff)
-          req = {
-              "model": "claude-opus-4-7",
-              "max_tokens": 1500,
-              "messages": [{"role": "user", "content": prompt}],
-          }
-          json.dump(req, open('/tmp/req.json','w'))
-          print("ok")
-          PY
+          # Build the Messages API request with jq (preinstalled on
+          # ubuntu-latest). jq -Rs slurps the whole prompt file as one
+          # JSON string, escaping arbitrary diff content correctly.
+          # NOTE: the pre-fix code used an inline `python3 - <<'PY'`
+          # heredoc under this YAML block scalar AND redirected its
+          # stdout to the same /tmp/req.json that json.dump opened —
+          # the collision (plus heredoc indentation) produced an empty
+          # body and Anthropic returned HTTP 400 "not valid JSON". jq
+          # has none of those hazards.
+          {
+            printf '%s\n\nCommit subject: %s\n\n=== DIFF ===\n' \
+              "${REVIEW_RUBRIC:-Review this diff for bugs and security.}" \
+              "${SUBJECT:-(no subject)}"
+            cat /tmp/pr.diff
+          } > /tmp/prompt.txt
+          jq -Rs '{model:"claude-opus-4-7",max_tokens:1500,messages:[{role:"user",content:.}]}' \
+            /tmp/prompt.txt > /tmp/req.json
+          # Guard: a non-empty, parseable JSON body or fail-soft now.
+          if ! jq -e . /tmp/req.json >/dev/null 2>&1; then
+            echo "::warning::could not build request JSON — fail-soft, not blocking."
+            exit 0
+          fi
 
           # Direct HTTPS to the Anthropic API (mirrors anthropic.mjs).
           HTTP=$(curl -sS -o /tmp/resp.json -w '%{http_code}' \
@@ -231,16 +235,11 @@ jobs:
             exit 0
           fi
 
-          REVIEW=$(python3 - <<'PY'
-          import json
-          try:
-              d = json.load(open('/tmp/resp.json'))
-              parts = [b.get('text','') for b in d.get('content',[]) if b.get('type')=='text']
-              print(("".join(parts)).strip() or "(empty model response)")
-          except Exception as e:
-              print(f"(could not parse model response: {e})")
-          PY
-          )
+          REVIEW=$(jq -r '[.content[]? | select(.type=="text") | .text] | join("")' \
+            /tmp/resp.json 2>/dev/null)
+          if [ -z "$REVIEW" ]; then
+            REVIEW="(model returned no text — raw: $(head -c 300 /tmp/resp.json))"
+          fi
 
           # Post as a commit comment (advisory). Fail-soft on any error.
           BODY=$(printf '🤖 **AI review — advisory** (CLAUDE.md bar; ci.yml is the hard gate)\n\n%s\n\n_Posted by the AI Review workflow. Maintainers retain merge authority._' "$REVIEW")
