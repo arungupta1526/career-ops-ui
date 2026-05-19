@@ -28,11 +28,22 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # On a tag push github.ref_name IS the tag; on
+          # workflow_dispatch it is the branch (main), so fall back to
+          # the explicit `tag` input. Without this, manual dispatch
+          # checked out main's tree and the CHANGELOG slice / version
+          # verify ran against the wrong version.
+          ref: ${{ github.event.inputs.tag || github.ref_name }}
 
       - name: Extract release notes from CHANGELOG.md
         id: notes
         run: |
-          tag="${GITHUB_REF_NAME:-${{ inputs.tag }}}"
+          # Resolved by the Actions expression engine, not the shell:
+          # `inputs.tag` is set only on workflow_dispatch, else use the
+          # pushed tag. (The old `${GITHUB_REF_NAME:-…}` shell form
+          # never used the input — GITHUB_REF_NAME is "main", not empty,
+          # on dispatch — so manual releases were impossible.)
+          tag="${{ github.event.inputs.tag || github.ref_name }}"
           version="${tag#v}"
           # Slice between "## [VERSION]" and the next "## ["
           awk -v v="$version" '
