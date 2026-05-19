@@ -491,6 +491,42 @@ test('Playwright smoke: POST /api/auto-pipeline SSE — emits start + step event
   await closePage(page);
 });
 
+// ─── NEW-1 (v1.58.4): CSP is unconditional — zero violations expected ───
+
+test('Playwright smoke: zero CSP violations on a representative route walk', { skip: SKIP }, async () => {
+  const page = await context.newPage();
+  const cspViolations = [];
+  page.on('console', (msg) => {
+    const t = msg.text();
+    if (msg.type() === 'error' &&
+        /violates the following Content Security Policy directive|Refused to (load|execute|apply|connect)/i.test(t)) {
+      cspViolations.push(t);
+    }
+  });
+
+  // The header must be present on the document itself before we walk.
+  const resp = await page.goto(baseUrl + '/#/dashboard');
+  const csp = resp.headers()['content-security-policy'];
+  assert.ok(csp, 'CSP header missing on / over loopback');
+  assert.ok(/frame-ancestors 'none'/.test(csp), 'CSP must set frame-ancestors none');
+  assert.ok(!/script-src[^;]*'unsafe-inline'/.test(csp), "script-src must not allow 'unsafe-inline'");
+
+  const routes = ['#/dashboard', '#/pipeline', '#/cv', '#/deep', '#/help', '#/health', '#/config'];
+  for (const lang of ['en', 'ru', 'ja', 'zh-TW']) {
+    await page.evaluate((l) => {
+      try { window.I18n?.setLang?.(l); } catch { /* boot order */ }
+    }, lang);
+    for (const r of routes) {
+      await page.goto(baseUrl + '/' + r);
+      await page.waitForSelector('#content', { timeout: 5000 });
+      await page.waitForTimeout(60);
+    }
+  }
+  assert.deepEqual(cspViolations, [],
+    'CSP violations during route walk: ' + cspViolations.join(' | '));
+  await closePage(page);
+});
+
 if (SKIP) {
   test('Playwright smoke: skipped (playwright not resolvable)', () => {
     console.log('SKIP — install playwright in parent project: cd $CAREER_OPS_ROOT && npm i && npx playwright install chromium');

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.4] — 2026-05-19
+
+**fix(security): NEW-1 — 在每个响应上发送 `Content-Security-Policy`(此前仅在非 loopback 绑定时发送)。** 在 v1.58.4 之前,仅当 `isPubliclyExposed()` 为真(HOST 绑定到 loopback 之外)时才附加 CSP 头;在 `127.0.0.1` 上,`/` 与 `/api/health` 均**无** CSP 响应,`UI.md()` 的 escape-first 契约成为唯一的 XSS 防线。v1.58.3 MASTER 回归(§5)将其标记为 stop-ship 不变量。现在 CSP 为**无条件**,无论绑定地址如何,在每个响应上都相同:`default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`。`script-src` 绝不允许 `'unsafe-inline'`/`'unsafe-eval'`。指令集相对此前的"仅对外暴露"策略未变(已适配 SPA — 为 Inter 将 Google Fonts 加入允许列表),无视觉或功能回归。`tests/security-headers.test.mjs` 已重写;Playwright 路由巡检(en/ru/ja/zh-TW × 7 条路由)验证 **0 次 CSP 违规**。900 单元 · Playwright 58→59 · e2e 20/20+23/23。后续 fix-prompt 项按项目原则作为后续 one-fix 版本发布。(NEW-1)
+
+---
+
 ## [1.58.3] — 2026-05-19
 
 **fix(deep)：R-2 / FIX-C1 — 从研究输出中剥离孤立/不平衡的智能体脚手架标签。** v1.58.0 的 `cleanLlmMarkdown` 仅移除*成对*块与*末尾开*标签。v1.58.2 深度回归发现某模型产生不平衡轨迹——无开标签的孤立 `</tool_response>`（及 `</thinking>`）残留并字面渲染进已保存的 `#/deep` 简报。最终保守扫描现移除**任何**单独脚手架标记（开/闭、平衡与否）、Anthropic 工具 XML（`<invoke>`/`<parameter>`/`antml:*`）与 ```tool_*``` 围栏。纯函数·幂等；真实 `<https://…>` 自动链接与代码保留。**FIX-C2** 三联判定**不可复现**（i18n.js 已设 `<html lang>` 并检测 `navigator.language`）。二者均加回归守卫。896 → **900** 单元 · Playwright 58/58。v1.58.3 fix-prompt 其余项按单修发布排队（不批量）。

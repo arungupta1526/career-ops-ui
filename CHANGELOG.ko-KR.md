@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.4] — 2026-05-19
+
+**fix(security): NEW-1 — 모든 응답에 `Content-Security-Policy` 전송 (이전에는 루프백에서 누락).** v1.58.4 이전에는 `isPubliclyExposed()` 가 참일 때(HOST 가 루프백 밖에 바인딩)만 CSP 헤더를 추가했기 때문에 `127.0.0.1` 에서는 `/` 와 `/api/health` 모두 CSP **없이** 응답했고, `UI.md()` 의 escape-first 계약이 유일한 XSS 방어였습니다. v1.58.3 MASTER 회귀 테스트(§5)가 이를 stop-ship 불변 조건으로 지적했습니다. 이제 CSP 는 바인드 주소와 무관하게 모든 응답에서 **무조건** 동일하게 전송됩니다: `default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`. `script-src` 는 `'unsafe-inline'`/`'unsafe-eval'` 를 절대 허용하지 않습니다. 디렉티브 집합은 이전의 노출 전용 정책에서 변경되지 않아(이미 SPA 에 맞게 구성 — Inter 용 Google Fonts 허용) 시각·기능 회귀가 없습니다. `tests/security-headers.test.mjs` 를 다시 작성했고, Playwright 경로 순회(en/ru/ja/zh-TW × 7 경로)에서 **CSP 위반 0** 을 검증합니다. 유닛 900 · Playwright 58→59 · e2e 20/20+23/23. 후속 fix-prompt 항목은 프로젝트 원칙에 따라 one-fix 릴리스로 순차 배포됩니다. (NEW-1)
+
+---
+
 ## [1.58.3] — 2026-05-19
 
 **fix(deep): R-2 / FIX-C1 — 조사 출력에서 고아/불균형 에이전트 스캐폴딩 태그 제거.** v1.58.0 `cleanLlmMarkdown`는 *쌍* 블록과 *말단 여는* 태그만 제거했음. v1.58.2 심층 회귀에서 여는 짝 없는 고아 `</tool_response>`(`</thinking>`)가 저장된 `#/deep` 브리프에 그대로 노출. 최종 보수적 스윕이 단독 스캐폴딩 토큰(여닫기·균형 무관), Anthropic 도구 XML(`<invoke>`/`<parameter>`/`antml:*`), ```tool_*``` 펜스를 제거. 순수·멱등. 실제 `<https://…>` 자동링크/코드 보존. **FIX-C2**는 **재현 안 됨**(i18n.js가 이미 `<html lang>` 설정 + `navigator.language` 감지). 둘 다 회귀 가드로 고정. 896 → **900** 유닛 · Playwright 58/58. v1.58.3 fix-prompt 잔여는 one-fix ship 대기(배치 금지).

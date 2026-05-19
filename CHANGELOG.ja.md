@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.4] — 2026-05-19
+
+**fix(security): NEW-1 — すべてのレスポンスに `Content-Security-Policy` を付与（従来はループバック時に欠落）。** v1.58.4 以前は `isPubliclyExposed()` が真（HOST がループバック外）のときだけ CSP ヘッダーを付与していたため、`127.0.0.1` 上では `/` も `/api/health` も CSP **なし** で応答し、`UI.md()` のエスケープ優先契約が唯一の XSS 防御でした。v1.58.3 の MASTER リグレッション（§5）がこれを stop-ship 不変条件として指摘。CSP は **無条件** となり、バインドアドレスに関係なく全レスポンスで同一です：`default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`。`script-src` は `'unsafe-inline'`/`'unsafe-eval'` を一切許可しません。ディレクティブ集合は従来の公開時専用ポリシーから変更なし（SPA に最適化済み — Inter 用に Google Fonts を許可リスト化）のため、視覚・機能のリグレッションはありません。`tests/security-headers.test.mjs` を書き直し、Playwright のルート巡回（en/ru/ja/zh-TW × 7 ルート）で **CSP 違反 0** を検証。ユニット 900 · Playwright 58→59 · e2e 20/20+23/23。後続の fix-prompt 項目はプロジェクト方針に従い one-fix リリースとして順次公開します。(NEW-1)
+
+---
+
 ## [1.58.3] — 2026-05-19
 
 **fix(deep): R-2 / FIX-C1 — 調査出力から孤立/不均衡なエージェント足場タグを除去。** v1.58.0 の `cleanLlmMarkdown` は*対*ブロックと*末尾の開きタグ*のみ除去。v1.58.2 の深い回帰で、開きの無い孤立 `</tool_response>`（`</thinking>`）がそのまま保存ブリーフに出ていた。最終の保守的スイープで、単独の足場トークン（開閉・均衡不問）、Anthropic ツール XML（`<invoke>`/`<parameter>`/`antml:*`）、```tool_*``` フェンスを除去。純粋・冪等。実 `<https://…>` 自動リンク／コードは保持。**FIX-C2** は**再現せず**（i18n.js は既に `<html lang>` 設定＋`navigator.language` 検出）。両者を回帰ガードで固定。896 → **900** ユニット · Playwright 58/58。v1.58.3 fix-prompt の残りは one-fix ship でキュー（バッチ不可）。

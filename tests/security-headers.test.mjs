@@ -1,11 +1,14 @@
 /**
- * FIX-L2 — security headers (CSP, X-Content-Type-Options, X-Frame-Options,
- * Referrer-Policy).
+ * NEW-1 (v1.58.4) — security headers (CSP, X-Content-Type-Options,
+ * X-Frame-Options, Referrer-Policy).
  *
- * Baseline headers (nosniff / frame-deny / referrer-policy) are sent on every
- * response. CSP is sent only when the server binds beyond loopback
- * (HOST !== 127.0.0.1 / ::1 / localhost) — that's the threat model where a
- * LAN attacker could reach the server, so XSS exfiltration becomes possible.
+ * CSP is now UNCONDITIONAL. Prior to v1.58.4 it was gated behind
+ * isPubliclyExposed() and was absent over loopback — the v1.58.3 MASTER
+ * regression (§5) flagged that `/` and `/api/health` returned NO CSP
+ * header on 127.0.0.1, leaving `UI.md()`'s escape-first contract as the
+ * sole XSS defence. Defense-in-depth must not depend on the bind address;
+ * an XSS escalation is just as fatal on loopback. These tests lock the
+ * header in on every response regardless of HOST.
  */
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -67,46 +70,51 @@ test('baseline headers present on /api/health', async () => {
   assert.equal(h['referrer-policy'], 'same-origin');
 });
 
-// ───────────────────────── CSP gating by HOST ─────────────────────────
+// ───────────────── CSP is unconditional (NEW-1, v1.58.4) ─────────────────
 
-test('CSP NOT sent on loopback (HOST=127.0.0.1)', async () => {
-  const h = await bootAndGet('127.0.0.1', '/');
-  assert.equal(h['content-security-policy'], undefined);
-});
-
-test('CSP NOT sent on ::1', async () => {
-  const h = await bootAndGet('::1', '/');
-  assert.equal(h['content-security-policy'], undefined);
-});
-
-test('CSP NOT sent when HOST=localhost', async () => {
-  const h = await bootAndGet('localhost', '/');
-  assert.equal(h['content-security-policy'], undefined);
-});
-
-test('CSP IS sent when HOST=0.0.0.0 (LAN-exposed)', async () => {
-  const h = await bootAndGet('0.0.0.0', '/');
-  const csp = h['content-security-policy'];
+function assertCspHardened(csp) {
   assert.ok(csp, 'expected Content-Security-Policy header');
-  // Critical directives that block XSS exfiltration / inline-script execution:
   assert.match(csp, /default-src 'self'/);
   assert.match(csp, /script-src 'self'/);
   assert.match(csp, /connect-src 'self'/);
   assert.match(csp, /object-src 'none'/);
   assert.match(csp, /frame-ancestors 'none'/);
-  // Must NOT allow 'unsafe-inline' for scripts (that would defeat the purpose):
-  assert.ok(!/script-src[^;]*unsafe-inline/.test(csp), 'script-src must not allow unsafe-inline');
-  // BUT must allow Google Fonts (used by the SPA):
+  assert.match(csp, /base-uri 'self'/);
+  assert.match(csp, /form-action 'self'/);
+  // script-src must never allow inline or eval — that would defeat CSP:
+  assert.ok(!/script-src[^;]*'unsafe-inline'/.test(csp), "script-src must not allow 'unsafe-inline'");
+  assert.ok(!/'unsafe-eval'/.test(csp), "CSP must not allow 'unsafe-eval'");
+  // SPA needs Google Fonts (Inter) — keep those allowlists intact:
   assert.match(csp, /style-src[^;]*fonts\.googleapis\.com/);
   assert.match(csp, /font-src[^;]*fonts\.gstatic\.com/);
+}
+
+test('CSP present on / over loopback (regression: was null pre-v1.58.4)', async () => {
+  const h = await bootAndGet('127.0.0.1', '/');
+  assertCspHardened(h['content-security-policy']);
 });
 
-test('CSP also sent on JSON endpoints when LAN-exposed', async () => {
-  const h = await bootAndGet('0.0.0.0', '/api/health');
-  assert.ok(h['content-security-policy']);
+test('CSP present on /api/health over loopback', async () => {
+  const h = await bootAndGet('127.0.0.1', '/api/health');
+  assertCspHardened(h['content-security-policy']);
 });
 
-test('CSP sent for any non-loopback HOST', async () => {
+test('CSP present on ::1', async () => {
+  const h = await bootAndGet('::1', '/');
+  assertCspHardened(h['content-security-policy']);
+});
+
+test('CSP present when HOST=localhost', async () => {
+  const h = await bootAndGet('localhost', '/');
+  assertCspHardened(h['content-security-policy']);
+});
+
+test('CSP present when HOST=0.0.0.0 (LAN-exposed)', async () => {
+  const h = await bootAndGet('0.0.0.0', '/');
+  assertCspHardened(h['content-security-policy']);
+});
+
+test('CSP present for any non-loopback HOST', async () => {
   const h = await bootAndGet('192.168.1.42', '/');
-  assert.ok(h['content-security-policy']);
+  assertCspHardened(h['content-security-policy']);
 });

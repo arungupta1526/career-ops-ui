@@ -52,7 +52,7 @@
 ### 2. Express server (`server/`)
 
 - **`index.mjs`** — `createApp()` factory (~130 LOC after **P-2 phase 2** in v1.9.0). Pure orchestrator: wires middleware, calls `register<Topic>Routes(app)` for each route module, mounts the static `/public` serve and the SPA catch-all. No inline route handlers remain.
-  - Middleware: JSON / text body parsing, security headers (CSP only when not on loopback), `activityMiddleware`, static file serving from `public/`.
+  - Middleware: JSON / text body parsing, security headers — **CSP is unconditional from v1.58.4 / NEW-1** (was previously layered on only when `isPubliclyExposed()`; the v1.58.3 MASTER §5 regression flagged the loopback gap) — `activityMiddleware`, static file serving from `public/`. Directive set: `default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`. Never grant `'unsafe-inline'`/`'unsafe-eval'` on `script-src`.
   - Routes: see `API.md` for the full inventory.
   - Inline sanitizers: `isValidJobUrl`, `stripDangerousMarkdown`, `sanitizeJobDescription`, `buildEvaluationPrompt`, `buildDeepPrompt`, `buildModePrompt`, `safeReadApps/Pipeline/Reports`, `checkProfileCustomized`, `isPubliclyExposed`.
 - **`lib/paths.mjs`** — single source of truth for parent-project paths. `resolveProjectRoot()` tries `CAREER_OPS_ROOT` → `..` → `cwd()` and verifies via `cv.md` / `portals.yml` existence.

@@ -18,7 +18,7 @@ import { resolve } from 'node:path';
 import { PATHS, PROJECT_ROOT, PUBLIC_DIR } from './lib/paths.mjs';
 import { activityMiddleware } from './lib/activity-log.mjs';
 import { loadEnvFile } from './lib/dotenv.mjs';
-import { isValidJobUrl, isPubliclyExposed, sanitizeJobDescription, stripDangerousMarkdown } from './lib/security.mjs';
+import { isValidJobUrl, sanitizeJobDescription, stripDangerousMarkdown } from './lib/security.mjs';
 import { ensureRussianPortalsDefaults } from './lib/store.mjs';
 // Route modules — each exports `register<Topic>Routes(app)`.
 import { registerActivityRoutes } from './lib/routes/activity.mjs';
@@ -53,38 +53,36 @@ export function createApp() {
   app.use(express.text({ limit: '5mb', type: ['text/plain', 'text/markdown'] }));
 
   // ──────────────── Security headers ────────────────
-  // Always-on baseline (cheap, no breakage). CSP is layered on top when the
-  // server is exposed beyond loopback (HOST=0.0.0.0) — that's the only case
-  // where exfiltration via XSS becomes reachable from a LAN attacker.
+  // NEW-1 (v1.58.4) — CSP is now unconditional. Previously it was layered on
+  // only when HOST exposed the server beyond loopback; the regression
+  // (MASTER §5) flagged that `/` and `/api/health` returned NO CSP header
+  // over loopback, leaving `UI.md()`'s escape-first contract as the sole XSS
+  // defence. Defense-in-depth must not depend on the bind address — an XSS
+  // escalation is just as fatal on 127.0.0.1. The directive set is unchanged
+  // from the prior exposed-only policy (it was already SPA-correct):
+  //   - Google Fonts CSS at fonts.googleapis.com (Inter, loaded in index.html)
+  //   - Google Fonts WOFF2 at fonts.gstatic.com
+  //   - inline style="..." attrs in router error template (style-src 'unsafe-inline')
+  //   - inline favicon as data: URI (img-src 'self' data:)
+  // 'unsafe-inline' is intentionally NOT in script-src — all event handlers
+  // are addEventListener; 'unsafe-eval' is never granted.
+  const CSP = [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' https://fonts.googleapis.com 'unsafe-inline'",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data:",
+    "connect-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+  ].join('; ');
   app.use((req, res, next) => {
+    res.setHeader('Content-Security-Policy', CSP);
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'same-origin');
-    if (isPubliclyExposed()) {
-      // default-src 'self' covers img-src/script-src/connect-src etc.;
-      // explicit allowlists below loosen only what the SPA needs:
-      //   - Google Fonts CSS at fonts.googleapis.com
-      //   - Google Fonts WOFF2 at fonts.gstatic.com
-      //   - inline style="..." attrs in router error template (style-src 'unsafe-inline')
-      //   - inline favicon as data: URI (img-src 'self' data:)
-      // 'unsafe-inline' is intentionally NOT in script-src — all event
-      // handlers were moved to addEventListener.
-      res.setHeader(
-        'Content-Security-Policy',
-        [
-          "default-src 'self'",
-          "script-src 'self'",
-          "style-src 'self' https://fonts.googleapis.com 'unsafe-inline'",
-          "font-src 'self' https://fonts.gstatic.com",
-          "img-src 'self' data:",
-          "connect-src 'self'",
-          "object-src 'none'",
-          "base-uri 'self'",
-          "frame-ancestors 'none'",
-          "form-action 'self'",
-        ].join('; ')
-      );
-    }
     next();
   });
 

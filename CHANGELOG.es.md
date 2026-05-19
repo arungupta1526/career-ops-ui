@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.58.4] — 2026-05-19
+
+**fix(security): NEW-1 — enviar `Content-Security-Policy` en cada respuesta (antes limitado a no-loopback).** Antes de v1.58.4 la cabecera CSP solo se añadía cuando `isPubliclyExposed()` era verdadero (HOST fuera de loopback); sobre `127.0.0.1` tanto `/` como `/api/health` devolvían **sin** CSP, dejando el contrato escape-first de `UI.md()` como única defensa XSS. La regresión MASTER de v1.58.3 (§5) lo marcó como invariante crítica. Ahora la CSP es **incondicional** e idéntica en cada respuesta: `default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`. `script-src` nunca permite `'unsafe-inline'`/`'unsafe-eval'`. El conjunto de directivas no cambia respecto a la política anterior (ya correcta para la SPA — Google Fonts en lista blanca para Inter), sin regresión visual ni funcional. Se reescribió `tests/security-headers.test.mjs`; un recorrido Playwright (en/ru/ja/zh-TW × 7 rutas) verifica **0 violaciones de CSP**. 900 unitarios · Playwright 58→59 · e2e 20/20+23/23. Los siguientes elementos del fix-prompt se publican como versiones one-fix posteriores. (NEW-1)
+
+---
+
 ## [1.58.3] — 2026-05-19
 
 **fix(deep): R-2 / FIX-C1 — elimina etiquetas de andamiaje HUÉRFANAS / desbalanceadas del output de investigación.** `cleanLlmMarkdown` (v1.58.0) solo quitaba bloques *emparejados* y una etiqueta *abierta colgante*. Una regresión profunda de v1.58.2 halló un modelo con traza desbalanceada — un `</tool_response>` huérfano (y `</thinking>`) sin apertura — que sobrevivía y se renderizaba literal en el brief guardado de `#/deep`. Un barrido conservador final elimina ahora **cualquier** token de andamiaje suelto (abierto o cerrado), el XML de herramientas de Anthropic (`<invoke>`/`<parameter>`/`antml:*`) y bloques ```tool_*```. Puro + idempotente; autoenlaces `<https://…>` y spans de código se preservan. **FIX-C2** triado **no-reproducible** (i18n.js ya fija `<html lang>` y detecta `navigator.language`). Ambos bloqueados con guards. 896 → **900** unit · Playwright 58/58. Resto del fix-prompt v1.58.3 en cola como one-fix ships (doctrina: nunca en lote).

@@ -9,7 +9,7 @@
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.58.3-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.3)
+[![release](https://img.shields.io/badge/release-v1.58.4-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.4)
 
 > **近期 (v1.55 → v1.58):** **整潔、格式化的研究輸出**（#/deep 與已儲存研究剝除 `<tool_call>`/`<tool_response>`）+ 外部 QA 報告 bug 清掃（`#/followup` ISO 日期、help 引用內粗體、誠實的重複 pipeline 提示、`#/outreach` 別名）+ **OpenRouter 提供方**（一個 key → 300+ 模型，`#/config` 即時下拉）+ `#/config`「validation failed」修復（帶空白/換行貼上的 key 現在可儲存）、螢上引導橫幅 + 作用中提供方徽章、誠實的 ⚡ 即時執行費用提示、`#/auto` ETA、`#/scan` 進階篩選摺疊 + 醒目 Stop、`#/dashboard` hero CTA、`#/pipeline` 超 1000 列虛擬化、`#/tracker` 伺服器端分頁 + 漏斗晶片、無障礙打磨 —— 每版本細節見 [CHANGELOG.zh-TW.md](CHANGELOG.zh-TW.md)。
 
