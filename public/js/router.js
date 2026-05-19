@@ -47,6 +47,19 @@ window.Router = (function () {
     if (target !== content && !target.hasAttribute('tabindex')) {
       target.setAttribute('tabindex', '-1');
     }
+    // v1.56.2 — UX-N1: per-route, locale-aware document.title for
+    // multi-tab orientation, bookmarks, and the screen-reader
+    // "page changed" announcement. Derived from the view's own
+    // localized <h1>/.page-title, so it is automatically translated
+    // and distinct per route with no new i18n keys. Set BEFORE the
+    // first-paint guard below so the initial tab is titled too.
+    const heading = content.querySelector('h1, .page-title');
+    const viewTitle = heading
+      ? heading.textContent.trim().replace(/\s+/g, ' ')
+      : '';
+    document.title = viewTitle
+      ? `${viewTitle} — career-ops`
+      : 'career-ops — command center';
     // v1.56.0 — UX-12: on the FIRST paint we now make the landing
     // view's heading programmatically focusable (tabindex=-1 was set
     // above) so screen-reader / heading navigation lands on it, and

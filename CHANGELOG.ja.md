@@ -8,6 +8,12 @@
 
 ---
 
+## [1.56.2] — 2026-05-19
+
+**feat(a11y): UX-N1 — ルートごとのロケール対応 `document.title`(マルチタブの識別 + スクリーンリーダーのページ変更通知)。** 修正前は 24 ルートすべてが `index.html` の静的 `<title>`(「career-ops — command center」)のままで、タブ名が同一・ブックマークが汎用・「ページが変わりました」通知も毎回同じだった。`public/js/router.js` の `focusNewView()` がビュー自身のローカライズ済み `<h1 class="page-title">` からタイトルを導出 — 「ビュー — career-ops」— するため、自動翻訳(新しい i18n キー不要)かつルートごとに一意。初回ペイントの guard より**前**に設定するので最初のタブにもタイトルが付く(v1.56.0 UX-12 の `tabindex` 設定と同じ順序)。見出しが無いビューは `career-ops — command center` にフォールバック。**テスト:** 新しい CI 隔離のソース静的スイート `tests/document-title-per-route.test.mjs`(4):`focusNewView` が `document.title` を代入;タイトルは `<h1>` 由来(ルートごと + ローカライズ、単一リテラルでない);代入は `!firstPaintDone` より前;製品デフォルトあり。817 → 821。`feat(a11y)` · `test: tests/document-title-per-route.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.56.1] — 2026-05-19
 
 **fix(a11y): ルーター管理の `tabindex="-1"` 見出しフォーカスで出ていた偽のブランドフォーカスリングを抑制。** `public/js/router.js` は各クライアント遷移で遷移先ビューの見出しに `tabindex="-1"` を付与し `.focus()` する(スクリーンリーダーが新ページを読み上げるため)。`tabindex="-1"` 要素はキーボードで到達不能だが、Chromium の `:focus-visible` ヒューリスティックが依然グローバルのブランドリング(`*:focus-visible { outline: 2px solid var(--rausch) }`)を描き、遷移ごとに **ページ見出しの周りに赤い矩形**(例:`#/dashboard` の「Command Center」)を表示 — それが `images/dashboard-*.png` のヒーロー画像にも焼き込まれていた。修正は 1 つのスコープ付きルール `[tabindex="-1"]:focus, [tabindex="-1"]:focus-visible { outline: none }`(WAI-ARIA APG の管理フォーカス・パターン)。実際のキーボードフォーカスはグローバル `*:focus-visible` リングを維持(WCAG 2.4.7 維持);skip-link のリングは無影響(`<a>` であり `tabindex="-1"` ではなく、より高い詳細度)。8 つの `images/dashboard-*.png` を再生成 — 赤い枠は消えた。**テスト:** 新しい CI 隔離のソース静的スイート `tests/managed-focus-no-ring.test.mjs`(4):グローバル `*:focus-visible` リングが定義されたまま(WCAG 2.4.7 非後退);`[tabindex="-1"]:focus,:focus-visible` ⇒ `outline:none`;抑制ルールはグローバルの後(カスケード安全);修正はスコープ付き(全体 `*:focus{outline:none}` なし)。`tests/dashboard-initial-focus.test.mjs` と対。813 → 817。`fix(a11y)` · `test: tests/managed-focus-no-ring.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

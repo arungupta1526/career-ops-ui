@@ -6,6 +6,20 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.56.2] — 2026-05-19
+
+**feat(a11y): UX-N1 — per-route, locale-aware `document.title` (multi-tab orientation + screen-reader page-change announcement).**
+
+### ✨ Features
+
+- **Every SPA route now sets a distinct, localized `document.title`.** Pre-fix all 24 routes kept the static `index.html` `<title>` ("career-ops — command center"), so multi-tab browsers showed identical tab labels, bookmarks were generic, and the screen-reader "page changed" announcement read the same on every navigation. `public/js/router.js` `focusNewView()` now derives the title from the view's own localized `<h1 class="page-title">` — `"<View> — career-ops"` — so titles are automatically translated (no new i18n keys) and distinct per route. Set **before** the first-paint guard so the initial tab is titled too (the same ordering rule the v1.56.0 UX-12 `tabindex` set follows). Falls back to `career-ops — command center` when a view has no heading.
+
+### 🧪 Tests
+
+- New CI-isolated source-static suite **`tests/document-title-per-route.test.mjs`** (4): `focusNewView` assigns `document.title`; the title is derived from the view `<h1>` textContent (per-route + localized, not one hardcoded literal); the assignment precedes the `!firstPaintDone` early-return; a sane product default is present. router.js is browser-only → asserted statically (same approach as `dashboard-initial-focus.test.mjs`). 817 → 821.
+
+---
+
 ## [1.56.1] — 2026-05-19
 
 **fix(a11y): suppress the spurious brand focus ring on router-managed `tabindex="-1"` heading focus.**

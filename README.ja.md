@@ -5,11 +5,11 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | **日本語** | [Русский](README.ru.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-817%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-821%20passed-brightgreen)](#tests)
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.56.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.56.1)
+[![release](https://img.shields.io/badge/release-v1.56.2-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.56.2)
 
 > **最近 (v1.55 → v1.56):** 4 プロバイダのオンボーディングバナー + アクティブプロバイダチップ、正直な ⚡ ライブ実行コストヒント、`#/auto` ETA、`#/scan` 詳細フィルターディスクロージャ + 目立つ Stop、`#/dashboard` ヒーロー CTA、`#/pipeline` 1000 行超の仮想化、`#/tracker` サーバーページネーション + ファネルチップ、アクセシビリティ調整 — バージョン別詳細は [CHANGELOG.ja.md](CHANGELOG.ja.md)。
 

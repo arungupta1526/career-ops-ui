@@ -8,6 +8,12 @@
 
 ---
 
+## [1.56.2] — 2026-05-19
+
+**feat(a11y): UX-N1 — 라우트별 로케일 인식 `document.title`(멀티탭 식별 + 스크린리더 페이지 변경 안내).** 수정 전에는 24개 라우트가 모두 `index.html`의 정적 `<title>`("career-ops — command center")을 유지해 탭 이름이 동일하고 북마크가 일반적이며 "페이지 변경" 안내도 매번 같았다. `public/js/router.js`의 `focusNewView()`가 뷰 자체의 현지화된 `<h1 class="page-title">`에서 제목을 도출 — "뷰 — career-ops" — 하므로 자동 번역(새 i18n 키 불필요)되고 라우트별로 고유하다. 첫 페인트 가드 **이전**에 설정해 초기 탭에도 제목이 붙는다(v1.56.0 UX-12의 `tabindex` 설정과 동일한 순서). 제목이 없는 뷰는 `career-ops — command center`로 폴백. **테스트:** 새 CI 격리 소스 정적 스위트 `tests/document-title-per-route.test.mjs`(4): `focusNewView`가 `document.title` 할당; 제목은 `<h1>`에서 파생(라우트별 + 현지화, 단일 리터럴 아님); 할당이 `!firstPaintDone` 이전; 제품 기본값 존재. 817 → 821. `feat(a11y)` · `test: tests/document-title-per-route.test.mjs`. 자세히 — [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.56.1] — 2026-05-19
 
 **fix(a11y): 라우터가 관리하는 `tabindex="-1"` 제목 포커스에서 나타나던 가짜 브랜드 포커스 링 제거.** `public/js/router.js`는 모든 클라이언트 내비게이션에서 대상 뷰의 제목에 `tabindex="-1"`을 부여하고 `.focus()`를 호출한다(스크린리더가 새 페이지를 읽도록). `tabindex="-1"` 요소는 키보드로 도달할 수 없지만 Chromium의 `:focus-visible` 휴리스틱이 여전히 전역 브랜드 링(`*:focus-visible { outline: 2px solid var(--rausch) }`)을 그려, 내비게이션마다 **페이지 제목 둘레에 빨간 사각형**(예: `#/dashboard`의 "Command Center")이 표시되었고 `images/dashboard-*.png` 히어로 스크린샷에도 박혔다. 수정은 한 개의 범위 한정 규칙 `[tabindex="-1"]:focus, [tabindex="-1"]:focus-visible { outline: none }`(WAI-ARIA APG 관리 포커스 패턴). 실제 키보드 포커스는 전역 `*:focus-visible` 링을 유지(WCAG 2.4.7 유지); skip-link 링은 영향 없음(`<a>`이며 `tabindex="-1"`이 아니고 더 높은 특이도). 8개 `images/dashboard-*.png` 재생성 — 빨간 테두리 사라짐. **테스트:** 새 CI 격리 소스 정적 스위트 `tests/managed-focus-no-ring.test.mjs`(4): 전역 `*:focus-visible` 링 유지(WCAG 2.4.7 비퇴행); `[tabindex="-1"]:focus,:focus-visible` ⇒ `outline:none`; 억제 규칙이 전역 규칙 뒤(캐스케이드 안전); 수정 범위 한정(전역 `*:focus{outline:none}` 없음). `tests/dashboard-initial-focus.test.mjs`와 짝. 813 → 817. `fix(a11y)` · `test: tests/managed-focus-no-ring.test.mjs`. 자세히 — [`CHANGELOG.md`](CHANGELOG.md).

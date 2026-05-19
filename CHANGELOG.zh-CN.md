@@ -8,6 +8,12 @@
 
 ---
 
+## [1.56.2] — 2026-05-19
+
+**feat(a11y):UX-N1 — 按路由的本地化 `document.title`(多标签页辨识 + 屏幕阅读器页面变更播报)。** 修复前 24 个路由都保持 `index.html` 的静态 `<title>`("career-ops — command center")——标签页同名、书签通用、每次"页面已更改"播报相同。`public/js/router.js` 的 `focusNewView()` 现从视图自身本地化的 `<h1 class="page-title">` 派生标题——"视图 — career-ops"——因此标题自动翻译(无需新 i18n 键)且每路由唯一。在首次绘制 guard **之前**设置,使初始标签页也有标题(与 v1.56.0 UX-12 的 `tabindex` 设置顺序一致)。视图无标题时回退为 `career-ops — command center`。**测试:** 新增 CI 隔离的源静态套件 `tests/document-title-per-route.test.mjs`(4):`focusNewView` 赋值 `document.title`;标题源自 `<h1>`(按路由 + 本地化,非单一字面量);赋值先于 `!firstPaintDone`;存在产品默认值。817 → 821。`feat(a11y)` · `test: tests/document-title-per-route.test.mjs`。详情见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.56.1] — 2026-05-19
 
 **fix(a11y):消除路由托管的 `tabindex="-1"` 标题聚焦时出现的虚假品牌聚焦环。** `public/js/router.js` 在每次客户端导航时给目标视图标题加 `tabindex="-1"` 并 `.focus()`(让屏幕阅读器播报新页面)。`tabindex="-1"` 元素无法通过键盘到达,但 Chromium 的 `:focus-visible` 启发式仍绘制全局品牌环(`*:focus-visible { outline: 2px solid var(--rausch) }`)——每次导航在**页面标题周围出现红色矩形**(如 `#/dashboard` 的 "Command Center"),且已烘焙进 `images/dashboard-*.png` 主视觉截图。修复为一条限定作用域的规则 `[tabindex="-1"]:focus, [tabindex="-1"]:focus-visible { outline: none }`(WAI-ARIA APG 托管聚焦模式)。交互控件上真正的键盘聚焦保留全局 `*:focus-visible` 环(WCAG 2.4.7 不变);skip-link 的环不受影响(它是 `<a>`,非 `tabindex="-1"`,特异度更高)。8 个 `images/dashboard-*.png` 已重新生成——红框消失。**测试:** 新增 CI 隔离的源静态套件 `tests/managed-focus-no-ring.test.mjs`(4):全局 `*:focus-visible` 环仍定义(WCAG 2.4.7 无回归);`[tabindex="-1"]:focus,:focus-visible` ⇒ `outline:none`;抑制规则位于全局规则之后(层叠安全);修复有作用域(无全局 `*:focus{outline:none}`)。与 `tests/dashboard-initial-focus.test.mjs` 配对。813 → 817。`fix(a11y)` · `test: tests/managed-focus-no-ring.test.mjs`。详情见 [`CHANGELOG.md`](CHANGELOG.md)。

@@ -5,11 +5,11 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | **Русский** | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-817%20passed-brightgreen)](#тесты)
+[![tests](https://img.shields.io/badge/tests-821%20passed-brightgreen)](#тесты)
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#тесты)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#требования)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.56.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.56.1)
+[![release](https://img.shields.io/badge/release-v1.56.2-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.56.2)
 
 > **Недавнее (v1.55 → v1.56):** экранный онбординг-баннер 4 провайдеров + чип активного провайдера, честные подсказки стоимости ⚡ Запуска вживую, ETA на `#/auto`, раскрывашка Расширенных фильтров + заметный Stop на `#/scan`, hero-CTA на `#/dashboard`, виртуализация >1000 строк на `#/pipeline`, серверная пагинация + чипы воронки на `#/tracker`, полировка доступности — детали по версиям в [CHANGELOG.ru.md](CHANGELOG.ru.md).
 
