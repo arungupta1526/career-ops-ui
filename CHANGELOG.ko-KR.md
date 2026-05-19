@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.7] — 2026-05-20
+
+**fix(security): NEW-2 — `isValidJobUrl` 가 쌍을 이룬 템플릿 플레이스홀더 구문(`${…}`, `{{…}}`)을 거부하도록 수정, 오류 메시지와 일치.** `POST /api/pipeline` 의 400 응답은 *"contain no script or template characters"* 라고 안내하지만, v1.58.3 MASTER 회귀에서 실제로는 `[<>"'`\\\s]` 가드의 부수 효과로 ASP/EJS 형식 `<%…%>` 만 차단되고 JS 템플릿 리터럴 `${TEST}` 과 Mustache/Handlebars `{{TEST}}` 는 통과하던 것을 확인. fix-prompt Option A(정규식을 메시지에 맞춤): [server/lib/security.mjs](server/lib/security.mjs) 에 `TEMPLATE_PATTERNS` 배열 추가, `new URL(…)` 전에 `hasTemplatePlaceholder(url)` 호출. **쌍을 이룬** 형식만 거부(`{normal}` 같은 단일 중괄호 ATS 패턴은 유지). 901 → **903** 유닛. (NEW-2)
+
+---
+
 ## [1.58.6] — 2026-05-20
 
 **fix(a11y/i18n): BUG-008-tb — 상단바 `Doctor` 모달 타이틀이 로컬라이즈된 버튼 라벨과 일치하도록 수정.** v1.58.0 에서 닫힌 원장 BUG-008(*"모달 타이틀 == 로컬라이즈된 버튼 라벨"*)은 Health 페이지 진입점에만 적용되어 있었으나, v1.58.3 MASTER 회귀에서 **상단바** 진입점이 불변 조건을 위반하고 있음이 확인되었습니다 — UI 언어와 무관하게 상단바 `Doctor` 클릭 시 모달 타이틀이 항상 `doctor`(영문 소문자)였습니다. [public/js/app.js:118](public/js/app.js#L118) 에서 리터럴 `'doctor'` 를 `I18n.t('top.doctor', 'Doctor')` 로 교체. `top.doctor` 키는 8개 언어 모두에 이미 존재(EN `Doctor` · ES/pt-BR `Diagnóstico` · KO `진단` · JA `診断` · RU `Диагностика` · zh-CN `诊断` · zh-TW `診斷`)하며 버튼이 `data-i18n="top.doctor"` 로 선언한 키와 동일합니다. `tests/qa-report-fixes.test.mjs` 에 정적 계약 가드 추가. 900 → **901** 유닛; Playwright 60/60. (BUG-008-tb)

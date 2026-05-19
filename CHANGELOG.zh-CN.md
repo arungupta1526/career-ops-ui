@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.7] — 2026-05-20
+
+**fix(security): NEW-2 — `isValidJobUrl` 现在拒绝成对的模板占位符语法(`${…}`、`{{…}}`),与错误消息一致。** `POST /api/pipeline` 的 400 响应声称 *"contain no script or template characters"*,但 v1.58.3 MASTER 回归确认:实际仅 ASP/EJS 形式的 `<%…%>` 被 `[<>"'`\\\s]` 守卫顺带拦截。JS 模板字面量 `${TEST}` 与 Mustache/Handlebars `{{TEST}}` 直接通过 — 正则与错误消息的语义不一致。fix-prompt 选项 A(把正则收紧以匹配消息):在 [server/lib/security.mjs](server/lib/security.mjs) 新增 `TEMPLATE_PATTERNS` 数组,经 `hasTemplatePlaceholder(url)` 在 `new URL(…)` 前检查。**只拒绝成对** 的占位符(`{normal}` 等单括号 ATS 路径继续接受)。901 → **903** 单元。(NEW-2)
+
+---
+
 ## [1.58.6] — 2026-05-20
 
 **fix(a11y/i18n): BUG-008-tb — 顶栏 `Doctor` 模态框标题现在与本地化按钮标签一致。** 在 v1.58.0 关闭的台账 BUG-008(*"模态框标题 == 本地化按钮标签"*)只覆盖了 Health 页面入口。v1.58.3 MASTER 回归发现**顶栏**入口仍违反不变量:无论 UI 语言为何,点击顶栏 `Doctor` 打开的模态框标题始终是 `doctor`(小写英文)。修复:[public/js/app.js:118](public/js/app.js#L118) 将字面量 `'doctor'` 替换为 `I18n.t('top.doctor', 'Doctor')`。`top.doctor` 键在 8 种语言中均已存在(EN `Doctor` · ES/pt-BR `Diagnóstico` · KO `진단` · JA `診断` · RU `Диагностика` · zh-CN `诊断` · zh-TW `診斷`),与按钮通过 `data-i18n="top.doctor"` 声明的键相同。`tests/qa-report-fixes.test.mjs` 新增静态契约守卫。900 → **901** 单元;Playwright 60/60。(BUG-008-tb)

@@ -67,6 +67,27 @@ test('isValidJobUrl: rejects script/template chars', () => {
   assert.equal(isValidJobUrl('https://x.com/`backtick`'), false);
 });
 
+test('NEW-2 (v1.58.7): rejects paired template-placeholder syntaxes (${…}, {{…}})', () => {
+  // Pre-v1.58.7 these slipped through; the error message ("contain no
+  // script or template characters") promised to reject them. The
+  // regex↔message gap is now closed (option A from the fix-prompt).
+  assert.equal(isValidJobUrl('https://example.com/${TEST}'), false, '${TEST} must be rejected');
+  assert.equal(isValidJobUrl('https://example.com/{{TEST}}'), false, '{{TEST}} must be rejected');
+  assert.equal(isValidJobUrl('https://example.com/path/${user.id}/job'), false, 'nested ${…} must be rejected');
+  assert.equal(isValidJobUrl('https://example.com/{{role.title}}/apply'), false, '{{…}} with dots must be rejected');
+  // ASP/EJS was already blocked by the `<`/`>` gate — regression-lock it
+  // here so a future refactor of the bracket-char regex doesn't reopen it.
+  assert.equal(isValidJobUrl('https://example.com/<%TEST%>'), false, '<%TEST%> must stay rejected');
+});
+
+test('NEW-2: ATS URLs with a single brace remain accepted (no false positives)', () => {
+  // A bare `{name}` is a legitimate ATS path token shape; only the
+  // *paired* opener+closer of a templating placeholder is a real risk.
+  assert.equal(isValidJobUrl('https://example.com/job/{normal}'), true,
+    'single brace pair {normal} must NOT be rejected (legit ATS pattern)');
+  assert.equal(isValidJobUrl('https://boards.greenhouse.io/anthropic/jobs/4567'), true);
+});
+
 test('isValidJobUrl: rejects javascript: / data: / file: schemes', () => {
   assert.equal(isValidJobUrl('javascript:alert(1)'), false);
   assert.equal(isValidJobUrl('data:text/html,<h1>x</h1>'), false);

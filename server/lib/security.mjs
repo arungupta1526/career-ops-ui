@@ -76,11 +76,36 @@ export function isPrivateOrLoopbackHost(host) {
  *     "http://x.x") or >2000 chars (typical browser cap, anything
  *     longer is a paste mistake or a tracking-blob explosion)
  */
+/**
+ * Paired URL-templating syntaxes that the route-level error message
+ * ("contain no script or template characters") explicitly promises to
+ * reject. ASP/EJS (`<%…%>`) is already covered by the `[<>"'`\\\s]` gate
+ * because both `<` and `>` are blocked. JS template literals (`${…}`)
+ * and Mustache/Handlebars (`{{…}}`) use only `$` / `{` / `}` and slipped
+ * through pre-v1.58.7 (NEW-2). We block only *paired* forms — a bare
+ * `}` appears in legitimate URLs occasionally; only the un-escaped
+ * opener+closer of a templating placeholder is a real risk signal.
+ */
+const TEMPLATE_PATTERNS = [
+  /\$\{[^}]*\}/,    // JS template literal:    ${…}
+  /\{\{[^}]*\}\}/,  // Mustache / Handlebars:  {{…}}
+];
+
+function hasTemplatePlaceholder(url) {
+  return TEMPLATE_PATTERNS.some((re) => re.test(url));
+}
+
 export function isValidJobUrl(input) {
   if (typeof input !== 'string') return false;
   const url = input.trim();
   if (url.length < 10 || url.length > 2000) return false;
   if (/[<>"'`\\\s]/.test(url)) return false;
+  // NEW-2 (v1.58.7) — error message says "contain no script or
+  // template characters". `<%…%>` is caught by the bracket-char gate
+  // above, but `${…}` and `{{…}}` were not. Reject paired placeholders
+  // so the message matches reality (and we get a slight hardening
+  // against URL-templating injection attempts as a side benefit).
+  if (hasTemplatePlaceholder(url)) return false;
   let parsed;
   try {
     parsed = new URL(url);

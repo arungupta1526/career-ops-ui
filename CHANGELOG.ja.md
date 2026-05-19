@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.7] — 2026-05-20
+
+**fix(security): NEW-2 — `isValidJobUrl` がペアのテンプレートプレースホルダ構文(`${…}`、`{{…}}`)を拒否するよう修正、エラーメッセージと整合化。** `POST /api/pipeline` の 400 エラーは *「contain no script or template characters」* と謳っていたが、v1.58.3 MASTER リグレッションで実際には ASP/EJS 形式の `<%…%>` のみが `[<>"'`\\\s]` ガードの副作用で阻止されており、JS テンプレートリテラル `${TEST}` と Mustache/Handlebars `{{TEST}}` は素通りだったと確認。fix-prompt の Option A(正規表現をメッセージに合わせる)で、[server/lib/security.mjs](server/lib/security.mjs) に新規 `TEMPLATE_PATTERNS` 配列(`/\$\{[^}]*\}/`、`/\{\{[^}]*\}\}/`)を追加し、`new URL(…)` の前に `hasTemplatePlaceholder(url)` でチェック。**ペア** のみを拒否(`{normal}` のような正当な ATS パスはそのまま許可)。901 → **903** ユニット。(NEW-2)
+
+---
+
 ## [1.58.6] — 2026-05-20
 
 **fix(a11y/i18n): BUG-008-tb — トップバーの `Doctor` モーダルタイトルがローカライズ済みボタンラベルと一致するよう修正。** v1.58.0 でクローズした台帳 BUG-008(*「モーダルタイトル == ローカライズ済みボタンラベル」*)は Health ページのエントリーには適用されていたものの、v1.58.3 の MASTER リグレッションで **トップバー** のエントリーが不変条件に違反していることが判明:UI 言語に関わらず、トップバーの `Doctor` をクリックすると常に `doctor`(英語小文字)というモーダルタイトルが表示されていました。修正は [public/js/app.js:118](public/js/app.js#L118) — リテラル `'doctor'` を `I18n.t('top.doctor', 'Doctor')` に置換。`top.doctor` キーは 8 言語すべてに既に存在(EN `Doctor`、ES/pt-BR `Diagnóstico`、KO `진단`、JA `診断`、RU `Диагностика`、zh-CN `诊断`、zh-TW `診斷`)し、ボタンが `data-i18n="top.doctor"` で宣言しているキーと同一です。`tests/qa-report-fixes.test.mjs` に静的契約ガードを追加。900 → **901** ユニット; Playwright 60/60。(BUG-008-tb)

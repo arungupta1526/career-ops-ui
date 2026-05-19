@@ -36,7 +36,7 @@ That means every section below = its own version bump and its own PR. No "while 
 | **v1.58.4** ✅ | NEW-1 — add Content-Security-Policy header *(shipped 2026-05-20: CSP now unconditional, route-walk Playwright test added)* | **Major / stop-ship** | Security invariant |
 | **v1.58.5** ✅ | NEW-3 — Follow-up double-POST repro & guard *(shipped 2026-05-20: not-reproducible; locked with Playwright single-POST guard, locale-stable selector, addInitScript lang preset)* | Minor (no code change) | Functional |
 | **v1.58.6** ✅ | BUG-008-tb — top-bar Doctor modal title parity *(shipped 2026-05-20: `UI.modal('doctor',…)` → `UI.modal(I18n.t('top.doctor','Doctor'),…)`, 8-locale parity, static guard)* | Minor | i18n / consistency |
-| **v1.58.7** | NEW-2 — isValidJobUrl regex ↔ error-message consistency | Minor | Security UX |
+| **v1.58.7** ✅ | NEW-2 — isValidJobUrl regex ↔ error-message consistency *(shipped 2026-05-20: Option A — added TEMPLATE_PATTERNS for paired `${…}`/`{{…}}`; ASP/EJS `<%…%>` regression-locked; 2 new url-validation tests; single-brace ATS paths preserved)* | Minor | Security UX |
 | **v1.58.8** | M-1 — global `:focus-visible` ring | Major (a11y, WCAG 2.4.7) | a11y |
 | **v1.58.9** | M-2 — drain progress-toast before any result modal | Minor | UX |
 | **v1.58.10** | M-4 — Saved-research card title↔date gap | Minor | UX visual |
