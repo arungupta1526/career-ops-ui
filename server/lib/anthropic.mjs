@@ -14,7 +14,7 @@
  * routed evaluations to a stale/invalid Gemini key when Anthropic was
  * the configured provider.
  */
-import { effectiveEnv } from './env-config.mjs';
+import { effectiveEnv, isUsableKey } from './env-config.mjs';
 import { PATHS } from './paths.mjs';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
@@ -81,7 +81,7 @@ export async function runAnthropic(prompt, opts = {}) {
  * evaluations to Gemini.
  */
 export function hasAnthropicKey() {
-  return !!envKey('ANTHROPIC_API_KEY');
+  return isUsableKey(envKey('ANTHROPIC_API_KEY'));
 }
 
 /**
@@ -92,5 +92,5 @@ export function hasAnthropicKey() {
  * actually runs.
  */
 export function hasGeminiKey() {
-  return !!envKey('GEMINI_API_KEY');
+  return isUsableKey(envKey('GEMINI_API_KEY'));
 }

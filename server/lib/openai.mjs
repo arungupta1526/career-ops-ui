@@ -13,7 +13,7 @@
  * key set in the parent `.env` after boot is honoured without a
  * restart, and DETECTION (has*Key) matches the key the request SENDS.
  */
-import { effectiveEnv } from './env-config.mjs';
+import { effectiveEnv, isUsableKey } from './env-config.mjs';
 import { PATHS } from './paths.mjs';
 
 const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
@@ -98,10 +98,10 @@ export async function runQwen(prompt, opts = {}) {
 
 /** "Is the OpenAI key set?" — effectiveEnv view (process.env ∨ .env). */
 export function hasOpenAIKey() {
-  return !!envKey('OPENAI_API_KEY');
+  return isUsableKey(envKey('OPENAI_API_KEY'));
 }
 
 /** "Is the Qwen key set?" — same effectiveEnv view. */
 export function hasQwenKey() {
-  return !!envKey('QWEN_API_KEY');
+  return isUsableKey(envKey('QWEN_API_KEY'));
 }

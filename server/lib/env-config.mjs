@@ -156,6 +156,32 @@ export function effectiveEnv(key, envFilePath) {
 }
 
 /**
+ * Is `raw` a plausibly-real LLM API key — as opposed to unset, a
+ * shipped-template placeholder, or obviously-too-short junk left in a
+ * parent .env? Every supported provider's key is comfortably over 20
+ * chars (Gemini `AIza…` ≈ 39, Anthropic `sk-ant-…` ≈ 100+, OpenAI
+ * `sk-…` ≥ 40, Qwen/DashScope `sk-…` ≈ 35), so a conservative 20-char
+ * floor never false-negatives a working key while killing the kind of
+ * 10-char placeholder that (v1.56.3) a parent .env carried — it was
+ * reported "✓ set" by the onboarding banner AND mis-selected as the
+ * active provider over a valid ANTHROPIC key, so every live eval
+ * silently failed against a dead provider. Pure; used by
+ * has{Anthropic,Gemini,OpenAI,Qwen}Key() and the /api/health key rows
+ * so every "is it configured?" answer agrees.
+ */
+export function isUsableKey(raw) {
+  if (typeof raw !== 'string') return false;
+  const v = raw.trim();
+  if (v.length < 20) return false;                       // no real key is this short
+  if (/^your_.*_here$/i.test(v)) return false;           // shipped-template form (matches maskSecret)
+  if (/_here$/i.test(v)) return false;
+  if (/^(your[_-]|changeme|placeholder|example|sk-xxx|todo$|none$|null$|test[_-]?key|enter[_-]|add[_-]your)/i.test(v)) return false;
+  if (/^<.*>$/.test(v)) return false;                    // <your-key-here> angle form
+  if (/^(.)\1+$/.test(v)) return false;                  // a single repeated char
+  return true;
+}
+
+/**
  * Mask secret values: keep first 4 + last 4 chars, hide middle.
  * Returns null when the value is unset, the empty string, or a literal
  * placeholder like "your_*_here".

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.56.3] — 2026-05-19
+
+**fix(reliability): プロバイダーのキー検出が空文字だけでなくプレースホルダー / 短すぎる値も拒否。** 親 `.env` のプレースホルダー `GEMINI_API_KEY` が「✓ set」と表示され、かつ有効な `ANTHROPIC_API_KEY` を差し置いてアクティブプロバイダーに選ばれていた。`effectiveEnv()` は `undefined`/`''` しか弾かないため、10 文字のゴミが本物のキー扱いに:オンボーディングバナーが *GEMINI ✓ set*、`GET /api/status/providers` が `activeProvider: "gemini"` を返し、有効な 108 文字の Anthropic キーを無視して死んだキーで全ライブ ⚡ 評価が無言で失敗していた。新しい純粋関数 `isUsableKey()`(`env-config.mjs`)はシークレットを「設定済み」とみなす条件を ≥ 20 文字(どの対応プロバイダーのキーもこれより短くない — Gemini `AIza…` ≈ 39、Anthropic `sk-ant-…` ≈ 100+、OpenAI ≥ 40、Qwen ≈ 35)かつ既知のプレースホルダー(`your_*_here`、`changeme`、`placeholder`、`<…>`、同一文字の繰り返し…)でないこと、に限定。`hasAnthropicKey()`/`hasGeminiKey()`(`anthropic.mjs`)、`hasOpenAIKey()`/`hasQwenKey()`(`openai.mjs`)、`GET /api/health` の `GEMINI_API_KEY`/`ANTHROPIC_API_KEY` 行(生 `process.env` から同じ effective+plausible ビューへ移行)に一律適用 — health ページ・プロバイダーエンドポイント・OR ルーターが常に一致。`selectActiveProvider()` は不変(正しい `keysConfigured` を受け取るだけ)。**テスト:** 新しい CI 隔離スイート `tests/key-detection-rejects-placeholder.test.mjs`(5):`isUsableKey` 単体 + in-process `createApp()` で報告シナリオを再現(一時 `.env` に 10 文字 `GEMINI_API_KEY` + 実 `ANTHROPIC_API_KEY`)— `gemini` は `keysConfigured` になく、`activeProvider === "anthropic"`、`/api/health` 行も一致。既存の effective-env 階層テスト 4 件は短すぎるスタブを現実的な長さに延長(契約は不変)。821 → 826。`fix(reliability)` · `test: tests/key-detection-rejects-placeholder.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.56.2] — 2026-05-19
 
 **feat(a11y): UX-N1 — ルートごとのロケール対応 `document.title`(マルチタブの識別 + スクリーンリーダーのページ変更通知)。** 修正前は 24 ルートすべてが `index.html` の静的 `<title>`(「career-ops — command center」)のままで、タブ名が同一・ブックマークが汎用・「ページが変わりました」通知も毎回同じだった。`public/js/router.js` の `focusNewView()` がビュー自身のローカライズ済み `<h1 class="page-title">` からタイトルを導出 — 「ビュー — career-ops」— するため、自動翻訳(新しい i18n キー不要)かつルートごとに一意。初回ペイントの guard より**前**に設定するので最初のタブにもタイトルが付く(v1.56.0 UX-12 の `tabindex` 設定と同じ順序)。見出しが無いビューは `career-ops — command center` にフォールバック。**テスト:** 新しい CI 隔離のソース静的スイート `tests/document-title-per-route.test.mjs`(4):`focusNewView` が `document.title` を代入;タイトルは `<h1>` 由来(ルートごと + ローカライズ、単一リテラルでない);代入は `!firstPaintDone` より前;製品デフォルトあり。817 → 821。`feat(a11y)` · `test: tests/document-title-per-route.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

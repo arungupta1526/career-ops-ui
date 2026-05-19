@@ -8,6 +8,12 @@
 
 ---
 
+## [1.56.3] — 2026-05-19
+
+**fix(reliability): 프로바이더 키 감지가 빈 문자열뿐 아니라 플레이스홀더 / 너무 짧은 값도 거부.** 부모 `.env`의 플레이스홀더 `GEMINI_API_KEY`가 "✓ set"으로 표시되고 유효한 `ANTHROPIC_API_KEY`를 제치고 활성 프로바이더로 선택되었다. `effectiveEnv()`는 `undefined`/`''`만 거부해 10자 쓰레기가 실제 키로 취급됨: 온보딩 배너가 *GEMINI ✓ set*, `GET /api/status/providers`가 `activeProvider: "gemini"` 반환, 유효한 108자 Anthropic 키를 무시하고 죽은 키로 모든 라이브 ⚡ 평가가 조용히 실패. 새 순수 함수 `isUsableKey()`(`env-config.mjs`)는 시크릿을 ≥ 20자(지원 프로바이더 키 중 더 짧은 것 없음 — Gemini `AIza…` ≈ 39, Anthropic `sk-ant-…` ≈ 100+, OpenAI ≥ 40, Qwen ≈ 35)이고 알려진 플레이스홀더(`your_*_here`, `changeme`, `placeholder`, `<…>`, 동일 문자 반복…)가 아닐 때만 설정된 것으로 간주. `hasAnthropicKey()`/`hasGeminiKey()`(`anthropic.mjs`), `hasOpenAIKey()`/`hasQwenKey()`(`openai.mjs`), `GET /api/health`의 `GEMINI_API_KEY`/`ANTHROPIC_API_KEY` 행(원시 `process.env`에서 동일한 effective+plausible 뷰로 이전)에 일괄 적용 — health 페이지·프로바이더 엔드포인트·OR 라우터가 항상 일치. `selectActiveProvider()`는 불변(올바른 `keysConfigured`를 받을 뿐). **테스트:** 새 CI 격리 스위트 `tests/key-detection-rejects-placeholder.test.mjs`(5): `isUsableKey` 단위 + in-process `createApp()`로 보고 시나리오 재현(임시 `.env`에 10자 `GEMINI_API_KEY` + 실제 `ANTHROPIC_API_KEY`) — `gemini`는 `keysConfigured`에 없고 `activeProvider === "anthropic"`, `/api/health` 행도 일치. 기존 effective-env 계층 테스트 4건은 너무 짧은 스텁을 현실적 길이로 연장(계약 불변). 821 → 826. `fix(reliability)` · `test: tests/key-detection-rejects-placeholder.test.mjs`. 자세히 — [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.56.2] — 2026-05-19
 
 **feat(a11y): UX-N1 — 라우트별 로케일 인식 `document.title`(멀티탭 식별 + 스크린리더 페이지 변경 안내).** 수정 전에는 24개 라우트가 모두 `index.html`의 정적 `<title>`("career-ops — command center")을 유지해 탭 이름이 동일하고 북마크가 일반적이며 "페이지 변경" 안내도 매번 같았다. `public/js/router.js`의 `focusNewView()`가 뷰 자체의 현지화된 `<h1 class="page-title">`에서 제목을 도출 — "뷰 — career-ops" — 하므로 자동 번역(새 i18n 키 불필요)되고 라우트별로 고유하다. 첫 페인트 가드 **이전**에 설정해 초기 탭에도 제목이 붙는다(v1.56.0 UX-12의 `tabindex` 설정과 동일한 순서). 제목이 없는 뷰는 `career-ops — command center`로 폴백. **테스트:** 새 CI 격리 소스 정적 스위트 `tests/document-title-per-route.test.mjs`(4): `focusNewView`가 `document.title` 할당; 제목은 `<h1>`에서 파생(라우트별 + 현지화, 단일 리터럴 아님); 할당이 `!firstPaintDone` 이전; 제품 기본값 존재. 817 → 821. `feat(a11y)` · `test: tests/document-title-per-route.test.mjs`. 자세히 — [`CHANGELOG.md`](CHANGELOG.md).

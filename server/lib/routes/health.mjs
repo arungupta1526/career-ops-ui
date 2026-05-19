@@ -51,8 +51,13 @@ export function registerHealthRoutes(app) {
     });
 
     // Optional — UI works fine without these
-    checks.push({ name: 'GEMINI_API_KEY', required: false, ok: !!process.env.GEMINI_API_KEY, value: process.env.GEMINI_API_KEY ? 'set' : 'unset (manual mode)' });
-    checks.push({ name: 'ANTHROPIC_API_KEY', required: false, ok: !!process.env.ANTHROPIC_API_KEY, value: process.env.ANTHROPIC_API_KEY ? 'set' : 'unset (set to enable live "Run" buttons)' });
+    // Effective view (process.env ∨ parent .env) AND key-plausibility
+    // (isUsableKey) — identical to /api/status/providers, so a parent
+    // .env placeholder is never reported "set" here either (v1.56.3).
+    const geminiSet = hasGeminiKey();
+    const anthropicSet = hasAnthropicKey();
+    checks.push({ name: 'GEMINI_API_KEY', required: false, ok: geminiSet, value: geminiSet ? 'set' : 'unset (manual mode)' });
+    checks.push({ name: 'ANTHROPIC_API_KEY', required: false, ok: anthropicSet, value: anthropicSet ? 'set' : 'unset (set to enable live "Run" buttons)' });
     // v1.28.1 — HH_USER_AGENT health row removed. The hh.ru adapter falls
     // back to a baked-in UA when the env var is unset; the 403-from-non-RU
     // gate is documented in help-bundle §16 troubleshooting and the

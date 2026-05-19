@@ -127,7 +127,7 @@ test('hasAnthropicKey: live process.env wins', () => {
   delete process.env.ANTHROPIC_API_KEY;
   clearParentEnv();
   assert.equal(hasAnthropicKey(), false);
-  process.env.ANTHROPIC_API_KEY = 'sk-x';
+  process.env.ANTHROPIC_API_KEY = 'sk-ant-api03-live-key-aaaaaaaaaaaaaaaaaaaa';
   assert.equal(hasAnthropicKey(), true);
   if (prev) process.env.ANTHROPIC_API_KEY = prev; else delete process.env.ANTHROPIC_API_KEY;
 });
@@ -137,7 +137,7 @@ test('hasGeminiKey: live process.env wins (REVIEW-B2)', () => {
   delete process.env.GEMINI_API_KEY;
   clearParentEnv();
   assert.equal(hasGeminiKey(), false);
-  process.env.GEMINI_API_KEY = 'AIzaTEST';
+  process.env.GEMINI_API_KEY = 'AIzaSyLIVEgeminikeyvalue0123456789abcd';
   assert.equal(hasGeminiKey(), true);
   if (prev) process.env.GEMINI_API_KEY = prev; else delete process.env.GEMINI_API_KEY;
 });
@@ -152,7 +152,7 @@ test('v1.54.9: a key only in the parent .env is detected (the reported bug)', ()
   const pg = process.env.GEMINI_API_KEY;
   delete process.env.ANTHROPIC_API_KEY;
   delete process.env.GEMINI_API_KEY;
-  writeFileSync(ENV_FILE, 'ANTHROPIC_API_KEY=sk-from-dotenv\n');
+  writeFileSync(ENV_FILE, 'ANTHROPIC_API_KEY=sk-ant-from-dotenv-key-aaaaaaaaaaaaaaaa\n');
   try {
     assert.equal(hasAnthropicKey(), true, 'parent .env key must be detected');
     assert.equal(hasGeminiKey(), false, 'Gemini set nowhere → false');

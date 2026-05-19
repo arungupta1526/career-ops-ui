@@ -8,6 +8,12 @@
 
 ---
 
+## [1.56.3] — 2026-05-19
+
+**fix(reliability):提供者金鑰偵測拒絕佔位符 / 過短值,而不僅是空字串。** 父 `.env` 中的佔位符 `GEMINI_API_KEY` 被報告為「✓ set」,並被選為作用中提供者而非有效的 `ANTHROPIC_API_KEY`。`effectiveEnv()` 僅拒絕 `undefined`/`''`,故 10 字元垃圾被當作真實金鑰:導覽橫幅顯示 *GEMINI ✓ set*,`GET /api/status/providers` 回傳 `activeProvider: "gemini"`,所有即時 ⚡ 評估會對著死金鑰靜默失敗,而忽略有效的 108 字元 Anthropic 金鑰。新純函式 `isUsableKey()`(`env-config.mjs`)僅當金鑰 ≥ 20 字元(受支援提供者金鑰無更短者 — Gemini `AIza…` ≈ 39、Anthropic `sk-ant-…` ≈ 100+、OpenAI ≥ 40、Qwen ≈ 35)且非已知佔位符(`your_*_here`、`changeme`、`placeholder`、`<…>`、單字元重複…)時才視為已設定。統一套用於 `hasAnthropicKey()`/`hasGeminiKey()`(`anthropic.mjs`)、`hasOpenAIKey()`/`hasQwenKey()`(`openai.mjs`)及 `GET /api/health` 的 `GEMINI_API_KEY`/`ANTHROPIC_API_KEY` 列(從原始 `process.env` 遷移至同一 effective+plausible 視圖)——健康頁、提供者端點與 OR 路由現始終一致。`selectActiveProvider()` 不變(僅接收正確的 `keysConfigured`)。**測試:** 新增 CI 隔離套件 `tests/key-detection-rejects-placeholder.test.mjs`(5):`isUsableKey` 單元 + in-process `createApp()` 重現所報場景(暫存 `.env` 含 10 字元 `GEMINI_API_KEY` + 真實 `ANTHROPIC_API_KEY`)——`gemini` 不在 `keysConfigured`,`activeProvider === "anthropic"`,`/api/health` 列一致。四個既有 effective-env 分層測試將過短樁值加長(契約不變)。821 → 826。`fix(reliability)` · `test: tests/key-detection-rejects-placeholder.test.mjs`。詳情見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.56.2] — 2026-05-19
 
 **feat(a11y):UX-N1 — 依路由的在地化 `document.title`(多分頁辨識 + 螢幕閱讀器頁面變更播報)。** 修正前 24 個路由都維持 `index.html` 的靜態 `<title>`(「career-ops — command center」)——分頁同名、書籤通用、每次「頁面已變更」播報相同。`public/js/router.js` 的 `focusNewView()` 現從檢視自身在地化的 `<h1 class="page-title">` 衍生標題——「檢視 — career-ops」——因此標題自動翻譯(無需新 i18n 鍵)且每路由唯一。在首次繪製 guard **之前**設定,使初始分頁也有標題(與 v1.56.0 UX-12 的 `tabindex` 設定順序一致)。檢視無標題時回退為 `career-ops — command center`。**測試:** 新增 CI 隔離的原始碼靜態套件 `tests/document-title-per-route.test.mjs`(4):`focusNewView` 指派 `document.title`;標題源自 `<h1>`(依路由 + 在地化,非單一字面值);指派先於 `!firstPaintDone`;存在產品預設值。817 → 821。`feat(a11y)` · `test: tests/document-title-per-route.test.mjs`。詳情見 [`CHANGELOG.md`](CHANGELOG.md)。

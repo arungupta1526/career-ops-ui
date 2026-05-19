@@ -147,10 +147,10 @@ test('has{OpenAI,Qwen}Key: process.env wins, else parent .env (v1.54.9 contract)
   clearParentEnv();
   assert.equal(hasOpenAIKey(), false);
   assert.equal(hasQwenKey(), false);
-  writeFileSync(ENV_FILE, 'OPENAI_API_KEY=sk-o\nQWEN_API_KEY=sk-q\n');
+  writeFileSync(ENV_FILE, 'OPENAI_API_KEY=sk-proj-dotenv-openai-aaaaaaaaaaaaaaaa\nQWEN_API_KEY=sk-dashscope-qwen-aaaaaaaaaaaaaaaa\n');
   assert.equal(hasOpenAIKey(), true, 'OpenAI key from parent .env');
   assert.equal(hasQwenKey(), true, 'Qwen key from parent .env');
-  process.env.OPENAI_API_KEY = 'sk-proc';
+  process.env.OPENAI_API_KEY = 'sk-proj-procenv-openai-bbbbbbbbbbbbbbbb';
   assert.equal(hasOpenAIKey(), true); // process.env wins (still true)
   if (po) process.env.OPENAI_API_KEY = po; else delete process.env.OPENAI_API_KEY;
   if (pq) process.env.QWEN_API_KEY = pq; else delete process.env.QWEN_API_KEY;

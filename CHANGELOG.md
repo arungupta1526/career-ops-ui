@@ -6,6 +6,20 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.56.3] — 2026-05-19
+
+**fix(reliability): provider key detection rejects placeholder / too-short values, not only the empty string.**
+
+### 🐛 Fixes
+
+- **A placeholder `GEMINI_API_KEY` in a parent `.env` was reported "✓ set" AND mis-selected as the active provider over a valid `ANTHROPIC_API_KEY`.** `effectiveEnv()` only rejected `undefined`/`''`, so a 10-char placeholder counted as a real key: the onboarding banner showed *GEMINI ✓ set*, `GET /api/status/providers` returned `activeProvider: "gemini"`, and every live ⚡ eval would have silently failed against a dead key while a working 108-char Anthropic key was ignored. New pure `isUsableKey()` (`env-config.mjs`) treats a secret as configured only when it is ≥ 20 chars (no supported provider's key is shorter — Gemini `AIza…` ≈ 39, Anthropic `sk-ant-…` ≈ 100+, OpenAI ≥ 40, Qwen ≈ 35 — so a real key is never false-negatived) and not a known placeholder (`your_*_here`, `changeme`, `placeholder`, `<…>`, all-one-char, …). Applied uniformly to `hasAnthropicKey()`/`hasGeminiKey()` (`anthropic.mjs`), `hasOpenAIKey()`/`hasQwenKey()` (`openai.mjs`), and the `GEMINI_API_KEY`/`ANTHROPIC_API_KEY` rows of `GET /api/health` — which also moved off raw `process.env` onto the same effective+plausible view, so the health page, the providers endpoint, and the OR-router now always agree. `selectActiveProvider()` is unchanged; it just receives a correct `keysConfigured`.
+
+### 🧪 Tests
+
+- New CI-isolated suite **`tests/key-detection-rejects-placeholder.test.mjs`** (5): `isUsableKey` unit cases (empty/non-string, too-short incl. the 10-char repro, long-but-placeholder, realistic keys accepted) + an in-process `createApp()` reproduction of the exact reported scenario (10-char `GEMINI_API_KEY` + real `ANTHROPIC_API_KEY` in a temp parent `.env`, the 4 keys stripped from `process.env`) asserting `gemini` is NOT in `keysConfigured`, `activeProvider === "anthropic"`, and the `/api/health` rows agree. Four existing `anthropic`/`openai` effective-env layering tests had trivially-short stub keys (`sk-x`, `AIzaTEST`, `sk-o`, …) lengthened to realistic values — the layering contract they assert is unchanged; only the stubs had to clear the new floor. 821 → 826.
+
+---
+
 ## [1.56.2] — 2026-05-19
 
 **feat(a11y): UX-N1 — per-route, locale-aware `document.title` (multi-tab orientation + screen-reader page-change announcement).**
