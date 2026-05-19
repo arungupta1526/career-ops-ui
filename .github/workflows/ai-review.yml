@@ -3,21 +3,20 @@ name: AI Review (Claude Code)
 # ────────────────────────────────────────────────────────────────────
 # Pipeline-level AI reviewer for career-ops-ui.
 #
-# WHY THIS EXISTS / WHAT IT FIXES
-#   The original workflow triggered ONLY on `pull_request`. This repo
-#   ships **direct to main** (see CHANGELOG / git history — every
-#   release is a direct commit, not a PR), so the PR-only reviewer had
-#   ZERO runs and never actually reviewed anything. This rewrite makes
-#   the AI reviewer fire on the path the project actually uses:
-#
-#     • push → main      → review HEAD diff, post a COMMIT comment
-#     • pull_request      → review the PR diff, post a PR comment
-#                           (kept for any future PR-based flow)
+# WHAT THIS IS
+#   A pipeline-level advisory AI reviewer. The repo ships **direct to
+#   main** — every release is a direct commit, never a PR (zero PRs in
+#   the repo's history). So this is a SINGLE push→main job that, for
+#   every commit on main, reviews HEAD's diff and posts an advisory
+#   COMMIT comment. There is deliberately no pull_request job: it
+#   could never run here and would show as a permanent, misleading
+#   "Skipped" on every push. Re-add a separate PR workflow only if the
+#   project adopts a PR-based flow.
 #
 #   It mirrors, at the pipeline level, the advisory AI layer that
 #   scripts/ai-precommit-review.mjs already runs locally on commit:
 #   deterministic gates live in ci.yml (hard-fail); this job is the
-#   ADVISORY second opinion (fail-soft — never blocks a push/merge;
+#   ADVISORY second opinion (fail-soft — never blocks a push;
 #   maintainers retain all authority).
 #
 # REQUIRED REPO SECRET
@@ -28,14 +27,14 @@ name: AI Review (Claude Code)
 #     gh secret set ANTHROPIC_API_KEY --repo Fighter90/career-ops-ui
 #
 # DESIGN NOTES
-#   • Zero extra runtime deps: the push-path review is a direct HTTPS
-#     call to the Anthropic Messages API via curl + python3 (both
-#     present on ubuntu-latest) — the same zero-dependency ethos as
-#     server/lib/anthropic.mjs. No SDK, no Node project install.
-#   • The PR path uses the official anthropics/claude-code-action@v1
-#     (purpose-built to post inline PR review comments).
-#   • Both paths share ONE review rubric (the env REVIEW_RUBRIC below)
-#     so local pre-commit, PR, and push reviews judge by the same bar.
+#   • Zero extra runtime deps: the review is a direct HTTPS call to
+#     the Anthropic Messages API via curl, with the request body and
+#     response parsed by `jq` (preinstalled on ubuntu-latest). An
+#     earlier python-heredoc builder collided its stdout with the
+#     output file under the YAML block scalar and sent an empty body
+#     (HTTP 400) — jq is whitespace-agnostic and has no such hazard.
+#   • The review rubric (env REVIEW_RUBRIC below) is the same bar the
+#     local pre-commit AI layer applies.
 #   • The diff is size-capped (200 KB) so a huge release commit can't
 #     blow the model context or the API request.
 #   • Comments are written as github-actions[bot]; humans keep replying.
@@ -44,24 +43,25 @@ name: AI Review (Claude Code)
 on:
   push:
     branches: [main]
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [main]
+  # NOTE: this repo ships exclusively direct-to-main — it has zero
+  # PRs, ever. A `pull_request`-triggered job would therefore be
+  # permanently "Skipped" on every run, which looks broken and
+  # erodes trust. The PR path (anthropics/claude-code-action@v1) was
+  # intentionally removed; re-add a separate pull_request trigger +
+  # job here if/when the project adopts a PR-based flow.
 
 permissions:
   contents: write         # checkout + diff AND create commit comments
                           # (POST /repos/:o/:r/commits/:sha/comments is
                           # a write op under the Contents permission —
-                          # contents:read is NOT enough for the push
-                          # path; caught by the pre-commit AI reviewer).
-  pull-requests: write    # PR review comment
-  issues: write           # fallback comment surface
+                          # contents:read is NOT enough; caught by the
+                          # pre-commit AI reviewer).
 
 concurrency:
-  # PRs: one in-flight review per PR (cancel stale). Pushes: one per
-  # commit SHA (never cancel — each main commit deserves its review).
-  group: ai-review-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  # One review per pushed commit SHA; never cancel — each main commit
+  # deserves its review.
+  group: ai-review-${{ github.sha }}
+  cancel-in-progress: false
 
 env:
   # Single source of truth for the review bar — kept in lockstep with
@@ -98,52 +98,11 @@ env:
     restate the diff or the commit message back to the author.
 
 jobs:
-  # ── PR path ──────────────────────────────────────────────────────
-  pr-review:
-    name: Claude review (pull request)
-    if: >-
-      github.event_name == 'pull_request' &&
-      !contains(github.event.pull_request.labels.*.name, 'skip-ai-review')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out PR head
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Guard — ANTHROPIC_API_KEY present
-        id: guard
-        env:
-          KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          if [ -z "$KEY" ]; then
-            echo "::warning::ANTHROPIC_API_KEY not set — skipping AI review (advisory only; ci.yml + pre-commit still gate this PR)."
-            echo "ok=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "ok=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Run Claude Code review
-        if: steps.guard.outputs.ok == 'true'
-        uses: anthropics/claude-code-action@v1
-        with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          # `prompt` is the correct @v1 input (NOT `direct_prompt` —
-          # the legacy workflow used that, but it never ran so the
-          # invalid input was never surfaced). Verified against the
-          # action's action.yml input schema.
-          prompt: |
-            ${{ env.REVIEW_RUBRIC }}
-
-            Review the diff of this pull request against the bar above
-            and post your findings as a PR review comment.
-          track_progress: true
-
-  # ── Push-to-main path (the one this repo actually uses) ──────────
+  # Single job — always runs on push→main (no conditional `if:`, so it
+  # can never show as "Skipped"). The repo has no PRs; see the `on:`
+  # note above for why the PR job was removed.
   push-review:
     name: Claude review (push → main)
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Check out (full history for the diff)
