@@ -111,3 +111,41 @@ effect is a properly formatted document on `#/deep` and Saved research.
   · comprehensive **23/23**. v1.58.1 = test-only fix over v1.58.0.
 
 See `REGRESSION-FINAL.md` for the detailed manual + automated plan.
+
+---
+
+## 5. v1.58.3 — deep-regression follow-up (R-2 / C-1 / C-2)
+
+Driven by `career-ops_deep-regression-v1.58.2.md` + `career-ops_qa-regression-v1.58.2.md`.
+
+| ID | Verdict | Detail |
+|----|---------|--------|
+| **R-2 / FIX-C1 (stripper)** | **CLOSED v1.58.3** | `cleanLlmMarkdown` now removes ANY standalone scaffold token (open *or* close, balanced or not) — the orphan `</tool_response>`/`</thinking>` with no opener that survived v1.58.0/.2 — plus Anthropic tool XML (`<invoke>`/`<parameter>`/`antml:*`) and fenced ```tool_* blocks. Pure+idempotent; real `<https://…>` autolinks & code spans preserved. `tests/llm-output.test.mjs` 5→8. |
+| **FIX-C1 (saver/prompt layers)** | **Partly out of scope** | The prompt-layer (`modes/deep.md` final-form enforcement) is **parent-owned** — hard rule #1 forbids this repo editing it; route a request to `santifer/career-ops` instead. The saver-layer "reject thin brief" guard is deferred (risk of false-rejecting a legit short brief); the stripper resolves the visible symptom. |
+| **FIX-C2 / M-3 (`<html lang>`)** | **NOT REPRODUCIBLE — code already correct** | `public/js/lib/i18n.js` sets `document.documentElement.lang` in `setLang()` (L75) **and** at boot (L83), and `detect()` reads `navigator.language` with `localStorage` persistence. The QA "stuck on en" was a stale `career-ops-ui:lang` / pre-redeploy build artifact. Locked with a static contract guard in `qa-report-fixes.test.mjs`. |
+
+### Queued as subsequent one-fix ships (project doctrine — NEVER batched)
+
+HIGH→LOW, each its own bump + CHANGELOG ×8 + test + Playwright-verify
++ AI-review LGTM + CI-watch:
+
+- **M-1** focus-ring invisible (`:focus-visible` global) — WCAG 2.4.7.
+- **M-2** lingering "Running …" toast on `sync-check`/`verify` (same
+  pattern as the fixed doctor; centralize `modal.show`→dismiss-progress).
+- **M-4** Saved-research card title↔date glued (`gap`).
+- **M-5/M-6** Tracker confirm-modal English operator word; CLI-modal
+  localized header wrapper (stdout stays EN by design).
+- **M-7** `Estimated cost` ignores `LLM_PROVIDER` (read active provider).
+- **M-8** Apply checklist → real interactive checkboxes + persistence.
+- **M-9** Dashboard `Refresh` → feedback toast with counters.
+- **I-1..I-6** search aria-label, `today` rel-time, Help-TOC items
+  2/5/13/14 (no `nav.*` counterpart), RU `cadence`/`follow-up`/`smart
+  questions`, footer ⌘K platform hint.
+- **U-1..U-15** CV H1, emoji-wrap H1, frozen date placeholder,
+  endpoint-in-toast `<details>`, dashboard CTA dedupe, ASCII divider,
+  prompt-block collapse, queue-chip spacing, disable Tracker actions
+  at 0 rows, LEGITIMACY tooltip, Help filter truncation, toast
+  journal, H1↔subtitle spacing, CV dirty-state.
+- Housekeeping: a `clean-test-fixtures` target for the leaked
+  `data/pipeline.md` / `reports/software-engineer-general.md` test
+  artifacts (parent-owned data — user action, not a code path).

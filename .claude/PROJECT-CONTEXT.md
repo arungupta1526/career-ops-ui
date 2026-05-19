@@ -8,7 +8,7 @@
 > **Audience.** Claude Code subagents, Cursor / Codex / Aider sessions,
 > any IDE assistant that doesn't auto-load CLAUDE.md.
 >
-> **Repo state.** v1.58.2 (2026-05-19). 896 `node --test` cases,
+> **Repo state.** v1.58.3 (2026-05-19). 900 `node --test` cases,
 > 58 Playwright (smoke + full-cycle + forms). v1.55.1→v1.56.4 consolidated UX fix-prompt
 > complete; **v1.57.0** adds OpenRouter as a 5th headless live-eval
 > provider (one key → 300+ models, live `#/config` model dropdown via
@@ -45,7 +45,7 @@ data files (`cv.md`, `data/applications.md`, `reports/`,
 | Build | None | Files served as-is from `public/` |
 | CI | GitHub Actions, Node 18/20/22 | `.github/workflows/{ci,release,publish-package,ai-review,dashboard-screenshots}.yml` |
 
-**Test baseline (v1.58.2):** 896/896 unit · 58/58 Playwright (smoke + full-cycle + forms) · 20/20 smoke E2E · 23/23 comprehensive E2E.
+**Test baseline (v1.58.3):** 900/900 unit · 58/58 Playwright (smoke + full-cycle + forms) · 20/20 smoke E2E · 23/23 comprehensive E2E.
 
 ---
 
@@ -121,7 +121,7 @@ career-ops-ui/
 │  ├─ css/app.css                              # design tokens, WCAG 2.2 AA + 1.4.1 redundant cues
 │  └─ js/{app,router,api}.js + js/lib/* + js/views/*
 ├─ tests/
-│  ├─ *.test.mjs                               # 896 unit + integration
+│  ├─ *.test.mjs                               # 900 unit + integration
 │  ├─ playwright-{smoke,full-cycle,forms}.mjs  # 58 browser flows
 │  ├─ e2e{,-comprehensive}.mjs                 # 20 + 23 E2E
 │  └─ fixtures/                                # CI-isolated test data

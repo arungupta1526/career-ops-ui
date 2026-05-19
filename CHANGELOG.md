@@ -6,6 +6,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.58.3] — 2026-05-19
+
+**fix(deep): R-2 / FIX-C1 — strip ORPHAN / unbalanced agent-scaffolding tags from research output.** v1.58.0 added `cleanLlmMarkdown` but it only removed *paired* `<tool_call>…</tool_call>` blocks and a *dangling open* tag. A deep regression of v1.58.2 found a model that emitted a **lopsided trace** — an orphan closing `</tool_response>` (and `</thinking>`) with no opener — which survived and rendered literally in the saved `#/deep` brief. A final conservative sweep now removes **any** standalone scaffold token (open or close, balanced or not): `tool_call|tool_response|tool_use|function_call|function_results|thinking`, the Anthropic tool XML (`<invoke …>`/`</invoke>`/`<parameter …>`/`<function_calls>` and `antml:`-namespaced forms), and fenced ```tool_* blocks. Pure + idempotent; real `<https://…>` autolinks and `` `<code>` `` spans are preserved (only the named agent tokens match). **FIX-C2** (`<html lang>` not updating) was triaged **not-reproducible** — `i18n.js` already sets `document.documentElement.lang` on `setLang` AND at boot and detects `navigator.language`; the QA repro was a stale `localStorage`/pre-redeploy artifact. Locked both with regression guards. 896 → **900** unit · Playwright 58/58 · e2e 20/20+23/23. The remaining v1.58.3 fix-prompt items (M-1 focus-ring, M-4..M-9, I-1..I-6, U-1..U-15) are queued as subsequent one-fix ships per project doctrine (never batched). See `qa/v158-regression/`.
+
+---
+
 ## [1.58.2] — 2026-05-19
 
 **fix(i18n): I18N-011 — localize the `#/help` table-of-contents in all 7 non-EN locales.** The `#/help` "On this page" TOC is built from the `##` section headings of `docs/help/<lang>.md`. Sections 3/4/6/7/8/9/10/11/12 (Profile, CV, Health, Scan, Pipeline, Evaluate, Reports, Tracker, Deep research) still carried their **English** titles in es/pt-BR/ko/ja/ru/zh-CN/zh-TW, so the TOC showed English while the sidebar nav was translated. Each affected heading is now localized to the **exact same term as the sidebar `nav.*` key** (single source of truth — TOC ↔ sidebar match), preserving the section number and the `(#/route …)` parenthetical verbatim. EN unchanged (canonical). 7–9 headings per locale. Closes the sole open i18n backlog item from the v1.58 QA sweep. Docs-only; 896/896 unit · 33/33 help tests · Playwright 58/58. See `qa/v158-regression/`.

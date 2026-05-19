@@ -24,6 +24,19 @@ const SCAFFOLD_BRACKETS = /\[\s*(TOOL_CALL|TOOL_RESPONSE|FUNCTION_CALL)\s*\][\s\
 // A self-closing / unterminated trailing scaffold tag at EOF (the
 // stream was cut mid tool-call) — drop from the tag to end of string.
 const SCAFFOLD_DANGLING = /<\s*(tool_call|tool_response|tool_use|function_call)\s*>[\s\S]*$/i;
+// v1.58.3 (R-2 / FIX-C1) — fenced ```tool_call / ```thinking blocks.
+const SCAFFOLD_FENCE = /```\s*(?:tool_call|tool_response|tool_use|function_call|function_results?|thinking)\b[\s\S]*?```/gi;
+// Final sweep: ANY remaining standalone scaffold tag — OPEN or CLOSE,
+// balanced or not. The paired regex only removes `<tag>…</tag>`; an
+// UNBALANCED orphan closing tag (`</tool_response>` with no opener —
+// the model emitted a lopsided trace) survived and rendered literally
+// in the saved brief (R-2). Also covers the Anthropic tool XML
+// (`<invoke name=…>`, `</invoke>`, `<parameter …>`, `<function_calls>`
+// and the `antml:`-namespaced forms). These token names are never
+// legitimate prose/markdown in a job brief, so a blunt per-tag strip
+// is safe and keeps the function idempotent.
+const SCAFFOLD_ANY_TAG =
+  /<\/?\s*(?:tool_call|tool_response|tool_use|function_call|function_results?|thinking|invoke|parameter|function_calls|antml:[a-z_]+)\b[^>]*>/gi;
 
 /**
  * @param {string} md raw model output
@@ -32,6 +45,7 @@ const SCAFFOLD_DANGLING = /<\s*(tool_call|tool_response|tool_use|function_call)\
 export function cleanLlmMarkdown(md) {
   if (!md || typeof md !== 'string') return '';
   let s = md
+    .replace(SCAFFOLD_FENCE, '')
     .replace(SCAFFOLD_TAGS, '')
     .replace(SCAFFOLD_BRACKETS, '');
   // Only treat a leftover OPEN tag with no close as dangling (don't
@@ -39,6 +53,9 @@ export function cleanLlmMarkdown(md) {
   if (/<\s*(tool_call|tool_response|tool_use|function_call)\s*>/i.test(s)) {
     s = s.replace(SCAFFOLD_DANGLING, '');
   }
+  // R-2: blunt-strip every remaining standalone scaffold tag (the
+  // orphan-closing-tag case the paired/dangling regexes can't reach).
+  s = s.replace(SCAFFOLD_ANY_TAG, '');
   // Collapse the blank-line craters the removed blocks leave behind.
   s = s.replace(/\n{3,}/g, '\n\n').trim();
   return s;

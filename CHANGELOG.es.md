@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.58.3] — 2026-05-19
+
+**fix(deep): R-2 / FIX-C1 — elimina etiquetas de andamiaje HUÉRFANAS / desbalanceadas del output de investigación.** `cleanLlmMarkdown` (v1.58.0) solo quitaba bloques *emparejados* y una etiqueta *abierta colgante*. Una regresión profunda de v1.58.2 halló un modelo con traza desbalanceada — un `</tool_response>` huérfano (y `</thinking>`) sin apertura — que sobrevivía y se renderizaba literal en el brief guardado de `#/deep`. Un barrido conservador final elimina ahora **cualquier** token de andamiaje suelto (abierto o cerrado), el XML de herramientas de Anthropic (`<invoke>`/`<parameter>`/`antml:*`) y bloques ```tool_*```. Puro + idempotente; autoenlaces `<https://…>` y spans de código se preservan. **FIX-C2** triado **no-reproducible** (i18n.js ya fija `<html lang>` y detecta `navigator.language`). Ambos bloqueados con guards. 896 → **900** unit · Playwright 58/58. Resto del fix-prompt v1.58.3 en cola como one-fix ships (doctrina: nunca en lote).
+
+---
+
 ## [1.58.2] — 2026-05-19
 
 **fix(i18n): I18N-011 — localiza el índice de `#/help` en los 7 idiomas no-EN.** El TOC se construye desde los encabezados `##` de `docs/help/<lang>.md`. Las secciones 3/4/6/7/8/9/10/11/12 aún tenían títulos en **inglés** en es/pt-BR/ko/ja/ru/zh-CN/zh-TW, así que el TOC salía en inglés mientras el sidebar estaba traducido. Cada encabezado afectado se localiza ahora al **mismo término que la clave `nav.*` del sidebar** (fuente única — TOC ↔ sidebar coinciden), conservando el número de sección y el paréntesis `(#/route …)` literal. EN sin cambios. Cierra el único pendiente i18n del barrido QA v1.58. Solo docs; 896/896 unit · 33/33 help · Playwright 58/58.

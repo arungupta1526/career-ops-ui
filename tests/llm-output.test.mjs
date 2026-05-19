@@ -64,3 +64,31 @@ test('does NOT eat a fenced code block that merely mentions the word tool_call',
   const out = cleanLlmMarkdown(raw);
   assert.ok(out.includes('callTool()') && out.includes('Done.'), 'real code/prose preserved');
 });
+
+// ── v1.58.3 (R-2 / FIX-C1) — orphan / unbalanced scaffold tags ──
+
+test('R-2: strips an ORPHAN closing tag with no opener (the v1.58.2 leak)', () => {
+  assert.equal(cleanLlmMarkdown('Hi there </tool_response> bye'), 'Hi there  bye');
+  assert.equal(cleanLlmMarkdown('Brief.\n</thinking>\n## Section'), 'Brief.\n\n## Section');
+  const meta = 'Я запущу.\nСначала прочитаю.\n</tool_response>\nТеперь создам брифинг.';
+  const out = cleanLlmMarkdown(meta);
+  assert.ok(!out.includes('tool_response'), 'orphan </tool_response> must be gone');
+  assert.ok(out.includes('Теперь создам брифинг.'), 'real prose kept');
+});
+
+test('R-2: strips Anthropic tool XML (<invoke>/<parameter>/antml:*) and fenced tool blocks', () => {
+  assert.equal(
+    cleanLlmMarkdown('txt <invoke name="x"><parameter name="p">y</parameter></invoke> end'),
+    'txt y end');
+  assert.ok(!/antml:/.test(cleanLlmMarkdown('a <invoke>b</invoke> c')));
+  const fenced = '## A\n```tool_response\n{"k":1}\n```\n## B';
+  const out = cleanLlmMarkdown(fenced);
+  assert.ok(out.includes('## A') && out.includes('## B') && !out.includes('tool_response'));
+});
+
+test('R-2: still idempotent on lopsided traces; never eats real autolinks', () => {
+  const x = 'meta\n</tool_response>\n<invoke name=q>z</invoke>\n## H';
+  assert.equal(cleanLlmMarkdown(cleanLlmMarkdown(x)), cleanLlmMarkdown(x), 'idempotent');
+  const real = '# T\n\nSee <https://example.com> and `<not_a_tag>` in prose.';
+  assert.equal(cleanLlmMarkdown(real), real.trim(), 'real <https://> autolink + code span preserved');
+});

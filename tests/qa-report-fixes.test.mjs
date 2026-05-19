@@ -110,3 +110,20 @@ test('BUG-002/UX-032: store.mjs allow-list flags fixtures + is exact-anchored (n
   assert.equal(re.test('María Testanova'), false, 'real name containing "test" must NOT match');
   assert.equal(re.test('Testy McTestface'), false, 'substring "Test" must NOT match the anchored list');
 });
+
+// ── v1.58.3 — FIX-C2: <html lang> contract (the QA "stuck on en" was
+// a stale-localStorage/pre-redeploy artifact; the code is correct —
+// lock it so it can't regress). i18n.js is browser-only → static.
+test('FIX-C2: i18n.js sets document.documentElement.lang on setLang AND at boot, detects navigator.language', () => {
+  const src = read('public', 'js', 'lib', 'i18n.js');
+  // setLang writes the attribute
+  assert.match(src, /function setLang\(code\)\s*\{[\s\S]*document\.documentElement\.lang\s*=\s*code/,
+    'setLang must set <html lang>');
+  // boot sets it from the resolved current locale
+  assert.match(src, /document\.documentElement\.lang\s*=\s*current/,
+    'boot must set <html lang> from the resolved locale');
+  // first-load detection from the browser
+  assert.match(src, /navigator\.language/, 'must detect from navigator.language');
+  // persisted choice
+  assert.match(src, /STORAGE_KEY\s*=\s*'career-ops-ui:lang'/, 'locale persisted to localStorage');
+});
