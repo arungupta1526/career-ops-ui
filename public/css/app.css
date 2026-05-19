@@ -511,6 +511,46 @@ body.sidebar-open .sidebar-backdrop { display: block; }
   white-space: nowrap;
 }
 
+/* M-8 (v1.58.13) — interactive Apply checklist. The pre-fix view
+   rendered the checklist as a plain <pre> block; users couldn't tick
+   anything. Now each item is a real checkbox+label row, persisted per
+   URL in localStorage. Label is the full row so click target ≥44 px
+   (WCAG 2.5.5), with a gap that survives long lines. */
+.apply-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+}
+.apply-checklist > li {
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--slate);
+}
+.apply-checklist > li:last-child { border-bottom: 0; }
+.apply-checklist label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2, 8px);
+  cursor: pointer;
+  line-height: 1.5;
+  min-height: 32px;
+}
+.apply-checklist input[type="checkbox"] {
+  margin-top: 4px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.apply-checklist input[type="checkbox"]:checked + span {
+  text-decoration: line-through;
+  color: var(--foggy);
+}
+.apply-checklist__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 8px);
+  margin-top: 12px;
+}
+
 /* ───────────────────────── content shell ───────────────────────── */
 .content {
   padding: var(--space-7) var(--space-6);

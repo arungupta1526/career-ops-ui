@@ -42,7 +42,7 @@ That means every section below = its own version bump and its own PR. No "while 
 | **v1.58.10** ✅ | M-2 — drain progress-toast before any result modal *(shipped 2026-05-20: `UI.modal()` now auto-dismisses on entry — defence-in-depth; cv.js sync-check call site localized via `t('cv.syncCheck')` / `t('cv.syncCheckRunning')`; 8-locale i18n parity + static guard)* | Minor | UX |
 | **v1.58.11** ✅ | M-4 — Saved-research card title↔date gap *(shipped 2026-05-20: `.saved-card` flex container + `gap: var(--space-2)` + semantic `<time datetime="…">`; pre-fix inline marginLeft removed; static guard locks classes + CSS gap)* | Minor | UX visual |
 | **v1.58.12** ✅ | M-7 — Cost line follows `LLM_PROVIDER` *(shipped 2026-05-20: EST adds `openrouter: null` + render branch for null-cost → localized `cost varies (router picks)`; NAME adds `openrouter: 'OpenRouter'`; new `cost.varies` i18n key in all 8 locales; static contract guard locks the EST/NAME/branch shape)* | Major | UX truthfulness |
-| **v1.58.13** | M-8 — Apply checklist becomes interactive | Major | UX promise vs delivery |
+| **v1.58.13** ✅ | M-8 — Apply checklist becomes interactive *(shipped 2026-05-20: `<input type="checkbox">` per item, `<label>` full-row click target, per-URL `localStorage['applyChecklist:'+slug]`, Copy-unchecked + Reset buttons, 5 new i18n keys × 8 locales, defensive fallback)* | Major | UX promise vs delivery |
 | **v1.58.14** | M-9 — Dashboard `Refresh` feedback toast | Minor | UX |
 | **v1.58.15** | I-1 — top-bar `aria-label` localized | Minor | a11y / i18n |
 | **v1.58.16** | I-2 — `today` / `yesterday` / `N days ago` localized via Intl.RelativeTimeFormat | Minor | i18n |

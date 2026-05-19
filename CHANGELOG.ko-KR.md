@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.13] — 2026-05-20
+
+**fix(ux): M-8 — `#/apply` 체크리스트가 인터랙티브해짐.** v1.58.13 이전에는 "▶ 체크리스트 생성"이 항목 0~7 을 모노스페이스 `<pre>` 블록으로만 보여주어 체크할 수 없었음. 이제 각 항목은 실제 `<input type="checkbox">` 로 렌더링되며 `<label>` 로 감싸 클릭 영역이 행 전체(WCAG 2.5.5)가 됨. 상태는 URL 별로 `localStorage['applyChecklist:'+slug]` 에 영속화 — 3 개 체크 → 새로고침 → 3 개 그대로 유지. 버튼: **미체크 항목 복사**(미해결 항목을 `- markdown` 으로 출력)와 **초기화**. 5 개 신규 i18n 키(`apply.checklist.copyUnchecked`, `resetBtn`, `copied`, `copyFailed`, `reset`)를 8 언어에 추가. 파서가 항목을 찾지 못한 경우 방어적 폴백 제공. 908 → **909** 유닛. (M-8)
+
+---
+
 ## [1.58.12] — 2026-05-20
 
 **fix(ux): M-7 — 비용 힌트가 활성 제공자를 따라감 (OpenRouter 가 더 이상 잘못된 고정 금액으로 빠지지 않음).** `UI.providerCostHint()` 는 이미 `/api/status/providers` 를 거쳐 제공자를 인지하고 있었으나, [public/js/api.js](public/js/api.js#L623-L676) 의 매핑이 `anthropic`/`gemini`/`openai`/`qwen` 만 포함. v1.57.0 의 5번째 제공자 OpenRouter 는 일반 폴백 0.03 에 떨어지고 표시 이름도 소문자 `openrouter` 였음. 이제 EST 에 `openrouter: null` 추가 (라우터가 모델을 선택하므로 비용 가변), `=== null` 분기에서 로컬라이즈된 "cost varies (router picks)" 출력. NAME 에 `openrouter: 'OpenRouter'`. 새 i18n 키 `cost.varies` 를 8 언어에 추가. 907 → **908** 유닛. (M-7)

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.13] — 2026-05-20
+
+**fix(ux): M-8 — `#/apply` のチェックリストがインタラクティブに。** v1.58.13 まで「▶ チェックリスト生成」は項目 0〜7 を等幅 `<pre>` で表示するだけでチェックできなかった。今は各項目を本物の `<input type="checkbox">` として描画し、`<label>` でラップ(クリック領域は行全体・WCAG 2.5.5)。状態は `localStorage['applyChecklist:'+slug]` に URL ごとに永続化 — 3 つチェック → リロード → 3 つとも残る。ボタン:**未チェック項目をコピー**(未消化の項目を `- markdown` で書き出し)と **リセット**。新規 i18n キー 5 つ(`apply.checklist.copyUnchecked`, `resetBtn`, `copied`, `copyFailed`, `reset`)を 8 言語で追加。パーサが項目を見つけなかった場合の防御的フォールバックあり。908 → **909** ユニット。(M-8)
+
+---
+
 ## [1.58.12] — 2026-05-20
 
 **fix(ux): M-7 — コストヒントがアクティブプロバイダに追従(OpenRouter で誤った固定額が出ない)。** `UI.providerCostHint()` は既に `/api/status/providers` 経由でプロバイダ対応していたが、[public/js/api.js](public/js/api.js#L623-L676) のマップに `anthropic`/`gemini`/`openai`/`qwen` のみ。v1.57.0 で OpenRouter が 5 番目のプロバイダとして加わってからも汎用フォールバック 0.03 に落ち、表示名も小文字 `openrouter` のままだった。今回 EST に `openrouter: null` を追加(ルーターがモデルを選ぶためコストは可変)、`=== null` 分岐でローカライズされた「cost varies (router picks)」を出力。NAME には `openrouter: 'OpenRouter'`。新規 i18n キー `cost.varies` を 8 言語で追加。907 → **908** ユニット。(M-7)

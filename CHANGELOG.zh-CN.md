@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.13] — 2026-05-20
+
+**fix(ux): M-8 — `#/apply` 清单变为可交互。** 在 v1.58.13 之前,"▶ 生成清单"把 0…7 号条目以等宽 `<pre>` 块呈现 — 只读、无法勾选。现在每个条目渲染为真正的 `<input type="checkbox">`,外层包裹 `<label>`(点击区域为整行,WCAG 2.5.5)。状态按 URL 持久化到 `localStorage['applyChecklist:'+slug]` — 勾选 3 项 → 刷新 → 3 项仍保持。按钮:**复制未勾选项**(把仍未完成的条目以 `- markdown` 子弹输出)与 **重置**。在 8 种语言中新增 5 个 i18n 键(`apply.checklist.copyUnchecked`, `resetBtn`, `copied`, `copyFailed`, `reset`)。解析器找不到条目时有防御性回退。908 → **909** 单元。(M-8)
+
+---
+
 ## [1.58.12] — 2026-05-20
 
 **fix(ux): M-7 — 成本提示跟随当前活跃提供商(OpenRouter 不再回退到伪造数字)。** `UI.providerCostHint()` 已经通过 `/api/status/providers` 实现 provider-aware,但 [public/js/api.js](public/js/api.js#L623-L676) 中的映射只列出 `anthropic`/`gemini`/`openai`/`qwen`。v1.57.0 加入 OpenRouter 为第 5 个提供商后,它会落到通用回退 0.03 并把名字显示为小写字面值 `openrouter`。现在 EST 加入 `openrouter: null`(由路由选择模型,费用因此而异),`=== null` 分支输出本地化的"cost varies (router picks)",而不是误导性的 `~$0.03/eval`。NAME 加入 `openrouter: 'OpenRouter'`。新增 i18n 键 `cost.varies` 覆盖 8 种语言。907 → **908** 单元。(M-7)

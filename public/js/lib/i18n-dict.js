@@ -539,6 +539,13 @@ window.__I18N_DICT = {
   'apply.jdLbl':    { en: 'JD (optional)', es: 'JD (opcional)', 'pt-BR': 'JD (opcional)', ko: 'JD (선택사항)', ja: 'JD (オプション)', ru: 'JD (опционально)', 'zh-CN': 'JD (可选)', 'zh-TW': 'JD (可選)' },
   'apply.run':      { en: '▶ Generate checklist', es: '▶ Generar checklist', 'pt-BR': '▶ Gerar checklist', ko: '▶ 체크리스트 생성', ja: '▶ チェックリスト生成', ru: '▶ Сформировать чек-лист', 'zh-CN': '▶ 生成清单', 'zh-TW': '▶ 產生清單' },
   'apply.enterUrl': { en: 'Enter URL', es: 'Introduce URL', 'pt-BR': 'Insira URL', ko: 'URL 입력', ja: 'URL を入力', ru: 'Введите URL', 'zh-CN': '输入 URL', 'zh-TW': '輸入 URL' },
+  // M-8 (v1.58.13) — interactive Apply checklist (ticks persisted per
+  // URL in localStorage). Action labels and toast strings localized.
+  'apply.checklist.copyUnchecked':{ en: 'Copy unchecked', es: 'Copiar sin marcar', 'pt-BR': 'Copiar não marcados', ko: '미체크 항목 복사', ja: '未チェック項目をコピー', ru: 'Скопировать невыполненные', 'zh-CN': '复制未勾选项', 'zh-TW': '複製未勾選項' },
+  'apply.checklist.resetBtn':     { en: 'Reset', es: 'Restablecer', 'pt-BR': 'Redefinir', ko: '초기화', ja: 'リセット', ru: 'Сбросить', 'zh-CN': '重置', 'zh-TW': '重設' },
+  'apply.checklist.copied':       { en: 'Unchecked items copied', es: 'Elementos sin marcar copiados', 'pt-BR': 'Itens não marcados copiados', ko: '미체크 항목이 복사됨', ja: '未チェック項目をコピーしました', ru: 'Невыполненные пункты скопированы', 'zh-CN': '已复制未勾选项', 'zh-TW': '已複製未勾選項' },
+  'apply.checklist.copyFailed':   { en: 'Copy failed', es: 'Error al copiar', 'pt-BR': 'Falha ao copiar', ko: '복사 실패', ja: 'コピーに失敗しました', ru: 'Не удалось скопировать', 'zh-CN': '复制失败', 'zh-TW': '複製失敗' },
+  'apply.checklist.reset':        { en: 'Checklist reset', es: 'Checklist restablecido', 'pt-BR': 'Checklist redefinido', ko: '체크리스트 초기화됨', ja: 'チェックリストをリセットしました', ru: 'Чек-лист сброшен', 'zh-CN': '清单已重置', 'zh-TW': '清單已重設' },
 
   // Tracker / Reports / Settings extras
   'track.entriesIn':{ en: 'entries in', es: 'entradas en', 'pt-BR': 'entradas em', ko: '항목 (위치:', ja: '件 (場所:', ru: 'записей в', 'zh-CN': '条目位于', 'zh-TW': '項目位於' },

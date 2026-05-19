@@ -30,6 +30,62 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('M-8 (v1.58.13): apply checklist renders interactive checkboxes + persists per URL', () => {
+  const apply = read('public', 'js', 'views', 'apply.js');
+  // Items render as real <input type="checkbox"> with index data attr.
+  assert.match(apply, /type:\s*'checkbox'.*data-item-index/s,
+    "apply.js must render each checklist item as <input type='checkbox' data-item-index=…>");
+  // Each row uses a <label> wrapping checkbox + span so the click
+  // target covers the full row (WCAG 2.5.5 / M-1 focus-visible).
+  assert.match(apply, /c\('label',\s*null,\s*\[cb,\s*c\('span'/,
+    'apply.js must wrap each checklist item in <label> for full-row click target');
+  // State is persisted under the per-URL slug in localStorage.
+  assert.match(apply, /STORAGE_PREFIX\s*=\s*'applyChecklist:'/,
+    'apply.js must use the canonical applyChecklist: localStorage prefix');
+  assert.match(apply, /function loadState\(/,
+    'apply.js must define loadState() to rehydrate ticks across reloads');
+  assert.match(apply, /function saveState\(/,
+    'apply.js must define saveState() to persist ticks on every change');
+  // Copy-unchecked and Reset buttons must be present.
+  assert.match(apply, /t\('apply\.checklist\.copyUnchecked'/,
+    'apply.js must use t(apply.checklist.copyUnchecked, ...) for the copy button');
+  assert.match(apply, /t\('apply\.checklist\.resetBtn'/,
+    'apply.js must use t(apply.checklist.resetBtn, ...) for the reset button');
+  // Pre-fix raw <pre>…r.checklist…</pre> must be gone from the main
+  // path (kept only as a defensive fallback when parseChecklist→0).
+  assert.ok(
+    !/c\('pre',\s*\{\s*className:\s*'console'\s*\},\s*r\.checklist\)\)/.test(apply),
+    "apply.js must not render r.checklist as a plain <pre> in the happy path"
+  );
+
+  // CSS must define .apply-checklist with full-row click target sizing.
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /\.apply-checklist\s*\{/, 'app.css must define .apply-checklist');
+  assert.match(css, /\.apply-checklist label\s*\{[^}]*min-height:\s*32px/m,
+    '.apply-checklist label must have min-height ≥32px for click-target');
+  assert.match(css, /\.apply-checklist__actions\b/,
+    '.apply-checklist__actions container must be defined');
+
+  // i18n parity — all 5 new checklist keys present in all 8 locales.
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  for (const key of [
+    'apply.checklist.copyUnchecked',
+    'apply.checklist.resetBtn',
+    'apply.checklist.copied',
+    'apply.checklist.copyFailed',
+    'apply.checklist.reset',
+  ]) {
+    const re = new RegExp(`'${key.replace(/\./g, '\\.')}':\\s*\\{([^}]*)\\}`);
+    const row = dict.match(re);
+    assert.ok(row, `i18n-dict.js missing '${key}'`);
+    for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+      const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+      assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+        `'${key}' must have a non-empty ${lang} value`);
+    }
+  }
+});
+
 test('M-7 (v1.58.12): cost hint follows active provider; OpenRouter + null-cost path handled', () => {
   const api = read('public', 'js', 'api.js');
   // The EST map must include openrouter (was previously absent → fell
