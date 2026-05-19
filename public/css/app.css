@@ -48,6 +48,19 @@
   outline: 2px solid var(--rausch, #ff385c);
   outline-offset: 2px;
 }
+/* Managed route-change focus (see public/js/router.js): on every
+   client navigation the destination view's heading is given
+   tabindex="-1" and .focus()'d so screen readers announce the new
+   page. A tabindex="-1" element is NEVER keyboard-reachable, so the
+   brand ring above is spurious on it — Chromium's focus-visible
+   heuristic still painted it as a red box around every view's <h1>
+   (and baked that into the dashboard screenshots). Suppress the ring
+   for these programmatic targets only; genuine keyboard focus on real
+   controls keeps *:focus-visible. WAI-ARIA APG managed-focus pattern. */
+[tabindex="-1"]:focus,
+[tabindex="-1"]:focus-visible {
+  outline: none;
+}
 /* Modal close × needs higher-contrast focus since it sits on the
    modal-header background. */
 .modal-close:focus-visible {

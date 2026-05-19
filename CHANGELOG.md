@@ -6,6 +6,21 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.56.1] — 2026-05-19
+
+**fix(a11y): suppress the spurious brand focus ring on router-managed `tabindex="-1"` heading focus.**
+
+### 🐛 Fixes
+
+- **A red box framed every view's `<h1>` (regression surfaced by v1.56.0 UX-12, rooted in the v1.41.0 SPA focus-management pattern).** `public/js/router.js` gives each destination view's heading `tabindex="-1"` and `.focus()`'s it on every client-side navigation so screen readers announce the new page. A `tabindex="-1"` element is never keyboard-reachable, yet Chromium's `:focus-visible` modality heuristic still painted the global brand ring (`*:focus-visible { outline: 2px solid var(--rausch) }`) around it — a **red rectangle around the page heading** (e.g. "Command Center" on `#/dashboard`) on every navigation, which had also been baked into the `images/dashboard-*.png` hero screenshots. The fix is one scoped rule — `[tabindex="-1"]:focus, [tabindex="-1"]:focus-visible { outline: none }` — the WAI-ARIA APG managed-focus pattern. Genuine keyboard focus on real interactive controls keeps the global `*:focus-visible` ring (WCAG 2.4.7 intact); the skip-link's ring is unaffected (it is an `<a>`, not `tabindex="-1"`, with a higher-specificity rule).
+- All 8 `images/dashboard-*.png` regenerated against the fixed UI — the README hero screenshots no longer show the red box.
+
+### 🧪 Tests
+
+- New CI-isolated source-static suite **`tests/managed-focus-no-ring.test.mjs`** (4): the global `*:focus-visible` brand ring is still defined (WCAG 2.4.7 not regressed); `[tabindex="-1"]:focus, :focus-visible` resolves to `outline: none`; the suppression rule follows the global rule (cascade safety); the fix stays scoped (no blanket `*:focus { outline: none }`). Pairs with the existing `tests/dashboard-initial-focus.test.mjs` (router still sets tabindex + focuses on navigation). 813 → 817.
+
+---
+
 ## [1.56.0] — 2026-05-19
 
 **feat(ux): LOW-priority polish bundle — UX-9 / UX-10 / UX-11 / UX-12 (one grouped minor release).**

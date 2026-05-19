@@ -8,6 +8,12 @@
 
 ---
 
+## [1.56.1] — 2026-05-19
+
+**fix(a11y): 라우터가 관리하는 `tabindex="-1"` 제목 포커스에서 나타나던 가짜 브랜드 포커스 링 제거.** `public/js/router.js`는 모든 클라이언트 내비게이션에서 대상 뷰의 제목에 `tabindex="-1"`을 부여하고 `.focus()`를 호출한다(스크린리더가 새 페이지를 읽도록). `tabindex="-1"` 요소는 키보드로 도달할 수 없지만 Chromium의 `:focus-visible` 휴리스틱이 여전히 전역 브랜드 링(`*:focus-visible { outline: 2px solid var(--rausch) }`)을 그려, 내비게이션마다 **페이지 제목 둘레에 빨간 사각형**(예: `#/dashboard`의 "Command Center")이 표시되었고 `images/dashboard-*.png` 히어로 스크린샷에도 박혔다. 수정은 한 개의 범위 한정 규칙 `[tabindex="-1"]:focus, [tabindex="-1"]:focus-visible { outline: none }`(WAI-ARIA APG 관리 포커스 패턴). 실제 키보드 포커스는 전역 `*:focus-visible` 링을 유지(WCAG 2.4.7 유지); skip-link 링은 영향 없음(`<a>`이며 `tabindex="-1"`이 아니고 더 높은 특이도). 8개 `images/dashboard-*.png` 재생성 — 빨간 테두리 사라짐. **테스트:** 새 CI 격리 소스 정적 스위트 `tests/managed-focus-no-ring.test.mjs`(4): 전역 `*:focus-visible` 링 유지(WCAG 2.4.7 비퇴행); `[tabindex="-1"]:focus,:focus-visible` ⇒ `outline:none`; 억제 규칙이 전역 규칙 뒤(캐스케이드 안전); 수정 범위 한정(전역 `*:focus{outline:none}` 없음). `tests/dashboard-initial-focus.test.mjs`와 짝. 813 → 817. `fix(a11y)` · `test: tests/managed-focus-no-ring.test.mjs`. 자세히 — [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.56.0] — 2026-05-19
 
 **feat(ux): LOW 다듬기 묶음 — UX-9 / UX-10 / UX-11 / UX-12 (하나의 묶음 마이너 릴리스).** **UX-9** `#/cv`: 페이지 제목을 조용한 `.cv-breadcrumb` 칩으로 격하하고 시끄러운 부제는 `<h1>`의 `title` 툴팁으로 이동 — 사용자 CV(미리보기의 이름)가 시각적 우선권을 가짐. F-V54-A 불변 유지 — 여전히 **정확히 하나의 `<h1>`**, 여전히 `.page-title`. **UX-10** 새 공유 헬퍼 `UI.providerCostHint(t)`를 `#/auto`·`#/evaluate`·`#/deep`·모든 `#/<mode>`의 ⚡ 라이브 실행 옆에 표시; `GET /api/status/providers`(v1.55.3) 재사용: 키 있으면 *"예상 비용: OpenAI gpt-5-codex · ~$0.04/eval"*(자릿수 추정, "~"), 키 없으면 ⚡가 수동 프롬프트를 복사(API 비용 없음)임을 명시; fail-soft. **UX-11** `#/help`: TOC 필터가 **정확히 1개** 섹션으로 좁혀지면 300ms 유휴 후 해당 섹션으로 스크롤(디바운스; 0개나 2개 이상은 안 함). **UX-12** `#/dashboard`: 첫 페인트에서 `<h1>`을 포커스 가능(`tabindex="-1"`)으로 만들고 `#content`는 `aria-live="polite"` 유지(부팅 시 안내) — 포커스는 **훔치지 않음**(skip-link 충돌 회피, v1.41.0 결정). 새 i18n 키 `cost.estimate`, `cost.manual` ×8; 새 `.cv-breadcrumb`/`.cost-hint` CSS. **테스트:** 4개 새 소스-정적 CI-격리 스위트(cv-breadcrumb 3, run-cost-line 4, help-toc-autoscroll 4, dashboard-initial-focus 3); 기존 `cv-single-h1`/`help-nav-a11y` 락 갱신(불변 보존). 800 → 813. 4개 라이브 Playwright 프로브, 콘솔 에러 0. `feat(ux)` · 4 test suites. 자세히는 [`CHANGELOG.md`](CHANGELOG.md).

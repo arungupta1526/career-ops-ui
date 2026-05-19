@@ -8,6 +8,12 @@
 
 ---
 
+## [1.56.1] — 2026-05-19
+
+**fix(a11y):消除路由託管的 `tabindex="-1"` 標題聚焦時出現的虛假品牌聚焦環。** `public/js/router.js` 在每次用戶端導覽時為目標檢視標題加上 `tabindex="-1"` 並 `.focus()`(讓螢幕閱讀器播報新頁面)。`tabindex="-1"` 元素無法以鍵盤抵達,但 Chromium 的 `:focus-visible` 啟發式仍繪製全域品牌環(`*:focus-visible { outline: 2px solid var(--rausch) }`)——每次導覽在**頁面標題周圍出現紅色矩形**(如 `#/dashboard` 的「Command Center」),且已烘焙進 `images/dashboard-*.png` 主視覺截圖。修正為一條限定範圍的規則 `[tabindex="-1"]:focus, [tabindex="-1"]:focus-visible { outline: none }`(WAI-ARIA APG 託管聚焦模式)。互動控制項上真正的鍵盤聚焦保留全域 `*:focus-visible` 環(WCAG 2.4.7 不變);skip-link 的環不受影響(它是 `<a>`,非 `tabindex="-1"`,特異度更高)。8 個 `images/dashboard-*.png` 已重新產生——紅框消失。**測試:** 新增 CI 隔離的原始碼靜態套件 `tests/managed-focus-no-ring.test.mjs`(4):全域 `*:focus-visible` 環仍定義(WCAG 2.4.7 無回歸);`[tabindex="-1"]:focus,:focus-visible` ⇒ `outline:none`;抑制規則位於全域規則之後(層疊安全);修正具範圍(無全域 `*:focus{outline:none}`)。與 `tests/dashboard-initial-focus.test.mjs` 配對。813 → 817。`fix(a11y)` · `test: tests/managed-focus-no-ring.test.mjs`。詳情見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.56.0] — 2026-05-19
 
 **feat(ux):LOW 打磨合集 —— UX-9 / UX-10 / UX-11 / UX-12(一個分組的次要發佈)。** **UX-9** `#/cv`:頁面標題降級為安靜的 `.cv-breadcrumb` 麵包屑晶片,吵鬧的副標題移入 `<h1>` 的 `title` 提示 —— 讓使用者的履歷(預覽中的姓名)佔據視覺層級。F-V54-A 不變量保持 —— 仍是**恰好一個 `<h1>`**,仍為 `.page-title`。**UX-10** 新增共享輔助 `UI.providerCostHint(t)`,置於 `#/auto`、`#/evaluate`、`#/deep` 及每個 `#/<mode>` 的 ⚡ 即時執行旁;復用 `GET /api/status/providers`(v1.55.3):有金鑰時顯示 *「預估費用:OpenAI gpt-5-codex · ~$0.04/eval」*(數量級,"~");無金鑰時說明 ⚡ 複製手動提示(無 API 費用);fail-soft。**UX-11** `#/help`:當 TOC 過濾縮小到**恰好一個**區段時,300ms 閒置後捲動至該處(防抖;0 或 >1 不觸發)。**UX-12** `#/dashboard`:首次繪製時將 `<h1>` 設為可聚焦(`tabindex="-1"`),`#content` 保持 `aria-live="polite"`(啟動時朗讀)—— **不**搶佔焦點(避免與跳過連結衝突,v1.41.0 決定)。新增 i18n 鍵 `cost.estimate`、`cost.manual` ×8;新增 `.cv-breadcrumb`/`.cost-hint` CSS。**測試:**4 個新源靜態 CI 隔離套件(cv-breadcrumb 3、run-cost-line 4、help-toc-autoscroll 4、dashboard-initial-focus 3);更新既有 `cv-single-h1`/`help-nav-a11y` 鎖(不變量保留)。800 → 813。4 項即時 Playwright 探針,0 主控台錯誤。`feat(ux)` · 4 test suites。詳見 [`CHANGELOG.md`](CHANGELOG.md)。

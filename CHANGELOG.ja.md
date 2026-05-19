@@ -8,6 +8,12 @@
 
 ---
 
+## [1.56.1] — 2026-05-19
+
+**fix(a11y): ルーター管理の `tabindex="-1"` 見出しフォーカスで出ていた偽のブランドフォーカスリングを抑制。** `public/js/router.js` は各クライアント遷移で遷移先ビューの見出しに `tabindex="-1"` を付与し `.focus()` する(スクリーンリーダーが新ページを読み上げるため)。`tabindex="-1"` 要素はキーボードで到達不能だが、Chromium の `:focus-visible` ヒューリスティックが依然グローバルのブランドリング(`*:focus-visible { outline: 2px solid var(--rausch) }`)を描き、遷移ごとに **ページ見出しの周りに赤い矩形**(例:`#/dashboard` の「Command Center」)を表示 — それが `images/dashboard-*.png` のヒーロー画像にも焼き込まれていた。修正は 1 つのスコープ付きルール `[tabindex="-1"]:focus, [tabindex="-1"]:focus-visible { outline: none }`(WAI-ARIA APG の管理フォーカス・パターン)。実際のキーボードフォーカスはグローバル `*:focus-visible` リングを維持(WCAG 2.4.7 維持);skip-link のリングは無影響(`<a>` であり `tabindex="-1"` ではなく、より高い詳細度)。8 つの `images/dashboard-*.png` を再生成 — 赤い枠は消えた。**テスト:** 新しい CI 隔離のソース静的スイート `tests/managed-focus-no-ring.test.mjs`(4):グローバル `*:focus-visible` リングが定義されたまま(WCAG 2.4.7 非後退);`[tabindex="-1"]:focus,:focus-visible` ⇒ `outline:none`;抑制ルールはグローバルの後(カスケード安全);修正はスコープ付き(全体 `*:focus{outline:none}` なし)。`tests/dashboard-initial-focus.test.mjs` と対。813 → 817。`fix(a11y)` · `test: tests/managed-focus-no-ring.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.56.0] — 2026-05-19
 
 **feat(ux): LOW 仕上げバンドル — UX-9 / UX-10 / UX-11 / UX-12(1 つのグループ化マイナーリリース)。** **UX-9** `#/cv`:ページタイトルを控えめな `.cv-breadcrumb` チップに降格し、うるさいサブタイトルは `<h1>` の `title` ツールチップへ移動 — ユーザーの CV(プレビューの名前)が視覚的優先権を持つ。F-V54-A 不変は維持 — 依然 **正確に 1 つの `<h1>`**、依然 `.page-title`。**UX-10** 新しい共有ヘルパー `UI.providerCostHint(t)` を `#/auto`・`#/evaluate`・`#/deep`・各 `#/<mode>` の ⚡ ライブ実行の隣に表示;`GET /api/status/providers`(v1.55.3)を再利用:キーありで *「推定コスト: OpenAI gpt-5-codex · ~$0.04/eval」*(桁レベル、"~")、キーなしで ⚡ は手動プロンプトをコピー(API コストなし)と明示;fail-soft。**UX-11** `#/help`:TOC フィルタが **ちょうど 1 つ** のセクションに絞られたら 300ms アイドル後にそこへスクロール(デバウンス;0 や 2 以上では発火しない)。**UX-12** `#/dashboard`:初回ペイントで `<h1>` をフォーカス可能(`tabindex="-1"`)にし、`#content` は `aria-live="polite"` を維持(起動時に読み上げ)— フォーカスは **奪わない**(skip-link との競合回避、v1.41.0 の決定)。新 i18n キー `cost.estimate`、`cost.manual` ×8;新しい `.cv-breadcrumb`/`.cost-hint` CSS。**テスト:** 4 つの新しいソース静的 CI 隔離スイート(cv-breadcrumb 3、run-cost-line 4、help-toc-autoscroll 4、dashboard-initial-focus 3);既存 `cv-single-h1`/`help-nav-a11y` ロック更新(不変保持)。800 → 813。4 つのライブ Playwright プローブ、コンソールエラー 0。`feat(ux)` · 4 test suites。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
