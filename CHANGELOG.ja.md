@@ -8,6 +8,12 @@
 
 ---
 
+## [1.56.4] — 2026-05-19
+
+**feat(ui): UX-N2 — グローバル検索入力にプラットフォーム対応の可視 ⌘K / Ctrl K ヒント。** Cmd/Ctrl+K(検索にフォーカス)ショートカットは `aria-label`/ソースにしか無く、晴眼ユーザーは発見できずアプリが実際より遅く感じられた。控えめな `<kbd class="kbd-shortcut">` が検索ピル末尾に表示され、起動時にプラットフォーム判定(`navigator.platform`/`userAgent`)で `data-mac`/`data-other` から埋められる:macOS/iOS は **⌘K**、その他は **Ctrl K**。`aria-hidden="true"`(既存の `aria-label` が AT に伝えるため二重通知を避ける)かつ `pointer-events:none`(装飾)。既存の Cmd/Ctrl+K キーバインドは不変。新しい i18n キーなし(グリフは共通);バッジは既存 `.searchbar` の flex 子(ラッパー/絶対配置不要 — input は既に `flex:1`)。**テスト:** 新しい CI 隔離のソース静的スイート `tests/cmdk-hint-visible.test.mjs`(5):`.searchbar` 内に `<kbd class="kbd-shortcut">`;`aria-hidden="true"` + `data-mac`/`data-other` 両方;`app.js` が `navigator` 判定で埋める;`(e.ctrlKey||e.metaKey)&&e.key==='k'` → `search.focus()` バインド健在(リグレッションガード);`app.css` が `.kbd-shortcut` を整形し `display:none` にしない。826 → 831。`feat(ui)` · `test: tests/cmdk-hint-visible.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.56.3] — 2026-05-19
 
 **fix(reliability): プロバイダーのキー検出が空文字だけでなくプレースホルダー / 短すぎる値も拒否。** 親 `.env` のプレースホルダー `GEMINI_API_KEY` が「✓ set」と表示され、かつ有効な `ANTHROPIC_API_KEY` を差し置いてアクティブプロバイダーに選ばれていた。`effectiveEnv()` は `undefined`/`''` しか弾かないため、10 文字のゴミが本物のキー扱いに:オンボーディングバナーが *GEMINI ✓ set*、`GET /api/status/providers` が `activeProvider: "gemini"` を返し、有効な 108 文字の Anthropic キーを無視して死んだキーで全ライブ ⚡ 評価が無言で失敗していた。新しい純粋関数 `isUsableKey()`(`env-config.mjs`)はシークレットを「設定済み」とみなす条件を ≥ 20 文字(どの対応プロバイダーのキーもこれより短くない — Gemini `AIza…` ≈ 39、Anthropic `sk-ant-…` ≈ 100+、OpenAI ≥ 40、Qwen ≈ 35)かつ既知のプレースホルダー(`your_*_here`、`changeme`、`placeholder`、`<…>`、同一文字の繰り返し…)でないこと、に限定。`hasAnthropicKey()`/`hasGeminiKey()`(`anthropic.mjs`)、`hasOpenAIKey()`/`hasQwenKey()`(`openai.mjs`)、`GET /api/health` の `GEMINI_API_KEY`/`ANTHROPIC_API_KEY` 行(生 `process.env` から同じ effective+plausible ビューへ移行)に一律適用 — health ページ・プロバイダーエンドポイント・OR ルーターが常に一致。`selectActiveProvider()` は不変(正しい `keysConfigured` を受け取るだけ)。**テスト:** 新しい CI 隔離スイート `tests/key-detection-rejects-placeholder.test.mjs`(5):`isUsableKey` 単体 + in-process `createApp()` で報告シナリオを再現(一時 `.env` に 10 文字 `GEMINI_API_KEY` + 実 `ANTHROPIC_API_KEY`)— `gemini` は `keysConfigured` になく、`activeProvider === "anthropic"`、`/api/health` 行も一致。既存の effective-env 階層テスト 4 件は短すぎるスタブを現実的な長さに延長(契約は不変)。821 → 826。`fix(reliability)` · `test: tests/key-detection-rejects-placeholder.test.mjs`。詳細は [`CHANGELOG.md`](CHANGELOG.md)。

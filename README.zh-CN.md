@@ -5,11 +5,11 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | **简体中文** | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-826%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-831%20passed-brightgreen)](#tests)
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.56.3-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.56.3)
+[![release](https://img.shields.io/badge/release-v1.56.4-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.56.4)
 
 > **近期 (v1.55 → v1.56):** 屏上 4 提供方引导横幅 + 活动提供方徽标、诚实的 ⚡ 实时运行费用提示、`#/auto` ETA、`#/scan` 高级筛选折叠 + 醒目 Stop、`#/dashboard` hero CTA、`#/pipeline` 超 1000 行虚拟化、`#/tracker` 服务端分页 + 漏斗芯片、无障碍打磨 —— 每版本细节见 [CHANGELOG.zh-CN.md](CHANGELOG.zh-CN.md)。
 

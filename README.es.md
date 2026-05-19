@@ -5,11 +5,11 @@
 
 [English](README.md) | **Español** | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-826%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-831%20passed-brightgreen)](#tests)
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.56.3-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.56.3)
+[![release](https://img.shields.io/badge/release-v1.56.4-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.56.4)
 
 > **Reciente (v1.55 → v1.56):** banner de onboarding de 4 proveedores + chip de proveedor activo, costes honestos de ⚡ Ejecutar en vivo, ETA en `#/auto`, desplegable de Filtros avanzados + Stop prominente en `#/scan`, CTAs hero en `#/dashboard`, virtualización >1000 filas en `#/pipeline`, paginación de servidor + chips de embudo en `#/tracker`, y pulido de accesibilidad — detalle por versión en [CHANGELOG.es.md](CHANGELOG.es.md).
 

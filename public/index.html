@@ -140,6 +140,11 @@
             autocomplete="off"
             aria-label="Global search — Cmd+K to focus, paste a URL and Enter for auto-pipeline"
           />
+          <!-- v1.56.4 — UX-N2: visible, platform-aware shortcut hint.
+               aria-hidden: the input's aria-label already conveys it
+               to AT, so the badge must not double-announce. Text is
+               filled at boot by app.js from data-mac / data-other. -->
+          <kbd class="kbd-shortcut" aria-hidden="true" data-mac="⌘K" data-other="Ctrl K"></kbd>
         </div>
         <div class="topbar-actions">
           <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle theme" title="Toggle theme">🌙</button>

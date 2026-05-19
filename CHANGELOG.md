@@ -6,6 +6,20 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.56.4] — 2026-05-19
+
+**feat(ui): UX-N2 — visible, platform-aware ⌘K / Ctrl K hint on the global search input.**
+
+### ✨ Features
+
+- **The Cmd/Ctrl+K "focus search" shortcut is now discoverable on screen.** It lived only in the input's `aria-label` / source, so sighted users never found it and the app felt slower than it is. A muted `<kbd class="kbd-shortcut">` now sits at the end of the search pill, filled at boot from `data-mac` / `data-other` by a platform check (`navigator.platform`/`userAgent`): **⌘K** on macOS/iOS, **Ctrl K** elsewhere. It is `aria-hidden="true"` (the existing `aria-label` already announces the shortcut to screen readers — the badge must not double-announce) and `pointer-events:none` (decorative). The existing Cmd/Ctrl+K keybinding is unchanged. No new i18n keys (the glyphs are universal); the badge is a flex child of the existing `.searchbar` (no wrapper / absolute positioning — the input is already `flex:1`).
+
+### 🧪 Tests
+
+- New CI-isolated source-static suite **`tests/cmdk-hint-visible.test.mjs`** (5): the `.kbd-shortcut` `<kbd>` lives inside the `.searchbar` pill; it is `aria-hidden="true"` with both `data-mac`/`data-other` variants; `app.js` fills it via a `navigator` platform check from the dataset; the existing `(e.ctrlKey||e.metaKey)&&e.key==='k'` → `search.focus()` keybinding is intact (regression guard); `app.css` styles `.kbd-shortcut` and never `display:none`. index.html/app.js/app.css are browser-only → asserted statically. 826 → 831.
+
+---
+
 ## [1.56.3] — 2026-05-19
 
 **fix(reliability): provider key detection rejects placeholder / too-short values, not only the empty string.**

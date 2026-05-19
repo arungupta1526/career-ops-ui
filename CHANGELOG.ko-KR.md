@@ -8,6 +8,12 @@
 
 ---
 
+## [1.56.4] — 2026-05-19
+
+**feat(ui): UX-N2 — 전역 검색 입력에 플랫폼 인식 가시 ⌘K / Ctrl K 힌트.** Cmd/Ctrl+K(검색 포커스) 단축키가 `aria-label`/소스에만 있어 시각 사용자는 발견하지 못했고 앱이 실제보다 느리게 느껴졌다. 이제 옅은 `<kbd class="kbd-shortcut">`가 검색 알약 끝에 표시되며 부팅 시 플랫폼 판정(`navigator.platform`/`userAgent`)으로 `data-mac`/`data-other`에서 채워진다: macOS/iOS는 **⌘K**, 그 외는 **Ctrl K**. `aria-hidden="true"`(기존 `aria-label`이 이미 AT에 알리므로 중복 안내 방지)이며 `pointer-events:none`(장식). 기존 Cmd/Ctrl+K 키바인딩 불변. 새 i18n 키 없음(글리프는 공통); 배지는 기존 `.searchbar`의 flex 자식(래퍼/절대 위치 불필요 — input은 이미 `flex:1`). **테스트:** 새 CI 격리 소스 정적 스위트 `tests/cmdk-hint-visible.test.mjs`(5): `.searchbar` 안에 `<kbd class="kbd-shortcut">`; `aria-hidden="true"` + `data-mac`/`data-other` 둘 다; `app.js`가 `navigator` 판정으로 채움; `(e.ctrlKey||e.metaKey)&&e.key==='k'` → `search.focus()` 바인딩 유지(회귀 가드); `app.css`가 `.kbd-shortcut`를 스타일링하고 `display:none` 아님. 826 → 831. `feat(ui)` · `test: tests/cmdk-hint-visible.test.mjs`. 자세히 — [`CHANGELOG.md`](CHANGELOG.md).
+
+---
+
 ## [1.56.3] — 2026-05-19
 
 **fix(reliability): 프로바이더 키 감지가 빈 문자열뿐 아니라 플레이스홀더 / 너무 짧은 값도 거부.** 부모 `.env`의 플레이스홀더 `GEMINI_API_KEY`가 "✓ set"으로 표시되고 유효한 `ANTHROPIC_API_KEY`를 제치고 활성 프로바이더로 선택되었다. `effectiveEnv()`는 `undefined`/`''`만 거부해 10자 쓰레기가 실제 키로 취급됨: 온보딩 배너가 *GEMINI ✓ set*, `GET /api/status/providers`가 `activeProvider: "gemini"` 반환, 유효한 108자 Anthropic 키를 무시하고 죽은 키로 모든 라이브 ⚡ 평가가 조용히 실패. 새 순수 함수 `isUsableKey()`(`env-config.mjs`)는 시크릿을 ≥ 20자(지원 프로바이더 키 중 더 짧은 것 없음 — Gemini `AIza…` ≈ 39, Anthropic `sk-ant-…` ≈ 100+, OpenAI ≥ 40, Qwen ≈ 35)이고 알려진 플레이스홀더(`your_*_here`, `changeme`, `placeholder`, `<…>`, 동일 문자 반복…)가 아닐 때만 설정된 것으로 간주. `hasAnthropicKey()`/`hasGeminiKey()`(`anthropic.mjs`), `hasOpenAIKey()`/`hasQwenKey()`(`openai.mjs`), `GET /api/health`의 `GEMINI_API_KEY`/`ANTHROPIC_API_KEY` 행(원시 `process.env`에서 동일한 effective+plausible 뷰로 이전)에 일괄 적용 — health 페이지·프로바이더 엔드포인트·OR 라우터가 항상 일치. `selectActiveProvider()`는 불변(올바른 `keysConfigured`를 받을 뿐). **테스트:** 새 CI 격리 스위트 `tests/key-detection-rejects-placeholder.test.mjs`(5): `isUsableKey` 단위 + in-process `createApp()`로 보고 시나리오 재현(임시 `.env`에 10자 `GEMINI_API_KEY` + 실제 `ANTHROPIC_API_KEY`) — `gemini`는 `keysConfigured`에 없고 `activeProvider === "anthropic"`, `/api/health` 행도 일치. 기존 effective-env 계층 테스트 4건은 너무 짧은 스텁을 현실적 길이로 연장(계약 불변). 821 → 826. `fix(reliability)` · `test: tests/key-detection-rejects-placeholder.test.mjs`. 자세히 — [`CHANGELOG.md`](CHANGELOG.md).

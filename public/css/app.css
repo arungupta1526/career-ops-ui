@@ -397,6 +397,24 @@ body.sidebar-open .sidebar-backdrop { display: block; }
   background: transparent;
   font-size: 14.5px;
 }
+/* v1.56.4 — UX-N2: visible platform-aware ⌘K / Ctrl K hint. A flex
+   child at the end of the (flex) .searchbar pill — no wrapper /
+   absolute positioning needed since the input is flex:1. Muted, not
+   interactive, never selected; matches the token vocabulary. */
+.kbd-shortcut {
+  flex: 0 0 auto;
+  margin-left: 8px;
+  font: 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--foggy);
+  background: var(--bg-subtle, rgba(0, 0, 0, .04));
+  border: 1px solid var(--slate);
+  border-radius: 4px;
+  padding: 3px 6px;
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+  white-space: nowrap;
+}
 
 .topbar-actions { display: flex; gap: var(--space-3); align-items: center; }
 

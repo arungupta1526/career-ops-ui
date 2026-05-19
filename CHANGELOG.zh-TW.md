@@ -8,6 +8,12 @@
 
 ---
 
+## [1.56.4] — 2026-05-19
+
+**feat(ui):UX-N2 — 全域搜尋輸入框上隨平台變化的可見 ⌘K / Ctrl K 提示。** Cmd/Ctrl+K(聚焦搜尋)快捷鍵此前只存在於 `aria-label`/原始碼,視力使用者無從發現,應用顯得比實際慢。現在搜尋膠囊末端出現一個低調的 `<kbd class="kbd-shortcut">`,啟動時依平台判定(`navigator.platform`/`userAgent`)從 `data-mac`/`data-other` 填入:macOS/iOS 為 **⌘K**,其餘為 **Ctrl K**。它 `aria-hidden="true"`(既有 `aria-label` 已向輔助技術播報——徽章不應重複)且 `pointer-events:none`(裝飾)。既有 Cmd/Ctrl+K 綁定不變。無新增 i18n 鍵(字形通用);徽章是既有 `.searchbar` 的 flex 子元素(無需包裹/絕對定位——input 已 `flex:1`)。**測試:** 新增 CI 隔離原始碼靜態套件 `tests/cmdk-hint-visible.test.mjs`(5):`<kbd class="kbd-shortcut">` 位於 `.searchbar` 內;`aria-hidden="true"` 且含 `data-mac`/`data-other` 兩個變體;`app.js` 經 `navigator` 判定填入;`(e.ctrlKey||e.metaKey)&&e.key==='k'` → `search.focus()` 綁定健在(回歸保護);`app.css` 為 `.kbd-shortcut` 設樣式且非 `display:none`。826 → 831。`feat(ui)` · `test: tests/cmdk-hint-visible.test.mjs`。詳情見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.56.3] — 2026-05-19
 
 **fix(reliability):提供者金鑰偵測拒絕佔位符 / 過短值,而不僅是空字串。** 父 `.env` 中的佔位符 `GEMINI_API_KEY` 被報告為「✓ set」,並被選為作用中提供者而非有效的 `ANTHROPIC_API_KEY`。`effectiveEnv()` 僅拒絕 `undefined`/`''`,故 10 字元垃圾被當作真實金鑰:導覽橫幅顯示 *GEMINI ✓ set*,`GET /api/status/providers` 回傳 `activeProvider: "gemini"`,所有即時 ⚡ 評估會對著死金鑰靜默失敗,而忽略有效的 108 字元 Anthropic 金鑰。新純函式 `isUsableKey()`(`env-config.mjs`)僅當金鑰 ≥ 20 字元(受支援提供者金鑰無更短者 — Gemini `AIza…` ≈ 39、Anthropic `sk-ant-…` ≈ 100+、OpenAI ≥ 40、Qwen ≈ 35)且非已知佔位符(`your_*_here`、`changeme`、`placeholder`、`<…>`、單字元重複…)時才視為已設定。統一套用於 `hasAnthropicKey()`/`hasGeminiKey()`(`anthropic.mjs`)、`hasOpenAIKey()`/`hasQwenKey()`(`openai.mjs`)及 `GET /api/health` 的 `GEMINI_API_KEY`/`ANTHROPIC_API_KEY` 列(從原始 `process.env` 遷移至同一 effective+plausible 視圖)——健康頁、提供者端點與 OR 路由現始終一致。`selectActiveProvider()` 不變(僅接收正確的 `keysConfigured`)。**測試:** 新增 CI 隔離套件 `tests/key-detection-rejects-placeholder.test.mjs`(5):`isUsableKey` 單元 + in-process `createApp()` 重現所報場景(暫存 `.env` 含 10 字元 `GEMINI_API_KEY` + 真實 `ANTHROPIC_API_KEY`)——`gemini` 不在 `keysConfigured`,`activeProvider === "anthropic"`,`/api/health` 列一致。四個既有 effective-env 分層測試將過短樁值加長(契約不變)。821 → 826。`fix(reliability)` · `test: tests/key-detection-rejects-placeholder.test.mjs`。詳情見 [`CHANGELOG.md`](CHANGELOG.md)。

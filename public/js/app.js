@@ -149,6 +149,14 @@ I18n.onChange(() => {
 
   // global search
   const search = document.getElementById('global-search');
+  // v1.56.4 — UX-N2: surface the Cmd/Ctrl+K shortcut visibly so
+  // sighted users discover it. The keybinding itself is wired further
+  // down; the badge is aria-hidden (aria-label already covers AT).
+  const kbdHint = document.querySelector('.kbd-shortcut');
+  if (kbdHint) {
+    const isMac = /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent || '');
+    kbdHint.textContent = isMac ? kbdHint.dataset.mac : kbdHint.dataset.other;
+  }
   search.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       const q = search.value.trim();
