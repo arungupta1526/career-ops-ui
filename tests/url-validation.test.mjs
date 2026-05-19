@@ -164,7 +164,8 @@ test('FIX-M7: rejects whitespace-containing inputs', () => {
 test('POST /api/pipeline {url:"not-a-url"} → 400 (was 200, FIX-M7)', async () => {
   const r = await post({ url: 'not-a-url' });
   assert.equal(r.status, 400);
-  assert.match(r.body.error, /invalid url/i);
+  // v1.58.0 (QA BUG-006) — humanized, sentence-cased message.
+  assert.match(r.body.error, /valid job posting URL/i);
 });
 
 test('POST /api/pipeline {url:"http://localhost/job"} → 400', async () => {
@@ -177,7 +178,7 @@ test('POST /api/pipeline {url:"http://localhost/job"} → 400', async () => {
 test('POST /api/pipeline {url:"<script>"} → 400', async () => {
   const r = await post({ url: '<script>alert(1)</script>' });
   assert.equal(r.status, 400);
-  assert.match(r.body.error, /invalid/i);
+  assert.match(r.body.error, /valid job posting URL/i);
 });
 
 test('POST /api/pipeline {url:"javascript:..."} → 400', async () => {

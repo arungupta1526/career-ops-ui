@@ -46,7 +46,13 @@
       fields: [
         { name: 'company', type: 'input',    i18n: { label: 'followup.companyLbl', placeholder: 'followup.companyPh', hint: 'followup.companyHint' }, required: true },
         { name: 'role',    type: 'input',    i18n: { label: 'followup.roleLbl', placeholder: 'followup.rolePh', hint: 'followup.roleHint' }, required: true },
-        { name: 'lastContact', type: 'input', i18n: { label: 'followup.lastLbl', placeholder: 'followup.lastPh', hint: 'followup.lastHint' } },
+        { name: 'lastContact', type: 'input', i18n: { label: 'followup.lastLbl', placeholder: 'followup.lastPh', hint: 'followup.lastHint' },
+          // QA BUG-001 — the hint promises "ISO date (YYYY-MM-DD)" and it
+          // drives the cadence math in the prompt; a junk value used to
+          // sail through to the LLM (and burn a credit). Optional field,
+          // but if filled it must be a real ISO date.
+          pattern: '^\\d{4}-\\d{2}-\\d{2}$', patternMsgKey: 'followup.lastErr',
+          patternMsgFallback: 'Last contact must be an ISO date: YYYY-MM-DD (e.g. 2026-05-19).' },
         { name: 'notes',   type: 'textarea', i18n: { label: 'followup.notesLbl', placeholder: 'followup.notesPh', hint: 'followup.notesHint' }, rows: 4 },
       ],
     },
@@ -189,8 +195,16 @@
 
     function validate() {
       for (const spec of cfg.fields) {
-        if (spec.required && !fields[spec.name].value.trim()) {
+        const val = fields[spec.name].value.trim();
+        if (spec.required && !val) {
           UI.toast(t('mode.required', 'Please fill the required fields'), 'error');
+          fields[spec.name].focus();
+          return false;
+        }
+        // QA BUG-001 — optional-but-must-be-well-formed fields (e.g. the
+        // followup ISO date). Only enforced when the user typed something.
+        if (spec.pattern && val && !new RegExp(spec.pattern).test(val)) {
+          UI.toast(t(spec.patternMsgKey, spec.patternMsgFallback || 'Invalid format'), 'error');
           fields[spec.name].focus();
           return false;
         }

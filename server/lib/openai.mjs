@@ -17,6 +17,7 @@
  */
 import { effectiveEnv, isUsableKey } from './env-config.mjs';
 import { PATHS } from './paths.mjs';
+import { cleanLlmMarkdown } from './llm-output.mjs';
 
 const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
 // DashScope's OpenAI-compatible mode. International endpoint — works
@@ -73,10 +74,10 @@ export async function runOpenAICompatible(prompt, opts = {}) {
     // OpenAI-compatible: choices[].message.content (string or block[]).
     const choice = (json.choices || [])[0] || {};
     const content = choice.message && choice.message.content;
-    const markdown = (Array.isArray(content)
+    const markdown = cleanLlmMarkdown(Array.isArray(content)
       ? content.filter((b) => b && (b.type === 'text' || b.text))
         .map((b) => b.text || '').join('\n')
-      : String(content || '')).trim();
+      : String(content || ''));
     return { markdown, usage: json.usage || null, error: null };
   } catch (e) {
     return { markdown: '', usage: null, error: e.name === 'AbortError' ? 'timeout' : e.message };

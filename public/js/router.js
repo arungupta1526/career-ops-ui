@@ -12,6 +12,12 @@ window.Router = (function () {
     // config (which deep-links to the Regional-sources group on that
     // hash); same bookmark-stability pattern as settings→profile.
     portals: 'config',
+    // QA BUG-004: the Outreach view's canonical hash is the Spanish
+    // `#/contacto` (mode slug = modes/contacto.md) while every other
+    // route is English. Expose an English `#/outreach` that resolves to
+    // it so the URL is consistent and bookmarkable; the canonical slug
+    // stays `contacto` to match the parent project's mode filename.
+    outreach: 'contacto',
   };
 
   function register(name, renderer) {

@@ -43,8 +43,10 @@ test('api.js adds WHERE/WHY context to every API error (method+path+status, raw 
   // WHY fallback: non-JSON error body snippet when there are no details.
   assert.match(src, /data\.raw/, 'must fall back to the raw error body');
   // network errors also carry the verb+path so "save failed" is located.
-  assert.match(src, /Network error:[\s\S]*\$\{method\} \$\{path\}/,
-    'network errors must include the request context');
+  // v1.58.0 — the human sentence is now localized via I18n (api.netError
+  // / api.netHint); the diagnostic (METHOD path) token stays literal.
+  assert.match(src, /api\.netError[\s\S]*\$\{method\} \$\{path\}[\s\S]*api\.netHint/,
+    'network errors must be localized and still include the request context');
 });
 
 test('UI.toast keeps error messages on screen long enough to read', () => {

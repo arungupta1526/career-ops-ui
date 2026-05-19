@@ -31,7 +31,10 @@ export function registerPipelineRoutes(app) {
     const url = (req.body?.url || req.body?.text || '').toString().trim();
     if (!url) return res.status(400).json({ error: 'url required' });
     if (!isValidJobUrl(url)) {
-      return res.status(400).json({ error: 'invalid url (must be http/https, no script/template chars)' });
+      // QA BUG-006 — human, sentence-cased. (The api.js client still
+      // appends the "(POST /api/pipeline · HTTP 400)" where/why context
+      // by design — that was an explicit product requirement.)
+      return res.status(400).json({ error: "That doesn't look like a valid job posting URL — it must start with http:// or https:// and contain no script or template characters." });
     }
     // v1.20.1 (H-6) — same read-modify-write race as tracker.mjs. Two
     // concurrent POST /api/pipeline with distinct URLs would both read

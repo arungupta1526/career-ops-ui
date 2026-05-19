@@ -218,6 +218,16 @@ export function normalizeConfigValue(v) {
  * Validate a config update. Returns { ok, errors: string[] }.
  * Empty values are allowed (they unset the key). Values are validated
  * AFTER normalization (trim) so the check matches what gets written.
+ *
+ * i18n decision (v1.58.0, AI-review rule 3): these `errors` strings are
+ * intentionally English. They are server-emitted *diagnostic* detail —
+ * the same class as every other server error in this codebase (`invalid
+ * url`, HTTP statuses, `prompt too large`, runner stderr). The server
+ * has no UI-locale binding at message-construction time and never has;
+ * localizing only this one site would be inconsistent and misleading.
+ * The SPA localizes its own chrome (toasts, labels, the network-error
+ * sentence — see public/js/api.js `api.netError`/`api.netHint`); it
+ * surfaces server diagnostics verbatim by design.
  */
 export function validateConfig(body) {
   const errors = [];

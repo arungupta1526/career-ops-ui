@@ -16,6 +16,7 @@
  */
 import { effectiveEnv, isUsableKey } from './env-config.mjs';
 import { PATHS } from './paths.mjs';
+import { cleanLlmMarkdown } from './llm-output.mjs';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -61,11 +62,10 @@ export async function runAnthropic(prompt, opts = {}) {
     }
     // Concatenate all `text` blocks. Anthropic returns content[] of typed
     // blocks (text, tool_use, etc.); we only render the text ones.
-    const markdown = (json.content || [])
+    const markdown = cleanLlmMarkdown((json.content || [])
       .filter((b) => b.type === 'text')
       .map((b) => b.text)
-      .join('\n')
-      .trim();
+      .join('\n'));
     return { markdown, usage: json.usage || null, error: null };
   } catch (e) {
     return { markdown: '', usage: null, error: e.name === 'AbortError' ? 'timeout' : e.message };

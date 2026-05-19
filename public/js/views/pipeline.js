@@ -357,9 +357,13 @@ Router.register('pipeline', async () => {
             const u = newUrl.value.trim();
             if (!u) return UI.toast(t('pipe.enterUrl'), 'error');
             try {
-              await UI.withSpinner(e.currentTarget, () => API.post('/api/pipeline', { url: u }));
+              // QA BUG-005 — the server already reports `deduped:true`
+              // when the URL was already queued; surface that instead
+              // of a misleading "Added to pipeline" green toast.
+              const r = await UI.withSpinner(e.currentTarget, () => API.post('/api/pipeline', { url: u }));
               newUrl.value = '';
-              UI.toast(t('pipe.added'), 'success');
+              if (r && r.deduped) UI.toast(t('pipe.dup', 'Already in the queue — skipped'), 'info');
+              else UI.toast(t('pipe.added'), 'success');
               await refresh();
             } catch (err) {
               UI.toast(err.message || 'error', 'error');

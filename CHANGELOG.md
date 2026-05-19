@@ -6,6 +6,39 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.58.0] — 2026-05-19
+
+**fix(qa): external QA-report bug sweep + clean, formatted research output.**
+
+### 🐛 Fixes (QA report)
+
+- **BUG-001 (Critical)** — `#/followup` now validates the optional *Last contact* field client-side as an ISO date (`YYYY-MM-DD`); junk no longer reaches the LLM (and burns a credit). Generic `pattern` support added to the mode-page form factory.
+- **BUG-003 (Major, every help page)** — `**bold**`, `` `code` ``, *italic* and `[links]` now render **inside block-quotes** in `UI.md()` (the `> **Audience:**` cards showed literal `**`). Safe-by-construction (content is already HTML-escaped before `inline()` runs).
+- **BUG-005 (Major)** — adding a URL already in the pipeline now shows an honest *“Already in the queue — skipped”* info toast instead of a misleading green “Added”.
+- **BUG-006 (Major)** — the invalid-URL message is humanized/sentence-cased (“That doesn't look like a valid job posting URL — …”). The `(POST /api/pipeline · HTTP 400)` where/why context stays by design.
+- **BUG-007/008 (Major/Minor)** — the “Running doctor.mjs…” progress toast is dismissed before the result modal opens (new `UI.dismissToast()`), and the modal title reuses the localized button label so its casing always matches.
+- **BUG-010** — the `#/reports` empty state now has the descriptive page-subtitle every other page has.
+- **BUG-002 / UX-032 (code-side)** — `checkProfileCustomized()` now flags QA/test-fixture names (`Acceptance Test`, `Real Person`, `QA`, …) as *not customized*, so the Health card and prompts stop treating a test profile as the real candidate. The parent project's `config/profile.yml` / `cv.md` are **not** touched (hard rule #1) — the data cleanup is the user's; this is the heuristic fix.
+- **I18N-012/013** — Russian `deep.title`, `deep.subtitle` (“smart questions”), and `dash.quick.deepCta` are now actually translated.
+
+### ✨ Features / UX
+
+- **Clean, formatted research output.** New `server/lib/llm-output.mjs::cleanLlmMarkdown()` strips agent/tool scaffolding the model sometimes echoes (`<tool_call>{…}</tool_call>`, `<tool_response>`, `<tool_use>`, `<function_call>`, `<thinking>`, `[TOOL_CALL]…`) from `#/deep` and **Saved research**. Applied at every chokepoint — Anthropic / OpenAI / Qwen / OpenRouter clients, the Gemini subprocess path, **and** on serving an already-saved brief (older files render clean too). The SPA already renders these via the XSS-safe `UI.md()`, so the result is a properly formatted document.
+- **`#/outreach` alias** → `#/contacto` (BUG-004) for a consistent, bookmarkable English URL; canonical slug stays `contacto` (parent mode filename).
+- **AI-review rule 3** — the client-owned network-error sentence is localized via `I18n.t()` (`api.netError` / `api.netHint`, 8 locales). Documented decision: server-emitted validation `details` are intentionally English diagnostics (consistent with every other server error; the SPA surfaces them verbatim and localizes its own chrome).
+
+### 🧪 Tests
+
+- New `tests/qa-report-fixes.test.mjs` (10) and `tests/llm-output.test.mjs` (5, incl. idempotency + “don't eat real code blocks”). `checkProfileCustomized` exercised directly (real name containing “test” is **not** false-flagged). Updated `url-validation` + `config-validation-detail` assertions for the new messages; `e2e-comprehensive` now date-aware. 881 → 896 unit; Playwright 58/58; e2e 20/20 + 23/23.
+
+### Triaged, not changed (with rationale)
+
+- **BUG-009** (`#/cv` H1 is a quiet breadcrumb chip) — *by design*: the single-`<h1>` WCAG 1.3.1 decision (F-V54-A); changing it risks an a11y regression.
+- **BUG-002 data, UX-022** (parent `profile.yml`/`cv.md`/`portals.yml` content) — *parent-owned*; hard rule #1 forbids the repo editing parent files. Code-side detection hardened instead.
+- Long-tail minor i18n/UX (I18N-011 help-TOC localization, I18N-014..019, UX-020/021/023/024/025/026/027/028/029/030/031) — tracked backlog; deferred to avoid a large unreviewed change set in a patch line.
+
+---
+
 ## [1.57.2] — 2026-05-19
 
 **fix(config): the ACTUAL root cause of `/#/config` "validation failed" — the SPA-injected `lang` field.**

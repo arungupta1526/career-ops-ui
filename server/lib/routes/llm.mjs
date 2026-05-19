@@ -24,6 +24,7 @@ import { runAnthropic, hasAnthropicKey, hasGeminiKey } from '../anthropic.mjs';
 import { runOpenAI, runQwen, runOpenRouter, hasOpenAIKey, hasQwenKey, hasOpenRouterKey } from '../openai.mjs';
 import { providerOrder } from '../env-config.mjs';
 import { sanitizeJobDescription, sanitizePathName } from '../security.mjs';
+import { cleanLlmMarkdown } from '../llm-output.mjs';
 import { llmRateLimit } from '../rate-limit.mjs';
 import {
   bundleProjectContext,
@@ -243,7 +244,9 @@ export function registerLlmRoutes(app) {
         mkdirSync(PATHS.outputDir, { recursive: true });
         writeFileSync(tmp, prompt);
         const sub = await runNodeScript('gemini-eval.mjs', ['--file', tmp], { timeoutMs: 180_000 });
-        result = { markdown: (sub.stdout || '').trim(), code: sub.code };
+        // v1.58.0 — strip echoed tool/agent scaffolding (the Gemini
+        // subprocess path; the in-process providers clean at source).
+        result = { markdown: cleanLlmMarkdown(sub.stdout || ''), code: sub.code };
       } else {
         // v1.55.0 — OpenAI / Qwen tail (in-process, inline context).
         const tp = _tailProvider();
@@ -301,7 +304,10 @@ export function registerLlmRoutes(app) {
     if (!safe || !safe.endsWith('.md')) return res.status(400).json({ error: 'invalid name' });
     const file = projPath('interview-prep', safe);
     if (!existsSync(file)) return res.status(404).json({ error: 'not found' });
-    res.json({ name: safe, markdown: readFileSync(file, 'utf8') });
+    // v1.58.0 — clean on serve so briefs saved before the fix (with
+    // leaked <tool_call>/<tool_response> scaffolding) still render as a
+    // formatted document in Saved research.
+    res.json({ name: safe, markdown: cleanLlmMarkdown(readFileSync(file, 'utf8')) });
   });
 
   app.delete('/api/interview-prep/:name', (req, res) => {

@@ -59,9 +59,13 @@ export function checkProfileCustomized() {
   }
   const name = parsed?.candidate?.full_name?.trim();
   if (!name) return { ok: false, value: 'candidate.full_name missing' };
-  // Known placeholder names from the shipped templates.
-  if (/^(Jane Smith|Alex Doe|John Doe|Your Name|Test User?)$/i.test(name)) {
-    return { ok: false, value: `still on template ("${name}")` };
+  // Known placeholder / test-fixture names from the shipped templates
+  // and QA harnesses (QA BUG-002/UX-032 — an "Acceptance Test" profile
+  // was reported "customized" and would leak into every prompt). Kept
+  // to an explicit allow-list of synthetic names so a real candidate
+  // whose name merely contains "test" is never false-flagged.
+  if (/^(Jane Smith|Alex Doe|John Doe|Your Name|Test User?|Acceptance Test|Real Person|Sample User|QA|Test|Placeholder|Example User)$/i.test(name)) {
+    return { ok: false, value: `still on template / test fixture ("${name}")` };
   }
   return { ok: true, value: name };
 }

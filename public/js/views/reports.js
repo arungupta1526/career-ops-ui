@@ -33,7 +33,13 @@ Router.register('reports', async (params) => {
   if (reports.length === 0) {
     return c('div', null, [
       c('header', { className: 'page-header' }, [
-        c('div', null, [c('h1', { className: 'page-title' }, t('rep.title'))]),
+        c('div', null, [
+          c('h1', { className: 'page-title' }, t('rep.title')),
+          // QA BUG-010 — the populated list view has a subtitle; the
+          // empty state was the only page missing the descriptive line.
+          c('p', { className: 'page-subtitle' },
+            t('rep.subtitle', 'Saved evaluation & deep-research reports from reports/')),
+        ]),
       ]),
       c('div', { className: 'empty' }, t('rep.empty')),
     ]);

@@ -109,11 +109,17 @@ window.API = (function () {
       res = await fetch(path, opts);
     } catch (netErr) {
       setConnectionState(true, netErr.message || 'network error');
-      // v1.57.1 — say WHAT failed and WHERE: include the verb + path so
-      // a toast like "Network error … (POST /api/config)" tells the user
-      // which action didn't go through, not just "save failed".
-      const err = new Error('Network error: ' + (netErr.message || 'Failed to fetch')
-        + ` (${method} ${path}) — the server may be down; run: bash web-ui/bin/start.sh`);
+      // v1.57.1 — say WHAT failed and WHERE. v1.58.0 (AI-review rule 3):
+      // the human sentence is localized via I18n; the trailing
+      // `(METHOD /path)` is a language-neutral diagnostic token (HTTP
+      // verbs/paths are never localized, same as the `HTTP NNN` status
+      // surfaced on non-OK responses).
+      const _t = (k, f) => (window.I18n && window.I18n.t) ? window.I18n.t(k, f) : f;
+      const err = new Error(
+        _t('api.netError', 'Network error') + ': '
+        + (netErr.message || 'Failed to fetch')
+        + ` (${method} ${path}) — `
+        + _t('api.netHint', 'the server may be down; run: bash web-ui/bin/start.sh'));
       err.network = true;
       throw err;
     }
@@ -224,6 +230,14 @@ window.UI = (function () {
       ? Math.min(20000, Math.max(9000, 60 * msg.length))
       : 3500;
     toastTimer = setTimeout(() => (t.hidden = true), dwell);
+  }
+  // v1.58.0 (QA BUG-007) — explicitly hide the toast. A progress toast
+  // like "Running doctor.mjs…" otherwise lingered for its full dwell
+  // and overlapped the result modal, looking like the app had hung.
+  function dismissToast() {
+    const t = document.getElementById('toast');
+    if (t) t.hidden = true;
+    clearTimeout(toastTimer);
   }
   // v1.17.0 — a11y: focus management + Tab trap. Remembers the element
   // that had focus before the modal opened so we can restore it on close
@@ -421,7 +435,11 @@ window.UI = (function () {
     s = s.replace(/^---+$/gm, '<hr/>');
     // blockquote — leading `>` is now `&gt;`
     s = s.replace(/(^&gt; .+(?:\n&gt; .+)*)/gm, (block) => {
-      return '<blockquote>' + block.split('\n').map((l) => l.replace(/^&gt; ?/, '')).join('<br/>') + '</blockquote>';
+      // v1.58.0 (QA BUG-003) — run inline() per line so **bold**,
+      // `code`, *italic* and [links] render inside block-quotes too.
+      // Content is already HTML-escaped at this stage, so inline() only
+      // emits the same safe tags it does for headings/lists.
+      return '<blockquote>' + block.split('\n').map((l) => inline(l.replace(/^&gt; ?/, ''))).join('<br/>') + '</blockquote>';
     });
     // lists
     s = s.replace(/(^(?:- |\* ).+(?:\n(?:- |\* ).+)*)/gm, (block) => {
@@ -621,5 +639,5 @@ window.UI = (function () {
     return node;
   }
 
-  return { toast, modal, closeModal, confirm, el, escapeHtml, md, withSpinner, paginate, providerCostHint };
+  return { toast, dismissToast, modal, closeModal, confirm, el, escapeHtml, md, withSpinner, paginate, providerCostHint };
 })();

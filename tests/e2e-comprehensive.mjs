@@ -194,7 +194,14 @@ async function run() {
       // Fill every required input/textarea with placeholder text
       const inputs = await page.locator('.card .field input, .card .field textarea').all();
       for (let i = 0; i < inputs.length; i++) {
-        await inputs[i].fill(`e2e-test-${slug}-${i}`);
+        // v1.58.0 (QA BUG-001) — date-shaped fields (placeholder like
+        // 2026-04-21) now enforce ISO YYYY-MM-DD client-side, so junk
+        // text is correctly rejected. Feed such fields a valid date.
+        const ph = (await inputs[i].getAttribute('placeholder')) || '';
+        const val = /^\d{4}-\d{2}-\d{2}$/.test(ph.trim())
+          ? '2026-05-19'
+          : `e2e-test-${slug}-${i}`;
+        await inputs[i].fill(val);
       }
       await page.locator('button:has-text("Generate prompt")').click();
       await page.waitForFunction(

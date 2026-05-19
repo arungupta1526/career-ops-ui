@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.0] — 2026-05-19
+
+**fix(qa)：外部 QA 报告 bug 清扫 + 整洁、格式化的研究输出。** 修复：**BUG-001** `#/followup` 在客户端按 ISO `YYYY-MM-DD` 校验可选日期；**BUG-003** 块引用内的 `**粗体**`/`` `代码` ``/链接现已渲染（所有帮助页）；**BUG-005** 重复 URL 显示「已在队列中 — 已跳过」；**BUG-006** 无效 URL 文案人性化（`(POST /api/pipeline · HTTP 400)` 上下文按设计保留）；**BUG-007/008** 「Running doctor.mjs…」toast 在弹窗前关闭（新增 `UI.dismissToast()`），弹窗标题=按钮本地化文案；**BUG-010** `#/reports` 空状态补副标题；**BUG-002/UX-032** `checkProfileCustomized()` 将测试夹具名判为「未自定义」（不动父项目 `profile.yml`/`cv.md` — 规则 #1）；**I18N-012/013** 俄语 Deep research 真正翻译。**新增：** `cleanLlmMarkdown()` 从 `#/deep` 与已保存研究中剥离智能体脚手架（`<tool_call>{…}</tool_call>`、`<tool_response>`、`<thinking>` …），覆盖所有提供方及已保存文件读取；`#/outreach`→`#/contacto` 别名（BUG-004）；客户端网络错误经 `I18n.t()` 本地化（8 语言；服务端 `details` 按设计为英文诊断）。**测试：** 新增 `tests/qa-report-fixes.test.mjs`（10）、`tests/llm-output.test.mjs`（5），881 → 896 单元，Playwright 58/58。**未改（含理由）：** BUG-009（`#/cv` H1 按设计，WCAG single-h1）、父数据（parent-owned）、minor i18n/UX 长尾列入待办。完整细节见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.57.2] — 2026-05-19
 
 **fix(config)：`/#/config`「validation failed」的真正根因 —— SPA 注入的 `lang` 字段。** `public/js/api.js` 会给*每个* JSON POST 请求体自动附加 `lang`（让 LLM 路由获取 UI 语言）。`/api/config` 不是 LLM 路由，`lang` 也不是配置键，因此 `validateConfig` 的（正确且与安全相关的）未知键拒绝对**每次保存**返回 400：`validation failed — lang: not a known config key`。这只在浏览器出现：curl/进程内复现从不发送 `lang`，所以 v1.57.0/.1 改善了*消息*却未除*根因*。配置路由现在在校验前剥离传输用的 `lang`；`KNOWN_KEYS` 写过滤仍丢弃任何真正未知的键 —— 注入防护不变。由点击真实保存按钮的新 Playwright 表单巡检发现。**测试：** 新增 `tests/playwright-forms.mjs`（26，纳入 `npm run test:e2e:browser`）巡检**所有表单**；`config-endpoint` 增加浏览器等价用例。879 → 881 单元，Playwright 32 → 58。完整细节见 [`CHANGELOG.md`](CHANGELOG.md)。

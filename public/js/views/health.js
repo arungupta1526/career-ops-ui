@@ -14,12 +14,17 @@ Router.register('health', async () => {
         c('button', { className: 'btn btn-ghost', onClick: async (e) => {
           UI.toast(t('health.runningDoctor', 'Running doctor.mjs…'));
           const r = await UI.withSpinner(e.currentTarget, () => API.post('/api/run/doctor'));
-          UI.modal('doctor', UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n' + r.stderr : '')));
+          // QA BUG-007: clear the progress toast so it can't linger over
+          // the result modal. QA BUG-008: the title reuses the button's
+          // localized label so its casing always matches the button.
+          UI.dismissToast();
+          UI.modal(t('health.runDoctor'), UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n' + r.stderr : '')));
         }}, t('health.runDoctor')),
         c('button', { className: 'btn btn-ghost', onClick: async (e) => {
           UI.toast(t('health.runningVerify', 'Running verify-pipeline.mjs…'));
           const r = await UI.withSpinner(e.currentTarget, () => API.post('/api/run/verify'));
-          UI.modal('verify', UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n' + r.stderr : '')));
+          UI.dismissToast();
+          UI.modal(t('health.verify'), UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n' + r.stderr : '')));
         }}, t('health.verify')),
       ]),
     ]),

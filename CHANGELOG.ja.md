@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.0] — 2026-05-19
+
+**fix(qa): 外部 QA レポートのバグ一掃 + 整形済みの調査出力。** 修正: **BUG-001** `#/followup` の任意の日付をクライアントで ISO `YYYY-MM-DD` 検証; **BUG-003** ブロック引用内でも `**太字**`/`` `code` ``/リンクが描画（全 Help ページ）; **BUG-005** 重複 URL は「すでにキューにあります — スキップ」; **BUG-006** 無効 URL メッセージを人間向けに（`(POST /api/pipeline · HTTP 400)` 文脈は意図的に維持）; **BUG-007/008** 「Running doctor.mjs…」トーストをモーダル前に消す（新 `UI.dismissToast()`）、モーダル題はボタンのローカライズ済みラベル; **BUG-010** `#/reports` 空状態にサブタイトル; **BUG-002/UX-032** `checkProfileCustomized()` がテストフィクスチャ名を「未カスタマイズ」と判定（親の `profile.yml`/`cv.md` は不変 — ルール #1）; **I18N-012/013** ロシア語 Deep research を実翻訳。**新規:** `cleanLlmMarkdown()` がエージェント足場（`<tool_call>{…}</tool_call>`, `<tool_response>`, `<thinking>` …）を `#/deep`・保存済み調査から除去（全プロバイダ＋保存済みファイル配信時）; `#/outreach`→`#/contacto` エイリアス（BUG-004）; クライアントのネットワークエラーを `I18n.t()` で多言語化（8 ロケール; サーバの `details` は意図的に英語の診断）。**テスト:** 新規 `tests/qa-report-fixes.test.mjs`（10）・`tests/llm-output.test.mjs`（5）、881 → 896 ユニット、Playwright 58/58。**未変更（理由付き）:** BUG-009（`#/cv` H1 は設計上、WCAG single-h1）、親データ（parent-owned）、minor i18n/UX のロングテールはバックログ。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
+
+---
+
 ## [1.57.2] — 2026-05-19
 
 **fix(config): `/#/config`「validation failed」の真の原因 — SPA が注入する `lang` フィールド。** `public/js/api.js` は *すべての* JSON POST ボディに `lang` を自動付与します（LLM ルートが UI ロケールを拾うため）。`/api/config` は LLM ルートではなく `lang` は設定キーでもないため、`validateConfig` の（正しく、セキュリティ上重要な）未知キー拒否が **毎回の保存** に 400 を返していました：`validation failed — lang: not a known config key`。ブラウザ限定の症状で、curl/インプロセスの再現は `lang` を送らないため v1.57.0/.1 は*メッセージ*を改善しても*原因*は残っていました。設定ルートは検証前にトランスポート用の `lang` を除去するように。`KNOWN_KEYS` 書き込みフィルタは依然として真に未知のキーを破棄 — インジェクション対策は不変。実際の保存ボタンを押す新しい Playwright フォーム巡回で発見。**テスト:** 新規 `tests/playwright-forms.mjs`（26、`npm run test:e2e:browser` に組込）で**全フォーム**を巡回、`config-endpoint` にブラウザ等価ケース。879 → 881 ユニット、Playwright 32 → 58。詳細は [`CHANGELOG.md`](CHANGELOG.md)。
