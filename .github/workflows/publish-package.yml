@@ -15,6 +15,12 @@ name: Publish to GitHub Packages
 # that — correctly — didn't bump the version). The Publish step now
 # checks the registry first and SKIPS (green, exit 0) if this exact
 # version is already there. A real version bump still publishes.
+#
+# DIST-TAG RECONCILE: a backfill / parallel publish (or an E409 skip)
+# can leave npm's `latest` dist-tag on an OLDER version, so GitHub
+# Packages shows the wrong "Latest" in its UI. A final step re-points
+# `latest` at package.json's version — but only when it is the highest
+# (semver), so re-running an old tag can never regress it.
 
 on:
   release:
@@ -70,3 +76,36 @@ jobs:
           fi
           echo "Publishing ${name}@${ver} …"
           npm publish
+
+      - name: Reconcile `latest` dist-tag (semver-guarded)
+        # A backfill or parallel publish — or an E409 idempotent skip on
+        # an already-published version — can leave npm's `latest`
+        # dist-tag pointing at an OLDER release. GitHub Packages then
+        # shows the wrong version as "Latest" in its UI even though the
+        # newest tarball is present. This step re-points `latest` at
+        # package.json's version, but ONLY if that version is strictly
+        # the highest (sort -V). So a re-run of an old tag can never
+        # regress the tag, and prereleases never become `latest`.
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          name=$(node -p "require('./package.json').name")
+          ver=$(node -p "require('./package.json').version")
+          case "$ver" in
+            *-*) echo "::notice::${ver} is a prerelease — not touching latest."; exit 0;;
+          esac
+          cur=$(npm view "${name}" dist-tags.latest \
+                 --registry=https://npm.pkg.github.com 2>/dev/null || echo "0.0.0")
+          if [ "$ver" = "$cur" ]; then
+            echo "::notice::dist-tag latest already = ${ver} — nothing to do."
+            exit 0
+          fi
+          highest=$(printf '%s\n%s\n' "$cur" "$ver" | sort -V | tail -1)
+          if [ "$highest" = "$ver" ]; then
+            echo "Promoting dist-tag latest: ${cur} → ${ver}"
+            npm dist-tag add "${name}@${ver}" latest \
+              --registry=https://npm.pkg.github.com
+          else
+            echo "::notice::current latest ${cur} ≥ ${ver}; leaving dist-tag unchanged."
+          fi
