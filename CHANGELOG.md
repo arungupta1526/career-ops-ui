@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.59.3] — 2026-05-20
+
+**fix(ux): UX-A5-r2 (v1.59.3) — Help TOC scroll-spy harden (third-pass fix).** Two real issues persisted after v1.58.52: (1) `rootMargin: "-30% 0% -60% 0%"` left only a 10% visible band so fast scroll could skip the trigger zone entirely and no IntersectionObserver entry ever fired; (2) no initial-state computation, so a freshly-loaded `#/help` with zero scroll showed zero highlights even though section 1 was visibly active. [public/js/views/help.js](public/js/views/help.js): widened `rootMargin` to `-20% 0% -55% 0%` (25% band), made `root: null` explicit, extracted `applyCurrent(id)` so the same code path serves both observer callbacks and the initial-state pass, and on mount picks the heading closest to 20% from top of viewport. 962 → **963** unit. (UX-A5-r2)
+
+---
+
+
+
 ## [1.59.2] — 2026-05-20
 
 **fix(ui): v1.59.2 — UX-A9 / UX-A3 chip count + overlap (post-v1.59.1 hotfix).** Three real bugs in the v1.58.62 / v1.58.55 chips, user-reported on the staging surface:\n\n1. **Always `Keys: 0 / 5`.** `/api/status/providers` returns `keysConfigured` as an **array** of provider names; pre-fix `typeof === number` was always false. Now uses `Array.isArray(st.keysConfigured) ? st.keysConfigured.length : 0`.\n2. **Lowercase provider name.** Server returns `anthropic` (not `claude` — `LLM_PROVIDER` env value vs resolved provider name); the NAME map was keyed by `claude:` so it always fell through to the lowercase fallback. Re-keyed `{anthropic, gemini, openai, qwen, openrouter}` in both [public/js/views/config.js](public/js/views/config.js) and [public/js/views/dashboard.js](public/js/views/dashboard.js).\n3. **Sticky chip overlapped other elements.** `.api-keys__summary` had `position: sticky` + `z-index: 5` and created a stacking context that floated above the tablist + page header on scroll. Dropped sticky — the chip is at the top of a short panel already. Lock-test updated to forbid the sticky position. (No version bump alone — counts on existing UX-A3 / UX-A9 lock-tests.) (post-cycle hotfix)

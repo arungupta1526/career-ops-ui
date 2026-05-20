@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.59.3] — 2026-05-20
+
+**fix(ux): UX-A5-r2 (v1.59.3) — scroll-spy en `#/help` reforzado.** rootMargin ampliado de 10 % a 25 % de banda visible + estado inicial calculado al montar. (UX-A5-r2)
+
+---
+
+
+
 ## [1.59.2] — 2026-05-20
 
 **fix(ui): v1.59.2 — chip Active/Keys: cuenta correcta, nombre del proveedor capitalizado, sin solapamiento.** (post-v1.59.1 hotfix)

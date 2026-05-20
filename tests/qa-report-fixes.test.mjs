@@ -347,6 +347,24 @@ test('UX-A6 (v1.58.53): every saved-research card flows through a single `render
     'renderArchive must delegate every card to renderSavedCard');
 });
 
+test('UX-A5-r2 (v1.59.3): help.js TOC scroll-spy uses widened rootMargin + initial-state', () => {
+  const help = read('public', 'js', 'views', 'help.js');
+  // The pre-r2 rootMargin '-30% 0% -60% 0%' was a 10% band; fast scroll
+  // could skip the trigger zone entirely. v1.59.3 widens to 25%.
+  assert.match(help, /rootMargin:\s*'-20%\s*0%\s*-55%\s*0%'/,
+    'rootMargin must be widened to -20% / -55% (25% trigger band) for fast-scroll robustness');
+  // Explicit root: null (was implicit; the FIX-PROMPT canonical form
+  // calls this out because some authors use root: main which breaks
+  // when main isn't the scrolling element).
+  assert.match(help, /root:\s*null,/, 'IntersectionObserver root must be explicitly null (viewport)');
+  // Initial-state: must mark the closest heading on mount, before any
+  // scroll event fires.
+  assert.match(help, /function applyCurrent\(id\)/,
+    'help.js must define applyCurrent(id) for both observer + initial state');
+  assert.match(help, /const triggerY = window\.scrollY \+ window\.innerHeight \* 0\.2/,
+    'help.js must compute initial active heading from scroll position on mount');
+});
+
 test('UX-A5 (v1.58.52): help.js TOC scroll-spy uses double-rAF + direct heading refs (not setTimeout/querySelector)', () => {
   const help = read('public', 'js', 'views', 'help.js');
   // The buggy v1.58.45 pattern was setTimeout(0) + querySelectorAll

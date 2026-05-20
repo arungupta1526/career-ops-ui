@@ -176,6 +176,11 @@ Router.register('help', async () => {
     const id = a.dataset.targetId;
     if (id) linkByTarget.set(id, a);
   }
+  function applyCurrent(id) {
+    for (const link of linkByTarget.values()) link.classList.remove('toc-current');
+    const link = linkByTarget.get(id);
+    if (link) link.classList.add('toc-current');
+  }
   function mountTocSpy() {
     if (tocObserver) return; // idempotent
     if (!headings.length || !linkByTarget.size) return;
@@ -186,11 +191,35 @@ Router.register('help', async () => {
         .filter((e) => e.isIntersecting)
         .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
       if (!active) return;
-      for (const link of linkByTarget.values()) link.classList.remove('toc-current');
-      const link = linkByTarget.get(active.target.id);
-      if (link) link.classList.add('toc-current');
-    }, { rootMargin: '-30% 0% -60% 0%', threshold: 0 });
+      applyCurrent(active.target.id);
+    }, {
+      // UX-A5-r2 (v1.59.3) — widened the visible band from 10 % to
+      // 25 % of viewport (was '-30% 0% -60% 0%'). At the previous
+      // tight band, fast scroll could skip the trigger zone entirely
+      // and no IntersectionObserver entry would ever fire, leaving
+      // every link with `className=""`. The new band intersects on
+      // any heading whose top sits between 20 % and 45 % of the
+      // viewport — generous enough to survive rAF-snapped scrolls.
+      root: null,
+      rootMargin: '-20% 0% -55% 0%',
+      threshold: 0,
+    });
     headings.forEach((h) => tocObserver.observe(h));
+    // UX-A5-r2 (v1.59.3) — initial-state: the observer only fires on
+    // intersection *changes*, so on first paint nothing is marked
+    // until the user scrolls. Compute the heading closest to the
+    // current scroll position and mark it immediately. Without this,
+    // a freshly-loaded `#/help` with zero scroll shows zero
+    // highlights even though section 1 is visibly the active one.
+    requestAnimationFrame(() => {
+      const triggerY = window.scrollY + window.innerHeight * 0.2;
+      let chosen = headings[0];
+      for (const h of headings) {
+        const absTop = h.getBoundingClientRect().top + window.scrollY;
+        if (absTop <= triggerY) chosen = h;
+      }
+      if (chosen) applyCurrent(chosen.id);
+    });
   }
   // Two rAFs = "after the next paint that includes the mounted view".
   // Single rAF can fire before the router appends, so we always wait
