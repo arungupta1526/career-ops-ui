@@ -10,6 +10,12 @@
 
 
 
+## [1.58.38] — 2026-05-20
+
+**fix(a11y): NEW-D3 (WCAG 4.1.2) — `#/tracker` 検索入力にプレースホルダとは異なるローカライズ `aria-label` を追加。** 以前は placeholder のみで SR には目的が伝わらなかった。新 i18n キー `track.searchAria` × 8 言語、placeholder と異なる文字列。930 → **931** ユニット。(NEW-D3)
+
+---
+
 ## [1.58.37] — 2026-05-20
 
 **fix(i18n): NEW-D1 — `#/pipeline` の H1 を es/pt-BR/ru でローカライズ + 2 件の RU タイトル漏れを修正。** 新しい `tests/i18n-no-latin-leaks.test.mjs` が `contacto.title` / `health.title` の RU の漏れも検出して同時修正。928 → **930** ユニット。(NEW-D1)

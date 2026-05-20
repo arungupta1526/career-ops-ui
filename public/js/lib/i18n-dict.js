@@ -684,6 +684,8 @@ window.__I18N_DICT = {
   'track.funnelAria': { en: 'Filter by status', es: 'Filtrar por estado', 'pt-BR': 'Filtrar por status', ko: '상태로 필터', ja: 'ステータスでフィルター', ru: 'Фильтр по статусу', 'zh-CN': '按状态筛选', 'zh-TW': '依狀態篩選' },
   'track.anyScore': { en: 'any score', es: 'cualquier score', 'pt-BR': 'qualquer score', ko: '모든 점수', ja: '任意のスコア', ru: 'любой score', 'zh-CN': '任意分数', 'zh-TW': '任意分數' },
   'track.search':   { en: 'Search by company / role…', es: 'Buscar por empresa / rol…', 'pt-BR': 'Buscar por empresa / vaga…', ko: '회사/직무로 검색…', ja: '会社/役割で検索…', ru: 'Поиск по компании / роли…', 'zh-CN': '按公司/职位搜索…', 'zh-TW': '依公司/職位搜尋…' },
+  // NEW-D3 (v1.58.38) — full aria-label for tracker search input.
+  'track.searchAria': { en: 'Search applications by company name or role title', es: 'Buscar postulaciones por empresa o rol', 'pt-BR': 'Buscar candidaturas por empresa ou cargo', ko: '회사 또는 역할로 지원 내역 검색', ja: '会社名または役職で応募を検索', ru: 'Поиск заявок по компании или роли', 'zh-CN': '按公司或职位搜索申请', 'zh-TW': '依公司或職位搜尋申請' },
 
   // Reports
   'rep.title':      { en: 'Reports', es: 'Reportes', 'pt-BR': 'Relatórios', ko: '보고서', ja: 'レポート', ru: 'Отчёты', 'zh-CN': '报告', 'zh-TW': '報告' },

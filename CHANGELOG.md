@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.38] — 2026-05-20
+
+**fix(a11y): NEW-D3 (WCAG 4.1.2) — `#/tracker` search input gets a localized `aria-label` distinct from its placeholder.** v1.58.36 audit: the search input had only `placeholder="Search by company / role…"` and no `aria-label` — screen-reader users heard only the generic role "edit text" with no description of the purpose. Per WCAG 4.1.2 (Name, Role, Value) a standalone search input without an associated `<label>` MUST have an explicit accessible name. Fix in [public/js/views/tracker.js](public/js/views/tracker.js): the `filterText` input now declares `type="search"` + `aria-label: t(track.searchAria, …)`. New `track.searchAria` i18n key in all 8 locales — values explicitly different from the placeholder ("Search applications by company name or role title" vs "Search by company / role…") so the SR doesn't hear the same string twice. 930 → **931** unit. (NEW-D3)
+
+---
+
 ## [1.58.37] — 2026-05-20
 
 **fix(i18n): NEW-D1 — `#/pipeline` H1 localized on `es` / `pt-BR` / `ru` + 2 stray RU title leaks fixed (`contacto.title`, `health.title`).** v1.58.36 audit caught the H1 of `#/pipeline` rendering the literal `Pipeline` on `es`/`pt-BR`/`ru` while their sidebar items (`Vacantes` / `Vagas` / `Воронка`) were properly localized — promise-fidelity gap with the closed v1.58.18 I18N-011 doctrine (page H1 must match the sidebar term). Updated `pipe.title` in [public/js/lib/i18n-dict.js](public/js/lib/i18n-dict.js): es → `Pipeline de vacantes`, pt-BR → `Pipeline de vagas`, ru → `Воронка вакансий`. New static guard `tests/i18n-no-latin-leaks.test.mjs` (parses the consolidated DICT, asserts no Latin-only `*.title` value on `ru/ja/ko/zh-CN/zh-TW` outside a small whitelist of proper nouns / acronyms / product names). The guard immediately caught two additional stray RU leaks beyond NEW-D1: `contacto.title` (was `LinkedIn outreach` → `Касания через LinkedIn`) and `health.title` (was `Health` → `Состояние`) — both shipped under the same fix. 928 → **930** unit. (NEW-D1)

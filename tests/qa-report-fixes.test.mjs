@@ -37,6 +37,41 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('NEW-D3 (v1.58.38): #/tracker search input has explicit aria-label distinct from placeholder', () => {
+  const tr = read('public', 'js', 'views', 'tracker.js');
+  // The input must carry both placeholder and aria-label, sourced
+  // from distinct i18n keys.
+  assert.match(tr, /placeholder:\s*t\('track\.search'\)/,
+    'filterText must declare placeholder: t("track.search")');
+  assert.match(tr, /'aria-label':\s*t\('track\.searchAria'/,
+    'filterText must declare aria-label: t("track.searchAria", …)');
+  // The input must be type=search so user agents render the affordance
+  // and SRs announce it correctly.
+  assert.match(tr, /type:\s*'search',[\s\S]{0,200}placeholder:\s*t\('track\.search'\)/,
+    'filterText must be type="search"');
+  // i18n parity for the new key.
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  const row = dict.match(/'track\.searchAria':\s*\{([^}]+)\}/);
+  assert.ok(row, "i18n-dict.js missing 'track.searchAria'");
+  for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+    const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+    assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+      `'track.searchAria' must have a non-empty ${lang} value`);
+  }
+  // aria-label and placeholder must NOT be the same string in any locale
+  // (per WCAG 4.1.2 — accessible name must convey purpose, not duplicate
+  // the placeholder).
+  const phRow = dict.match(/'track\.search':\s*\{([^}]+)\}/);
+  for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+    const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+    const phM = phRow[1].match(new RegExp(`${keyPat}\\s*:\\s*'([^']+)'`));
+    const ariaM = row[1].match(new RegExp(`${keyPat}\\s*:\\s*'([^']+)'`));
+    assert.ok(phM && ariaM, `${lang} values not parseable`);
+    assert.notEqual(ariaM[1], phM[1],
+      `'track.searchAria[${lang}]' must differ from 'track.search[${lang}]'`);
+  }
+});
+
 test('v1.58.35: notifications drawer hides via `[hidden]` (CSS override) + help §18 in all 8 locales', () => {
   // BUG (user-reported): the drawer was always visible on page load
   // because `.notif-drawer { display: flex }` shadowed the UA

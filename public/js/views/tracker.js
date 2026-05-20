@@ -15,7 +15,17 @@ Router.register('tracker', async () => {
     c('option', { value: '3' }, t('track.scoreMid')),
     c('option', { value: '0' }, t('track.scoreLow')),
   ]);
-  const filterText = c('input', { className: 'input', placeholder: t('track.search') });
+  // NEW-D3 (v1.58.38) — explicit aria-label so screen readers
+  // announce the input's purpose. The placeholder alone would only
+  // resolve to a generic "edit text" / "search field" on SR readout,
+  // failing WCAG 4.1.2 (Name, Role, Value) for a standalone search
+  // input with no <label> sibling.
+  const filterText = c('input', {
+    type: 'search',
+    className: 'input',
+    placeholder: t('track.search'),
+    'aria-label': t('track.searchAria', 'Search applications by company name or role title'),
+  });
 
   // v1.55.8 — UX-8: a clickable funnel summary at the top so the
   // pipeline state is legible at a glance ("12 Applied · 5 Interview

@@ -10,6 +10,12 @@
 
 
 
+## [1.58.38] — 2026-05-20
+
+**fix(a11y): NEW-D3 (WCAG 4.1.2) — поле поиска на `#/tracker` получает локализованный `aria-label`, отличный от placeholder.** v1.58.36 аудит: у поля поиска был только `placeholder="Search by company / role…"` и не было `aria-label` — скрин-ридеры озвучивали generic-роль «edit text» без описания назначения. По WCAG 4.1.2 (Name, Role, Value) одиночное search-поле без `<label>` ОБЯЗАНО иметь явный accessible name. Правка в [public/js/views/tracker.js](public/js/views/tracker.js): `filterText` теперь декларирует `type="search"` + `aria-label: t(track.searchAria, …)`. Новый ключ `track.searchAria` во всех 8 локалях — значения явно отличаются от placeholder («Поиск заявок по компании или роли» vs «Поиск по компании / роли…»), чтобы SR не повторял ту же строку дважды. 930 → **931** модульных. (NEW-D3)
+
+---
+
 ## [1.58.37] — 2026-05-20
 
 **fix(i18n): NEW-D1 — H1 на `#/pipeline` локализован в es/pt-BR/ru + закрыты 2 случайные RU-утечки в title-ключах.** v1.58.36 аудит показал, что заголовок `#/pipeline` отрисовывался как литеральное `Pipeline` на es/pt-BR/ru, тогда как сайдбар уже был локализован (`Vacantes` / `Vagas` / `Воронка`) — нарушение паритета с закрытым I18N-011 (v1.58.18). Обновлены значения `pipe.title`: es → `Pipeline de vacantes`, pt-BR → `Pipeline de vagas`, ru → `Воронка вакансий`. Новый статический guard `tests/i18n-no-latin-leaks.test.mjs` парсит DICT и валит сборку, если значение `*.title` на ru/ja/ko/zh-CN/zh-TW состоит только из латиницы вне небольшого whitelist (собственные имена, акронимы, названия продуктов). Этот же guard сразу поймал 2 дополнительные RU-утечки: `contacto.title` (`LinkedIn outreach` → `Касания через LinkedIn`) и `health.title` (`Health` → `Состояние`) — обе исправлены в том же релизе. 928 → **930** модульных. (NEW-D1)

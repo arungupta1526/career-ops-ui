@@ -10,6 +10,12 @@
 
 
 
+## [1.58.38] — 2026-05-20
+
+**fix(a11y): NEW-D3 (WCAG 4.1.2) — `#/tracker` 搜尋輸入獲得與 placeholder 不同的在地化 `aria-label`。** 此前僅有 placeholder,螢幕閱讀器無法聽到用途。新 i18n 鍵 `track.searchAria` × 8 語言,與 placeholder 不同。930 → **931** 單元。(NEW-D3)
+
+---
+
 ## [1.58.37] — 2026-05-20
 
 **fix(i18n): NEW-D1 — `#/pipeline` H1 在 es/pt-BR/ru 上在地化 + 修正 2 處 RU 標題洩漏。** 新 `tests/i18n-no-latin-leaks.test.mjs` 同時抓出 `contacto.title` 與 `health.title` 的 RU 洩漏。928 → **930** 單元。(NEW-D1)

@@ -10,6 +10,12 @@
 
 
 
+## [1.58.38] — 2026-05-20
+
+**fix(a11y): NEW-D3 (WCAG 4.1.2) — `#/tracker` 검색 입력에 placeholder 와 다른 현지화 `aria-label` 추가.** 이전엔 placeholder 만 있었고 SR 은 목적을 알 수 없었음. 새 i18n 키 `track.searchAria` × 8 언어, placeholder 와 다른 문자열. 930 → **931** 유닛. (NEW-D3)
+
+---
+
 ## [1.58.37] — 2026-05-20
 
 **fix(i18n): NEW-D1 — `#/pipeline` H1 을 es/pt-BR/ru 에서 현지화 + RU 타이틀 누락 2 건 추가 수정.** 새 `tests/i18n-no-latin-leaks.test.mjs` 가 `contacto.title` / `health.title` 의 RU 누락도 잡아 동시 수정. 928 → **930** 유닛. (NEW-D1)
