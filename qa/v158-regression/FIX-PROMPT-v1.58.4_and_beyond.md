@@ -48,7 +48,7 @@ That means every section below = its own version bump and its own PR. No "while 
 | **v1.58.17** ✅ | I-2 — `today` / `yesterday` / `N days ago` localized via Intl.RelativeTimeFormat *(shipped 2026-05-20: formatRelative() in deep.js now uses Intl.RelativeTimeFormat + numeric:auto; >7 days falls back to Intl.DateTimeFormat dateStyle:medium)* | Minor | i18n |
 | **v1.58.18** ✅ | I-3 — Help TOC items 2 / 5 / 13 / 14 localized *(shipped 2026-05-20: docs/help/{ru,ja,ko-KR,zh-CN,zh-TW,es,pt-BR}.md H2s for items 2/5/13/14 rewritten to remove App/settings/Apply/checklist/Portals/Sources/Mode/prompts English bleed; negative-match guard added)* | Minor | i18n |
 | **v1.58.19** ✅ | I-4 — RU `#/followup` H1 & subtitle *(shipped 2026-05-20: cadence/follow-up/scope/timeline replaced with native RU; negative-match guard)* (no Latin `cadence`/`follow-up`) | Minor | i18n |
-| **v1.58.19** | I-6 — footer hotkey `⌘K` vs `Ctrl+K` per platform | Minor | i18n / platform |
+| **v1.58.20** ✅ | I-6 — footer hotkey ⌘K vs Ctrl+K per platform *(shipped 2026-05-20: top.langhint {hotkey} placeholder + applyFooterHotkey navigator.platform branch + I18n.onChange re-apply; static guard locks 8-locale shape)* | I-6 — footer hotkey `⌘K` vs `Ctrl+K` per platform | Minor | i18n / platform |
 | **v1.58.20** | U-1 — `#/cv` proper H1 + subtitle (kill the lowercase breadcrumb) | Minor | UX (breaks BUG-009 by-design — read §3) |
 | **v1.58.21** | U-2 — `#/auto` H1 emoji-wrap | Minor | UX visual |
 | **v1.58.22** | U-3 — `#/followup` date placeholder = today − 14 days | Minor | UX |

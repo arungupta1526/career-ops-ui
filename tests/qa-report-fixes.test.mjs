@@ -30,6 +30,29 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('I-6 (v1.58.20): footer hotkey uses {hotkey} placeholder + per-platform substitution', () => {
+  // v1.58.3 footer showed 'CTRL+K — search' literally on every platform
+  // and locale. The i18n value now embeds {hotkey} so app.js can swap
+  // it to ⌘K on Mac and Ctrl+K elsewhere; the localized verb stays.
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  assert.match(dict, /'top\.langhint':\s*\{\s*en:\s*'\{hotkey\} — search'/,
+    "top.langhint EN must use '{hotkey} — search'");
+  for (const lang of ['es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+    const quotedKey = /-/.test(lang) ? `'${lang}'` : lang;
+    assert.match(dict, new RegExp(`${quotedKey.replace(/[\.]/g, '\\.')}:\\s*'\\{hotkey\\} — [^']+'`),
+      `top.langhint ${lang} must use '{hotkey} — <verb>' shape`);
+  }
+  // app.js must apply the platform-specific substitution.
+  const app = read('public', 'js', 'app.js');
+  assert.match(app, /applyFooterHotkey/, 'app.js must define applyFooterHotkey()');
+  assert.match(app, /isMac\s*\?\s*'⌘K'\s*:\s*'Ctrl\+K'/,
+    'applyFooterHotkey must branch ⌘K vs Ctrl+K');
+  assert.match(app, /\.replace\(\/\\\{hotkey\\\}\/g,\s*hotkey\)/,
+    "applyFooterHotkey must substitute {hotkey} placeholder");
+  assert.match(app, /I18n\.onChange\(applyFooterHotkey\)/,
+    'applyFooterHotkey must re-run on every language change');
+});
+
 test('I-4 (v1.58.19): RU followup strings contain no Latin `cadence`/`follow-up` leakage', () => {
   // v1.58.3: RU `#/followup` H1 was 'Советник по cadence follow-up'; subtitle
   // 'ISO-дата (YYYY-MM-DD) — основа для cadence.'. Translate.

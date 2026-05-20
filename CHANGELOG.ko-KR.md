@@ -10,6 +10,12 @@
 
 
 
+## [1.58.20] — 2026-05-20
+
+**fix(i18n/platform): I-6 — 사이드바 풋터 단축키 힌트가 Mac 에서 `⌘K`, 그 외 환경에서 `Ctrl+K` 로 표시되고 동사는 로컬라이즈.** 수정 전엔 모든 플랫폼/언어에서 `CTRL+K — search` 리터럴이 노출되었다. `top.langhint` 가 `{hotkey} — 검색` 형식을 사용하고, `applyFooterHotkey()` 가 `navigator.platform` 에 따라 `{hotkey}` 를 치환. 915 → **916** 유닛. (I-6)
+
+---
+
 ## [1.58.19] — 2026-05-20
 
 **fix(i18n): I-4 — 러시아어 `#/followup` 에서 라틴어 `cadence` / `follow-up` 누출 제거.** RU followup 문자열(H1, 힌트)에 `cadence`, `follow-up`, `scope`, `timeline` 이 섞여 있었으나 러시아어 네이티브 표현으로 치환. 914 → **915** 유닛. (I-4)

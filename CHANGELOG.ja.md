@@ -10,6 +10,12 @@
 
 
 
+## [1.58.20] — 2026-05-20
+
+**fix(i18n/platform): I-6 — フッターのショートカットは Mac で `⌘K`、それ以外で `Ctrl+K`、動詞はローカライズ。** 修正前はプラットフォーム/言語に関わらず `CTRL+K — search` のリテラルが表示されていた。`top.langhint` に `{hotkey} — 検索` 形式を導入し、`applyFooterHotkey()` が `navigator.platform` に応じて `{hotkey}` を置換。915 → **916** ユニット。(I-6)
+
+---
+
 ## [1.58.19] — 2026-05-20
 
 **fix(i18n): I-4 — ロシア語 `#/followup` のラテン語 `cadence` / `follow-up` 流出を排除。** RU の followup 関連文字列(H1、ヒント)に `cadence`、`follow-up`、`scope`、`timeline` が混じっていたが、ロシア語ネイティブ表現に置換。914 → **915** ユニット。(I-4)

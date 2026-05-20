@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.20] — 2026-05-20
+
+**fix(i18n/platform): I-6 — footer hotkey hint now shows ⌘K on Mac, Ctrl+K elsewhere (localized verb).** Pre-fix the sidebar footer hint was the literal `CTRL+K — search` on every platform and locale. The top-bar `<kbd>` badge already adapted via `data-mac`/`data-other` (v1.56.4 UX-N2); now the footer hint does too. `top.langhint` i18n values embed a `{hotkey}` placeholder (e.g., `{hotkey} — поиск`); new `applyFooterHotkey()` in [public/js/app.js](public/js/app.js#L196-L214) runs on boot + every `I18n.onChange` and replaces `{hotkey}` with `⌘K` or `Ctrl+K` based on `navigator.platform`. The localized verb (`search` / `buscar` / `поиск` / `搜索` / …) stays. 915 → **916** unit (static guard locks the `{hotkey}` shape in all 8 locales, the platform branch, and the `I18n.onChange` re-apply). (I-6)
+
+---
+
 ## [1.58.19] — 2026-05-20
 
 **fix(i18n): I-4 — RU `#/followup` H1 + hints no longer leak Latin `cadence` / `follow-up` / `scope` / `timeline`.** v1.58.3 RU regression: H1 `Советник по cadence follow-up`; hint `ISO-дата (YYYY-MM-DD) — основа для cadence.`; notesHint `timeline, internal hold, …`. All replaced with native Russian: `Советник по ритму касаний`, `ISO-дата (ГГГГ-ММ-ДД) — основа для расчёта ритма касаний.`, `сроки, внутренняя пауза, праздники`. companyHint `scope` → `область`. 914 → **915** unit (negative-match guard: no `cadence` / `follow-up` in any RU followup.* string). (I-4)

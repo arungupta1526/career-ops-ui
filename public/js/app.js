@@ -197,10 +197,24 @@ I18n.onChange(() => {
   // sighted users discover it. The keybinding itself is wired further
   // down; the badge is aria-hidden (aria-label already covers AT).
   const kbdHint = document.querySelector('.kbd-shortcut');
+  // I-6 (v1.58.20) — footer hint must show ⌘K on Mac, Ctrl+K elsewhere
+  // (was the EN-only literal "CTRL+K — search" on every locale and
+  // every platform). Same detection used for the top-bar badge.
+  const isMac = /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent || '');
   if (kbdHint) {
-    const isMac = /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent || '');
     kbdHint.textContent = isMac ? kbdHint.dataset.mac : kbdHint.dataset.other;
   }
+  function applyFooterHotkey() {
+    const hint = document.querySelector('.sidebar-footer .hint[data-i18n="top.langhint"]');
+    if (!hint) return;
+    const hotkey = isMac ? '⌘K' : 'Ctrl+K';
+    // After applyI18n() the text is e.g. '{hotkey} — поиск'. Swap the
+    // {hotkey} token with the platform-specific combo so the footer
+    // matches the OS the user is on and the localized verb stays.
+    hint.textContent = hint.textContent.replace(/\{hotkey\}/g, hotkey);
+  }
+  applyFooterHotkey();
+  I18n.onChange(applyFooterHotkey);
   search.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       const q = search.value.trim();

@@ -206,7 +206,7 @@ window.__I18N_DICT = {
   'top.search.aria':  { en: 'Global search — Cmd+K to focus, paste a URL and Enter for auto-pipeline', es: 'Búsqueda global — Cmd+K para enfocar, pega una URL y Enter para auto-pipeline', 'pt-BR': 'Busca global — Cmd+K para focar, cole uma URL e Enter para auto-pipeline', ko: '전역 검색 — Cmd+K 로 포커스, URL 을 붙여 넣고 Enter 로 auto-pipeline', ja: 'グローバル検索 — Cmd+K でフォーカス、URL を貼り付け Enter で auto-pipeline', ru: 'Глобальный поиск — Cmd+K для фокуса, вставьте URL и Enter для auto-pipeline', 'zh-CN': '全局搜索 — Cmd+K 聚焦,粘贴 URL 并按 Enter 触发 auto-pipeline', 'zh-TW': '全域搜尋 — Cmd+K 聚焦,貼上 URL 並按 Enter 觸發 auto-pipeline' },
   'top.doctor':     { en: 'Doctor', es: 'Diagnóstico', 'pt-BR': 'Diagnóstico', ko: '진단', ja: '診断', ru: 'Диагностика', 'zh-CN': '诊断', 'zh-TW': '診斷' },
   'top.quickscan':  { en: 'Quick scan', es: 'Búsqueda rápida', 'pt-BR': 'Busca rápida', ko: '빠른 검색', ja: 'クイック検索', ru: 'Быстрый скан', 'zh-CN': '快速搜索', 'zh-TW': '快速搜尋' },
-  'top.langhint':   { en: 'CTRL+K — search', es: 'CTRL+K — buscar', 'pt-BR': 'CTRL+K — buscar', ko: 'CTRL+K — 검색', ja: 'CTRL+K — 検索', ru: 'CTRL+K — поиск', 'zh-CN': 'CTRL+K — 搜索', 'zh-TW': 'CTRL+K — 搜尋' },
+  'top.langhint':   { en: '{hotkey} — search', es: '{hotkey} — buscar', 'pt-BR': '{hotkey} — buscar', ko: '{hotkey} — 검색', ja: '{hotkey} — 検索', ru: '{hotkey} — поиск', 'zh-CN': '{hotkey} — 搜索', 'zh-TW': '{hotkey} — 搜尋' },
 
   // Common
   'common.loading': { en: 'Loading…', es: 'Cargando…', 'pt-BR': 'Carregando…', ko: '로딩 중…', ja: '読み込み中…', ru: 'Загрузка…', 'zh-CN': '加载中…', 'zh-TW': '載入中…' },

@@ -10,6 +10,12 @@
 
 
 
+## [1.58.20] — 2026-05-20
+
+**fix(i18n/platform): I-6 — 侧栏底部快捷键提示在 Mac 上显示 ⌘K、其它系统显示 Ctrl+K,动词本地化。** 之前在任何平台和语言下都显示英文字面 `CTRL+K — search`。`top.langhint` 现在采用 `{hotkey} — 搜索` 形式;`applyFooterHotkey()` 根据 `navigator.platform` 替换 `{hotkey}`。915 → **916** 单元。(I-6)
+
+---
+
 ## [1.58.19] — 2026-05-20
 
 **fix(i18n): I-4 — 俄语 `#/followup` 不再泄漏 `cadence` / `follow-up`。** RU followup 字符串(H1、提示)中混有 `cadence`、`follow-up`、`scope`、`timeline`。已替换为俄语本地表达。914 → **915** 单元。(I-4)

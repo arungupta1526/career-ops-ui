@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.20] — 2026-05-20
+
+**fix(i18n/platform): I-6 — el atajo en el pie de barra muestra ⌘K en Mac y Ctrl+K en otros sistemas, con el verbo localizado.** Antes era el literal `CTRL+K — search` en todas las plataformas/idiomas. `top.langhint` ahora usa `{hotkey} — buscar`; `applyFooterHotkey()` sustituye `{hotkey}` por la combinación nativa según `navigator.platform`. 915 → **916** unitarios. (I-6)
+
+---
+
 ## [1.58.19] — 2026-05-20
 
 **fix(i18n): I-4 — `#/followup` ruso ya no filtra `cadence` / `follow-up`.** Las cadenas RU del modo followup (H1, hints) usaban `cadence`, `follow-up`, `scope`, `timeline`. Reemplazadas por equivalentes nativos rusos. 914 → **915** unitarios. (I-4)
