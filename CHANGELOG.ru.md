@@ -10,6 +10,12 @@
 
 
 
+## [1.58.43] — 2026-05-20
+
+**fix(ux): UX-D-F — пустой submit на `#/evaluate` теперь показывает отдельный локализованный toast (раньше показывал «too short»).** До правки клик Evaluate при пустой textarea проваливался в существующую проверку `<50 chars` и выдавал `JD too short (min 50 chars)` — точно, но бесполезно: реальная проблема — «вы ничего не ввели», а не «вы ввели мало». В [public/js/views/evaluate.js](public/js/views/evaluate.js#L28-L45) теперь первый чек `!jd` показывает новый `eval.emptyJd` («JD обязателен — вставьте полное описание вакансии», локализовано × 8) и фокусирует textarea, чтобы пользователь сразу начал печатать. Существующий `eval.shortJd` всё ещё срабатывает для 1–49 символов. 936 → **937** модульных. (UX-D-F)
+
+---
+
 ## [1.58.42] — 2026-05-20
 
 **fix(ux): UX-D-J — паритет ETA-чипа на всех advisor-страницах с `#/auto` (UX-6 v1.55.4).** v1.58.36 аудит: только `#/auto` показывал честный «⏱ ~1–2 min» рядом с Run; остальные 7 LLM-страниц (`#/evaluate`, `#/deep`, 5 mode-страниц — project/training/followup/contacto/interview-prep/patterns) совершали похожий 10-60 с вызов и не давали подсказку про время. Добавлен `<span class="advisor-eta">⏱ ~30s</span>` (локализация через новый ключ `advisor.eta` × 8) рядом с `UI.providerCostHint(t)` в [evaluate.js](public/js/views/evaluate.js), [deep.js](public/js/views/deep.js), [mode-page.js](public/js/views/mode-page.js). CSS правило `.auto-eta` расширено на `.advisor-eta` с тем же стилем. Оригинальный `auto.eta` остаётся «~1–2 min» — это единственный multi-step SSE-пайплайн. 935 → **936** модульных. (UX-D-J)

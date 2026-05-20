@@ -27,6 +27,16 @@ Router.register('evaluate', async () => {
 
   async function run() {
     const jd = jdInput.value.trim();
+    // UX-D-F (v1.58.43) — empty submit used to fall through the
+    // `<50` check with no specific message; the user got the "JD too
+    // short" toast even though the real issue is "you typed nothing".
+    // Distinguish the two so the toast actually tells the user what
+    // to do.
+    if (!jd) {
+      UI.toast(t('eval.emptyJd', 'JD is required — paste the full job description'), 'error');
+      jdInput.focus();
+      return;
+    }
     if (jd.length < 50) {
       UI.toast(t('eval.shortJd'), 'error');
       return;

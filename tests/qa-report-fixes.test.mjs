@@ -37,6 +37,24 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-D-F (v1.58.43): empty JD on #/evaluate triggers a distinct localized error toast (not "too short")', () => {
+  const ev = read('public', 'js', 'views', 'evaluate.js');
+  // Branch order: empty check must precede the <50 check, with its
+  // own dedicated i18n key + focus restore.
+  assert.match(ev, /if \(!jd\) \{[\s\S]{0,400}UI\.toast\(t\('eval\.emptyJd'/,
+    'evaluate.js must distinguish empty JD from short JD via t("eval.emptyJd")');
+  assert.match(ev, /jdInput\.focus\(\)/,
+    'evaluate.js must call jdInput.focus() after the empty-JD toast');
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  const row = dict.match(/'eval\.emptyJd':\s*\{([^}]+)\}/);
+  assert.ok(row, "i18n-dict.js missing 'eval.emptyJd'");
+  for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+    const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+    assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+      `'eval.emptyJd' must have a non-empty ${lang} value`);
+  }
+});
+
 test('UX-D-J (v1.58.42): every advisor view renders a localized ETA chip next to the cost hint', () => {
   for (const f of ['evaluate.js', 'deep.js', 'mode-page.js']) {
     const v = read('public', 'js', 'views', f);

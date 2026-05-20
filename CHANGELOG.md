@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.43] — 2026-05-20
+
+**fix(ux): UX-D-F — `#/evaluate` empty-JD submit now shows a distinct localized error toast (was "JD too short").** Before the fix, clicking Evaluate with an empty textarea fell through to the existing `<50 chars` check and yielded `JD too short (min 50 chars)` — accurate but unhelpful: the real problem is "you typed nothing", not "you typed too little". [public/js/views/evaluate.js](public/js/views/evaluate.js#L28-L45) now checks `!jd` first and surfaces a new `eval.emptyJd` error toast (`"JD is required — paste the full job description"`, localized × 8) + focuses the textarea so the user can start typing immediately. The pre-existing `eval.shortJd` toast still fires for 1–49 char input. 936 → **937** unit. (UX-D-F)
+
+---
+
 ## [1.58.42] — 2026-05-20
 
 **fix(ux): UX-D-J — per-advisor ETA chip parity with `#/auto` (UX-6 v1.55.4).** v1.58.36 audit: only `#/auto` showed an honest "⏱ ~1–2 min" chip next to its Run button; the other 7 LLM-driven advisor pages (`#/evaluate`, `#/deep`, plus the 5 mode pages — project / training / followup / contacto / interview-prep / patterns) ran a similar 10-60s call but gave no time hint. Adds a `<span class="advisor-eta">⏱ ~30s</span>` (localized via new `advisor.eta` key × 8) next to `UI.providerCostHint(t)` in [evaluate.js](public/js/views/evaluate.js), [deep.js](public/js/views/deep.js), and [mode-page.js](public/js/views/mode-page.js). CSS extends `.auto-eta` to cover `.advisor-eta` with the same styling. The original `auto.eta` chip stays at `~1–2 min` (it's the only multi-step SSE pipeline). 935 → **936** unit. (UX-D-J)
