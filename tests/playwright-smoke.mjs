@@ -647,6 +647,85 @@ test('Playwright smoke: zero CSP violations on a representative route walk', { s
   await closePage(page);
 });
 
+// ─── v1.58.34 + v1.58.35 — Notifications drawer end-to-end behavior ───
+
+test('Playwright smoke: notifications drawer is hidden at boot, opens only via bell, closes via × / Esc / re-click', { skip: SKIP }, async () => {
+  const page = await context.newPage();
+  await page.goto(baseUrl + '/#/dashboard');
+  await page.waitForSelector('#notif-bell', { timeout: 5000 });
+
+  // (1) v1.58.35 — drawer must be hidden at boot (the user-reported bug
+  // was that .notif-drawer { display: flex } shadowed [hidden]).
+  let drawerVisible = await page.evaluate(() => {
+    const d = document.getElementById('notif-drawer');
+    return d && !d.hidden && getComputedStyle(d).display !== 'none';
+  });
+  assert.equal(drawerVisible, false, 'drawer must be hidden at boot');
+
+  // (2) Bell ARIA contract — aria-expanded reflects state.
+  const expandedAtBoot = await page.locator('#notif-bell').getAttribute('aria-expanded');
+  assert.equal(expandedAtBoot, 'false', 'bell aria-expanded must be "false" at boot');
+
+  // (3) Click the bell → drawer opens.
+  await page.click('#notif-bell');
+  drawerVisible = await page.evaluate(() => {
+    const d = document.getElementById('notif-drawer');
+    return d && !d.hidden && getComputedStyle(d).display !== 'none';
+  });
+  assert.equal(drawerVisible, true, 'drawer must be visible after bell click');
+  const expandedOpen = await page.locator('#notif-bell').getAttribute('aria-expanded');
+  assert.equal(expandedOpen, 'true', 'bell aria-expanded must flip to "true" on open');
+
+  // (4) Empty state: with zero toasts this session, the empty paragraph shows.
+  const emptyShown = await page.evaluate(() =>
+    !document.getElementById('notif-empty').hidden);
+  assert.equal(emptyShown, true, 'empty-state paragraph must show when history is empty');
+
+  // (5) Click × → drawer closes.
+  await page.click('#notif-close');
+  drawerVisible = await page.evaluate(() => {
+    const d = document.getElementById('notif-drawer');
+    return d && !d.hidden && getComputedStyle(d).display !== 'none';
+  });
+  assert.equal(drawerVisible, false, 'drawer must be hidden after × click');
+
+  // (6) Click bell to re-open, then Esc to close.
+  await page.click('#notif-bell');
+  drawerVisible = await page.evaluate(() => !document.getElementById('notif-drawer').hidden);
+  assert.equal(drawerVisible, true, 'drawer must be re-openable via bell click');
+  await page.keyboard.press('Escape');
+  drawerVisible = await page.evaluate(() => {
+    const d = document.getElementById('notif-drawer');
+    return d && !d.hidden && getComputedStyle(d).display !== 'none';
+  });
+  assert.equal(drawerVisible, false, 'Esc must close the drawer');
+
+  // (7) Fire a toast via UI.toast() → unread badge must increment.
+  await page.evaluate(() => window.UI.toast('test notification — drawer end-to-end', 'success'));
+  await page.waitForTimeout(60); // give the subscriber a tick
+  const badgeText = await page.evaluate(() => {
+    const b = document.getElementById('notif-badge');
+    return { hidden: b.hidden, text: b.textContent };
+  });
+  assert.equal(badgeText.hidden, false, 'badge must become visible after a toast fires while drawer is closed');
+  assert.equal(badgeText.text, '1', 'badge text must be "1" after one toast');
+
+  // (8) Open the drawer → entry is listed; badge resets.
+  await page.click('#notif-bell');
+  await page.waitForTimeout(60);
+  const entries = await page.locator('#notif-list .notif-item').count();
+  assert.ok(entries >= 1, `drawer must list ≥1 entry after a toast; found ${entries}`);
+  const badgeAfterOpen = await page.evaluate(() => document.getElementById('notif-badge').hidden);
+  assert.equal(badgeAfterOpen, true, 'badge must hide once the drawer is opened (unread cleared)');
+
+  // (9) The drawer entry must show the message text.
+  const firstMsg = await page.locator('#notif-list .notif-item .notif-item__msg').first().textContent();
+  assert.match(firstMsg, /test notification — drawer end-to-end/,
+    'newest entry text must match the toast message');
+
+  await closePage(page);
+});
+
 if (SKIP) {
   test('Playwright smoke: skipped (playwright not resolvable)', () => {
     console.log('SKIP — install playwright in parent project: cd $CAREER_OPS_ROOT && npm i && npx playwright install chromium');
