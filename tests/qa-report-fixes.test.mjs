@@ -37,6 +37,26 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-A9 (v1.58.62): #/config API-keys panel has a sticky Active/Keys summary chip', () => {
+  const cfg = read('public', 'js', 'views', 'config.js');
+  assert.match(cfg, /className:\s*'api-keys__summary'/,
+    'config.js must render an .api-keys__summary element');
+  assert.match(cfg, /\/api\/status\/providers/,
+    'summary must fetch /api/status/providers for active provider + count');
+  assert.match(cfg, /config\.activeProvider/, 'summary must use i18n key config.activeProvider');
+  assert.match(cfg, /config\.keysConfiguredPrefix/, 'summary must use i18n key config.keysConfiguredPrefix');
+  assert.match(cfg, /document\.addEventListener\('providers-changed', refreshApiSummary\)/,
+    'summary must subscribe to providers-changed for live updates after Save');
+  // i18n keys present in 8 locales.
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  for (const key of ['config.activeProvider', 'config.keysConfiguredPrefix']) {
+    assert.ok(dict.includes(`'${key}'`), `i18n-dict.js must define '${key}'`);
+  }
+  // CSS rule present.
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /\.api-keys__summary\s*\{/, 'app.css must style .api-keys__summary');
+});
+
 test('UX-A8 (v1.58.61): README documents the make clean-test-fixtures first-run step', () => {
   // All 8 READMEs must mention the cleanup step so first-time users
   // don't mistake the fixture rows for real jobs.

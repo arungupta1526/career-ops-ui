@@ -10,6 +10,14 @@
 
 
 
+## [1.58.62] — 2026-05-20
+
+**feat(ui): UX-A9 (v1.58.62) — API keys 选项卡顶部的 sticky 摘要芯片。** `#/config → API keys` 选项卡顶部新增 sticky 芯片,显示活动提供方和已配置密钥数量。(UX-A9)
+
+---
+
+
+
 ## [1.58.61] — 2026-05-20
 
 **docs(readme): UX-A8 (v1.58.61) — 在所有 8 个 README 中添加首次运行清理章节。** 现在记录了在首次扫描前清理两个 QA 测试夹具 URL 的 `make clean-test-fixtures` 步骤。(UX-A8)

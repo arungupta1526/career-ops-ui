@@ -383,6 +383,10 @@ window.__I18N_DICT = {
   'notif.clearAllAria': { en: 'Clear all notifications', es: 'Borrar todas las notificaciones', 'pt-BR': 'Limpar todas as notificações', ko: '모든 알림 지우기', ja: 'すべての通知をクリア', ru: 'Очистить все уведомления', 'zh-CN': '清除所有通知', 'zh-TW': '清除所有通知' },
   'notif.dismiss':      { en: 'Dismiss', es: 'Descartar', 'pt-BR': 'Dispensar', ko: '닫기', ja: '閉じる', ru: 'Закрыть', 'zh-CN': '关闭', 'zh-TW': '關閉' },
 
+  // UX-A9 (v1.58.62) — sticky summary chip on the API-keys tab.
+  'config.activeProvider':     { en: 'Active', es: 'Activo', 'pt-BR': 'Ativo', ko: '활성', ja: 'アクティブ', ru: 'Активный', 'zh-CN': '活动', 'zh-TW': '活動' },
+  'config.keysConfiguredPrefix':{ en: 'Keys', es: 'Claves', 'pt-BR': 'Chaves', ko: '키', ja: 'キー', ru: 'Ключей', 'zh-CN': '密钥', 'zh-TW': '金鑰' },
+
   // Scan
   'scan.title':     { en: 'Vacancy search', es: 'Búsqueda de vacantes', 'pt-BR': 'Busca de vagas', ko: '채용 공고 검색', ja: '求人検索', ru: 'Поиск вакансий', 'zh-CN': '职位搜索', 'zh-TW': '職位搜尋' },
   // v1.20.1 (H-3) — Active Companies badge labels referenced from scan.js.

@@ -533,7 +533,38 @@ Router.register('config', async () => {
       c('div', { style: { paddingTop: '10px' } }, fields.map(fieldRow)),
     ]);
   };
+  // UX-A9 (v1.58.62) — sticky summary chip at the top of the API-keys
+  // panel. Without scrolling the user can see which provider the
+  // current OR-fallback resolves to AND how many of the 5 supported
+  // keys are configured. Refreshes on save (providers-changed) and on
+  // tab focus (visibilitychange) — same pattern as the dashboard chip.
+  const apiSummary = c('div', {
+    className: 'api-keys__summary',
+    role: 'status',
+    'aria-live': 'polite',
+  }, '');
+  async function refreshApiSummary() {
+    let st = null;
+    try {
+      const r = await fetch('/api/status/providers');
+      if (r.ok) st = await r.json();
+    } catch { /* offline → hide */ }
+    while (apiSummary.firstChild) apiSummary.removeChild(apiSummary.firstChild);
+    if (!st) { apiSummary.hidden = true; return; }
+    apiSummary.hidden = false;
+    const NAME = { claude: 'Anthropic', gemini: 'Gemini', openai: 'OpenAI', qwen: 'Qwen', openrouter: 'OpenRouter' };
+    const active = st.activeProvider ? (NAME[st.activeProvider] || st.activeProvider) : t('dash.provider.manual', 'Manual prompt mode');
+    const count = typeof st.keysConfigured === 'number' ? st.keysConfigured : 0;
+    const activeLabel = c('span', { className: 'api-keys__active' },
+      t('config.activeProvider', 'Active') + ': ' + active);
+    const countLabel = c('span', { className: 'api-keys__count' },
+      t('config.keysConfiguredPrefix', 'Keys') + ': ' + count + ' / 5');
+    apiSummary.append(activeLabel, countLabel);
+  }
+  document.addEventListener('providers-changed', refreshApiSummary);
+  refreshApiSummary();
   const apiPanel = c('div', { className: 'card' }, [
+    apiSummary,
     // v1.55.0 — clarify the CLI-agnostic parent vs the headless
     // web-ui eval (Anthropic|Gemini|OpenAI|Qwen via "OR").
     c('p', {

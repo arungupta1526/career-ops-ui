@@ -10,6 +10,14 @@
 
 
 
+## [1.58.62] — 2026-05-20
+
+**feat(ui): UX-A9 (v1.58.62) — API keys 탭 상단의 sticky 요약 칩.** `#/config → API keys` 탭 상단에 활성 공급자와 설정된 키 수를 표시하는 sticky 칩이 추가되었습니다. (UX-A9)
+
+---
+
+
+
 ## [1.58.61] — 2026-05-20
 
 **docs(readme): UX-A8 (v1.58.61) — 8 개 README 모두에 첫 실행 정리 섹션 추가.** 첫 스캔 전 두 개의 QA 픽스처 URL 을 정리하는 `make clean-test-fixtures` 단계를 문서화했습니다. (UX-A8)

@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.62] — 2026-05-20
+
+**feat(ui): UX-A9 (v1.58.62) — chip sticky de resumen en la pestaña API keys.** `#/config → API keys` ahora muestra arriba un chip sticky con el proveedor activo y el conteo de claves configuradas. (UX-A9)
+
+---
+
+
+
 ## [1.58.61] — 2026-05-20
 
 **docs(readme): UX-A8 (v1.58.61) — sección de limpieza para primera ejecución añadida en los 8 READMEs.** Ahora se documenta el paso `make clean-test-fixtures` para purgar las dos URLs fixture QA antes del primer scan. (UX-A8)

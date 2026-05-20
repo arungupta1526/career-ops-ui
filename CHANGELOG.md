@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.62] — 2026-05-20
+
+**feat(ui): UX-A9 (v1.58.62) — #/config → API keys panel sticky summary chip.** Before this release, with 5 provider key sections stacked vertically on the API-keys tab, the user had to scroll to know which provider the OR-fallback resolves to or how many keys were configured. [public/js/views/config.js](public/js/views/config.js) now renders a `position: sticky` `.api-keys__summary` at the top of the apiPanel showing `Active: <provider>` + `Keys: <count>/5`. Reuses `/api/status/providers` (no new API surface). Refreshes on `providers-changed` (after Save). Two new i18n keys (`config.activeProvider`, `config.keysConfiguredPrefix`) × 8 locales; one CSS rule (`.api-keys__summary`); static guard in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs). 957 → **958** unit. (UX-A9)
+
+---
+
+
+
 ## [1.58.61] — 2026-05-20
 
 **docs(readme): UX-A8 (v1.58.61) — first-run cleanup section added across all 8 READMEs.** Fresh clones of career-ops include two QA fixture URLs (`example.com/qa-fixture-*`) in `data/pipeline.md` so the test suite can run hermetically; the README never documented this so first-time users mistook them for real jobs. New `## First run — clean state` section (mirrored in es / pt-BR / ko / ja / ru / zh-CN / zh-TW) instructs `make clean-test-fixtures && npm start` before the first scan. Lock-test in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs) verifies all 8 READMEs reference `make clean-test-fixtures` and `qa-fixture-*`. 956 → **957** unit. (UX-A8)
