@@ -10,6 +10,14 @@
 
 
 
+## [1.59.6] — 2026-05-20
+
+**feat(a11y): NEW-D2-motion (v1.59.6) — `prefers-reduced-motion: reduce` を尊重。** 新しい `@media` ブロックがアニメーション・トランジション・`scroll-behavior` を無効化。(NEW-D2-motion)
+
+---
+
+
+
 ## [1.59.5] — 2026-05-20
 
 **fix(api): NEW-F1 (v1.59.5) — 不明な `/api/*` がすべての HTTP 動詞で JSON 404 を返却。** `app.get` → `app.all`。(NEW-F1)

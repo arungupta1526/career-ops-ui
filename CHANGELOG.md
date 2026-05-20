@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.59.6] — 2026-05-20
+
+**feat(a11y): NEW-D2-motion (v1.59.6) — honour `prefers-reduced-motion: reduce`.** New `@media (prefers-reduced-motion: reduce)` block in [public/css/app.css](public/css/app.css) neutralizes `animation-duration` + `transition-duration` to 0.01 ms and forces `scroll-behavior: auto` (so the Help TOC click-to-scroll lands instantly). WCAG 2.3.3 (AAA) — users with vestibular disorders, motion sensitivity, or simply OS-level reduced-motion preference now get an animation-free UI. Static guard in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs). 969 → **970** unit. (NEW-D2-motion)
+
+---
+
+
+
 ## [1.59.5] — 2026-05-20
 
 **fix(api): NEW-F1 (v1.59.5) — unknown `/api/*` returns JSON 404 on every verb.** Pre-fix `app.get("/api/*", …)` was GET-only; POST / PUT / DELETE to an unknown api path fell through to the SPA catch-all and returned an HTML 404, breaking SPA clients that do `try { res.json() } catch {}`. Changed to `app.all("/api/*", …)` in [server/index.mjs](server/index.mjs). New test suite [tests/api-404-json.test.mjs](tests/api-404-json.test.mjs) probes GET / POST / PUT / DELETE on `/api/no-such-endpoint` plus an unknown `:name` under a real handler — 5 new tests, all green. 964 → **969** unit. (NEW-F1)

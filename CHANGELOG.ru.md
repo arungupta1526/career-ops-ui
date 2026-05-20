@@ -10,6 +10,14 @@
 
 
 
+## [1.59.6] — 2026-05-20
+
+**feat(a11y): NEW-D2-motion (v1.59.6) — поддержка `prefers-reduced-motion: reduce`.** Новый блок `@media` обнуляет анимации, переходы и `scroll-behavior`. WCAG 2.3.3 (AAA). (NEW-D2-motion)
+
+---
+
+
+
 ## [1.59.5] — 2026-05-20
 
 **fix(api): NEW-F1 (v1.59.5) — неизвестный `/api/*` возвращает JSON 404 на любом HTTP-методе.** Замена `app.get` на `app.all` — устранён фолбэк на HTML SPA shell для POST/PUT/DELETE. (NEW-F1)

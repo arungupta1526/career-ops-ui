@@ -365,6 +365,22 @@ test('UX-A6 (v1.58.53): every saved-research card flows through a single `render
     'renderArchive must delegate every card to renderSavedCard');
 });
 
+test('NEW-D2-motion (v1.59.6): CSS honours prefers-reduced-motion: reduce', () => {
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)\s*\{/,
+    'app.css must declare a @media (prefers-reduced-motion: reduce) block');
+  // The block must neutralize both animation + transition + scroll-behavior.
+  const block = css.split('@media (prefers-reduced-motion: reduce)')[1] || '';
+  // Take everything up to the matching closing brace of the @media.
+  const inside = block.slice(0, block.indexOf('\n}\n') + 2);
+  assert.match(inside, /animation-duration:\s*0\.01ms\s*!important/,
+    'must neutralize animation-duration');
+  assert.match(inside, /transition-duration:\s*0\.01ms\s*!important/,
+    'must neutralize transition-duration');
+  assert.match(inside, /scroll-behavior:\s*auto\s*!important/,
+    'must override scroll-behavior: smooth on reduced-motion');
+});
+
 test('UX-A5-r2 (v1.59.3): help.js TOC scroll-spy uses widened rootMargin + initial-state', () => {
   const help = read('public', 'js', 'views', 'help.js');
   // The pre-r2 rootMargin '-30% 0% -60% 0%' was a 10% band; fast scroll

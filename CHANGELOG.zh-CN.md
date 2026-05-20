@@ -10,6 +10,14 @@
 
 
 
+## [1.59.6] — 2026-05-20
+
+**feat(a11y): NEW-D2-motion (v1.59.6) — 尊重 `prefers-reduced-motion: reduce`。** 新 `@media` 块禁用动画、过渡和 `scroll-behavior`。(NEW-D2-motion)
+
+---
+
+
+
 ## [1.59.5] — 2026-05-20
 
 **fix(api): NEW-F1 (v1.59.5) — 未知 `/api/*` 在任何 HTTP 动词上都返回 JSON 404。** `app.get` → `app.all`。(NEW-F1)

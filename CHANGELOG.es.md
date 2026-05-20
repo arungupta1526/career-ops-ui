@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.59.6] — 2026-05-20
+
+**feat(a11y): NEW-D2-motion (v1.59.6) — respeto a `prefers-reduced-motion: reduce`.** Nuevo bloque `@media` neutraliza animaciones, transiciones y `scroll-behavior`. (NEW-D2-motion)
+
+---
+
+
+
 ## [1.59.5] — 2026-05-20
 
 **fix(api): NEW-F1 (v1.59.5) — `/api/*` desconocido devuelve 404 JSON en cada verbo.** `app.get` → `app.all`. (NEW-F1)
