@@ -214,6 +214,16 @@ window.API = (function () {
 
 window.UI = (function () {
   let toastTimer;
+  // U-13 (v1.58.33) — per-tab in-memory toast journal (cap 50). Toasts
+  // dwell 3.5-20 s and then vanish; a user that catches one with a
+  // glance has no way to re-read it. Every toast call now appends
+  // `{ ts, type, message, detail }` to `toastHistory`. `getToastHistory()`
+  // returns a shallow clone for any future drawer / panel UI. The
+  // drawer chrome itself (right-slide list with bell badge) is
+  // deferred; the contract that makes it possible ships here.
+  const TOAST_HISTORY_CAP = 50;
+  const toastHistory = [];
+  function getToastHistory() { return toastHistory.slice(); }
   // U-4 (v1.58.24) — strip the technical "(METHOD /path · HTTP NNN)"
   // postfix from the toast's headline text and stash it in a collapsed
   // `<details>` element so the human sentence reads cleanly by default.
@@ -226,6 +236,10 @@ window.UI = (function () {
     const m = raw.match(TOAST_ENDPOINT_RE);
     const headline = m ? raw.slice(0, m.index).trimEnd() : raw;
     const detail = m ? m[0].trim() : '';
+    // U-13 (v1.58.33) — capture into the in-memory journal before
+    // rendering so a future drawer can show kind/timestamp/message.
+    toastHistory.push({ ts: Date.now(), type: type || 'info', message: headline, detail });
+    if (toastHistory.length > TOAST_HISTORY_CAP) toastHistory.shift();
     // Reset the toast root to a clean state.
     while (t.firstChild) t.removeChild(t.firstChild);
     const p = document.createElement('p');
@@ -708,5 +722,5 @@ window.UI = (function () {
     return node;
   }
 
-  return { toast, dismissToast, modal, closeModal, confirm, el, escapeHtml, md, withSpinner, paginate, providerCostHint };
+  return { toast, dismissToast, modal, closeModal, confirm, el, escapeHtml, md, withSpinner, paginate, providerCostHint, getToastHistory };
 })();

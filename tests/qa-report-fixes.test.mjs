@@ -37,6 +37,45 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('U-13/U-14/U-15 (v1.58.33): toast journal + page-header spacing safety net + CV dirty-state', () => {
+  // U-13 — UI.getToastHistory() exposed + history append guarded by cap.
+  const api = read('public', 'js', 'api.js');
+  assert.match(api, /const toastHistory = \[\]/, 'api.js must declare toastHistory array');
+  assert.match(api, /TOAST_HISTORY_CAP\s*=\s*50/, 'cap must be 50');
+  assert.match(api, /toastHistory\.push\(\{\s*ts:\s*Date\.now\(\)/,
+    'toast() must push { ts, type, message, detail } before render');
+  assert.match(api, /toastHistory\.shift\(\)/, 'must trim oldest beyond the cap');
+  assert.match(api, /function getToastHistory\(\)/, 'getToastHistory() must be defined');
+  assert.match(api, /return\s*\{\s*toast,[^}]*getToastHistory\s*\}/,
+    'UI return must export getToastHistory');
+
+  // U-14 — global page-header safety net rule.
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /\.page-header h1 \+ p\s*\{[^}]*margin-block-start:\s*var\(--space-2\)/,
+    '.page-header h1 + p rule must set margin-block-start: var(--space-2)');
+
+  // U-15 — CV dirty-state wiring.
+  const cv = read('public', 'js', 'views', 'cv.js');
+  assert.match(cv, /let initial = ta\.value/, 'cv.js must capture initial textarea baseline');
+  assert.match(cv, /ta\.addEventListener\('input'/, 'cv.js must listen on input to flip dirty');
+  assert.match(cv, /saveBtn\.classList\.toggle\('btn-dirty', dirty\)/,
+    'cv.js must toggle .btn-dirty on the Save button');
+  assert.match(cv, /t\('cv\.unsaved'/, 'cv.js must use t("cv.unsaved", …) for the tooltip');
+  assert.match(cv, /ta\.dispatchEvent\(new Event\('input', \{ bubbles: true \}\)\)/,
+    'cv.js must dispatch a synthetic input event after programmatic upload assignment');
+  assert.match(css, /\.btn\.btn-dirty\s*\{/, '.btn.btn-dirty CSS rule must exist');
+
+  // i18n parity for cv.unsaved
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  const row = dict.match(/'cv\.unsaved':\s*\{([^}]+)\}/);
+  assert.ok(row, "i18n-dict.js missing 'cv.unsaved'");
+  for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+    const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+    assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+      `'cv.unsaved' must have a non-empty ${lang} value`);
+  }
+});
+
 test('U-12 (v1.58.32): help TOC filter input carries `.help-toc__filter` class + CSS min-width', () => {
   const help = read('public', 'js', 'views', 'help.js');
   assert.match(help, /className:\s*'input help-toc__filter'/,

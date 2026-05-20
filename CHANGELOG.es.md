@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.33] — 2026-05-20
+
+**fix(ux): U-13 + U-14 + U-15 — diario de toasts (cap 50 + `UI.getToastHistory()`) + selector de seguridad para `.page-header h1 + p` + indicador de cambios sin guardar en `#/cv`.** Cierra el ciclo v1.58.x. Nueva clave i18n `cv.unsaved` × 8 idiomas. 925 → **926** unitarios. (U-13/U-14/U-15)
+
+---
+
 ## [1.58.32] — 2026-05-20
 
 **fix(ux): U-12 — la barra de filtro del TOC de ayuda gana `min-width: 16ch` para que los placeholders KO/JA no se recorten.** Clase `.help-toc__filter` añadida. 924 → **925** unitarios. (U-12)

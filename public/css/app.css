@@ -606,6 +606,10 @@ body.sidebar-open .sidebar-backdrop { display: block; }
   margin: var(--space-2) 0 0;
   font-size: 15px;
 }
+/* U-14 (v1.58.33) — safety-net rule for any page that uses raw <h1>+<p>
+   without the .page-subtitle class. Mirrors the canonical spacing so
+   future page-header authors don't have to remember the class name. */
+.page-header h1 + p { margin-block-start: var(--space-2); color: var(--foggy); }
 
 /* ───────────────────────── cards ───────────────────────── */
 .card {
@@ -1166,6 +1170,13 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
    if the .help-toc card squeezes the input. 16ch sits comfortably
    above all 8 locale placeholders. */
 .help-toc__filter { min-width: 16ch; }
+
+/* U-15 (v1.58.33) — CV Save button dirty-state. When the editor has
+   unsaved changes, the button gets a `.btn-dirty` class which paints
+   a subtle ring + a "● " bullet prefix via :before so the user can
+   tell from across the page that something is unsaved. */
+.btn.btn-dirty { box-shadow: 0 0 0 3px var(--rausch-dark, #e31c5f); }
+.btn.btn-dirty::before { content: '● '; opacity: .9; }
 
 /* U-9 (v1.58.29) — Pipeline counter ↔ filter row. Above 720 px the
    flex gap-3 layout already works; at narrower widths the filter

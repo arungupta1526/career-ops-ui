@@ -151,6 +151,9 @@ Router.register('cv', async () => {
           return;
         }
         ta.value = payload.markdown;
+        // U-15 (v1.58.33) — programmatic assignment doesn't fire 'input';
+        // dispatch one so the Save button's dirty-state indicator fires.
+        ta.dispatchEvent(new Event('input', { bubbles: true }));
         const p = document.getElementById('cv-preview');
         if (p) p.innerHTML = cvMd(payload.markdown);
         UI.toast(t('cv.uploadDone', 'Loaded') +
@@ -205,14 +208,39 @@ Router.register('cv', async () => {
           onClick: (e) => streamPdf(e.currentTarget),
           title: t('cv.pdfHint', 'Run generate-pdf.mjs and save into output/'),
         }, '📄 ' + t('cv.generatePdf', 'Generate PDF')),
-        c('button', { className: 'btn btn-primary', onClick: async (e) => {
-          if (!ta.value.trim()) {
-            UI.toast('CV is empty', 'error');
-            return;
-          }
-          await UI.withSpinner(e.currentTarget, () => API.put('/api/cv', { markdown: ta.value }));
-          UI.toast(t('cv.saved', 'Saved'), 'success');
-        }}, '💾 ' + t('common.save')),
+        (() => {
+          // U-15 (v1.58.33) — dirty-state indicator on the CV Save
+          // button. Initial baseline is captured after the first
+          // /api/cv read into the textarea (mark via `cv:baseline`
+          // event below). Every `input` on the textarea toggles a
+          // `.btn-dirty` class + localized tooltip; a successful Save
+          // resets the baseline so subsequent edits re-arm dirty.
+          let initial = ta.value;
+          const saveBtn = c('button', {
+            className: 'btn btn-primary',
+            onClick: async (e) => {
+              if (!ta.value.trim()) {
+                UI.toast('CV is empty', 'error');
+                return;
+              }
+              await UI.withSpinner(e.currentTarget, () => API.put('/api/cv', { markdown: ta.value }));
+              UI.toast(t('cv.saved', 'Saved'), 'success');
+              initial = ta.value;
+              saveBtn.classList.remove('btn-dirty');
+              saveBtn.title = '';
+            },
+          }, '💾 ' + t('common.save'));
+          ta.addEventListener('input', () => {
+            const dirty = ta.value !== initial;
+            saveBtn.classList.toggle('btn-dirty', dirty);
+            saveBtn.title = dirty ? t('cv.unsaved', 'Unsaved changes — click Save to persist.') : '';
+          });
+          // The fetch that hydrates `ta.value` fires a CustomEvent on
+          // the textarea so we can re-baseline once the actual CV body
+          // arrives (the initial render runs before the API call returns).
+          ta.addEventListener('cv:baseline', () => { initial = ta.value; saveBtn.classList.remove('btn-dirty'); saveBtn.title = ''; });
+          return saveBtn;
+        })(),
       ]),
     ]),
 

@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.33] — 2026-05-20
+
+**fix(ux): U-13 + U-14 + U-15 — toast journal capture + page-header spacing safety net + CV editor dirty-state indicator (3 closing UX items batched).** Final v1.58.x release. **U-13 (toast journal):** [public/js/api.js](public/js/api.js#L215-L235) — every `UI.toast()` call pushes `{ ts, type, message, detail }` into an in-memory `toastHistory` capped at 50; exposed via the new `UI.getToastHistory()` API. Toasts dwell 3.5-20 s and then vanish; the journal lets future drawer / panel UIs (deferred to a follow-up release) re-surface any missed message. **U-14 (page-header spacing safety net):** new `.page-header h1 + p { margin-block-start: var(--space-2); color: var(--foggy); }` rule in [public/css/app.css](public/css/app.css#L604-L612) so any page that uses raw `<h1>+<p>` (without the `.page-subtitle` class) still gets the canonical spacing. **U-15 (CV dirty-state):** [public/js/views/cv.js](public/js/views/cv.js#L208-L240) — Save button gets `.btn-dirty` class + localized `cv.unsaved` tooltip whenever the textarea diverges from the last saved baseline; clicking Save re-baselines and clears the flag. Upload path dispatches a synthetic `input` event so programmatic `ta.value = …` assignments still trigger the dirty toggle. CSS `.btn.btn-dirty` paints a `var(--rausch-dark)` ring + `● ` prefix. 925 → **926** unit. (U-13 + U-14 + U-15)
+
+---
+
 ## [1.58.32] — 2026-05-20
 
 **fix(ux): U-12 — `#/help` TOC filter input gets a 16ch `min-width` so KO/JA placeholders never clip.** Korean `섹션 필터` and Japanese `セクションをフィルター` are 5-10% wider than the EN `Filter sections`. The input already used `width: 100%` of its `.help-toc` card; we add a `.help-toc__filter` class with `min-width: 16ch` so even if the card narrows, the placeholder still fits in any of the 8 locales. 924 → **925** unit. (U-12)
