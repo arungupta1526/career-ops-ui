@@ -37,6 +37,23 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-A15 (v1.58.63): dashboard Pipeline tile carries the qa-tile--primary visual weight modifier', () => {
+  const dash = read('public', 'js', 'views', 'dashboard.js');
+  // The qa() helper must accept a `primary` flag.
+  assert.match(dash, /function qa\(icon, labelKey, labelFallback, subKey, subFallback, route, primary\)/,
+    'qa() must accept a 7th positional `primary` flag');
+  assert.match(dash, /qa-tile' \+ \(primary \? ' qa-tile--primary' : ''\)/,
+    'qa() must apply the modifier when primary is truthy');
+  // The Pipeline tile must call qa(..., true).
+  assert.match(dash, /qa\('📥',\s*'nav\.pipeline',[^)]*,\s*'\/pipeline',\s*true\)/,
+    'Pipeline tile must be flagged primary so it gets the accent');
+  // CSS rule present.
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /\.qa-tile--primary\s*\{/, 'app.css must style .qa-tile--primary');
+  assert.match(css, /\.qa-tile--primary\s+\.qa-label\s*\{[^}]*font-weight:\s*600/,
+    'primary tile label must be bolder (font-weight: 600)');
+});
+
 test('UX-A9 (v1.58.62): #/config API-keys panel has a sticky Active/Keys summary chip', () => {
   const cfg = read('public', 'js', 'views', 'config.js');
   assert.match(cfg, /className:\s*'api-keys__summary'/,

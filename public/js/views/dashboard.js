@@ -18,9 +18,12 @@ Router.register('dashboard', async () => {
 
   // Compact "quick action" tile. Renders an icon + label + sub-label.
   // Click goes to `route`. Each tile is keyboard-focusable for a11y.
-  function qa(icon, labelKey, labelFallback, subKey, subFallback, route) {
+  // UX-A15 (v1.58.63) — optional `primary` flag adds a stronger visual
+  // weight (larger icon + bolder label) to the most-used tile (Pipeline)
+  // so the user's eye lands on the highest-frequency action first.
+  function qa(icon, labelKey, labelFallback, subKey, subFallback, route, primary) {
     return c('button', {
-      className: 'qa-tile',
+      className: 'qa-tile' + (primary ? ' qa-tile--primary' : ''),
       onClick: () => Router.go(route),
       title: route,
     }, [
@@ -216,7 +219,9 @@ Router.register('dashboard', async () => {
       // second tile in 'Search & Apply' was the 4× Scan duplication
       // the v1.58.3 QA flagged.
       qaGroup('dash.quick.searchApply', 'Search & Apply', [
-        qa('📥', 'nav.pipeline', 'Pipeline', 'dash.quick.pipelineSub', `${data.counts.pipeline} pending URLs`, '/pipeline'),
+        // UX-A15 (v1.58.63) — Pipeline is the highest-frequency action
+        // by far; mark it primary so the eye lands here first.
+        qa('📥', 'nav.pipeline', 'Pipeline', 'dash.quick.pipelineSub', `${data.counts.pipeline} pending URLs`, '/pipeline', true),
         qa('▶', 'dash.quick.evaluateCta', 'Evaluate a JD', 'dash.quick.evaluateSub', 'Anthropic-first scoring', '/evaluate'),
         qa('≡', 'nav.tracker', 'Tracker', 'dash.quick.trackerSub', `${data.counts.applications} applications`, '/tracker'),
       ]),

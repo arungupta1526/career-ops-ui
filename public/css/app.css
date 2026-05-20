@@ -840,6 +840,16 @@ body.sidebar-open .sidebar-backdrop { display: block; }
   outline: 2px solid var(--rausch);
   outline-offset: 2px;
 }
+/* UX-A15 (v1.58.63) — primary tile (Pipeline). Subtle accent border +
+   slightly larger icon + bolder label so the highest-frequency action
+   draws the eye first without crowding out the rest of the grid. */
+.qa-tile--primary {
+  border-color: var(--rausch);
+  border-width: 1px;
+  box-shadow: 0 0 0 1px var(--rausch) inset, var(--shadow-1);
+}
+.qa-tile--primary .qa-icon { font-size: 26px; }
+.qa-tile--primary .qa-label { font-weight: 600; }
 .qa-icon {
   font-size: 22px;
   line-height: 1;

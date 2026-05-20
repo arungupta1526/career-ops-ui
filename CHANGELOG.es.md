@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.63] — 2026-05-20
+
+**fix(ui): UX-A15 (v1.58.63) — tile Pipeline del Dashboard con peso visual primario.** El tile Pipeline ahora destaca con borde de acento, ícono más grande y etiqueta en negrita. (UX-A15)
+
+---
+
+
+
 ## [1.58.62] — 2026-05-20
 
 **feat(ui): UX-A9 (v1.58.62) — chip sticky de resumen en la pestaña API keys.** `#/config → API keys` ahora muestra arriba un chip sticky con el proveedor activo y el conteo de claves configuradas. (UX-A9)

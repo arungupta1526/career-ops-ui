@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.63] — 2026-05-20
+
+**fix(ui): UX-A15 (v1.58.63) — Dashboard Pipeline tile gets visual primary weight.** The Quick-actions grid previously gave every tile equal weight; the highest-frequency action (Pipeline) didn't draw the eye. The `qa()` helper in [public/js/views/dashboard.js](public/js/views/dashboard.js) now accepts a 7th `primary` flag; the Pipeline tile is the only one passing `true` so it gets a subtle accent border + larger icon + bolder label via `.qa-tile--primary` ([public/css/app.css](public/css/app.css)). Tile order, copy, click target, and accessibility name are unchanged. Lock-test in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs). 958 → **959** unit. (UX-A15)
+
+---
+
+
+
 ## [1.58.62] — 2026-05-20
 
 **feat(ui): UX-A9 (v1.58.62) — #/config → API keys panel sticky summary chip.** Before this release, with 5 provider key sections stacked vertically on the API-keys tab, the user had to scroll to know which provider the OR-fallback resolves to or how many keys were configured. [public/js/views/config.js](public/js/views/config.js) now renders a `position: sticky` `.api-keys__summary` at the top of the apiPanel showing `Active: <provider>` + `Keys: <count>/5`. Reuses `/api/status/providers` (no new API surface). Refreshes on `providers-changed` (after Save). Two new i18n keys (`config.activeProvider`, `config.keysConfiguredPrefix`) × 8 locales; one CSS rule (`.api-keys__summary`); static guard in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs). 957 → **958** unit. (UX-A9)
