@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.26] — 2026-05-20
+
+**fix(ux): U-6 — `#/scan` "Active companies N/M" chip now explains N vs M via tooltip + aria-label.** v1.58.3 QA: the chip read `▸ Active companies 96/80` with no affordance to learn what 96/80 means. Toggle button in [public/js/views/scan.js](public/js/views/scan.js#L700-L719) now carries `title=` (hover tooltip) and `aria-label=` (screen-reader fallback) sourced from a new `scan.activeCo.help` i18n key in all 8 locales: *"Active: companies currently surfacing results. Total: configured in portals.yml."* 918 → **919** unit. (U-6)
+
+---
+
 ## [1.58.25] — 2026-05-20
 
 **fix(ux/ia): U-5 — Dashboard CTA dedupe (removed duplicate Open-Pipeline header button + duplicate Scan-all-sources Quick-action tile).** v1.58.3 QA flagged 4× Pipeline / 4× Scan entry-points on Dashboard. v1.55.5 promoted the two P0 hero CTAs (`✨ Auto-pipeline a URL` + `🌐 Scan now`); the header `📋 Open Pipeline` button and the Quick-action `🌐 Scan all sources` tile were then strict duplicates (sidebar already routes to /pipeline; hero already routes to /scan). Removed both in [public/js/views/dashboard.js](public/js/views/dashboard.js). Hero pair + sidebar remain canonical entry-points. 917 → **918** unit. (U-5)

@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.26] — 2026-05-20
+
+**fix(ux): U-6 — el chip de `#/scan` "Active companies N/M" ahora explica N vs M con tooltip + aria-label.** Nueva clave `scan.activeCo.help` × 8 idiomas. 918 → **919** unitarios. (U-6)
+
+---
+
 ## [1.58.25] — 2026-05-20
 
 **fix(ux/ia): U-5 — Dashboard deduplica CTAs (eliminados el botón `Open Pipeline` del header y la tarjeta `Scan all sources`).** El sidebar y el héroe ya cubren ambas rutas; las 4× Pipeline / 4× Scan que detectó la QA v1.58.3 quedan reducidas a 2× cada una. 917 → **918** unitarios. (U-5)

@@ -30,6 +30,26 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('U-6 (v1.58.26): scan Active-companies chip exposes localized tooltip + aria-label', () => {
+  const scan = read('public', 'js', 'views', 'scan.js');
+  // toggleBtn must declare both title and aria-label so sighted users
+  // get a hover tooltip and screen-reader users get the same text.
+  assert.match(scan, /title:\s*t\('scan\.activeCo\.help'/,
+    'toggleBtn must declare title: t("scan.activeCo.help", …)');
+  assert.match(scan, /'aria-label':\s*t\('scan\.activeCo\.help'/,
+    'toggleBtn must declare aria-label: t("scan.activeCo.help", …)');
+
+  // i18n parity:
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  const row = dict.match(/'scan\.activeCo\.help':\s*\{([^}]+)\}/);
+  assert.ok(row, "i18n-dict.js missing 'scan.activeCo.help'");
+  for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+    const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+    assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+      `'scan.activeCo.help' must have a non-empty ${lang} value`);
+  }
+});
+
 test('U-5 (v1.58.25): dashboard CTA duplicates removed (no `Open Pipeline` header btn, no `Scan all sources` tile)', () => {
   const dash = read('public', 'js', 'views', 'dashboard.js');
   // Pre-fix the header carried '📋 ' + t('dash.openPipeline'); that

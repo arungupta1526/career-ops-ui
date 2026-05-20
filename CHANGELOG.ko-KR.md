@@ -10,6 +10,12 @@
 
 
 
+## [1.58.26] — 2026-05-20
+
+**fix(ux): U-6 — `#/scan` 의 "Active companies N/M" 칩이 툴팁 + aria-label 로 N 과 M 의 의미 설명.** 새 i18n 키 `scan.activeCo.help` × 8 언어. 918 → **919** 유닛. (U-6)
+
+---
+
 ## [1.58.25] — 2026-05-20
 
 **fix(ux/ia): U-5 — Dashboard CTA 중복 제거(헤더의 `Open Pipeline` 버튼과 `Scan all sources` 타일 제거).** 사이드바와 히어로가 이미 두 경로를 다루며, v1.58.3 QA 의 4× Pipeline / 4× Scan 이 각 2× 로 줄어듦. 917 → **918** 유닛. (U-5)

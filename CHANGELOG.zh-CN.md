@@ -10,6 +10,12 @@
 
 
 
+## [1.58.26] — 2026-05-20
+
+**fix(ux): U-6 — `#/scan` 的 "Active companies N/M" 芯片通过 tooltip + aria-label 解释 N 与 M。** 新增 i18n 键 `scan.activeCo.help` × 8 语言。918 → **919** 单元。(U-6)
+
+---
+
 ## [1.58.25] — 2026-05-20
 
 **fix(ux/ia): U-5 — 仪表盘 CTA 去重(移除 header 的 `Open Pipeline` 按钮和 Quick-action 中 `Scan all sources` 卡片)。** 侧边栏与 hero 已覆盖两条路由;v1.58.3 QA 的 4× Pipeline / 4× Scan 减为各 2×。917 → **918** 单元。(U-5)

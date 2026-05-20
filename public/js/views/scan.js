@@ -699,6 +699,13 @@ Router.register('scan', async () => {
       };
       const toggleBtn = c('button', {
         className: 'btn btn-ghost btn-sm',
+        // U-6 (v1.58.26) — the chip read `✦ Active companies 96/80` —
+        // unclear what 96 vs 80 stood for. `title` is a hover tooltip
+        // (and screen-reader-fallback) explaining: N = companies
+        // currently surfacing results; M = companies configured in
+        // portals.yml. Localized via the new `scan.activeCo.help` key.
+        title: t('scan.activeCo.help', 'Active: companies currently surfacing results. Total: configured in portals.yml.'),
+        'aria-label': t('scan.activeCo.help', 'Active: companies currently surfacing results. Total: configured in portals.yml.'),
         onClick: () => {
           expanded = !expanded;
           list.style.display = expanded ? '' : 'none';

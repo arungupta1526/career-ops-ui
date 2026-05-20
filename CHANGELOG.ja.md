@@ -10,6 +10,12 @@
 
 
 
+## [1.58.26] — 2026-05-20
+
+**fix(ux): U-6 — `#/scan` の "Active companies N/M" チップにツールチップ + aria-label で N と M の意味を提示。** 新規 i18n キー `scan.activeCo.help` × 8 言語。918 → **919** ユニット。(U-6)
+
+---
+
 ## [1.58.25] — 2026-05-20
 
 **fix(ux/ia): U-5 — Dashboard の CTA を整理(ヘッダの `Open Pipeline` ボタンと Quick-action の `Scan all sources` タイルを削除)。** サイドバーとヒーロが既に両ルートをカバーしており、v1.58.3 QA の 4× Pipeline / 4× Scan を 2× ずつに減らした。917 → **918** ユニット。(U-5)
