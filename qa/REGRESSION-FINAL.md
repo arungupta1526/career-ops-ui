@@ -674,7 +674,7 @@ live-smoke checklist.
 | v1.58.65 | UX-A2 | `modes-form.js` CANON has 5 fields · 3 list-kind + 2 prose-kind · × remove + + add row · `mode: 'sections'\|'markdown'` collect() |
 | v1.59.0 | UX-A14 | `@media (max-width: 420px)` block · `.card-row` 1fr · `.dash-hero-cta` column + full-width · `.page-header` column · `.qa-grid` minmax(160px, 1fr) |
 
-**Cycle stats:** 15 releases · 962 unit tests at v1.59.0 (was 949 at v1.58.51) · 100% CI-green · all AI-review LGTM · zero rollbacks.
+**Cycle stats:** 15 single-fix releases + 1 verification patch (v1.59.1, NEW-D1 guard relaxation) · 962 unit tests at v1.59.1 (was 949 at v1.58.51) · 100% CI-green · all AI-review LGTM · zero rollbacks.
 
 **Carry-over lessons added to `CLAUDE.md` § Hard-won lessons:**
 

@@ -1,8 +1,8 @@
-# REGRESSION-PROMPT — career-ops-ui · MATURITY-10 (post-v1.59.0)
+# REGRESSION-PROMPT — career-ops-ui · MATURITY-10 (post-v1.59.1)
 
-End-to-end regression handoff written **after** the v1.58.52 → v1.59.0 maturity-10 cycle (15 single-fix releases, all CI-green, all AI-review LGTM). This document is the canonical 100%-maturity verification protocol for the next QA pass — run it before declaring a 1.x line frozen.
+End-to-end regression handoff written **after** the v1.58.52 → v1.59.1 maturity-10 cycle (15 single-fix releases + 1 final verification patch, all CI-green, all AI-review LGTM). This document is the canonical 100%-maturity verification protocol for the next QA pass — run it before declaring a 1.x line frozen.
 
-Baseline at v1.59.0: **962** unit · **62** Playwright (smoke + full-cycle + forms) · **20** smoke E2E · **23** comprehensive E2E.
+Baseline at v1.59.1: **962** unit · **62** Playwright (smoke + full-cycle + forms) · **20** smoke E2E · **23** comprehensive E2E.
 
 ---
 
@@ -22,6 +22,7 @@ These are non-negotiable for any future ship. The v1.58.x cycle proved each one 
 10. **Help bundle parity (H2 + H3) is locked.** As of v1.59.0: 18 H2 sections, 73 H3 subsections. Adding a help section means bumping `tests/canonical-docs-coverage.test.mjs`, `tests/help-ru-config-section.test.mjs`, `tests/help-ui.test.mjs` in lockstep.
 11. **`saveBtn.onclick =` is a footgun on `c()`-built elements** — they register handlers via `addEventListener`, not the `onclick` property. v1.58.58 patch.
 12. **GitHub Packages publish tests against the tagged ref, not main.** Fix-up commits on main don't help the existing tag. Re-tag if you need the fix in the published artifact.
+13. **i18n copy polish can break older static guards.** When refining a translation that an older static guard locked, check that guard's regex BEFORE shipping. v1.59.1 caught a missed assertion update: UX-A11 (v1.58.64) polished `pipe.title[es]` from `Pipeline de vacantes` → `Pipeline de candidaturas` but the v1.58.37 NEW-D1 guard still required `/vacant|vaca/i`. Final verification before the v1.59.0 sign-off caught it; fix in v1.59.1 relaxed the regex to accept both forms.
 
 ---
 
@@ -153,9 +154,9 @@ These items are documented gaps and not failures of the web-ui:
 
 | Gate | Pass |
 |---|---|
-| All 15 v1.58.x cycle releases shipped + tagged + pushed (v1.58.52 → v1.59.0) | ✅ |
-| Parity matrix green at final tag | ✅ |
-| `npm test` ≥ 962 unit, 0 fail | ✅ |
+| All 16 cycle releases shipped + tagged + pushed (v1.58.52 → v1.59.0 + v1.59.1 verification patch) | ✅ |
+| Parity matrix green at final tag (v1.59.1) | ✅ |
+| `npm test` 962 / 962 pass, 0 fail | ✅ |
 | `npm run test:e2e` ≥ 20 smoke green | ☐ |
 | `npm run test:e2e:full` ≥ 23 comprehensive green | ☐ |
 | `npm run test:e2e:browser` ≥ 62 Playwright green | ☐ |
@@ -202,4 +203,4 @@ If anything in `§3` fails, the responsible UX-A* lock-test will be the precise 
 
 ---
 
-*End of canonical regression prompt. Generated 2026-05-20 after v1.59.0.*
+*End of canonical regression prompt. Generated 2026-05-20 after v1.59.0; verified clean after the v1.59.1 patch (NEW-D1 guard relaxation).*
