@@ -794,6 +794,40 @@ body.sidebar-open .sidebar-backdrop { display: block; }
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
 }
 
+/* UX-A14 (v1.59.0) — Mobile (≤ 420 px) pass. Targets phone-sized
+   viewports that the desktop-first layout otherwise pushes to a
+   horizontal scroll. Five specific issues from the audit baseline:
+   1. .card-row (4 dashboard metric cards) sits in a 4-up grid that
+      forces a 900+ px floor — collapse to 1-up below 420.
+   2. .dash-hero CTAs sat side-by-side; on a 360 px iPhone they wrap
+      mid-label. Stack vertically with full-width buttons.
+   3. .page-header puts H1+sub on the left and action buttons on the
+      right via flex-between; on phones the right side overflows.
+      Stack vertically; right-align buttons row.
+   4. .qa-grid minmax(220px, 1fr) leaves ~120 px gutter on phones;
+      tighten the floor to 160px.
+   5. .api-keys__summary chips wrap at 360 px — keep flex-wrap but
+      drop horizontal padding for breathing room. */
+@media (max-width: 420px) {
+  .card-row { grid-template-columns: 1fr; }
+  .dash-hero-cta {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .dash-hero-cta .btn-hero { width: 100%; }
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+  .qa-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+  .api-keys__summary { padding: 8px 10px; gap: 6px; }
+  /* Notifications drawer was already responsive (right: 0, fixed),
+     but the head's clear-all + close together exceeded the available
+     header width on the smallest viewports. Wrap-friendly gap. */
+  .notif-drawer__head { gap: 6px; }
+}
+
 .section { margin-top: var(--space-6); }
 .section-title {
   font-size: 20px;

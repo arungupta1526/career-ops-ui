@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.59.0] — 2026-05-20
+
+**feat(ui): UX-A14 (v1.59.0) — Pase de auditoría mobile (≤ 420 px).** Cinco correcciones en un nuevo bloque `@media (max-width: 420px)`: card-row 1-up, hero CTAs apilados, page-header apilado, qa-grid floor 160 px, api-keys summary compacto. (UX-A14)
+
+---
+
+
+
 ## [1.58.65] — 2026-05-20
 
 **test(ui): UX-A2 (v1.58.65) — test de bloqueo del field-form estructurado de Modes.** Nuevo test que protege la implementación v1.54.3 contra regresiones. (UX-A2)

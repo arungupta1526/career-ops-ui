@@ -37,6 +37,27 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-A14 (v1.59.0): mobile (≤ 420 px) media query addresses dashboard / hero / qa-grid / api-keys / drawer', () => {
+  const css = read('public', 'css', 'app.css');
+  // The media query block must exist and target ≤ 420 px specifically.
+  assert.match(css, /@media \(max-width:\s*420px\)\s*\{/,
+    'app.css must declare a @media (max-width: 420px) block');
+  // Five known regressions must be addressed within the block.
+  const block = css.split('@media (max-width: 420px)')[1] || '';
+  // Stop at the next top-level rule so we don't leak into siblings.
+  const inside = block.slice(0, block.indexOf('\n}\n') + 2);
+  assert.match(inside, /\.card-row\s*\{\s*grid-template-columns:\s*1fr/,
+    '.card-row must collapse to 1-up under 420 px');
+  assert.match(inside, /\.dash-hero-cta\s*\{[^}]*flex-direction:\s*column/,
+    '.dash-hero-cta must stack vertically on mobile');
+  assert.match(inside, /\.dash-hero-cta\s+\.btn-hero\s*\{[^}]*width:\s*100%/,
+    'hero buttons must stretch full-width on mobile');
+  assert.match(inside, /\.page-header\s*\{[^}]*flex-direction:\s*column/,
+    '.page-header must stack vertically on mobile');
+  assert.match(inside, /\.qa-grid\s*\{[^}]*minmax\(160px,\s*1fr\)/,
+    '.qa-grid floor must drop to 160 px on mobile');
+});
+
 test('UX-A2 (v1.58.65): ModesForm renders all 5 canonical fields as repeatable line-inputs + prose textareas', () => {
   // The v1.54.3 ModesForm already implemented the field-form, but
   // UX-A2 in the audit assumed it was missing. This lock-test

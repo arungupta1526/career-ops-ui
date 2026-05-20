@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.59.0] — 2026-05-20
+
+**feat(ui): UX-A14 (v1.59.0) — Mobile (≤ 420 px) media-query pass.** Closes the long-standing mobile audit. Five focused fixes inside a single `@media (max-width: 420px)` block in [public/css/app.css](public/css/app.css):\n\n1. `.card-row` (4 dashboard metric cards) collapses to 1-up below 420 px (was a 900+ px horizontal scroll).\n2. `.dash-hero-cta` stacks vertically with full-width buttons (was side-by-side wrap-mid-label on iPhone SE).\n3. `.page-header` stacks H1+subtitle above the action buttons row (was right-side overflow on 360 px).\n4. `.qa-grid` minmax floor drops from 220 px to 160 px so tiles fit two-up on 360–390 px viewports.\n5. `.api-keys__summary` chips tighten horizontal padding for breathing room.\n\nRegression-lock test in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs). 961 → **962** unit. (UX-A14)
+
+---
+
+
+
 ## [1.58.65] — 2026-05-20
 
 **test(ui): UX-A2 (v1.58.65) — lock-test on Modes structured field-form.** The 5-field structured form for `#/config → Modes` was already shipped in v1.54.3 (canonical Target Roles / Adaptive Framing / Exit Narrative / Comp Targets / Location Policy + repeatable line-inputs for list-kind fields + × remove + add-row affordance + tagged `{mode: sections|markdown}` collect()). The UX-A2 audit assumed it was missing because all 5 sections initially appeared as `<textarea>` (an artifact of the field-form scaffolding pass before file load). This regression-lock test in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs) prevents a future PR from collapsing the field-form back to raw markdown. No code change. 960 → **961** unit. (UX-A2)
