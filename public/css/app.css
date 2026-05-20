@@ -1154,6 +1154,14 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
 .prompt-block > summary { cursor: pointer; -webkit-user-select: none; user-select: none; padding: 6px 8px; border-radius: 4px; background: var(--beach, #f7f7f7); font-weight: 600; }
 .prompt-block > summary:hover { filter: brightness(0.97); }
 .prompt-block[open] > summary { margin-bottom: 8px; }
+
+/* U-9 (v1.58.29) — Pipeline counter ↔ filter row. Above 720 px the
+   flex gap-3 layout already works; at narrower widths the filter
+   input is cramped, so stack vertically and stretch it full-width. */
+@media (max-width: 720px) {
+  .pipeline-controls { flex-direction: column; align-items: stretch !important; }
+  .pipeline-controls > #pipe-filter { max-width: none !important; width: 100%; }
+}
 @keyframes slide-in {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }

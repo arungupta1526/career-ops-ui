@@ -37,6 +37,15 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('U-9 (v1.58.29): pipeline counter ↔ filter row stacks at narrow viewports via .pipeline-controls', () => {
+  const pipeline = read('public', 'js', 'views', 'pipeline.js');
+  assert.match(pipeline, /className:\s*'flex gap-3 mb-3 pipeline-controls'/,
+    'pipeline counter/filter row must carry the .pipeline-controls class');
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /@media\s*\(max-width:\s*720px\)\s*\{[\s\S]*?\.pipeline-controls\s*\{[^}]*flex-direction:\s*column/,
+    '@media (max-width: 720px) must stack .pipeline-controls');
+});
+
 test('U-8 (v1.58.28): mode-page Generate-prompt wraps the <pre> in a collapsible <details>', () => {
   const mp = read('public', 'js', 'views', 'mode-page.js');
   assert.match(mp, /c\('details',\s*\{\s*className:\s*'prompt-block'\s*\}/,

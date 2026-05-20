@@ -10,6 +10,12 @@
 
 
 
+## [1.58.29] — 2026-05-20
+
+**fix(ux): U-9 — `#/pipeline` 카운터 ↔ 필터 행이 좁은 뷰포트에서 세로로 쌓임.** 새 `.pipeline-controls` 클래스와 `@media (max-width: 720px)` 로 필터 너비 100%. 921 → **922** 유닛. (U-9)
+
+---
+
 ## [1.58.28] — 2026-05-20
 
 **fix(ux): U-8 — 7 개 모드 페이지에서 생성된 프롬프트 블록이 기본 접힘.** `<details class="prompt-block">` 로 래핑되고, 요약은 "Show prompt (N lines)" 가 현지화(`prompt.show` / `prompt.lines` × 8). Copy + Run-live 는 그대로 노출. 920 → **921** 유닛. (U-8)

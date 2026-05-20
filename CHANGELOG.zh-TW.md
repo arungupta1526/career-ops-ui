@@ -10,6 +10,12 @@
 
 
 
+## [1.58.29] — 2026-05-20
+
+**fix(ux): U-9 — `#/pipeline` 計數 ↔ 過濾列在窄螢幕垂直堆疊。** 新 `.pipeline-controls` 類別配合 `@media (max-width: 720px)` 把過濾拉伸到 100% 寬度。921 → **922** 單元。(U-9)
+
+---
+
 ## [1.58.28] — 2026-05-20
 
 **fix(ux): U-8 — 7 個 mode 頁面的生成提示詞區塊預設折疊。** 包裹在 `<details class="prompt-block">` 中;摘要顯示在地化的 "Show prompt (N lines)"(`prompt.show` / `prompt.lines` × 8)。Copy + Run-live 仍可見。920 → **921** 單元。(U-8)

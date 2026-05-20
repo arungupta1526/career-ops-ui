@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.29] — 2026-05-20
+
+**fix(ux): U-9 — la fila contador ↔ filtro de `#/pipeline` se apila verticalmente en ventanas estrechas.** Nueva clase `.pipeline-controls` + `@media (max-width: 720px)` que estira el filtro a 100% del ancho. 921 → **922** unitarios. (U-9)
+
+---
+
 ## [1.58.28] — 2026-05-20
 
 **fix(ux): U-8 — el bloque del prompt generado ahora está colapsado por defecto en las 7 páginas de modo.** Envuelto en `<details class="prompt-block">`; el resumen muestra "Show prompt (N lines)" localizado (`prompt.show` / `prompt.lines` × 8). Copy + Run-live se mantienen visibles. 920 → **921** unitarios. (U-8)

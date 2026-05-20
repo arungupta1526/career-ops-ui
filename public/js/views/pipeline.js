@@ -374,7 +374,12 @@ Router.register('pipeline', async () => {
       c('p', { id: 'pipe-new-url-hint', className: 'field-hint mt-3', style: { margin: '12px 0 0' } }, t('pipe.hint')),
     ]),
 
-    c('div', { className: 'flex gap-3 mb-3', style: { alignItems: 'center', flexWrap: 'wrap' } },
+    // U-9 (v1.58.29) — give the counter ↔ filter row a named class
+    // (.pipeline-controls) so the responsive rule can stack them on
+    // narrow viewports. At ≤ 720 px the row used to push the filter
+    // into a cramped position next to the counter; now they flow
+    // vertically with the filter stretching full-width.
+    c('div', { className: 'flex gap-3 mb-3 pipeline-controls', style: { alignItems: 'center', flexWrap: 'wrap' } },
       [counter, filterInput]),
 
     c('div', { className: 'grid-2', style: { gap: '16px' } }, [list, previewPane]),

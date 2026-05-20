@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.29] — 2026-05-20
+
+**fix(ux): U-9 — `#/pipeline` counter ↔ filter row stacks vertically on narrow viewports.** v1.58.3 QA: at ≤ 720 px the `In queue: N` chip and the filter input fought for horizontal space and pushed the input to a cramped column. New `.pipeline-controls` class in [public/js/views/pipeline.js](public/js/views/pipeline.js#L377-L385); CSS rule under `@media (max-width: 720px)` sets `flex-direction: column` + stretches `#pipe-filter` to 100% width. Desktop unchanged. 921 → **922** unit. (U-9)
+
+---
+
 ## [1.58.28] — 2026-05-20
 
 **fix(ux): U-8 — Generate-prompt block is collapsed by default on the 7 mode pages.** The inline `<pre>` previously ran 1200+ px after the user clicked Generate prompt, pushing Copy + Run-live below the fold. [public/js/views/mode-page.js](public/js/views/mode-page.js#L272-L300) `showPrompt()` now wraps the `<pre>` in `<details class="prompt-block">` collapsed by default; summary shows `Show prompt (N lines)` localized via the new `prompt.show` / `prompt.lines` keys × 8 locales. Copy / Run-live remain immediately visible. Also fixed a pre-existing v1.58.27 regression where the BUG-007/008 contract test rejected the U-7 reformat (intermediate `const stripped` between dismissToast/modal); loosened the adjacency regex from `

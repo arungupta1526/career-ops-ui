@@ -10,6 +10,12 @@
 
 
 
+## [1.58.29] — 2026-05-20
+
+**fix(ux): U-9 — `#/pipeline` のカウンタ ↔ フィルタ行が狭幅で縦積みに。** 新しい `.pipeline-controls` クラスと `@media (max-width: 720px)` でフィルタを横幅 100% に拡張。921 → **922** ユニット。(U-9)
+
+---
+
 ## [1.58.28] — 2026-05-20
 
 **fix(ux): U-8 — 7 つのモードページで生成プロンプトブロックがデフォルト折り畳み。** `<details class="prompt-block">` でラップし、サマリは「Show prompt (N lines)」をローカライズ表示(`prompt.show` / `prompt.lines` × 8)。Copy + Run-live は引き続き上部に。920 → **921** ユニット。(U-8)
