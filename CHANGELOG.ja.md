@@ -10,6 +10,12 @@
 
 
 
+## [1.58.50] — 2026-05-20
+
+**docs: DOC-1 — `qa/REGRESSION-FINAL.md` に §5a を追加(サーバエラーボディの英語固定ポリシーを明文化)。** NEW-D4 を `not-a-finding` として close。**FIX-PROMPT-FINAL-EXHAUSTIVE.md の v1.58.37 → v1.58.50 キューを完了(14 リリース)。** 946 → **947** ユニット。(DOC-1)
+
+---
+
 ## [1.58.49] — 2026-05-20
 
 **chore(tooling): TOOL-1 — `make clean-test-fixtures` と親プロジェクト `data/pipeline.md` から example.com 行を削除するスクリプトを追加。** `--dry-run` 対応。CI-isolated テスト 4 件。942 → **946** ユニット。(TOOL-1)

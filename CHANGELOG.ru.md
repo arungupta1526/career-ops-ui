@@ -10,6 +10,12 @@
 
 
 
+## [1.58.50] — 2026-05-20
+
+**docs: DOC-1 — `qa/REGRESSION-FINAL.md` получает §5a, документирующую тело ошибок сервера как English-by-policy.** v1.58.36 аудит поднял NEW-D4: server 4xx body на любой локали английский. Два пути: (A) confirm by-design, задокументировать контракт; (B) читать `Accept-Language` и локализовать. Spec рекомендовал A — закрытие NEW-D4 как `not-a-finding` минимально disruptive и сохраняет тесты стабильными. Новая секция §5a в [qa/REGRESSION-FINAL.md](qa/REGRESSION-FINAL.md) объясняет: JSON-тела ошибок сервера остаются английскими (debuggability boundary — bug-репорты копируются чисто между локалями, CI-фикстуры стабильны, server-tests не нуждаются в parallel locale strings). SPA оборачивает ответы в локализованный chrome (цвет toast, U-4 `Details` summary). `Accept-Language` намеренно не читается; SPA-side `lang` стрипается перед `validateConfig` (инвариант v1.57.2). v1.59 option B (локализованные server errors через `{ error, error_en, code }`) — future gate. 946 → **947** модульных. **Закрывает очередь v1.58.37 → v1.58.50 из FIX-PROMPT-FINAL-EXHAUSTIVE.md** — 14 single-fix релизов отгружены, каждый CI-green + AI-review LGTM. (DOC-1)
+
+---
+
 ## [1.58.49] — 2026-05-20
 
 **chore(tooling): TOOL-1 — `make clean-test-fixtures` + `scripts/clean-test-fixtures.mjs`.** v1.58.36 аудит: `${CAREER_OPS_ROOT}/data/pipeline.md` накопил 1252+ строки с `example.com/job/<n>` от регрессионных прогонов. Чистка вручную утомительна. Новый [scripts/clean-test-fixtures.mjs](scripts/clean-test-fixtures.mjs) читает `${CAREER_OPS_ROOT or ..}/data/pipeline.md`, удаляет каждую строку с `example.com` (case-insensitive), сохраняет реальные ATS URL без изменений, печатает счёт и завершается с кодом 0. Флаг `--dry-run` печатает результат в stdout, не трогая файл. Новый [Makefile](Makefile) с целями `make clean-test-fixtures` и `make clean-test-fixtures-dry-run`. 4 новых CI-isolated теста в [tests/clean-test-fixtures.test.mjs](tests/clean-test-fixtures.test.mjs) (через `mkdtempSync` — никаких реальных file-writes). 942 → **946** модульных (+4 новых TOOL-1 кейса). (TOOL-1)

@@ -10,6 +10,12 @@
 
 
 
+## [1.58.50] — 2026-05-20
+
+**docs: DOC-1 — `qa/REGRESSION-FINAL.md` 에 §5a 추가(서버 에러 바디 영어-정책 명문화).** NEW-D4 를 `not-a-finding` 으로 종료. **FIX-PROMPT-FINAL-EXHAUSTIVE.md 의 v1.58.37 → v1.58.50 큐 완료(14 릴리스).** 946 → **947** 유닛. (DOC-1)
+
+---
+
 ## [1.58.49] — 2026-05-20
 
 **chore(tooling): TOOL-1 — `make clean-test-fixtures` 와 부모 프로젝트 `data/pipeline.md` 에서 example.com 라인을 제거하는 스크립트 추가.** `--dry-run` 지원. CI-isolated 테스트 4 개. 942 → **946** 유닛. (TOOL-1)

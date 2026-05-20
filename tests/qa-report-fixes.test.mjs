@@ -37,6 +37,16 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('DOC-1 (v1.58.50): qa/REGRESSION-FINAL.md has §5a documenting English-by-policy server error bodies', () => {
+  const final = read('qa', 'REGRESSION-FINAL.md');
+  assert.match(final, /^## §5a — Server error bodies are English-by-policy/m,
+    "REGRESSION-FINAL.md must declare a §5a English-by-policy section");
+  assert.match(final, /Accept-Language[\s\S]{0,400}?not\s+read/i,
+    "§5a must call out that Accept-Language is not currently read");
+  assert.match(final, /v1\.59/,
+    '§5a must point to v1.59 as the future-feature gate for localized errors');
+});
+
 test('UX-D-B (v1.58.48): #/dashboard renders a fixture-profile warning banner when /api/health flags `Profile customized: false`', () => {
   const dash = read('public', 'js', 'views', 'dashboard.js');
   assert.match(dash, /function profileFixtureBanner\(\)/,

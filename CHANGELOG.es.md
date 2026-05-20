@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.50] — 2026-05-20
+
+**docs: DOC-1 — `qa/REGRESSION-FINAL.md` añade §5a documentando que los cuerpos de error del servidor son inglés-por-política.** Cierra NEW-D4 como `not-a-finding`. Recomendación A del spec. **Cierra la cola v1.58.37 → v1.58.50 de FIX-PROMPT-FINAL-EXHAUSTIVE.md (14 releases).** 946 → **947** unitarios. (DOC-1)
+
+---
+
 ## [1.58.49] — 2026-05-20
 
 **chore(tooling): TOOL-1 — `make clean-test-fixtures` + script para eliminar líneas `example.com` de `data/pipeline.md` del proyecto padre.** Soporta `--dry-run`. 4 tests CI-isolated. 942 → **946** unitarios. (TOOL-1)

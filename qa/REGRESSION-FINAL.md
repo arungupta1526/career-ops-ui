@@ -139,6 +139,36 @@ beyond loopback) excludes `'unsafe-inline'`/`'unsafe-eval'`,
 `frame-ancestors 'none'`; `X-Content-Type-Options: nosniff`;
 `X-Frame-Options: DENY`; `Referrer-Policy: same-origin`.
 
+## §5a — Server error bodies are English-by-policy (DOC-1 / v1.58.50)
+
+The server's `4xx`/`5xx` JSON bodies (`{ error, details, hint, … }`)
+are emitted in English on **every** locale. The SPA wraps them with
+**localized chrome** — the toast severity colour, the `Details`
+summary label that hides the technical postfix (U-4 / v1.58.24), the
+help banners that link to docs — so the end-user never sees raw
+English at the surface unless they expand the `<details>`. The
+endpoint payload itself is the **debuggability boundary** and must
+stay English so:
+
+1. Bug reports paste cleanly across locales (a Russian user'\''s
+   stack trace doesn'\''t need translation when they file an issue).
+2. CI fixtures that match on error strings stay stable.
+3. The server-side test surface (`tests/*.test.mjs` parses
+   `e.message`) doesn'\''t need a parallel locale fixture set.
+4. `Accept-Language` is **not** read by the API layer — the SPA-side
+   `lang` storage is stripped from any payload before `validateConfig`
+   sees it (v1.57.2 invariant).
+
+i18n tests exempt server-error strings from locale-key parity —
+`tests/i18n-coverage.test.mjs` walks `public/js/lib/i18n-dict.js`,
+not server-side strings.
+
+**If you ever need localized server errors:** that'\''s a v1.59
+feature (DOC-1 option B). Spec: server reads `Accept-Language`,
+returns `{ error: <localized>, error_en: <fallback>, code: <stable> }`
+with EN as the immutable `code`/`error_en` lookup key. Until then,
+the policy above is intentional, not a defect.
+
 ## §6 — LLM routing honours the live parent `.env`
 
 With a key ONLY in the parent `.env` (NOT in the server's boot

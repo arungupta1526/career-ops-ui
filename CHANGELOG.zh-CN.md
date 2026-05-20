@@ -10,6 +10,12 @@
 
 
 
+## [1.58.50] — 2026-05-20
+
+**docs: DOC-1 — `qa/REGRESSION-FINAL.md` 新增 §5a(服务器错误正文按设计保持英文政策)。** 关闭 NEW-D4 为 `not-a-finding`。**完成 FIX-PROMPT-FINAL-EXHAUSTIVE.md 的 v1.58.37 → v1.58.50 队列(14 个版本)。** 946 → **947** 单元。(DOC-1)
+
+---
+
 ## [1.58.49] — 2026-05-20
 
 **chore(tooling): TOOL-1 — 新增 `make clean-test-fixtures` 与脚本,用于从父项目 `data/pipeline.md` 移除 example.com 行。** 支持 `--dry-run`。4 个 CI-isolated 测试。942 → **946** 单元。(TOOL-1)

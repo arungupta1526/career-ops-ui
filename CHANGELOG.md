@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.50] — 2026-05-20
+
+**docs: DOC-1 — qa/REGRESSION-FINAL.md gets §5a documenting server error bodies as English-by-policy.** v1.58.36 audit raised NEW-D4: every server 4xx body is English on every locale. Two paths: (A) confirm by-design, document the contract; (B) read `Accept-Language` and localize. The spec recommended A — closing NEW-D4 as `not-a-finding` is least disruption and keeps tests stable. New [qa/REGRESSION-FINAL.md](qa/REGRESSION-FINAL.md) §5a section explains: server JSON error bodies stay English (debuggability boundary — bug reports paste cleanly, CI fixtures stay stable, server tests don't need parallel locale strings). The SPA wraps responses with localized chrome (toast colour, U-4 `Details` summary). `Accept-Language` is intentionally not read; the SPA-side `lang` is stripped before `validateConfig` per the v1.57.2 invariant. v1.59 option B (localized server errors with `{ error, error_en, code }`) is the future gate. 946 → **947** unit. **Closes the v1.58.37 → v1.58.50 queue from FIX-PROMPT-FINAL-EXHAUSTIVE.md** — 14 single-fix releases shipped, every one CI-green + AI-review LGTM. (DOC-1)
+
+---
+
 ## [1.58.49] — 2026-05-20
 
 **chore(tooling): TOOL-1 — `make clean-test-fixtures` + `scripts/clean-test-fixtures.mjs`.** v1.58.36 audit: `${CAREER_OPS_ROOT}/data/pipeline.md` had accumulated 1252+ `example.com/job/<n>` lines from regression runs. Manual cleanup was tedious. New [scripts/clean-test-fixtures.mjs](scripts/clean-test-fixtures.mjs) reads `${CAREER_OPS_ROOT or ..}/data/pipeline.md`, drops every line containing `example.com` (case-insensitive), preserves real ATS URLs verbatim, prints the count, and exits 0. `--dry-run` flag prints the would-be result to stdout without touching the file. New [Makefile](Makefile) with `make clean-test-fixtures` and `make clean-test-fixtures-dry-run` targets. 4 new CI-isolated tests in [tests/clean-test-fixtures.test.mjs](tests/clean-test-fixtures.test.mjs) (uses `mkdtempSync` for a synthetic parent — no real-file writes). 942 → **946** unit (4 new TOOL-1 cases). (TOOL-1)
