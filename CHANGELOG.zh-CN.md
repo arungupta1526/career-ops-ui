@@ -10,6 +10,12 @@
 
 
 
+## [1.58.51] — 2026-05-20
+
+**chore(docs): v1.58.51 — v1.58.37 → v1.58.50 周期(14 个版本)的最终清理。** 不改代码。qa/ 重新整理(所有版本固定文档移到 `archive/v158-cycle/`);6 个 perennial 留在根目录。`REGRESSION-FINAL §13` 记录 v1.58.37→.50 的全部不变量。基线不变(947/947)。(housekeeping)
+
+---
+
 ## [1.58.50] — 2026-05-20
 
 **docs: DOC-1 — `qa/REGRESSION-FINAL.md` 新增 §5a(服务器错误正文按设计保持英文政策)。** 关闭 NEW-D4 为 `not-a-finding`。**完成 FIX-PROMPT-FINAL-EXHAUSTIVE.md 的 v1.58.37 → v1.58.50 队列(14 个版本)。** 946 → **947** 单元。(DOC-1)

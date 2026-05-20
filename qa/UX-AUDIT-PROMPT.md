@@ -196,6 +196,20 @@ re-open one with concrete live evidence that it regressed:
 | U-13 + U-14 + U-15 — toast journal capture + page-header safety + CV dirty-state | v1.58.33 | `qa-report-fixes.test.mjs` |
 | Notifications drawer chrome (closes U-13) — bell + slide-in `<aside role="dialog">` | v1.58.34 | `qa-report-fixes.test.mjs` |
 | Drawer `[hidden]` CSS override + help §18 Notifications ×8 | v1.58.35 | `qa-report-fixes.test.mjs` + `playwright-smoke.mjs` end-to-end (9 assertions) |
+| NEW-D1 — `pipe.title` localized on es/pt-BR/ru + Latin-leak guard | v1.58.37 | `qa-report-fixes.test.mjs` + `tests/i18n-no-latin-leaks.test.mjs` |
+| NEW-D3 — Tracker search `aria-label` × 8 (WCAG 4.1.2) | v1.58.38 | `qa-report-fixes.test.mjs` |
+| NEW-D2 — Dashboard header Refresh button + toast pipeline | v1.58.39 | `qa-report-fixes.test.mjs` |
+| UX-D-H — External `career-ops.org/docs/*` links lock | v1.58.40 | `tests/external-doc-links.test.mjs` |
+| UX-D-I — Cost-hint live re-fetch (visibility + `providers-changed`) | v1.58.41 | `qa-report-fixes.test.mjs` |
+| UX-D-J — Per-advisor ETA chip parity (`#/evaluate` / `#/deep` / 5 mode pages) | v1.58.42 | `qa-report-fixes.test.mjs` |
+| UX-D-F — Empty Evaluate submit → distinct `eval.emptyJd` toast | v1.58.43 | `qa-report-fixes.test.mjs` |
+| UX-D-L — `#/deep` saved-research opened brief inline × close button | v1.58.44 | `qa-report-fixes.test.mjs` |
+| UX-D-K — Help TOC scroll-spy via IntersectionObserver | v1.58.45 | `qa-report-fixes.test.mjs` |
+| UX-D-D — Apply checklist `{company}-{role}` slug substitution | v1.58.46 | `qa-report-fixes.test.mjs` |
+| UX-D-C — Top-bar Quick scan → Open Scan (label honesty) | v1.58.47 | `qa-report-fixes.test.mjs` |
+| UX-D-B — Dashboard fixture-profile warning banner | v1.58.48 | `qa-report-fixes.test.mjs` |
+| TOOL-1 — `make clean-test-fixtures` + script + 4 CI-isolated tests | v1.58.49 | `tests/clean-test-fixtures.test.mjs` |
+| DOC-1 — Server English-by-policy doctrine § (REGRESSION-FINAL §5a) | v1.58.50 | `qa-report-fixes.test.mjs` |
 
 Senior-obs ledger: S-7→v1.54.6, W-001→v1.54.7, S-1→UX-3, S-2→UX-7,
 S-3→UX-4, S-4→UX-1, S-5→UX-9, S-6→UX-8. The **only open backlog

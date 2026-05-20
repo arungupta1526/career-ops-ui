@@ -10,6 +10,12 @@
 
 
 
+## [1.58.51] — 2026-05-20
+
+**chore(docs): v1.58.51 — v1.58.37 → v1.58.50 사이클(14 releases) 최종 하우스키핑.** 코드 변경 없음. qa/ 재정리(모든 버전 고정 문서 `archive/v158-cycle/` 로 이동);6 개 perennial 이 루트에 남음. `REGRESSION-FINAL §13` 가 v1.58.37→.50 모든 불변 문서화. 베이스라인 불변(947/947). (housekeeping)
+
+---
+
 ## [1.58.50] — 2026-05-20
 
 **docs: DOC-1 — `qa/REGRESSION-FINAL.md` 에 §5a 추가(서버 에러 바디 영어-정책 명문화).** NEW-D4 를 `not-a-finding` 으로 종료. **FIX-PROMPT-FINAL-EXHAUSTIVE.md 의 v1.58.37 → v1.58.50 큐 완료(14 릴리스).** 946 → **947** 유닛. (DOC-1)

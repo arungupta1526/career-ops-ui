@@ -9,7 +9,7 @@
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#testes)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requisitos)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.58.50-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.50)
+[![release](https://img.shields.io/badge/release-v1.58.51-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.51)
 
 > **Recente (v1.55 → v1.58):** **saída de pesquisa limpa e formatada** (#/deep + Pesquisa salva removem andaime `<tool_call>`/`<tool_response>`) + varredura de bugs do relatório QA (`#/followup` data ISO, negrito markdown em citações da ajuda, toast de duplicado honesto, alias `#/outreach`) + **provedor OpenRouter** (uma chave → 300+ modelos, dropdown ao vivo em `#/config`) + correção de «validation failed» em `#/config` (chaves coladas com espaços/quebra de linha agora salvam), banner de onboarding + chip de provedor ativo, custos honestos de ⚡ Executar ao vivo, ETA em `#/auto`, disclosure de Filtros avançados + Stop proeminente em `#/scan`, CTAs hero em `#/dashboard`, virtualização >1000 linhas em `#/pipeline`, paginação de servidor + chips de funil em `#/tracker`, e polimento de acessibilidade — detalhe por versão em [CHANGELOG.pt-BR.md](CHANGELOG.pt-BR.md).
 

@@ -10,6 +10,12 @@
 
 
 
+## [1.58.51] — 2026-05-20
+
+**chore(docs): v1.58.51 — v1.58.37 → v1.58.50 サイクル(14 releases)の最終ハウスキーピング。** コード変更なし。qa/ を整理し、すべてのバージョン固定ドキュメントを `archive/v158-cycle/` へ移動;6 つの perennial がルートに残る。`REGRESSION-FINAL §13` が v1.58.37→.50 のすべての不変条件を文書化。ベースライン不変(947/947)。(housekeeping)
+
+---
+
 ## [1.58.50] — 2026-05-20
 
 **docs: DOC-1 — `qa/REGRESSION-FINAL.md` に §5a を追加(サーバエラーボディの英語固定ポリシーを明文化)。** NEW-D4 を `not-a-finding` として close。**FIX-PROMPT-FINAL-EXHAUSTIVE.md の v1.58.37 → v1.58.50 キューを完了(14 リリース)。** 946 → **947** ユニット。(DOC-1)

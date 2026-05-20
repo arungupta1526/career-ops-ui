@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.51] — 2026-05-20
+
+**chore(docs): v1.58.51 — limpieza final del ciclo v1.58.37 → v1.58.50 (14 releases).** Sin cambios de código. qa/ reorganizado (todo lo version-locked en `archive/v158-cycle/`); 6 perennials en raíz. `REGRESSION-FINAL §13` documenta cada invariante v1.58.37→.50. `UX-AUDIT-PROMPT.md` extendido. Baseline sin cambios (947/947). (housekeeping)
+
+---
+
 ## [1.58.50] — 2026-05-20
 
 **docs: DOC-1 — `qa/REGRESSION-FINAL.md` añade §5a documentando que los cuerpos de error del servidor son inglés-por-política.** Cierra NEW-D4 como `not-a-finding`. Recomendación A del spec. **Cierra la cola v1.58.37 → v1.58.50 de FIX-PROMPT-FINAL-EXHAUSTIVE.md (14 releases).** 946 → **947** unitarios. (DOC-1)

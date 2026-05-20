@@ -10,6 +10,12 @@
 
 
 
+## [1.58.51] — 2026-05-20
+
+**chore(docs): v1.58.51 — финальный housekeeping цикла v1.58.37 → v1.58.50 (14 single-fix релизов).** Без изменений кода; консолидация qa/, валюты документов, и две lessons captured из этого цикла. **(1) Реорганизация qa/:** все version-locked документы — `FIX-PROMPT-CONSOLIDATED.md`, `FIX-PROMPT-FINAL-EXHAUSTIVE.md`, `FIX-PROMPT-v1.58.37_and_beyond.md`, плюс 6 session-снимков из корня — перемещены в `qa/archive/v158-cycle/`. В `qa/` корне теперь ровно **6 канонических perennial** документов. **(2) `qa/REGRESSION-FINAL.md` §13** документирует каждый инвариант v1.58.37→.50 с его lock-тестом, организованный по классам + 2 новые «lessons captured» (markdown-bold regex pitfall; Publish-runs-tests-against-tagged-ref pitfall). **(3) `qa/UX-AUDIT-PROMPT.md`** baseline таблица расширена 14 новыми closed-in строками. **(4-7)** Currency `CLAUDE.md` / `.claude/PROJECT-CONTEXT.md` / `docs/ROADMAP.md` / `README ×8`. Test baseline на v1.58.51: **947** unit (структурно без изменений) · 62 Playwright · 20 smoke · 23 comprehensive E2E. Закрывает pattern v1.58.48 / v1.58.50 Publish-failure — тегируем на коммите, где ВСЕ тесты проходят, а не на коммите с follow-up патчами только на `main`. (housekeeping)
+
+---
+
 ## [1.58.50] — 2026-05-20
 
 **docs: DOC-1 — `qa/REGRESSION-FINAL.md` получает §5a, документирующую тело ошибок сервера как English-by-policy.** v1.58.36 аудит поднял NEW-D4: server 4xx body на любой локали английский. Два пути: (A) confirm by-design, задокументировать контракт; (B) читать `Accept-Language` и локализовать. Spec рекомендовал A — закрытие NEW-D4 как `not-a-finding` минимально disruptive и сохраняет тесты стабильными. Новая секция §5a в [qa/REGRESSION-FINAL.md](qa/REGRESSION-FINAL.md) объясняет: JSON-тела ошибок сервера остаются английскими (debuggability boundary — bug-репорты копируются чисто между локалями, CI-фикстуры стабильны, server-tests не нуждаются в parallel locale strings). SPA оборачивает ответы в локализованный chrome (цвет toast, U-4 `Details` summary). `Accept-Language` намеренно не читается; SPA-side `lang` стрипается перед `validateConfig` (инвариант v1.57.2). v1.59 option B (локализованные server errors через `{ error, error_en, code }`) — future gate. 946 → **947** модульных. **Закрывает очередь v1.58.37 → v1.58.50 из FIX-PROMPT-FINAL-EXHAUSTIVE.md** — 14 single-fix релизов отгружены, каждый CI-green + AI-review LGTM. (DOC-1)

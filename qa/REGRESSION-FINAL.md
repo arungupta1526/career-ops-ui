@@ -514,6 +514,126 @@ contract for the notifications drawer). None may regress.
 
 ---
 
+## §13 — v1.58.37 → v1.58.50 cycle invariants (closes FIX-PROMPT-FINAL-EXHAUSTIVE)
+
+The post-v1.58.36 audit produced two consolidated fix-prompts
+(`qa/archive/v158-cycle/FIX-PROMPT-CONSOLIDATED.md` and
+`FIX-PROMPT-FINAL-EXHAUSTIVE.md`) cataloguing 14 actionable items
+across i18n, a11y, UX feedback, content fidelity, tooling, and docs.
+All shipped as single-fix releases v1.58.37 → v1.58.50; each
+regression-locked in `tests/qa-report-fixes.test.mjs` (or its own
+dedicated file). None may regress.
+
+**i18n & promise fidelity:**
+
+- ★ **`pipe.title` localized on es/pt-BR/ru** (NEW-D1, **CLOSED v1.58.37**):
+  `Pipeline de vacantes` / `Pipeline de vagas` / `Воронка вакансий`;
+  page-title now matches the sidebar `nav.pipeline` term (closes the
+  v1.58.18 I-3 doctrine gap). New `tests/i18n-no-latin-leaks.test.mjs`
+  parses the DICT and fails on any Latin-only `*.title` value on the
+  5 non-Latin locales outside a small whitelist (proper nouns / acronyms
+  / product names). The guard caught two extra stray RU leaks
+  (`contacto.title`, `health.title`) — both also fixed in the same
+  release.
+
+**A11y:**
+
+- ★ **Tracker search aria-label** (NEW-D3, **CLOSED v1.58.38**, WCAG
+  4.1.2): the `#/tracker` `<input>` declared only `placeholder`; SR
+  read "edit text" with no purpose. Now declares `type="search"` +
+  `aria-label: t('track.searchAria', …)`, distinct from the
+  placeholder in every locale.
+
+**UX feedback / honesty:**
+
+- **Dashboard Refresh button** (NEW-D2, **CLOSED v1.58.39**): explicit
+  `↻ Refresh` in the dashboard header, distinct from the
+  connection-banner Refresh (M-9 v1.58.14 which does `location.reload()`).
+  In-place refetch via `Router.go('/dashboard')` + toast pipeline
+  (`Refreshing…` → `Dashboard refreshed`).
+- **External doc-links regression lock** (UX-D-H, **CLOSED v1.58.40**):
+  new `tests/external-doc-links.test.mjs` asserts every visible
+  `career-ops.org/docs/<path>` URL in `views/*.js` and `docs/help/*.md`
+  is either inside an `<a href>` or markdown-linked. Bare brand
+  mentions tolerated.
+- ★ **Cost-hint live re-fetch** (UX-D-I, **CLOSED v1.58.41**, M-7
+  follow-up): `providerCostHint()` extracts a named `refreshCostLine()`
+  and binds it to `document.visibilitychange` + new `providers-changed`
+  `CustomEvent`. `#/config` Save dispatches the event after a
+  successful POST so every cost-hint in the tab refreshes without
+  a page reload.
+- **Advisor ETA parity** (UX-D-J, **CLOSED v1.58.42**): the
+  `<span class="advisor-eta">⏱ ~30s</span>` chip appears next to the
+  cost-hint on `#/evaluate`, `#/deep`, and the 5 mode pages. CSS rule
+  extended; only `#/auto` stays at `~1–2 min` (multi-step SSE).
+- **Empty Evaluate submit toast** (UX-D-F, **CLOSED v1.58.43**):
+  empty-JD branch precedes the `<50 chars` branch; new
+  `eval.emptyJd` × 8 + `jdInput.focus()` on the error.
+- **Deep brief close button** (UX-D-L, **CLOSED v1.58.44**): `×`
+  button in the saved-research opened-brief header clears `out.innerHTML`;
+  new `deep.closeBrief` × 8.
+
+**Orientation:**
+
+- ★ **Help TOC scroll-spy** (UX-D-K, **CLOSED v1.58.45**):
+  `IntersectionObserver` on every `.help-article h2[id]` applies
+  `.toc-current` to the matching TOC `<a>` link as the user scrolls
+  (`rootMargin: "-30% 0% -60% 0%"`). Observer disconnects on
+  hashchange.
+
+**Content fidelity:**
+
+- ★ **Apply checklist `{company}-{role}` substitution** (UX-D-D,
+  **CLOSED v1.58.46**): `extractSlugs(url, jd)` recognises Greenhouse
+  / Lever / Ashby / Workable / SmartRecruiters / Workday hosts;
+  `substitutePlaceholders()` runs before `parseChecklist` so the live
+  checklist and Copy-unchecked output stay coherent. Fallback
+  `[company]` / `[role]` (square-bracket convention).
+
+**Labels & onboarding:**
+
+- **Top-bar Quick scan rename** (UX-D-C, **CLOSED v1.58.47**):
+  `top.quickscan` is now `Open Scan` (and localized equivalents) in
+  all 8 locales — matches actual nav-only behavior, not the implied
+  instant-action.
+- **Dashboard fixture-profile banner** (UX-D-B, **CLOSED v1.58.48**):
+  `profileFixtureBanner()` renders a `.hero-banner.hero-banner--warning`
+  at the top of the route when `/api/health` returns
+  `Profile customized: false`. CTA links to `#/config`. Two new i18n
+  keys (`onboarding.fixtureWarning`, `onboarding.fixProfile`) × 8.
+
+**Tooling:**
+
+- **`make clean-test-fixtures`** (TOOL-1, **CLOSED v1.58.49**): new
+  `scripts/clean-test-fixtures.mjs` + `Makefile` target strip
+  `example.com` lines from `${CAREER_OPS_ROOT}/data/pipeline.md` (1252+
+  entries accumulated during regression runs). `--dry-run` mode for
+  rehearsal. 4 new CI-isolated tests in
+  `tests/clean-test-fixtures.test.mjs` (uses `mkdtempSync` — no
+  real-file writes).
+
+**Docs / doctrine:**
+
+- **Server error bodies English-by-policy** (DOC-1, **CLOSED v1.58.50**):
+  new §5a (above) documents that 4xx/5xx JSON bodies stay English
+  intentionally — debuggability boundary, CI fixture stability,
+  server-test simplicity, v1.57.2 `lang` stripping invariant.
+  v1.59 option B (localized errors with `{ error, error_en, code }`)
+  is the future gate. NEW-D4 closed as `not-a-finding`.
+
+**Two new lessons captured for the doctrine:**
+
+1. **Lock-test regex with markdown bolding** (v1.58.50): an `\s+`
+   between two words in a regex breaks when the docs use bold —
+   `**not** read` doesn't match `not\s+read`. Use `[\s\S]{0,40}?` or
+   `\W*` when the documented text could be wrapped in `**…**`.
+2. **`Publish to GitHub Packages` runs tests against the TAGGED ref**,
+   not `main`. If a lock-test fix lands on `main` AFTER the tag,
+   Publish still fails on the broken tag. v1.58.48 / v1.58.50 both
+   tripped this. Pre-tag local sweep is the only defense.
+
+---
+
 ### Exit criteria
 
 §0 gate green · §1–§11 every MUST satisfied · §A exhaustive matrix
