@@ -701,13 +701,22 @@ window.UI = (function () {
       qwen:       'Qwen',
       openrouter: 'OpenRouter',
     };
-    (async () => {
+    // UX-D-I (v1.58.41) — extract the render to a named refresh so we
+    // can re-run it when the provider changes externally. Without this,
+    // the cost line shows whatever provider was active when the view
+    // mounted; if the user opens #/config in another tab, picks a
+    // different provider, and switches back to this tab, the cost line
+    // would silently lie. Now it re-fetches on `visibilitychange`
+    // (tab gets focus back) and on a custom `providers-changed`
+    // CustomEvent that the #/config save path can dispatch.
+    async function refreshCostLine() {
       let st = null;
       try {
         const r = await fetch('/api/status/providers');
         if (r.ok) st = await r.json();
       } catch { /* offline → say nothing */ }
       if (!st) { node.hidden = true; return; }
+      node.hidden = false;
       if (!st.activeProvider) {
         node.textContent = tr('cost.manual',
           'No LLM key set — “⚡ Run live” copies a manual prompt (no API cost).');
@@ -728,7 +737,11 @@ window.UI = (function () {
         // Unknown provider — show the name but omit a fabricated number.
         node.textContent = prefix;
       }
-    })();
+    }
+    refreshCostLine();
+    const onVisibility = () => { if (!document.hidden) refreshCostLine(); };
+    document.addEventListener('visibilitychange', onVisibility);
+    document.addEventListener('providers-changed', refreshCostLine);
     return node;
   }
 

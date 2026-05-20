@@ -271,6 +271,12 @@ Router.register('config', async () => {
       dirty.clear();
       // Re-fetch so masked previews refresh.
       cfg = await API.get('/api/config');
+      // UX-D-I (v1.58.41) — broadcast the change so any open cost-hint
+      // node (auto / deep / evaluate / mode pages) re-fetches
+      // `/api/status/providers` and updates the line in place. Without
+      // this, the cost line would silently lie until the user navigated
+      // away and back.
+      document.dispatchEvent(new CustomEvent('providers-changed'));
       // Re-render in place by re-routing.
       Router.render();
     } catch (e) {

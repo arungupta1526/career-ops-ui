@@ -10,6 +10,12 @@
 
 
 
+## [1.58.41] — 2026-05-20
+
+**fix(ux/truthfulness): UX-D-I — 费用提示在标签页重新可见 + `providers-changed` 事件时重新拉取。** 之前仅获取一次,在另一标签页更改提供商后旧值会持续显示。934 → **935** 单元。(UX-D-I)
+
+---
+
 ## [1.58.40] — 2026-05-20
 
 **fix(ux/docs): UX-D-H — 回归锁:每个可见的 `career-ops.org/docs/...` 深链必须保持可点击。** 新 `tests/external-doc-links.test.mjs` 校验 views/*.js 与 docs/help/*.md。932 → **934** 单元。(UX-D-H)

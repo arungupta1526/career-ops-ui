@@ -10,6 +10,12 @@
 
 
 
+## [1.58.41] — 2026-05-20
+
+**fix(ux/truthfulness): UX-D-I — 비용 힌트가 탭 복귀 + `providers-changed` 이벤트에서 재조회.** 이전엔 한 번만 가져왔으므로 다른 탭에서 프로바이더 변경 시 오래된 값이 표시. 934 → **935** 유닛. (UX-D-I)
+
+---
+
 ## [1.58.40] — 2026-05-20
 
 **fix(ux/docs): UX-D-H — `career-ops.org/docs/...` 딥링크가 클릭 가능함을 보장하는 regression-lock.** 새 `tests/external-doc-links.test.mjs` 가 views/*.js 와 docs/help/*.md 검사. 932 → **934** 유닛. (UX-D-H)

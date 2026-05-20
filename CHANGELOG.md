@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.41] — 2026-05-20
+
+**fix(ux/truthfulness): UX-D-I — cost-hint now re-fetches on tab focus + on `providers-changed` event (M-7 v1.58.12 follow-up).** v1.58.12 wired `UI.providerCostHint(t)` to `/api/status/providers` but only fetched ONCE at node creation. If the user opened `#/config` in another tab, picked a different provider, and switched back, the cost line would silently lie until they navigated away and back. Fix in [public/js/api.js](public/js/api.js#L676-L740): extract a named `refreshCostLine()` function and bind it to `document.visibilitychange` (tab regains focus) + a new `providers-changed` `CustomEvent`. The `#/config` Save handler in [public/js/views/config.js](public/js/views/config.js) dispatches the event after a successful POST, so in-page cost lines (`#/auto`, `#/deep`, `#/evaluate`, mode pages) refresh **without** a page reload or route re-mount. 934 → **935** unit. (UX-D-I)
+
+---
+
 ## [1.58.40] — 2026-05-20
 
 **fix(ux/docs): UX-D-H — regression-lock: every visible `career-ops.org/docs/...` deep-link must be clickable.** v1.58.36 audit verified live: every existing such URL in `public/js/views/*.js` is already inside `c("a", { href, target: "_blank", rel: "noopener noreferrer" }, …)` (apply.js / batch.js / config.js / reports.js), and every `docs/help/*.md` reference uses markdown `[text](url)`. So this release ships only the **regression lock**: new [tests/external-doc-links.test.mjs](tests/external-doc-links.test.mjs) parses every `views/*.js` and `docs/help/*.md` file and fails if a `career-ops.org/docs/<path>` URL is rendered as plain child text (not inside an `<a>` create, attribute slot, or markdown link). Bare brand mentions of `career-ops.org` without `/docs/` path are tolerated (e.g. "career-ops.org schema" in prose). 2 new test cases added to the suite. 932 → **934** unit. (UX-D-H)

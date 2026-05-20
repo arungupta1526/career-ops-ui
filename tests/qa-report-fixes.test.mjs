@@ -37,6 +37,26 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-D-I (v1.58.41): cost-hint re-fetches on visibility-change + on `providers-changed` custom event', () => {
+  // Background — v1.58.12 (M-7) wired the cost hint to /api/status/providers
+  // but only fetched once at node creation. If the user switched
+  // providers in another tab, the cost line silently lied until the
+  // view was rebuilt. This release extracts a named `refreshCostLine`
+  // function and re-binds it to two triggers.
+  const api = read('public', 'js', 'api.js');
+  assert.match(api, /async function refreshCostLine\(\)/,
+    'providerCostHint must extract a named refreshCostLine() function');
+  assert.match(api, /document\.addEventListener\('visibilitychange',[^)]+\)/,
+    'cost-hint must subscribe to visibilitychange');
+  assert.match(api, /document\.addEventListener\('providers-changed',\s*refreshCostLine\)/,
+    "cost-hint must subscribe to the 'providers-changed' CustomEvent");
+
+  // Config save path must broadcast the event so in-page cost lines refresh.
+  const cfg = read('public', 'js', 'views', 'config.js');
+  assert.match(cfg, /document\.dispatchEvent\(new CustomEvent\('providers-changed'\)\)/,
+    "#/config save handler must dispatch 'providers-changed' after a successful POST /api/config");
+});
+
 test('NEW-D2 (v1.58.39): #/dashboard header Refresh button gives explicit toast feedback', () => {
   const dash = read('public', 'js', 'views', 'dashboard.js');
   // The header must declare a Refresh button with the right ARIA hook

@@ -10,6 +10,12 @@
 
 
 
+## [1.58.41] — 2026-05-20
+
+**fix(ux/truthfulness): UX-D-I — cost-hint теперь перечитывает `/api/status/providers` при возврате фокуса на вкладку и по событию `providers-changed` (последствие M-7 v1.58.12).** v1.58.12 связал `UI.providerCostHint(t)` с `/api/status/providers`, но запрос делался ОДИН раз при создании ноды. Если пользователь открывал `#/config` в другой вкладке, менял провайдера и возвращался — cost-line молча отображал старое значение, пока не происходил переход с маршрута и обратно. Правка в [public/js/api.js](public/js/api.js#L676-L740): извлечена именованная функция `refreshCostLine()` и привязана к `document.visibilitychange` (фокус вернулся на вкладку) + новому `CustomEvent("providers-changed")`. Обработчик Save в [public/js/views/config.js](public/js/views/config.js) диспатчит этот event после успешного POST, и cost-line на `#/auto`, `#/deep`, `#/evaluate`, mode-страницах обновляется **без** перезагрузки страницы или re-mount маршрута. 934 → **935** модульных. (UX-D-I)
+
+---
+
 ## [1.58.40] — 2026-05-20
 
 **fix(ux/docs): UX-D-H — regression-lock: каждая видимая ссылка `career-ops.org/docs/<path>` обязана быть кликабельной.** v1.58.36 аудит подтвердил живьём: каждая такая ссылка в `public/js/views/*.js` уже находится внутри `c("a", { href, target: "_blank", rel: "noopener noreferrer" }, …)` (apply.js / batch.js / config.js / reports.js), и каждая ссылка в `docs/help/*.md` использует markdown `[text](url)`. Поэтому в этом релизе только **regression lock**: новый [tests/external-doc-links.test.mjs](tests/external-doc-links.test.mjs) парсит каждый `views/*.js` и `docs/help/*.md` и валит сборку, если `career-ops.org/docs/<path>` URL рендерится как plain child text. Бренд-упоминания `career-ops.org` без `/docs/` пути допускаются (например, «career-ops.org schema» в прозе). 932 → **934** модульных. (UX-D-H)

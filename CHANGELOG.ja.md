@@ -10,6 +10,12 @@
 
 
 
+## [1.58.41] — 2026-05-20
+
+**fix(ux/truthfulness): UX-D-I — コストヒントがタブ復帰時 + `providers-changed` イベントで再取得。** 以前は 1 回のみ取得していたため、別タブでプロバイダを変更すると古い値が表示されていた。934 → **935** ユニット。(UX-D-I)
+
+---
+
 ## [1.58.40] — 2026-05-20
 
 **fix(ux/docs): UX-D-H — `career-ops.org/docs/...` 深層リンクがクリック可能であることを保証する regression-lock。** 新しい `tests/external-doc-links.test.mjs` が views/*.js と docs/help/*.md を検査。932 → **934** ユニット。(UX-D-H)

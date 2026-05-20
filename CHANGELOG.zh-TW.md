@@ -10,6 +10,12 @@
 
 
 
+## [1.58.41] — 2026-05-20
+
+**fix(ux/truthfulness): UX-D-I — 費用提示在分頁重新可見 + `providers-changed` 事件時重新拉取。** 之前僅取一次,在另一分頁變更提供者後舊值會持續顯示。934 → **935** 單元。(UX-D-I)
+
+---
+
 ## [1.58.40] — 2026-05-20
 
 **fix(ux/docs): UX-D-H — 回歸鎖:每個可見的 `career-ops.org/docs/...` 深層連結必須保持可點擊。** 新 `tests/external-doc-links.test.mjs` 校驗 views/*.js 與 docs/help/*.md。932 → **934** 單元。(UX-D-H)
