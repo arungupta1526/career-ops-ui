@@ -10,6 +10,12 @@
 
 
 
+## [1.58.37] — 2026-05-20
+
+**fix(i18n): NEW-D1 — `#/pipeline` H1 을 es/pt-BR/ru 에서 현지화 + RU 타이틀 누락 2 건 추가 수정.** 새 `tests/i18n-no-latin-leaks.test.mjs` 가 `contacto.title` / `health.title` 의 RU 누락도 잡아 동시 수정. 928 → **930** 유닛. (NEW-D1)
+
+---
+
 ## [1.58.36] — 2026-05-20
 
 **chore(docs): v1.58.36 — v1.58.x 사이클 종료 시점의 전체 하우스키핑 스윕.** 코드 변경 없음. (1) qa/: 버전 고정 스냅샷 3 개(`REGRESSION-END-TO-END-v1.58.16/33/35.md`)를 `qa/archive/v158-cycle/` 로 이동. (2) `REGRESSION-FINAL.md` 에 **§12** 추가(v1.58.4 → v1.58.35 모든 불변). (3) `UX-AUDIT-PROMPT.md` 에 30 행 추가. (4) docs/architecture/ 갱신(FRONTEND 드로어, TESTING 합계 928/62/20/23). (5) CLAUDE.md 에 "v1.58.x 사이클의 교훈" 섹션 추가. (6) README ×8 에 "알림 🔔" 행 추가 + 오래된 테스트 카운트 수정. 베이스라인 무변. (housekeeping)

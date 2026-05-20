@@ -5,11 +5,11 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.zh-CN.md) | **繁體中文**
 
-[![tests](https://img.shields.io/badge/tests-928%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-930%20passed-brightgreen)](#tests)
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.58.36-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.36)
+[![release](https://img.shields.io/badge/release-v1.58.37-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.37)
 
 > **近期 (v1.55 → v1.58):** **整潔、格式化的研究輸出**（#/deep 與已儲存研究剝除 `<tool_call>`/`<tool_response>`）+ 外部 QA 報告 bug 清掃（`#/followup` ISO 日期、help 引用內粗體、誠實的重複 pipeline 提示、`#/outreach` 別名）+ **OpenRouter 提供方**（一個 key → 300+ 模型，`#/config` 即時下拉）+ `#/config`「validation failed」修復（帶空白/換行貼上的 key 現在可儲存）、螢上引導橫幅 + 作用中提供方徽章、誠實的 ⚡ 即時執行費用提示、`#/auto` ETA、`#/scan` 進階篩選摺疊 + 醒目 Stop、`#/dashboard` hero CTA、`#/pipeline` 超 1000 列虛擬化、`#/tracker` 伺服器端分頁 + 漏斗晶片、無障礙打磨 —— 每版本細節見 [CHANGELOG.zh-TW.md](CHANGELOG.zh-TW.md)。
 

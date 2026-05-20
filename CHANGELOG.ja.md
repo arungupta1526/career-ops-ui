@@ -10,6 +10,12 @@
 
 
 
+## [1.58.37] — 2026-05-20
+
+**fix(i18n): NEW-D1 — `#/pipeline` の H1 を es/pt-BR/ru でローカライズ + 2 件の RU タイトル漏れを修正。** 新しい `tests/i18n-no-latin-leaks.test.mjs` が `contacto.title` / `health.title` の RU の漏れも検出して同時修正。928 → **930** ユニット。(NEW-D1)
+
+---
+
 ## [1.58.36] — 2026-05-20
 
 **chore(docs): v1.58.36 — v1.58.x サイクル終了時の完全ハウスキーピング sweep。** コード変更なし。(1) qa/: 3 つのバージョン固定スナップショット(`REGRESSION-END-TO-END-v1.58.16/33/35.md`)を `qa/archive/v158-cycle/` に移動。(2) `REGRESSION-FINAL.md` に **§12** を追加(v1.58.4 → v1.58.35 全不変条件)。(3) `UX-AUDIT-PROMPT.md` に 30 行追加。(4) docs/architecture/ 更新(FRONTEND drawer、TESTING 合計 928/62/20/23)。(5) CLAUDE.md に「v1.58.x サイクルの教訓」セクション追加。(6) README ×8 に「通知 🔔」行追加 + テスト数の古い値を修正。ベースライン変更なし。(housekeeping)

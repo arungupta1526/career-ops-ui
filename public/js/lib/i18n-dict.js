@@ -98,7 +98,7 @@ window.__I18N_DICT = {
   'batch.urlsHint':    { en: 'One job URL per line — the runner evaluates each in parallel.', es: 'Una URL por línea — el runner evalúa en paralelo.', 'pt-BR': 'Uma URL por linha — o runner avalia em paralelo.', ko: '한 줄에 채용 URL 하나 — 러너가 병렬로 평가합니다.', ja: '1 行に 1 つの求人 URL — ランナーが並列で評価。', ru: 'Один URL на строку — runner оценивает параллельно.', 'zh-CN': '每行一个职位 URL — runner 并行评估。', 'zh-TW': '每列一個職位 URL — runner 平行評估。' },
   'batch.workersHint': { en: 'Concurrent worker count — too high hits LLM rate limits, too low takes hours.', es: 'Cantidad de workers paralelos — demasiado alto golpea rate limits del LLM, bajo demora horas.', 'pt-BR': 'Quantidade de workers paralelos — alto demais bate rate limits do LLM, baixo leva horas.', ko: '병렬 워커 수 — 너무 많으면 LLM rate limit, 너무 적으면 몇 시간 소요.', ja: '並列ワーカー数 — 多すぎると LLM レート制限、少なすぎると数時間。', ru: 'Число параллельных воркеров — слишком много — упрётся в rate limit LLM, мало — на часы.', 'zh-CN': '并行 worker 数量 — 过多触发 LLM rate limit,过少耗时数小时。', 'zh-TW': '並行 worker 數量 — 過多觸發 LLM rate limit,過少耗時數小時。' },
   // ──────────── contacto / outreach ────────────
-  'contacto.title':       { en: 'LinkedIn outreach', es: 'Outreach en LinkedIn', 'pt-BR': 'Outreach no LinkedIn', ko: 'LinkedIn 아웃리치', ja: 'LinkedIn アウトリーチ', ru: 'LinkedIn outreach', 'zh-CN': 'LinkedIn 外联', 'zh-TW': 'LinkedIn 外聯' },
+  'contacto.title':       { en: 'LinkedIn outreach', es: 'Outreach en LinkedIn', 'pt-BR': 'Outreach no LinkedIn', ko: 'LinkedIn 아웃리치', ja: 'LinkedIn アウトリーチ', ru: 'Касания через LinkedIn', 'zh-CN': 'LinkedIn 外联', 'zh-TW': 'LinkedIn 外聯' },
   'contacto.subtitle':    { en: 'Find the right contact at a target company and draft the message.', es: 'Encuentra el contacto correcto en la empresa objetivo y redacta el mensaje.', 'pt-BR': 'Encontre o contato certo na empresa-alvo e rascunhe a mensagem.', ko: '대상 회사에서 적절한 컨택을 찾고 메시지를 작성합니다.', ja: 'ターゲット会社で適切なコンタクトを見つけ、メッセージを起案。', ru: 'Найти нужного контакта в целевой компании и составить сообщение.', 'zh-CN': '在目标公司找到合适的联系人并起草信息。', 'zh-TW': '在目標公司找到合適的聯絡人並起草訊息。' },
   'contacto.recipientLbl':{ en: 'Recipient name (optional)', es: 'Nombre destinatario (opcional)', 'pt-BR': 'Nome do destinatário (opcional)', ko: '수신자 이름 (선택)', ja: '受信者名 (任意)', ru: 'Имя получателя (опц.)', 'zh-CN': '收件人姓名(可选)', 'zh-TW': '收件人姓名(可選)' },
   'contacto.recipientPh': { en: 'Jane Doe', es: 'Jane Doe', 'pt-BR': 'Jane Doe', ko: 'Jane Doe', ja: 'Jane Doe', ru: 'Jane Doe', 'zh-CN': 'Jane Doe', 'zh-TW': 'Jane Doe' },
@@ -349,7 +349,7 @@ window.__I18N_DICT = {
   'dash.quick.applySub': { en: 'Submission checklist', es: 'Checklist de envío', 'pt-BR': 'Checklist de envio', ko: '제출 체크리스트', ja: '提出チェックリスト', ru: 'Чек-лист подачи', 'zh-CN': '提交清单', 'zh-TW': '提交清單' },
   'dash.quick.activityCta': { en: 'Activity log', es: 'Registro de actividad', 'pt-BR': 'Log de atividade', ko: '활동 로그', ja: 'アクティビティログ', ru: 'История активности', 'zh-CN': '活动日志', 'zh-TW': '活動日誌' },
   'dash.quick.activitySub': { en: 'Audit trail', es: 'Pista de auditoría', 'pt-BR': 'Trilha de auditoria', ko: '감사 추적', ja: '監査ログ', ru: 'Аудит-лог', 'zh-CN': '审计追踪', 'zh-TW': '稽核追蹤' },
-  'dash.quick.healthCta': { en: 'Health', es: 'Estado', 'pt-BR': 'Saúde', ko: '상태', ja: 'ヘルス', ru: 'Health', 'zh-CN': '健康', 'zh-TW': '健康' },
+  'dash.quick.healthCta': { en: 'Health', es: 'Estado', 'pt-BR': 'Saúde', ko: '상태', ja: 'ヘルス', ru: 'Состояние', 'zh-CN': '健康', 'zh-TW': '健康' },
   'dash.quick.healthSub': { en: 'System checks', es: 'Chequeos del sistema', 'pt-BR': 'Verificações do sistema', ko: '시스템 체크', ja: 'システムチェック', ru: 'Проверки системы', 'zh-CN': '系统检查', 'zh-TW': '系統檢查' },
   'dash.quick.helpCta': { en: 'Help', es: 'Ayuda', 'pt-BR': 'Ajuda', ko: '도움말', ja: 'ヘルプ', ru: 'Справка', 'zh-CN': '帮助', 'zh-TW': '說明' },
   'dash.quick.helpSub': { en: 'In-app guide', es: 'Guía dentro de la app', 'pt-BR': 'Guia no app', ko: '인앱 가이드', ja: 'アプリ内ガイド', ru: 'Гайд в приложении', 'zh-CN': '应用内指南', 'zh-TW': '應用內指南' },
@@ -486,7 +486,7 @@ window.__I18N_DICT = {
   'scan.startEnv':  { en: 'Run', es: 'Ejecuta', 'pt-BR': 'Execute', ko: '실행', ja: '実行', ru: 'Запустите', 'zh-CN': '运行', 'zh-TW': '執行' },
 
   // Pipeline
-  'pipe.title':     { en: 'Pipeline', es: 'Pipeline', 'pt-BR': 'Pipeline', ko: '파이프라인', ja: 'パイプライン', ru: 'Pipeline', 'zh-CN': '流水线', 'zh-TW': '流水線' },
+  'pipe.title':     { en: 'Pipeline', es: 'Pipeline de vacantes', 'pt-BR': 'Pipeline de vagas', ko: '파이프라인', ja: 'パイプライン', ru: 'Воронка вакансий', 'zh-CN': '流水线', 'zh-TW': '流水線' },
   'pipe.subtitle':  { en: 'Queue of vacancy URLs awaiting evaluation.', es: 'Cola de URLs de vacantes esperando evaluación.', 'pt-BR': 'Fila de URLs de vagas aguardando avaliação.', ko: '평가 대기 중인 채용 공고 URL 대기열.', ja: '評価待ちの求人 URL のキュー。', ru: 'Очередь URL вакансий, ожидающих оценки.', 'zh-CN': '等待评估的职位 URL 队列。', 'zh-TW': '等待評估的職位 URL 佇列。' },
   'pipe.add':       { en: 'Add URL', es: 'Añadir URL', 'pt-BR': 'Adicionar URL', ko: 'URL 추가', ja: 'URL を追加', ru: 'Добавить URL', 'zh-CN': '添加 URL', 'zh-TW': '新增 URL' },
   'pipe.empty':     { en: 'Pipeline is empty. Add a URL below or run a scan.', es: 'El pipeline está vacío. Añade una URL o ejecuta un scan.', 'pt-BR': 'Pipeline vazio. Adicione uma URL ou execute scan.', ko: '파이프라인이 비어 있습니다. URL을 추가하거나 scan을 실행하세요.', ja: 'パイプラインは空です。URL を追加するか scan を実行してください。', ru: 'Pipeline пуст. Добавьте URL ниже или запустите Scan.', 'zh-CN': '流水线为空。在下方添加 URL 或运行 scan。', 'zh-TW': '流水線為空。在下方新增 URL 或執行 scan。' },
@@ -669,7 +669,7 @@ window.__I18N_DICT = {
   'eval.btnClear':  { en: 'Clear', es: 'Limpiar', 'pt-BR': 'Limpar', ko: '지우기', ja: 'クリア', ru: 'Очистить', 'zh-CN': '清除', 'zh-TW': '清除' },
 
   // Health
-  'health.title':   { en: 'Health', es: 'Estado', 'pt-BR': 'Saúde', ko: '상태', ja: 'ヘルス', ru: 'Health', 'zh-CN': '健康', 'zh-TW': '健康' },
+  'health.title':   { en: 'Health', es: 'Estado', 'pt-BR': 'Saúde', ko: '상태', ja: 'ヘルス', ru: 'Состояние', 'zh-CN': '健康', 'zh-TW': '健康' },
   'health.runDoctor':{ en: 'Run doctor', es: 'Ejecutar doctor', 'pt-BR': 'Executar doctor', ko: 'doctor 실행', ja: 'doctor を実行', ru: 'Запустить doctor', 'zh-CN': '运行 doctor', 'zh-TW': '執行 doctor' },
   'health.verify':  { en: 'Verify pipeline', es: 'Verificar pipeline', 'pt-BR': 'Verificar pipeline', ko: '파이프라인 확인', ja: 'パイプラインを検証', ru: 'Проверить pipeline', 'zh-CN': '验证流水线', 'zh-TW': '驗證流水線' },
   'health.badgeOk': { en: 'OK', es: 'OK', 'pt-BR': 'OK', ko: 'OK', ja: 'OK', ru: 'OK', 'zh-CN': 'OK', 'zh-TW': 'OK' },

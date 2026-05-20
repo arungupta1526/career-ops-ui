@@ -10,6 +10,12 @@
 
 
 
+## [1.58.37] — 2026-05-20
+
+**fix(i18n): NEW-D1 — `#/pipeline` H1 在 es/pt-BR/ru 上本地化 + 修复 2 处 RU 标题泄漏。** 新 `tests/i18n-no-latin-leaks.test.mjs` 同时抓出 `contacto.title` 与 `health.title` 的 RU 泄漏。928 → **930** 单元。(NEW-D1)
+
+---
+
 ## [1.58.36] — 2026-05-20
 
 **chore(docs): v1.58.36 — v1.58.x 周期收尾的完整文档清理。** 不改代码。(1) qa/:3 个版本固定快照(`REGRESSION-END-TO-END-v1.58.16/33/35.md`)移到 `qa/archive/v158-cycle/`。(2) `REGRESSION-FINAL.md` 新增 **§12**(v1.58.4 → v1.58.35 全部不变量)。(3) `UX-AUDIT-PROMPT.md` 新增 30 行已关闭条目。(4) docs/architecture/ 刷新(FRONTEND 抽屉、TESTING 合计 928/62/20/23)。(5) CLAUDE.md 新增「v1.58.x 周期的硬经验教训」章节。(6) README ×8 新增「通知 🔔」行 + 修正过时的测试计数。基线无变化。(housekeeping)
