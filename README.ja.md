@@ -161,6 +161,19 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 
 ---
 
+## 初回起動 — クリーンな状態
+
+`career-ops/data/pipeline.md` には、テストスイートが密閉的に実行できるよう 2 つの QA フィクスチャ URL (`example.com/qa-fixture-*`) が含まれています。新規クローンでは Pipeline が `2 件待機中` と表示されますが、これらは実際の求人ではありません。最初のスキャン前にクリーンアップしてください:
+
+```bash
+make clean-test-fixtures
+npm start
+```
+
+http://127.0.0.1:4317 を開きます。Pipeline カウンタが `0 件待機中` と表示されるはずです。
+
+---
+
 ## 必要要件
 
 | | |

@@ -161,6 +161,19 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 
 ---
 
+## Primera ejecución — estado limpio
+
+`career-ops/data/pipeline.md` viene con dos URLs de fixture de QA (`example.com/qa-fixture-*`) para que la suite de pruebas se ejecute de forma hermética. En un clon nuevo verás Pipeline mostrando `2 pendientes` — no son ofertas reales. Bórralas antes de tu primer escaneo:
+
+```bash
+make clean-test-fixtures
+npm start
+```
+
+Abre http://127.0.0.1:4317. El contador de Pipeline debe mostrar `0 pendientes`.
+
+---
+
 ## Requisitos
 
 | | |

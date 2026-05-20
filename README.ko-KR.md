@@ -161,6 +161,19 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 
 ---
 
+## 최초 실행 — 깨끗한 상태
+
+`career-ops/data/pipeline.md` 에는 테스트 스위트가 헐멋하게 실행되도록 두 개의 QA 픽스처 URL (`example.com/qa-fixture-*`) 이 포함되어 있습니다. 새 클론에서는 Pipeline 이 `2 대기 중` 으로 표시됩니다 — 실제 채용 공고가 아닙니다. 첫 스캔 전에 정리하세요:
+
+```bash
+make clean-test-fixtures
+npm start
+```
+
+http://127.0.0.1:4317 를 엽니다. Pipeline 카운터가 `0 대기 중` 으로 표시되어야 합니다.
+
+---
+
 ## 요구사항
 
 | | |

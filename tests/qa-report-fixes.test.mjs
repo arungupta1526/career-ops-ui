@@ -37,6 +37,20 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-A8 (v1.58.61): README documents the make clean-test-fixtures first-run step', () => {
+  // All 8 READMEs must mention the cleanup step so first-time users
+  // don't mistake the fixture rows for real jobs.
+  const FILES = ['README.md','README.es.md','README.pt-BR.md','README.ko-KR.md',
+                 'README.ja.md','README.ru.md','README.zh-CN.md','README.zh-TW.md'];
+  for (const f of FILES) {
+    const md = read(f);
+    assert.match(md, /make clean-test-fixtures/,
+      `${f} must document the make clean-test-fixtures first-run step`);
+    assert.match(md, /qa-fixture-\*/,
+      `${f} must reference the qa-fixture-* shape so users recognize the rows`);
+  }
+});
+
 test('UX-A12 (v1.58.60): notifications drawer supports Clear all + per-entry dismiss', () => {
   const api = read('public', 'js', 'api.js');
   // UI surface must expose the new helpers.
@@ -520,7 +534,7 @@ test('v1.58.34: notifications drawer wires bell + onToast subscribe + 4 i18n key
   assert.match(api, /toastSubscribers\.add\(fn\)/, 'onToast must add subscribers');
   assert.match(api, /for \(const fn of toastSubscribers\)/,
     'toast() must notify subscribers on every push');
-  assert.match(api, /return\s*\{[^}]*onToast\s*\}/,
+  assert.match(api, /return\s*\{[^}]*onToast[^}]*\}/,
     'UI return must export onToast');
   // v1.58.36 (L-7) — onToast must return an unsubscribe function so
   // long-lived sessions can clean up per-mount subscribers.

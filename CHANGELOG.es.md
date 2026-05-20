@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.61] — 2026-05-20
+
+**docs(readme): UX-A8 (v1.58.61) — sección de limpieza para primera ejecución añadida en los 8 READMEs.** Ahora se documenta el paso `make clean-test-fixtures` para purgar las dos URLs fixture QA antes del primer scan. (UX-A8)
+
+---
+
+
+
 ## [1.58.60] — 2026-05-20
 
 **feat(ui): UX-A12 (v1.58.60) — Cajón de notificaciones con Borrar todo + descartar por entrada.** Nuevo botón global y × por entrada en el panel de notificaciones. (UX-A12)

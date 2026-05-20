@@ -161,6 +161,19 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 
 ---
 
+## First run — clean state
+
+`career-ops/data/pipeline.md` ships with two QA fixture URLs (`example.com/qa-fixture-*`) so the test suite can run hermetically. On a fresh clone you'll see Pipeline showing `2 pending` — those are not real jobs. Purge them before your first scan:
+
+```bash
+make clean-test-fixtures        # removes pipeline.md fixture rows + qa-fixture-* applications.md rows
+npm start
+```
+
+Open http://127.0.0.1:4317. Pipeline counter should now read `0 pending`. The Makefile is idempotent — re-running it on a clean tree is a no-op.
+
+---
+
 ## Requirements
 
 | | |

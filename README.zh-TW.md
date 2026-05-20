@@ -161,6 +161,19 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 
 ---
 
+## 首次執行 — 清潔狀態
+
+`career-ops/data/pipeline.md` 附帶兩個 QA 測試夾具 URL (`example.com/qa-fixture-*`),以便測試套件能夠密封執行。在新克隆中,Pipeline 顯示 `2 個待處理` — 這些不是真實職位。首次掃描前請清理:
+
+```bash
+make clean-test-fixtures
+npm start
+```
+
+打開 http://127.0.0.1:4317。Pipeline 計數器應顯示 `0 個待處理`。
+
+---
+
 ## 系統需求
 
 | | |
