@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.59.1] — 2026-05-20
+
+**fix(test): v1.59.1 — NEW-D1 guard acepta el copy ES pulido en UX-A11.** Relajada la regex que bloqueaba `pipe.title[es]` a `vacantes`. Ahora también acepta `candidaturas`. (v1.59.1)
+
+---
+
+
+
 ## [1.59.0] — 2026-05-20
 
 **feat(ui): UX-A14 (v1.59.0) — Pase de auditoría mobile (≤ 420 px).** Cinco correcciones en un nuevo bloque `@media (max-width: 420px)`: card-row 1-up, hero CTAs apilados, page-header apilado, qa-grid floor 160 px, api-keys summary compacto. (UX-A14)

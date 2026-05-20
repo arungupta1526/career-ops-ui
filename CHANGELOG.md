@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.59.1] — 2026-05-20
+
+**fix(test): v1.59.1 — NEW-D1 i18n-no-latin-leaks guard accepts UX-A11 polished ES copy.** During final verification of the v1.59.0 ship I caught a regression: the v1.58.37 NEW-D1 static guard asserted `pipe.title[es]` must match `/vacant|vaca/i` (locking the old `Pipeline de vacantes`). UX-A11 (v1.58.64) refined that to `Pipeline de candidaturas` (candidate-side perspective). Fix: relax the regex to `/vacant|vaca|candidatur/i` so either contextualizing noun passes. No production-code change. 962 unit tests, 0 fail.
+
+---
+
+
+
 ## [1.59.0] — 2026-05-20
 
 **feat(ui): UX-A14 (v1.59.0) — Mobile (≤ 420 px) media-query pass.** Closes the long-standing mobile audit. Five focused fixes inside a single `@media (max-width: 420px)` block in [public/css/app.css](public/css/app.css):\n\n1. `.card-row` (4 dashboard metric cards) collapses to 1-up below 420 px (was a 900+ px horizontal scroll).\n2. `.dash-hero-cta` stacks vertically with full-width buttons (was side-by-side wrap-mid-label on iPhone SE).\n3. `.page-header` stacks H1+subtitle above the action buttons row (was right-side overflow on 360 px).\n4. `.qa-grid` minmax floor drops from 220 px to 160 px so tiles fit two-up on 360–390 px viewports.\n5. `.api-keys__summary` chips tighten horizontal padding for breathing room.\n\nRegression-lock test in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs). 961 → **962** unit. (UX-A14)

@@ -90,10 +90,15 @@ test('NEW-D1: pipe.title is fully localized on the 3 previously-leaking locales 
   assert.match(row.get('ru'), /^[А-Яа-яЁё\s]+$/,
     `pipe.title[ru] must be Cyrillic, got "${row.get('ru')}"`);
   // ES must not be just "Pipeline" — has to add a noun.
+  // UX-A11 (v1.58.64) refined the es copy from "Pipeline de vacantes"
+  // to "Pipeline de candidaturas" (candidate-side perspective is the
+  // user's mental model). Both are acceptable; the guard accepts either
+  // contextualizing noun ("vacantes/vacant" employer-side, or
+  // "candidaturas" candidate-side).
   assert.notEqual(row.get('es'), 'Pipeline',
-    'pipe.title[es] must contextualize (e.g. "Pipeline de vacantes")');
-  assert.match(row.get('es'), /vacant|vaca/i,
-    'pipe.title[es] must mention "vacantes"');
+    'pipe.title[es] must contextualize (e.g. "Pipeline de candidaturas")');
+  assert.match(row.get('es'), /vacant|vaca|candidatur/i,
+    'pipe.title[es] must mention "vacantes" OR "candidaturas"');
   // pt-BR must add Portuguese "vagas".
   assert.notEqual(row.get('pt-BR'), 'Pipeline',
     'pipe.title[pt-BR] must contextualize (e.g. "Pipeline de vagas")');
