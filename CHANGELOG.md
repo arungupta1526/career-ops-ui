@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.27] — 2026-05-20
+
+**fix(ux): U-7 — `verify-pipeline.mjs` ASCII `===` dividers stripped from the result modal.** The script prints `=========`-runs (≥ 50 chars) between sections; in the 14 px monospace modal the run pushed the body wider than the rest of the SPA needs. Strip in [public/js/views/health.js](public/js/views/health.js#L23-L38) via `.replace(/^={10,}$/gm, "")` before rendering; whitespace already separates sections. 919 → **920** unit. (U-7)
+
+---
+
 ## [1.58.26] — 2026-05-20
 
 **fix(ux): U-6 — `#/scan` "Active companies N/M" chip now explains N vs M via tooltip + aria-label.** v1.58.3 QA: the chip read `▸ Active companies 96/80` with no affordance to learn what 96/80 means. Toggle button in [public/js/views/scan.js](public/js/views/scan.js#L700-L719) now carries `title=` (hover tooltip) and `aria-label=` (screen-reader fallback) sourced from a new `scan.activeCo.help` i18n key in all 8 locales: *"Active: companies currently surfacing results. Total: configured in portals.yml."* 918 → **919** unit. (U-6)

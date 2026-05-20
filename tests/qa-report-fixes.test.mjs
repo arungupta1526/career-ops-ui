@@ -30,6 +30,12 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('U-7 (v1.58.27): verify-pipeline modal strips `==========` ASCII dividers', () => {
+  const health = read('public', 'js', 'views', 'health.js');
+  assert.match(health, /\.replace\(\/\^=\{10,\}\$\/gm,\s*''\)/,
+    "verify handler must strip lines that are >=10 '=' chars before rendering");
+});
+
 test('U-6 (v1.58.26): scan Active-companies chip exposes localized tooltip + aria-label', () => {
   const scan = read('public', 'js', 'views', 'scan.js');
   // toggleBtn must declare both title and aria-label so sighted users

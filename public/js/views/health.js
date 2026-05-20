@@ -24,7 +24,16 @@ Router.register('health', async () => {
           UI.toast(t('health.runningVerify', 'Running verify-pipeline.mjs…'));
           const r = await UI.withSpinner(e.currentTarget, () => API.post('/api/run/verify'));
           UI.dismissToast();
-          UI.modal(t('health.verify'), UI.el('pre', { className: 'console' }, (r.stdout || '') + (r.stderr ? '\n' + r.stderr : '')));
+          // U-7 (v1.58.27) — verify-pipeline.mjs prints
+          // `==================================================` ASCII
+          // dividers between sections. In a fixed-width 14px font the
+          // 50-char run pushes the modal body wider than the rest of
+          // the SPA needs. Strip lines that are entirely ≥10 `=` chars
+          // before rendering; the remaining whitespace already
+          // separates sections visually.
+          const stripped = ((r.stdout || '') + (r.stderr ? '\n' + r.stderr : ''))
+            .replace(/^={10,}$/gm, '');
+          UI.modal(t('health.verify'), UI.el('pre', { className: 'console' }, stripped));
         }}, t('health.verify')),
       ]),
     ]),

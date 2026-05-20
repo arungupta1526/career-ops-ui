@@ -10,6 +10,12 @@
 
 
 
+## [1.58.27] — 2026-05-20
+
+**fix(ux): U-7 — `verify-pipeline.mjs` 的 `===` ASCII 分隔線從結果視窗中移除。** 在處理函式內透過正則 `^={10,}$` 預先剝離。919 → **920** 單元。(U-7)
+
+---
+
 ## [1.58.26] — 2026-05-20
 
 **fix(ux): U-6 — `#/scan` 的 "Active companies N/M" 晶片透過 tooltip + aria-label 解釋 N 與 M。** 新增 i18n 鍵 `scan.activeCo.help` × 8 語言。918 → **919** 單元。(U-6)

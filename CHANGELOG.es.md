@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.27] — 2026-05-20
+
+**fix(ux): U-7 — los divisores ASCII `===` de `verify-pipeline.mjs` se eliminan del modal de resultado.** Regex `^={10,}$` aplicada en el handler antes de renderizar. 919 → **920** unitarios. (U-7)
+
+---
+
 ## [1.58.26] — 2026-05-20
 
 **fix(ux): U-6 — el chip de `#/scan` "Active companies N/M" ahora explica N vs M con tooltip + aria-label.** Nueva clave `scan.activeCo.help` × 8 idiomas. 918 → **919** unitarios. (U-6)

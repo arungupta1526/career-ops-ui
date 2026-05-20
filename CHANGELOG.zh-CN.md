@@ -10,6 +10,12 @@
 
 
 
+## [1.58.27] — 2026-05-20
+
+**fix(ux): U-7 — `verify-pipeline.mjs` 的 `===` ASCII 分隔符从结果模态中移除。** 在处理函数内通过正则 `^={10,}$` 预先剥离。919 → **920** 单元。(U-7)
+
+---
+
 ## [1.58.26] — 2026-05-20
 
 **fix(ux): U-6 — `#/scan` 的 "Active companies N/M" 芯片通过 tooltip + aria-label 解释 N 与 M。** 新增 i18n 键 `scan.activeCo.help` × 8 语言。918 → **919** 单元。(U-6)
