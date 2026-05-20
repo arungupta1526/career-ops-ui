@@ -162,10 +162,23 @@
       // label and the hint without a re-render.
       const inputId = `mode-${cfg.slug}-${spec.name}`;
       const hintId = spec.i18n.hint ? `${inputId}-hint` : null;
+      // U-3 (v1.58.23) — followup.lastContact's placeholder was the
+      // frozen ISO date `2026-04-21`. A static placeholder rots: the
+      // user reads it as "this is the field's expected format AND a
+      // realistic recent value". As time passes the date drifts into
+      // the distant past and the example loses its example-ness.
+      // Compute today − 14 days for that specific field so the
+      // placeholder remains a plausible "last contact" example.
+      let placeholder = t(spec.i18n.placeholder, spec.i18n.placeholder);
+      if (cfg.slug === 'followup' && spec.name === 'lastContact') {
+        const d = new Date();
+        d.setDate(d.getDate() - 14);
+        placeholder = d.toISOString().slice(0, 10);
+      }
       const opts = {
         id: inputId,
         className: spec.type === 'textarea' ? 'textarea' : 'input',
-        placeholder: t(spec.i18n.placeholder, spec.i18n.placeholder),
+        placeholder,
       };
       if (hintId) opts['aria-describedby'] = hintId;
       if (spec.type === 'textarea') opts.rows = spec.rows || 4;

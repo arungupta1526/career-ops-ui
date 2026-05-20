@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.23] — 2026-05-20
+
+**fix(ux): U-3 — `#/followup` `lastContact` placeholder now adapts to today − 14 days (was the frozen ISO `2026-04-21`).** Static placeholders rot — readers parse them as both a format hint AND a plausible recent example, and the latter drifts into the distant past as time passes. Compute the placeholder at render time in [public/js/views/mode-page.js](public/js/views/mode-page.js#L165-L181): `new Date(); d.setDate(d.getDate() - 14); d.toISOString().slice(0, 10)`. Special-cased only for `cfg.slug === 'followup' && spec.name === 'lastContact'`; every other field still pulls its placeholder from i18n. 915 → **916** unit. (U-3)
+
+---
+
 ## [1.58.22] — 2026-05-20
 
 **fix(ux): U-2 — `#/auto` H1 no longer wraps to 2 lines because of the leading `✨`.** Pre-fix the `auto.title` i18n value was `✨ Auto-pipeline a URL`; the emoji participated in line-wrap and pushed the title to a second row at 1280-1600 px widths. Split into separate elements in [public/js/views/auto.js](public/js/views/auto.js#L240-L252): `.page-header.page-header--icon` (CSS grid, `auto 1fr` columns) + `<span class="page-icon" aria-hidden="true">✨</span>` + `<h1 class="page-title">{t(auto.title)}</h1>` + `<p class="page-subtitle">`. The emoji now sits on its own column and never participates in line wrap; the H1 wraps freely if needed. `auto.title` i18n value stripped of its leading `✨` in all 8 locales. 914 → **915** unit. (U-2)

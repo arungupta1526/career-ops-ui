@@ -10,6 +10,12 @@
 
 
 
+## [1.58.23] — 2026-05-20
+
+**fix(ux): U-3 — `#/followup` 的 `lastContact` 占位符改为今日 − 14 天动态计算。** 固定 `2026-04-21` 会随时间老化;现在在渲染时通过 `new Date()` + `setDate(getDate() - 14)` 生成 ISO YYYY-MM-DD。915 → **916** 单元。(U-3)
+
+---
+
 ## [1.58.22] — 2026-05-20
 
 **fix(ux): U-2 — `#/auto` 的 H1 不再因前导 `✨` 而换行至两行。** 把 `✨` 从 `auto.title` 拆出到独立 `<span class="page-icon" aria-hidden="true">`;`.page-header--icon` 用 CSS grid 为图标设单独列。914 → **915** 单元。(U-2)

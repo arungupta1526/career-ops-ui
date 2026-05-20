@@ -10,6 +10,12 @@
 
 
 
+## [1.58.23] — 2026-05-20
+
+**fix(ux): U-3 — `#/followup` の `lastContact` プレースホルダを今日 − 14 日に動的算出。** 固定 `2026-04-21` は時間経過で陳腐化していた。`new Date()` ベースで `setDate(getDate() - 14)` し、ISO YYYY-MM-DD を生成。915 → **916** ユニット。(U-3)
+
+---
+
 ## [1.58.22] — 2026-05-20
 
 **fix(ux): U-2 — `#/auto` の H1 が先頭の `✨` のせいで 2 行に折り返さないようにした。** `auto.title` から `✨` を分離し、`<span class="page-icon" aria-hidden="true">` に移動。`.page-header--icon` は grid レイアウトで絵文字専用列を確保。914 → **915** ユニット。(U-2)

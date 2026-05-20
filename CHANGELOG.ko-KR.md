@@ -10,6 +10,12 @@
 
 
 
+## [1.58.23] — 2026-05-20
+
+**fix(ux): U-3 — `#/followup` 의 `lastContact` 플레이스홀더가 오늘 − 14 일로 동적 계산됨.** 고정 `2026-04-21` 은 시간이 흐르면서 진부해졌음. `new Date()` 기반으로 `setDate(getDate() - 14)` 후 ISO YYYY-MM-DD 생성. 915 → **916** 유닛. (U-3)
+
+---
+
 ## [1.58.22] — 2026-05-20
 
 **fix(ux): U-2 — `#/auto` H1 이 선행 `✨` 때문에 두 줄로 줄바꿈되던 문제 해결.** `auto.title` 에서 `✨` 분리하여 `<span class="page-icon" aria-hidden="true">` 로 이동. `.page-header--icon` 은 grid 레이아웃으로 이모지 전용 열 확보. 914 → **915** 유닛. (U-2)

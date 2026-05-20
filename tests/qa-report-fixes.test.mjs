@@ -30,6 +30,27 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('U-3 (v1.58.23): #/followup lastContact placeholder is computed as today − 14 days', () => {
+  const mp = read('public', 'js', 'views', 'mode-page.js');
+  // The placeholder for followup.lastContact must be computed at render
+  // time from `new Date()` minus 14 days, not read from i18n directly.
+  assert.match(
+    mp,
+    /cfg\.slug === 'followup' && spec\.name === 'lastContact'/,
+    'mode-page.js must special-case followup.lastContact for dynamic placeholder',
+  );
+  assert.match(
+    mp,
+    /d\.setDate\(d\.getDate\(\) - 14\)/,
+    'placeholder must subtract 14 days',
+  );
+  assert.match(
+    mp,
+    /d\.toISOString\(\)\.slice\(0,\s*10\)/,
+    'placeholder must format as ISO YYYY-MM-DD via toISOString().slice(0, 10)',
+  );
+});
+
 test('U-2 (v1.58.22): #/auto separates ✨ from the H1 via a .page-icon span', () => {
   const auto = read('public', 'js', 'views', 'auto.js');
   // Header must use the icon variant + emoji as a sibling span:
