@@ -38,6 +38,13 @@ Router.register('health', async () => {
       ]),
     ]),
 
+    // UX-A13 (v1.58.59) — actionable "Fix" CTA on failing rows. The
+    // 21 rows previously showed status only; the user had to guess
+    // where to go to fix `Profile customized` / `ANTHROPIC_API_KEY` /
+    // etc. This map links failing/optional checks to the right config
+    // tab. Unmapped failures (e.g. parent project structural ones the
+    // user can't fix from the UI) stay action-less to avoid leading the
+    // user to a dead end.
     // WS2 #36 — a flat run of generic divs gave SR users no name↔status
     // relationship. Render as a list; the badge carries an aria-label
     // pairing the check name with its pass/fail state.
@@ -51,13 +58,35 @@ Router.register('health', async () => {
         } else {
           badgeClass = 'badge-bad'; badgeText = t('health.badgeFail');
         }
+        // Map failing/optional rows to their config tab. Key match is
+        // exact on `ch.name` (matches server/lib/store.mjs labels) plus
+        // a tolerant substring fallback for *_API_KEY variants.
+        const FIX_TARGETS = {
+          'Profile customized':         '#/config?tab=profile',
+          'cv.md non-empty':            '#/cv',
+          'portals.yml present':        '#/config?tab=portals',
+          'data/applications.md':       '#/tracker',
+        };
+        let fixUrl = null;
+        if (!ch.ok) {
+          if (FIX_TARGETS[ch.name]) fixUrl = FIX_TARGETS[ch.name];
+          else if (/_API_KEY$/.test(ch.name)) fixUrl = '#/config?tab=api-keys';
+          else if (/^LLM_PROVIDER/.test(ch.name)) fixUrl = '#/config?tab=api-keys';
+        }
         return c('li', { className: 'card' }, [
           c('div', { className: 'flex-between' }, [
             c('div', null, [
               c('div', { className: 'metric-label' }, ch.name),
               ch.value && c('div', { style: { fontSize: '13px', color: 'var(--foggy)', marginTop: '6px', wordBreak: 'break-all' } }, ch.value),
             ]),
-            c('span', { className: 'badge ' + badgeClass, 'aria-label': ch.name + ': ' + badgeText }, badgeText),
+            c('div', { className: 'flex gap-3', style: { alignItems: 'center' } }, [
+              fixUrl ? c('a', {
+                className: 'btn btn-ghost btn-sm health-fix',
+                href: fixUrl,
+                'aria-label': t('health.fixAria', 'Fix this') + ': ' + ch.name,
+              }, t('health.fix', 'Fix →')) : null,
+              c('span', { className: 'badge ' + badgeClass, 'aria-label': ch.name + ': ' + badgeText }, badgeText),
+            ]),
           ]),
         ]);
       })

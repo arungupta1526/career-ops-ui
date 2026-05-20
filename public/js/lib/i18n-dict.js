@@ -374,6 +374,10 @@ window.__I18N_DICT = {
   // UX-A10 (v1.58.58) — confirm dialog when leaving #/cv with unsaved buffer.
   'cv.unsavedConfirm': { en: 'You have unsaved CV changes. Leave anyway?', es: 'Tienes cambios de CV sin guardar. ¿Salir de todos modos?', 'pt-BR': 'Você tem alterações de CV não salvas. Sair mesmo assim?', ko: '저장되지 않은 CV 변경 사항이 있습니다. 정말 나가시겠습니까?', ja: '保存されていない CV の変更があります。それでも移動しますか?', ru: 'Есть несохранённые изменения CV. Всё равно уйти?', 'zh-CN': '您有未保存的 CV 更改。仍要离开吗?', 'zh-TW': '您有未儲存的 CV 變更。仍要離開嗎?' },
 
+  // UX-A13 (v1.58.59) — actionable "Fix →" CTA on failing health rows.
+  'health.fix':    { en: 'Fix →', es: 'Arreglar →', 'pt-BR': 'Corrigir →', ko: '수정 →', ja: '修正 →', ru: 'Исправить →', 'zh-CN': '修复 →', 'zh-TW': '修復 →' },
+  'health.fixAria':{ en: 'Fix this', es: 'Arreglar esto', 'pt-BR': 'Corrigir isto', ko: '이 항목 수정', ja: 'これを修正', ru: 'Исправить это', 'zh-CN': '修复此项', 'zh-TW': '修復此項' },
+
   // Scan
   'scan.title':     { en: 'Vacancy search', es: 'Búsqueda de vacantes', 'pt-BR': 'Busca de vagas', ko: '채용 공고 검색', ja: '求人検索', ru: 'Поиск вакансий', 'zh-CN': '职位搜索', 'zh-TW': '職位搜尋' },
   // v1.20.1 (H-3) — Active Companies badge labels referenced from scan.js.

@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.59] — 2026-05-20
+
+**feat(ui): UX-A13 (v1.58.59) — actionable "Fix →" CTA on failing #/health rows.** Pre-fix the 21 health rows showed status only; a user with `Profile customized: FAIL` had to guess where to go. [public/js/views/health.js](public/js/views/health.js) now renders a small ghost-button `Fix →` next to the badge on failing/optional rows. Mapped targets: `Profile customized` → `#/config?tab=profile`, `cv.md non-empty` → `#/cv`, `portals.yml present` → `#/config?tab=portals`, `data/applications.md` → `#/tracker`. Any `*_API_KEY` or `LLM_PROVIDER*` row routes to `#/config?tab=api-keys` via regex fallback. Unmapped failures stay action-less (no dead-end CTAs). Two new i18n keys (`health.fix`, `health.fixAria`) × 8 locales. 954 → **955** unit. (UX-A13)
+
+---
+
+
+
 ## [1.58.58] — 2026-05-20
 
 **fix(ux): UX-A10 (v1.58.58) — guard #/cv against leaving with unsaved buffer.** Pre-fix, navigating away from #/cv with unsaved edits silently dropped the buffer. [public/js/views/cv.js](public/js/views/cv.js) now registers a `beforeunload` listener (browser-close confirm — generic dialog per modern browser policy) **and** a `hashchange` listener (SPA-internal nav prompts via localized `window.confirm()` and rewinds the hash if the user cancels). `cvDirty` lives in the save-button IIFE closure; cleanup self-detaches when the hash leaves `#/cv` (M-1 discipline). One new i18n key (`cv.unsavedConfirm`) × 8 locales. 953 → **954** unit. (UX-A10)

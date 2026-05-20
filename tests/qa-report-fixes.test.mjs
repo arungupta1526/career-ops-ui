@@ -37,6 +37,25 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-A13 (v1.58.59): #/health failing rows render an actionable "Fix →" CTA mapped to the right config tab', () => {
+  const health = read('public', 'js', 'views', 'health.js');
+  assert.match(health, /const FIX_TARGETS = \{/,
+    'health.js must define FIX_TARGETS map for fixable rows');
+  assert.match(health, /'Profile customized':\s*'#\/config\?tab=profile'/,
+    'Profile customized must route to the profile tab');
+  assert.match(health, /_API_KEY\$/,
+    'API key rows must be matched by suffix regex and routed to api-keys tab');
+  assert.match(health, /className:\s*'btn btn-ghost btn-sm health-fix'/,
+    'the CTA must render as a small ghost button with .health-fix class');
+  // The CTA copy must be localized (no hardcoded English).
+  assert.match(health, /t\('health\.fix',/, 'CTA label must use i18n key health.fix');
+  // i18n keys present.
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  for (const key of ['health.fix', 'health.fixAria']) {
+    assert.ok(dict.includes(`'${key}'`), `i18n-dict.js must define '${key}'`);
+  }
+});
+
 test('UX-A10 (v1.58.58): #/cv guards against leaving with unsaved buffer (beforeunload + hashchange)', () => {
   const cv = read('public', 'js', 'views', 'cv.js');
   assert.match(cv, /let cvDirty = false/,

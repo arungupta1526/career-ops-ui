@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.59] — 2026-05-20
+
+**feat(ui): UX-A13 (v1.58.59) — CTA accionable «Fix →» en filas de salud que fallan.** Las filas con FAIL/OPTIONAL ahora muestran un botón ghost que enlaza directamente con la pestaña de configuración correspondiente. (UX-A13)
+
+---
+
+
+
 ## [1.58.58] — 2026-05-20
 
 **fix(ux): UX-A10 (v1.58.58) — protección contra perder edición no guardada en `#/cv`.** Ahora `beforeunload` (cierre del navegador) y `hashchange` (navegación SPA) muestran confirmación localizada antes de abandonar la página con buffer sucio. (UX-A10)
