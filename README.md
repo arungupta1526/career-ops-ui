@@ -5,11 +5,11 @@
 
 **English** | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-949%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-962%20passed-brightgreen)](#tests)
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.58.53-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.53)
+[![release](https://img.shields.io/badge/release-v1.59.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.59.1)
 
 > **Recent (v1.55 → v1.58):** **clean, formatted research output** (`#/deep` + Saved research strip echoed `<tool_call>` / `<tool_response>` agent scaffolding) + external QA-report bug sweep (`#/followup` ISO-date validation, markdown bold in help block-quotes, honest pipeline-dup toast, doctor-modal polish, `#/outreach` alias), **OpenRouter provider** (one key → 300+ models, live `#/config` dropdown) + `#/config` "validation failed" fix, on-screen onboarding banner + active-provider chip, honest ⚡ Run-live cost hints, `#/auto` ETA, `#/scan` Advanced-filters disclosure, `#/pipeline` >1000-row virtualization, `#/tracker` server-side pagination + funnel chips, plus a11y polish — see [CHANGELOG.md](CHANGELOG.md) for the full per-release detail.
 
@@ -310,7 +310,7 @@ career-ops-ui/
 │  ├─ sdd/{SDD-GUIDE,CONVENTIONS}.md
 │  ├─ architecture/{OVERVIEW,SERVER,FRONTEND,API,DATA-FLOWS}.md
 │  └─ reviews/REVIEW-*.md
-└─ tests/                    # 928 unit + 62 Playwright + 23 e2e:full + 20 e2e:smoke (baseline @ v1.58.35)
+└─ tests/                    # 962 unit + 62 Playwright + 23 e2e:full + 20 e2e:smoke (baseline @ v1.59.1)
    ├─ parsers.test.mjs       # markdown / pipeline / report parsers (pure functions)
    ├─ api.test.mjs           # every endpoint, ephemeral server, no network
    ├─ {ru,en}-scanner.test.mjs   # mocked fetch
