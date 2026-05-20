@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.17] — 2026-05-20
+
+**fix(i18n): I-2 — Saved-research 날짜 라벨을 `Intl.RelativeTimeFormat` 으로 로케일화.** [public/js/views/deep.js](public/js/views/deep.js#L57-L82) 의 `formatRelative()` 가 영어 `today` / `1d ago` / `Nd ago` 를 하드코딩했었다. `Intl.RelativeTimeFormat(I18n.getLang(), { numeric: 'auto' })` 로 교체 — 브라우저 네이티브의 로컬라이즈된 "오늘/어제/N일 전" 문자열 사용. 7일 초과 시 `Intl.DateTimeFormat(locale, { dateStyle: 'medium' })` 로 폴백. 912 → **913** 유닛. (I-2)
+
+---
+
 ## [1.58.16] — 2026-05-20
 
 **fix(ui): 브랜드 버튼 호버 깜빡임(사용자 보고).** 원인: `.btn-primary` / `.btn-danger` 의 기본 배경은 `linear-gradient(...)`, `:hover` 는 단색 `var(--rausch-dark)`. CSS 는 그라데이션↔단색을 보간할 수 없어 180ms `transition: background` 가 스냅하면서 흰색/분홍 깜빡임이 보였다. 수정 위치 [public/css/app.css](public/css/app.css): 호버에서도 그라데이션을 유지하고 `filter: brightness(0.92)` 로 어둡게 — `filter` 는 모든 브라우저에서 부드럽게 보간된다. `.btn` 의 `transition` 목록에 `filter var(--transition)` 을 추가해 어두워짐이 애니메이션되도록 함. 911 → **912** 유닛. (사용자 보고)

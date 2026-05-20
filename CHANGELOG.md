@@ -6,6 +6,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.58.17] — 2026-05-20
+
+**fix(i18n): I-2 — saved-research dates now use `Intl.RelativeTimeFormat` per locale.** The `formatRelative()` helper in [public/js/views/deep.js](public/js/views/deep.js#L57-L82) returned hardcoded English `today` / `1d ago` / `Nd ago` regardless of UI language. Replaced with `Intl.RelativeTimeFormat(I18n.getLang(), { numeric: 'auto' })` — the browser-native localized "today/yesterday/N days ago" string (сегодня/вчера, 今日/昨日, etc.). Dates older than 7 days fall back to `Intl.DateTimeFormat(locale, { dateStyle: 'medium' })`. Defensive try/catch keeps the old English fallback for ancient browsers without Intl. 912 → **913** unit. (I-2)
+
+---
+
 ## [1.58.16] — 2026-05-20
 
 **fix(ui): brand-button hover-flicker — pink/red primary & danger buttons no longer flash on hover (user-reported).** Root cause in [public/css/app.css](public/css/app.css): the default `.btn-primary` / `.btn-danger` background was a `linear-gradient(135deg, var(--rausch) 0%, var(--rausch-dark) 100%)`; the `:hover` rule replaced it with a solid `var(--rausch-dark)`. CSS cannot interpolate between a gradient and a solid colour, so the 180 ms `transition: background` on `.btn` snapped — the gradient briefly resolved to one of its stops on hover entry/exit, producing the visible white/pink flicker the user reported. Fix: keep the gradient on hover and dim via `filter: brightness(0.92)` instead — `filter` interpolates cleanly in every browser, so the dim/un-dim now animates symmetrically over the existing 180 ms duration. The `.btn` transition list is extended with `filter var(--transition)` so the hover dim actually animates. Mouse pointer-focus state stays clean (uses `:focus`, not `:focus-visible`, per the v1.58.9 M-1 contract). 911 → **912** unit (`tests/qa-report-fixes.test.mjs` asserts the gradient-stays/filter-dims contract on both `.btn-primary:hover` and `.btn-danger:hover`, plus that the pre-fix `background: var(--rausch-dark)` is gone and that `filter` is in the `.btn` transition list). (user-reported)

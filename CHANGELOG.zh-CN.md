@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.17] — 2026-05-20
+
+**fix(i18n): I-2 — Saved-research 卡片日期改用 `Intl.RelativeTimeFormat` 按语言本地化。** [public/js/views/deep.js](public/js/views/deep.js#L57-L82) 的 `formatRelative()` 之前在任何语言下都硬编码英文 `today` / `1d ago` / `Nd ago`。改为 `Intl.RelativeTimeFormat(I18n.getLang(), { numeric: 'auto' })` — 浏览器原生本地化字符串("今天/昨天/N 天前", "сегодня/вчера" 等)。超过 7 天的日期回退到 `Intl.DateTimeFormat(locale, { dateStyle: 'medium' })`。912 → **913** 单元。(I-2)
+
+---
+
 ## [1.58.16] — 2026-05-20
 
 **fix(ui): 品牌按钮悬停闪烁(用户反馈)。** 原因:`.btn-primary` / `.btn-danger` 默认背景为 `linear-gradient(...)`,`:hover` 把它换成纯色 `var(--rausch-dark)`。CSS 无法在渐变↔纯色之间补间,180ms `transition: background` 会"卡顿",用户看到白/粉色的瞬闪。修复 [public/css/app.css](public/css/app.css):悬停时保留渐变,改用 `filter: brightness(0.92)` 减暗 — `filter` 在所有浏览器中都能平滑补间。`.btn` 的 `transition` 列表新增 `filter var(--transition)`,让减暗带动画效果。911 → **912** 单元。(用户反馈)

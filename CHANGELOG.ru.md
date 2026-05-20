@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.17] — 2026-05-20
+
+**fix(i18n): I-2 — даты на карточках Saved-research теперь используют `Intl.RelativeTimeFormat` для активной локали.** В [public/js/views/deep.js](public/js/views/deep.js#L57-L82) `formatRelative()` возвращал «today» / «1d ago» / «Nd ago» на любом языке. Заменено на `Intl.RelativeTimeFormat(I18n.getLang(), { numeric: 'auto' })` — нативная локализованная строка («сегодня/вчера/N дней назад», «今日/昨日», и т.д.). Даты старше 7 дней — `Intl.DateTimeFormat(locale, { dateStyle: 'medium' })`. 912 → **913** модульных. (I-2)
+
+---
+
 ## [1.58.16] — 2026-05-20
 
 **fix(ui): мерцание hover на брендовых кнопках (отчёт пользователя).** Причина: дефолтный фон `.btn-primary` / `.btn-danger` — `linear-gradient(...)`, в `:hover` менялся на сплошной `var(--rausch-dark)`. CSS не умеет интерполировать градиент↔сплошной цвет, поэтому 180 мс `transition: background` «защёлкивался» и пользователь видел белую/розовую вспышку. Правка в [public/css/app.css](public/css/app.css): сохраняем градиент при hover и затемняем через `filter: brightness(0.92)` — `filter` плавно интерполируется во всех браузерах. В список `transition` для `.btn` добавлен `filter var(--transition)`, чтобы затемнение анимировалось. 911 → **912** модульных. (отчёт пользователя)

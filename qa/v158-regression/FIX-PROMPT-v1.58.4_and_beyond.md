@@ -45,7 +45,7 @@ That means every section below = its own version bump and its own PR. No "while 
 | **v1.58.13** ✅ | M-8 — Apply checklist becomes interactive *(shipped 2026-05-20: `<input type="checkbox">` per item, `<label>` full-row click target, per-URL `localStorage['applyChecklist:'+slug]`, Copy-unchecked + Reset buttons, 5 new i18n keys × 8 locales, defensive fallback)* | Major | UX promise vs delivery |
 | **v1.58.14** ✅ | M-9 — Dashboard/banner `Refresh` feedback toast *(shipped 2026-05-20: synchronous `Refreshing…` toast + sessionStorage bridge to localized `Refreshed` success toast on next boot + disabled-guard against double-clicks; 2 new i18n keys × 8 locales)* | Minor | UX |
 | **v1.58.15** ✅ | I-1 — top-bar `aria-label` localized *(shipped 2026-05-20: new generic `data-i18n-aria-label` hook in applyI18n() + 2 new `top.search.aria`/`top.search.label` keys × 8 locales; static guard locks markup, handler, and RU ≠ EN parity)* | Minor | a11y / i18n |
-| **v1.58.16** | I-2 — `today` / `yesterday` / `N days ago` localized via Intl.RelativeTimeFormat | Minor | i18n |
+| **v1.58.17** ✅ | I-2 — `today` / `yesterday` / `N days ago` localized via Intl.RelativeTimeFormat *(shipped 2026-05-20: formatRelative() in deep.js now uses Intl.RelativeTimeFormat + numeric:auto; >7 days falls back to Intl.DateTimeFormat dateStyle:medium)* | Minor | i18n |
 | **v1.58.17** | I-3 — Help TOC items 2 / 5 / 13 / 14 localized | Minor | i18n |
 | **v1.58.18** | I-4 — RU `#/followup` H1 & subtitle (no Latin `cadence`/`follow-up`) | Minor | i18n |
 | **v1.58.19** | I-6 — footer hotkey `⌘K` vs `Ctrl+K` per platform | Minor | i18n / platform |

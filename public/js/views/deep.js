@@ -67,13 +67,28 @@ Router.register('deep', async () => {
     }
   }
 
+  // I-2 (v1.58.17) — relative-time labels were hardcoded English
+  // (`today` / `1d ago` / `Nd ago`) on every locale. Use the platform
+  // Intl.RelativeTimeFormat with `numeric: 'auto'` so today/yesterday
+  // are localized to the active SPA language (сегодня/вчера, 今日/昨日,
+  // etc.). For dates older than a week we fall back to a localized
+  // absolute date via Intl.DateTimeFormat.
   function formatRelative(iso) {
     const d = new Date(iso);
-    const days = Math.floor((Date.now() - d.getTime()) / 86400000);
-    if (days <= 0) return 'today';
-    if (days === 1) return '1d ago';
-    if (days < 30) return days + 'd ago';
-    return d.toLocaleDateString();
+    const days = Math.round((d.getTime() - Date.now()) / 86400000); // negative = past
+    const locale = (window.I18n && I18n.getLang && I18n.getLang()) || 'en';
+    try {
+      if (Math.abs(days) < 7) {
+        return new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(days, 'day');
+      }
+      return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(d);
+    } catch {
+      // Defensive fallback for environments without Intl (very old browsers).
+      if (days >= 0) return 'today';
+      if (days === -1) return '1d ago';
+      if (days > -30) return Math.abs(days) + 'd ago';
+      return d.toLocaleDateString();
+    }
   }
 
   function showResult(title, markdown, opts = {}) {

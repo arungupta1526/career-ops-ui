@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.17] — 2026-05-20
+
+**fix(i18n): I-2 — Saved-research の日付ラベルを `Intl.RelativeTimeFormat` でロケール化。** [public/js/views/deep.js](public/js/views/deep.js#L57-L82) の `formatRelative()` は英語の `today` / `1d ago` / `Nd ago` をハードコードしていた。`Intl.RelativeTimeFormat(I18n.getLang(), { numeric: 'auto' })` に置換 — ブラウザネイティブで「今日/昨日」「сегодня/вчера」等のローカライズ表現を取得。7 日以上前は `Intl.DateTimeFormat(locale, { dateStyle: 'medium' })` にフォールバック。912 → **913** ユニット。(I-2)
+
+---
+
 ## [1.58.16] — 2026-05-20
 
 **fix(ui): ブランドボタンのホバーちらつき(ユーザー報告)。** 原因:`.btn-primary` / `.btn-danger` のデフォルト背景は `linear-gradient(...)`、`:hover` は単色 `var(--rausch-dark)`。CSS はグラデーション↔単色を補間できず、180ms の `transition: background` がスナップして白〜ピンクのちらつきが見えていた。修正は [public/css/app.css](public/css/app.css):ホバーでもグラデーションを維持し `filter: brightness(0.92)` で減光 — `filter` はあらゆるブラウザでスムーズに補間される。`.btn` の `transition` 一覧に `filter var(--transition)` を追加して減光がアニメーションする。911 → **912** ユニット。(ユーザー報告)

@@ -30,6 +30,21 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('I-2 (v1.58.17): formatRelative uses Intl.RelativeTimeFormat with the active locale', () => {
+  const deep = read('public', 'js', 'views', 'deep.js');
+  // The pre-fix hardcoded English strings are gone:
+  assert.ok(!/return 'today';\s*\n\s*if \(days === 1\) return '1d ago'/.test(deep),
+    "pre-fix hardcoded 'today' / '1d ago' / 'Nd ago' must be removed");
+  // The new path must call Intl.RelativeTimeFormat with I18n.getLang() and numeric:auto:
+  assert.match(deep, /new Intl\.RelativeTimeFormat\(locale,\s*\{\s*numeric:\s*'auto'\s*\}\)/,
+    'formatRelative must use Intl.RelativeTimeFormat(locale, { numeric: "auto" })');
+  assert.match(deep, /I18n\.getLang\(\)/,
+    'formatRelative must read the active locale from I18n.getLang()');
+  // Older dates fall back to a localized absolute via Intl.DateTimeFormat:
+  assert.match(deep, /new Intl\.DateTimeFormat\(locale,\s*\{\s*dateStyle:\s*'medium'\s*\}\)/,
+    'formatRelative must fall back to Intl.DateTimeFormat(locale, { dateStyle: "medium" })');
+});
+
 test('v1.58.16: btn-primary/btn-danger hover no longer flickers (gradient stays, filter dims)', () => {
   // Pre-fix the default background was a gradient and the :hover state
   // replaced it with a solid colour. CSS can't smoothly transition

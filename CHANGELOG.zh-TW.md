@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.17] — 2026-05-20
+
+**fix(i18n): I-2 — Saved-research 卡片日期改用 `Intl.RelativeTimeFormat` 按語言在地化。** [public/js/views/deep.js](public/js/views/deep.js#L57-L82) 的 `formatRelative()` 之前在任何語言下都硬寫英文 `today` / `1d ago` / `Nd ago`。改為 `Intl.RelativeTimeFormat(I18n.getLang(), { numeric: 'auto' })` — 瀏覽器原生本地化字串(「今天/昨天/N 天前」、「сегодня/вчера」等)。超過 7 天的日期回退到 `Intl.DateTimeFormat(locale, { dateStyle: 'medium' })`。912 → **913** 單元。(I-2)
+
+---
+
 ## [1.58.16] — 2026-05-20
 
 **fix(ui): 品牌按鈕滑鼠停留閃爍(使用者回報)。** 原因:`.btn-primary` / `.btn-danger` 預設背景為 `linear-gradient(...)`,`:hover` 換成純色 `var(--rausch-dark)`。CSS 無法在漸層↔純色間補間,180ms `transition: background` 會「跳動」,使用者看到白/粉色閃光。修正 [public/css/app.css](public/css/app.css):懸停時保留漸層,改用 `filter: brightness(0.92)` 加深 — `filter` 在所有瀏覽器都能平滑補間。`.btn` 的 `transition` 清單新增 `filter var(--transition)`,讓加深帶動畫效果。911 → **912** 單元。(使用者回報)
