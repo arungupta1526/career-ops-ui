@@ -10,6 +10,14 @@
 
 
 
+## [1.59.9] — 2026-05-21
+
+**fix(ux): UX-A5-r4 (v1.59.9) — Help TOC 捲動監聽偵錯標記 `data-toc-spy="active"` + 行為鎖測試。** 第 6 個週期。同步初始繪製 + 雙 rAF 重新計算 + resize 監聽器 + hashchange 清理。(UX-A5-r4)
+
+---
+
+
+
 ## [1.59.8] — 2026-05-21
 
 **fix(ux+api): v1.59.8 — UX-A5-r3 + NEW-F1-sub (HIGH + LOW 合併)。** FINAL-REGRESSION-v1.59.7 報告授權的 doctrine 例外。UX-A5-r3: `#/help` 將 IntersectionObserver 替換為帶 rAF 節流的 `scroll` 監聽器。NEW-F1-sub: 中介軟體將 `/api/*` 的原始 `..` 以 404 JSON 拒絕。(UX-A5-r3 · NEW-F1-sub)

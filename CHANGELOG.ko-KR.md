@@ -10,6 +10,14 @@
 
 
 
+## [1.59.9] — 2026-05-21
+
+**fix(ux): UX-A5-r4 (v1.59.9) — Help TOC 스크롤 스파이에 `data-toc-spy="active"` 디버그 마커 + 동작 기반 락 테스트.** 6번째 사이클. 동기 초기 페인트 + 이중 rAF 재계산 + resize 리스너 + hashchange 정리. (UX-A5-r4)
+
+---
+
+
+
 ## [1.59.8] — 2026-05-21
 
 **fix(ux+api): v1.59.8 — UX-A5-r3 + NEW-F1-sub (HIGH + LOW 묶음).** FINAL-REGRESSION-v1.59.7 권고에 따른 doctrine 예외. UX-A5-r3: `#/help` 가 IntersectionObserver 를 `scroll` 리스너 + rAF 쓰로틀링으로 교체. NEW-F1-sub: `/api/*` 의 가공되지 않은 `..` 를 404 JSON 으로 거부. (UX-A5-r3 · NEW-F1-sub)

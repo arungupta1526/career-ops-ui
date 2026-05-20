@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.59.9] — 2026-05-21
+
+**fix(ux): UX-A5-r4 (v1.59.9) — marcador de debug `data-toc-spy="active"` + lock-test conductual del scroll-spy del Help TOC.** Sexto ciclo: las 5 cerraduras anteriores pasaron las pruebas estáticas pero el bug persistía. v1.59.9 añade marcador, paint inicial síncrono, re-compute con doble rAF, listener de resize, y limpieza completa en hashchange. (UX-A5-r4)
+
+---
+
+
+
 ## [1.59.8] — 2026-05-21
 
 **fix(ux+api): v1.59.8 — UX-A5-r3 + NEW-F1-sub (HIGH + LOW agrupados).** Excepción de doctrina autorizada por el reporte FINAL-REGRESSION-v1.59.7. UX-A5-r3: `#/help` cambia el IntersectionObserver por un listener `scroll` con rAF throttling — tras 4 ciclos de fallos del IO, ahora el scroll-spy es robusto en todos los modos de scroll. NEW-F1-sub: middleware que rechaza `..` crudos en `/api/*` con 404 JSON. (UX-A5-r3 · NEW-F1-sub)

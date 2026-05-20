@@ -10,6 +10,14 @@
 
 
 
+## [1.59.9] — 2026-05-21
+
+**fix(ux): UX-A5-r4 (v1.59.9) — Help TOC スクロールスパイに `data-toc-spy="active"` デバッグマーカー + 動作ベースのロックテスト。** 6 サイクル目。同期初期ペイント + ダブル rAF 再計算 + resize リスナー + hashchange クリーンアップ。(UX-A5-r4)
+
+---
+
+
+
 ## [1.59.8] — 2026-05-21
 
 **fix(ux+api): v1.59.8 — UX-A5-r3 + NEW-F1-sub (HIGH + LOW 同梱)。** FINAL-REGRESSION-v1.59.7 で承認されたドクトリン例外。UX-A5-r3: `#/help` の IntersectionObserver を rAF スロットル付き `scroll` リスナーに置換。NEW-F1-sub: `/api/*` の素の `..` を 404 JSON で拒否。(UX-A5-r3 · NEW-F1-sub)

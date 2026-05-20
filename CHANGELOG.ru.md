@@ -10,6 +10,14 @@
 
 
 
+## [1.59.9] — 2026-05-21
+
+**fix(ux): UX-A5-r4 (v1.59.9) — debug-маркер `data-toc-spy="active"` + поведенческий lock-test scroll-spy на Help TOC.** Шестой цикл закрытия: предыдущие 5 закрытий проходили статические тесты, но баг возвращался. v1.59.9 добавляет маркер (любой тестер проверит `document.body.dataset.tocSpy === 'active'`), синхронный initial paint, double-rAF re-compute, resize listener и полную очистку на hashchange. Новый [tests/help-toc-spy-behavior.test.mjs](tests/help-toc-spy-behavior.test.mjs) гоняет алгоритм против 6 сценариев синтетической геометрии + 1 algorithm-parity check против help.js. 973 → **982** юнит-тестов. (UX-A5-r4)
+
+---
+
+
+
 ## [1.59.8] — 2026-05-21
 
 **fix(ux+api): v1.59.8 — UX-A5-r3 + NEW-F1-sub (HIGH + LOW в одном релизе).** Исключение из правила «одна правка на релиз» — разрешено отчётом FINAL-REGRESSION-v1.59.7, чтобы закрыть 5-й цикл регрессии UX-A5. UX-A5-r3: `#/help` заменяет IntersectionObserver на простой `scroll`-listener c rAF-троттлингом — после 4 неудачных циклов с IO scroll-listener вычисляет активный заголовок по абсолютным координатам каждый кадр. NEW-F1-sub: middleware отклоняет сырые `..` в `/api/*` через 404 JSON `{error:'invalid path'}`. 971 → **973** юнит-тестов. (UX-A5-r3 · NEW-F1-sub)

@@ -10,6 +10,14 @@
 
 
 
+## [1.59.9] — 2026-05-21
+
+**fix(ux): UX-A5-r4 (v1.59.9) — Help TOC 滚动监听调试标记 `data-toc-spy="active"` + 行为锁测试。** 第 6 个周期。同步初始绘制 + 双 rAF 重新计算 + resize 监听器 + hashchange 清理。(UX-A5-r4)
+
+---
+
+
+
 ## [1.59.8] — 2026-05-21
 
 **fix(ux+api): v1.59.8 — UX-A5-r3 + NEW-F1-sub (HIGH + LOW 合并)。** FINAL-REGRESSION-v1.59.7 报告授权的 doctrine 例外。UX-A5-r3: `#/help` 将 IntersectionObserver 替换为带 rAF 节流的 `scroll` 监听器。NEW-F1-sub: 中间件将 `/api/*` 的原始 `..` 以 404 JSON 拒绝。(UX-A5-r3 · NEW-F1-sub)

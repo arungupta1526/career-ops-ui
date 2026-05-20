@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.59.9] — 2026-05-21
+
+**fix(ux): UX-A5-r4 (v1.59.9) — Help TOC scroll-spy debug marker + behavioural lock-test.** Sixth-cycle closure: previous five attempts (v1.58.45 / v1.58.52 / v1.59.0 / v1.59.3 / v1.59.8) all shipped with passing static tests but the bug stayed open because the tests asserted source-shape, not behaviour. v1.59.9 fixes the gap: (1) `<body data-toc-spy="active">` debug marker — single selector any tester can use to answer "is the spy alive?" without needing to scroll; (2) synchronous initial paint at mount tail covers the router-pre-paints-view case; (3) double-rAF re-compute covers the route-handler-returns-before-router-appends case; (4) resize listener subscribed so viewport-flip mid-scroll re-paints; (5) cleanup removes BOTH listeners and the marker on hashchange. [public/js/views/help.js](public/js/views/help.js) algorithm: linear scan with `else break;` short-circuit (O(active-index) per scroll event). New [tests/help-toc-spy-behavior.test.mjs](tests/help-toc-spy-behavior.test.mjs) runs the algorithm against 6 synthetic-geometry scenarios + 1 algorithm-parity check against help.js source — the test fails if the algorithm regresses, before any browser run. 973 → **982** unit. (UX-A5-r4)
+
+---
+
+
+
 ## [1.59.8] — 2026-05-21
 
 **fix(ux+api): v1.59.8 — UX-A5-r3 + NEW-F1-sub (HIGH + LOW bundled per FIX-PROMPT-FINAL-CONSOLIDATED).** Doctrine-exception release: the 2026-05-20 FINAL REGRESSION-v1.59.7 report explicitly recommended bundling these two. UX-A5-r3 (HIGH) — after 4 ship attempts with IntersectionObserver all failed live verification, [public/js/views/help.js](public/js/views/help.js) replaces the IO entirely with a plain scroll listener. Root cause: with rootMargin -20%/-55% the trigger band ended at 45% of viewport, but scrollIntoView({block:'center'}) lands the target at 50% — JUST below the band end. The new scroll listener probes absolute heading positions every rAF, computes the heading whose top is at-or-above 30% of viewport, applies `.toc-current` — no band, no race, no mount-order gotcha. NEW-F1-sub (LOW) — [server/index.mjs](server/index.mjs) adds a late middleware that inspects `req.originalUrl` (not normalised `req.url`) and bounces any `/api`-prefixed request whose raw URL contains `..` as 404 JSON `{error: 'invalid path'}`. New `UX-A5-r3` lock-test + `NEW-F1-sub` static + behavioural guards in tests/. 971 → **973** unit. (UX-A5-r3 · NEW-F1-sub)

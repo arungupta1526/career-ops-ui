@@ -180,18 +180,22 @@ Router.register('help', async () => {
     const link = linkByTarget.get(id);
     if (link) link.classList.add('toc-current');
   }
-  // UX-A5-r3 (v1.59.8) — 5th-cycle confirmation that IntersectionObserver
-  // does not reliably paint `.toc-current` on this page. The previous
-  // implementations chased a smaller and smaller rootMargin (-30%/-60%
-  // → -20%/-55% → live verification still 0 `.toc-current`). Root
-  // cause: when the user uses `scrollIntoView({block: 'center'})` the
-  // heading lands AT 50% of viewport, JUST below the trigger band; the
-  // IO never receives an intersection event for that heading. A plain
-  // scroll listener probing absolute positions every rAF doesn't have
-  // a band at all — every scroll position has exactly one closest
-  // heading above the trigger line. Simpler, more reliable, no mount
-  // race (the listener attaches on mount and recomputes on every
-  // scroll without rAF-deferring the observer attach).
+  // UX-A5-r4 (v1.59.9) — 6th cycle. Five previous closures (v1.58.45,
+  // v1.58.52, v1.59.0, v1.59.3, v1.59.8) all shipped with "tests green"
+  // but the bug stayed open because the tests asserted the wrong thing
+  // (existence of the `.toc-current` class anywhere, or the string
+  // `IntersectionObserver` in the source). The TDD-first FIX-PROMPT for
+  // v1.59.9 introduces:
+  //   1. `<body data-toc-spy="active">` debug marker — a single CSS
+  //      selector that any tester / future agent can use to answer
+  //      "is the spy alive?" without needing to scroll first.
+  //   2. Initial paint fires SYNCHRONOUSLY at mount end (no rAF
+  //      dependency, just-in-case the router pre-paints the view).
+  //   3. Double-rAF re-computation for the case where heading rects
+  //      weren't valid yet (detached nodes during synchronous compute).
+  //   4. rAF-throttled scroll listener — at most one paint per frame.
+  //   5. Cleanup removes the marker AND both listeners when leaving
+  //      #/help via hashchange.
   let spyScheduled = false;
   function computeActiveAndApply() {
     spyScheduled = false;
@@ -201,6 +205,7 @@ Router.register('help', async () => {
     for (const h of headings) {
       const absTop = h.getBoundingClientRect().top + window.scrollY;
       if (absTop <= triggerY) chosen = h;
+      else break;            // headings is in document order
     }
     if (chosen) applyCurrent(chosen.id);
   }
@@ -210,17 +215,28 @@ Router.register('help', async () => {
     requestAnimationFrame(computeActiveAndApply);
   }
   window.addEventListener('scroll', onSpyScroll, { passive: true });
-  // Initial state — wait for the router to mount the view, then
-  // compute. Double rAF survives both the route-handler-returns-then-
-  // router-appends sequence AND any layout reflow after first paint.
+  window.addEventListener('resize', onSpyScroll, { passive: true });
+  // Synchronous initial paint — covers the case where the router
+  // appends the view before either rAF fires.
+  computeActiveAndApply();
+  // Double rAF re-compute — covers the opposite case: the route
+  // handler returned before the router did the append. After two
+  // frames, the headings are guaranteed to be in the DOM with valid
+  // rects. The rAF callback no-ops if `applyCurrent` already fired.
   requestAnimationFrame(() => requestAnimationFrame(computeActiveAndApply));
+  // UX-A5-r4 debug marker — any tester can answer "is the spy alive?"
+  // with a single selector: `document.body.dataset.tocSpy === 'active'`.
+  // Removed on cleanup so the marker accurately reflects route state.
+  document.body.setAttribute('data-toc-spy', 'active');
 
-  // Detach both listeners when the SPA leaves #/help (hashchange).
+  // Detach all listeners + the marker when the SPA leaves #/help.
   const cleanup = () => {
     if (!location.hash.startsWith('#/help')) {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('scroll', onSpyScroll);
+      window.removeEventListener('resize', onSpyScroll);
       window.removeEventListener('hashchange', cleanup);
+      document.body.removeAttribute('data-toc-spy');
     }
   };
   window.addEventListener('hashchange', cleanup);

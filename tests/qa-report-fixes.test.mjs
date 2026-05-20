@@ -381,6 +381,44 @@ test('NEW-D2-motion (v1.59.6): CSS honours prefers-reduced-motion: reduce', () =
     'must override scroll-behavior: smooth on reduced-motion');
 });
 
+test('UX-A5-r4 (v1.59.9): help.js TOC scroll-spy ships a <body data-toc-spy="active"> debug marker', () => {
+  const help = read('public', 'js', 'views', 'help.js');
+  // The single-selector "is the spy alive?" check — any tester / agent
+  // can run `document.body.dataset.tocSpy === 'active'` to verify the
+  // spy mount without scrolling first. Previous 5 cycles all shipped
+  // with passing tests + broken behaviour because the tests never
+  // asserted a behaviour-side invariant. This marker is the new floor.
+  assert.match(help, /document\.body\.setAttribute\('data-toc-spy', 'active'\)/,
+    'help.js must set <body data-toc-spy="active"> on scroll-spy mount');
+  assert.match(help, /document\.body\.removeAttribute\('data-toc-spy'\)/,
+    'help.js must remove the marker on hashchange cleanup');
+});
+
+test('UX-A5-r4 (v1.59.9): scroll-spy is initial-paint-eager (synchronous compute + double-rAF re-compute)', () => {
+  const help = read('public', 'js', 'views', 'help.js');
+  // Previous v1.59.8 relied on double-rAF alone; if the router pre-
+  // painted the view, the rAF callback fired AFTER the user had
+  // already scrolled. v1.59.9 fires `computeActiveAndApply()` once
+  // synchronously at mount tail (no-ops if rects are 0/detached) AND
+  // schedules a double-rAF re-compute for the post-append rects.
+  // Match the synchronous invocation followed by the double-rAF block.
+  assert.match(help, /computeActiveAndApply\(\);\s*\n\s*\/\/[^\n]*[Dd]ouble rAF[\s\S]{0,400}requestAnimationFrame\(\(\)\s*=>\s*requestAnimationFrame\(computeActiveAndApply\)\)/,
+    'help.js must call computeActiveAndApply() synchronously then schedule double-rAF re-compute');
+  // resize listener — re-paint when viewport changes mid-scroll
+  // (mobile orientation flip, devtools toggle, etc).
+  assert.match(help, /window\.addEventListener\('resize', onSpyScroll/,
+    'help.js must also subscribe onSpyScroll to resize for viewport-change reflow');
+  // CSS rule has paint declarations (the regression report cited one
+  // previous cycle where `.toc-current` was attached but a later CSS
+  // rule reset border-left). Assert the rule has both color AND a
+  // visible border-left declaration.
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /\.help-toc\s+a\.toc-current\s*\{[^}]*color:\s*var\(--rausch/,
+    '.help-toc a.toc-current must paint color from --rausch');
+  assert.match(css, /\.help-toc\s+a\.toc-current\s*\{[^}]*border-left:\s*\d+px\s+solid\s+var\(--rausch/,
+    '.help-toc a.toc-current must paint a visible border-left from --rausch');
+});
+
 test('UX-A5-r3 (v1.59.8): help.js TOC scroll-spy uses a plain scroll listener (NOT IntersectionObserver)', () => {
   const help = read('public', 'js', 'views', 'help.js');
   // After 4 ship cycles with IntersectionObserver still failing, v1.59.8
