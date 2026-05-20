@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.16] — 2026-05-20
+
+**fix(ui): 品牌按鈕滑鼠停留閃爍(使用者回報)。** 原因:`.btn-primary` / `.btn-danger` 預設背景為 `linear-gradient(...)`,`:hover` 換成純色 `var(--rausch-dark)`。CSS 無法在漸層↔純色間補間,180ms `transition: background` 會「跳動」,使用者看到白/粉色閃光。修正 [public/css/app.css](public/css/app.css):懸停時保留漸層,改用 `filter: brightness(0.92)` 加深 — `filter` 在所有瀏覽器都能平滑補間。`.btn` 的 `transition` 清單新增 `filter var(--transition)`,讓加深帶動畫效果。911 → **912** 單元。(使用者回報)
+
+---
+
 ## [1.58.15] — 2026-05-20
 
 **fix(a11y/i18n): I-1 — 頂列搜尋的 `aria-label` 和視覺隱藏 `<label>` 現已本地化。** 此前所有 8 種語言下,螢幕閱讀器聽到的都是英文 aria-label。[public/js/app.js](public/js/app.js#L4-L29) 新增通用 `data-i18n-aria-label` 鉤子 — `applyI18n()` 在每次語言切換時更新 `aria-label`,與 `data-i18n` / `data-i18n-placeholder` 對稱。新增 2 個 i18n 鍵(`top.search.aria`, `top.search.label`)覆蓋 8 種語言。鉤子可被任何未來控制元件重複使用。910 → **911** 單元。(I-1)

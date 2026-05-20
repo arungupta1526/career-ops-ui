@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.16] — 2026-05-20
+
+**fix(ui): 브랜드 버튼 호버 깜빡임(사용자 보고).** 원인: `.btn-primary` / `.btn-danger` 의 기본 배경은 `linear-gradient(...)`, `:hover` 는 단색 `var(--rausch-dark)`. CSS 는 그라데이션↔단색을 보간할 수 없어 180ms `transition: background` 가 스냅하면서 흰색/분홍 깜빡임이 보였다. 수정 위치 [public/css/app.css](public/css/app.css): 호버에서도 그라데이션을 유지하고 `filter: brightness(0.92)` 로 어둡게 — `filter` 는 모든 브라우저에서 부드럽게 보간된다. `.btn` 의 `transition` 목록에 `filter var(--transition)` 을 추가해 어두워짐이 애니메이션되도록 함. 911 → **912** 유닛. (사용자 보고)
+
+---
+
 ## [1.58.15] — 2026-05-20
 
 **fix(a11y/i18n): I-1 — 상단바 검색의 `aria-label` 과 시각적 숨김 `<label>` 을 i18n 화.** 이전에는 모든 8 개 언어에서 영문 aria-label 이 스크린 리더에 노출되었다. [public/js/app.js](public/js/app.js#L4-L29) 에 범용 `data-i18n-aria-label` 훅 추가 — `applyI18n()` 이 언어 변경 시 `data-i18n` / `data-i18n-placeholder` 와 동일하게 `aria-label` 을 교체. 새 i18n 키 2 개(`top.search.aria`, `top.search.label`)를 8 언어에 추가. 어떤 미래 컨트롤에도 재사용 가능. 910 → **911** 유닛. (I-1)

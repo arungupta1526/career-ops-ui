@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.58.16] — 2026-05-20
+
+**fix(ui): parpadeo de hover en botones de marca (reportado por usuario).** Causa: el fondo por defecto de `.btn-primary` / `.btn-danger` era un `linear-gradient(...)` y el `:hover` lo reemplazaba por un color sólido — CSS no puede interpolar gradiente↔sólido, así que la transición de 180 ms chasqueaba y se veía un parpadeo blanco/rosa. Solución en [public/css/app.css](public/css/app.css): mantener el gradiente en hover y oscurecer con `filter: brightness(0.92)` — `filter` se interpola limpiamente. La lista de `transition` de `.btn` añade `filter var(--transition)` para que el oscurecimiento se anime. 911 → **912** unitarios. (reporte de usuario)
+
+---
+
 ## [1.58.15] — 2026-05-20
 
 **fix(a11y/i18n): I-1 — `aria-label` y `<label>` oculto del buscador superior ahora se localizan.** Antes los lectores de pantalla en cualquier idioma escuchaban el aria-label inglés. Nuevo hook genérico `data-i18n-aria-label` en [public/js/app.js](public/js/app.js#L4-L29) — `applyI18n()` actualiza `aria-label` en cada cambio de idioma como ya lo hace para `data-i18n` y `data-i18n-placeholder`. Dos nuevas claves i18n (`top.search.aria`, `top.search.label`) en los 8 idiomas. El hook es reutilizable para cualquier control futuro. 910 → **911** unitarios. (I-1)

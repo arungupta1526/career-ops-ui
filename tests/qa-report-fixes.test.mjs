@@ -30,6 +30,32 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('v1.58.16: btn-primary/btn-danger hover no longer flickers (gradient stays, filter dims)', () => {
+  // Pre-fix the default background was a gradient and the :hover state
+  // replaced it with a solid colour. CSS can't smoothly transition
+  // gradient ↔ solid, so the 180ms transition snapped and the user
+  // perceived a brief flash. The new rule keeps the gradient on hover
+  // and dims via `filter: brightness(...)`, which interpolates cleanly.
+  const css = read('public', 'css', 'app.css');
+  // Pre-fix solid-background hover must be gone:
+  assert.ok(
+    !/\.btn-primary:hover\s*\{\s*background:\s*var\(--rausch-dark\)/.test(css),
+    "'.btn-primary:hover' must not swap the gradient for a solid background"
+  );
+  assert.ok(
+    !/\.btn-danger:hover\s*\{\s*background:\s*var\(--rausch-dark\)/.test(css),
+    "'.btn-danger:hover' must not swap the gradient for a solid background"
+  );
+  // New filter-based hover must be present on both:
+  assert.match(css, /\.btn-primary:hover\s*\{[^}]*filter:\s*brightness\(/,
+    "'.btn-primary:hover' must dim via filter: brightness()");
+  assert.match(css, /\.btn-danger:hover\s*\{[^}]*filter:\s*brightness\(/,
+    "'.btn-danger:hover' must dim via filter: brightness()");
+  // And `filter` must be in `.btn`'s transition list so the dim animates.
+  assert.match(css, /\.btn\s*\{\s*transition:[^}]*filter\s+var\(--transition\)/m,
+    '.btn transition must include `filter var(--transition)` so hover dim animates');
+});
+
 test('I-1 (v1.58.15): top-bar search aria-label + visually-hidden label are localized via data-i18n', () => {
   const html = read('public', 'index.html');
   // The visually-hidden <label> for the search input must declare its

@@ -450,7 +450,17 @@ body.sidebar-open .sidebar-backdrop { display: block; }
   background: linear-gradient(135deg, var(--rausch) 0%, var(--rausch-dark) 100%);
   color: white;
 }
-.btn-primary:hover { background: var(--rausch-dark); }
+/* v1.58.16 — hover-flicker fix. The default background is a linear
+   gradient; pre-fix the :hover replaced it with a solid colour
+   (var(--rausch-dark)). CSS cannot smoothly interpolate a gradient
+   ↔ solid swap, so the 180 ms transition snaps and the gradient
+   briefly resolves to its terminal stop (lighter top-left) — the
+   user perceives a white/pink flicker on every hover edge. Keep the
+   same gradient and darken via `filter` instead; `filter` interpolates
+   cleanly in every browser. transition was already on `.btn`; we add
+   `filter` to it so the dim/un-dim animates symmetrically. */
+.btn { transition: background var(--transition), border-color var(--transition), transform var(--transition), filter var(--transition); }
+.btn-primary:hover { filter: brightness(0.92); }
 
 .btn-ghost {
   background: transparent;
@@ -473,7 +483,9 @@ body.sidebar-open .sidebar-backdrop { display: block; }
   border: 1px solid var(--rausch-dark);
   font-weight: 600;
 }
-.btn-danger:hover { background: var(--rausch-dark); }
+/* v1.58.16 — same gradient↔solid flicker as .btn-primary; apply the
+   same filter-based dim so .btn-danger doesn't flash on hover either. */
+.btn-danger:hover { filter: brightness(0.92); }
 
 /* v1.55.4 — UX-6: honest "~1–2 min" ETA chip next to #/auto Run. */
 .auto-eta {

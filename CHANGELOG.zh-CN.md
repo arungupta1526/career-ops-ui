@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.16] — 2026-05-20
+
+**fix(ui): 品牌按钮悬停闪烁(用户反馈)。** 原因:`.btn-primary` / `.btn-danger` 默认背景为 `linear-gradient(...)`,`:hover` 把它换成纯色 `var(--rausch-dark)`。CSS 无法在渐变↔纯色之间补间,180ms `transition: background` 会"卡顿",用户看到白/粉色的瞬闪。修复 [public/css/app.css](public/css/app.css):悬停时保留渐变,改用 `filter: brightness(0.92)` 减暗 — `filter` 在所有浏览器中都能平滑补间。`.btn` 的 `transition` 列表新增 `filter var(--transition)`,让减暗带动画效果。911 → **912** 单元。(用户反馈)
+
+---
+
 ## [1.58.15] — 2026-05-20
 
 **fix(a11y/i18n): I-1 — 顶栏搜索的 `aria-label` 和视觉隐藏 `<label>` 现已本地化。** 之前所有 8 种语言下,屏幕阅读器听到的都是英文 aria-label。[public/js/app.js](public/js/app.js#L4-L29) 新增通用 `data-i18n-aria-label` 钩子 — `applyI18n()` 在每次语言切换时更新 `aria-label`,与 `data-i18n` / `data-i18n-placeholder` 对称。新增 2 个 i18n 键(`top.search.aria`, `top.search.label`)覆盖 8 种语言。钩子可被任何未来控件复用。910 → **911** 单元。(I-1)

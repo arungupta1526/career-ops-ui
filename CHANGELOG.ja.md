@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.16] — 2026-05-20
+
+**fix(ui): ブランドボタンのホバーちらつき(ユーザー報告)。** 原因:`.btn-primary` / `.btn-danger` のデフォルト背景は `linear-gradient(...)`、`:hover` は単色 `var(--rausch-dark)`。CSS はグラデーション↔単色を補間できず、180ms の `transition: background` がスナップして白〜ピンクのちらつきが見えていた。修正は [public/css/app.css](public/css/app.css):ホバーでもグラデーションを維持し `filter: brightness(0.92)` で減光 — `filter` はあらゆるブラウザでスムーズに補間される。`.btn` の `transition` 一覧に `filter var(--transition)` を追加して減光がアニメーションする。911 → **912** ユニット。(ユーザー報告)
+
+---
+
 ## [1.58.15] — 2026-05-20
 
 **fix(a11y/i18n): I-1 — トップバー検索の `aria-label` と非表示 `<label>` を i18n 化。** 従来は全 8 言語で英文の aria-label がスクリーンリーダーに読まれていた。[public/js/app.js](public/js/app.js#L4-L29) に汎用 `data-i18n-aria-label` フックを追加 — `applyI18n()` が `data-i18n` / `data-i18n-placeholder` と同様に言語変更時に `aria-label` を差し替える。新規 i18n キー 2 つ(`top.search.aria`、`top.search.label`)を 8 言語に追加。任意の将来のコントロールでも再利用可。910 → **911** ユニット。(I-1)
