@@ -10,6 +10,12 @@
 
 
 
+## [1.58.49] — 2026-05-20
+
+**chore(tooling): TOOL-1 — `make clean-test-fixtures` + `scripts/clean-test-fixtures.mjs`.** v1.58.36 аудит: `${CAREER_OPS_ROOT}/data/pipeline.md` накопил 1252+ строки с `example.com/job/<n>` от регрессионных прогонов. Чистка вручную утомительна. Новый [scripts/clean-test-fixtures.mjs](scripts/clean-test-fixtures.mjs) читает `${CAREER_OPS_ROOT or ..}/data/pipeline.md`, удаляет каждую строку с `example.com` (case-insensitive), сохраняет реальные ATS URL без изменений, печатает счёт и завершается с кодом 0. Флаг `--dry-run` печатает результат в stdout, не трогая файл. Новый [Makefile](Makefile) с целями `make clean-test-fixtures` и `make clean-test-fixtures-dry-run`. 4 новых CI-isolated теста в [tests/clean-test-fixtures.test.mjs](tests/clean-test-fixtures.test.mjs) (через `mkdtempSync` — никаких реальных file-writes). 942 → **946** модульных (+4 новых TOOL-1 кейса). (TOOL-1)
+
+---
+
 ## [1.58.48] — 2026-05-20
 
 **fix(ux/onboarding): UX-D-B — на `#/dashboard` появляется глобальный предупреждающий баннер, если пользователь всё ещё на дефолтном fixture-профиле.** v1.58.36 аудит: `/api/health` уже возвращает `{ name: "Profile customized", ok: false }` (`server/lib/store.mjs` проверяет `Acceptance Test` / `Jane Smith` / прочие шаблонные имена), но пользователь видел это только зайдя на `#/health`. При этом каждое advisor-output (Apply / Followup / Contacto / Deep) обращалось к fixture-имени — испорченное первое впечатление. Новый `profileFixtureBanner()` в [public/js/views/dashboard.js](public/js/views/dashboard.js) рендерит `.hero-banner.hero-banner--warning` в начале маршрута, когда чек fail, с локализованным сообщением (`onboarding.fixtureWarning` × 8) + CTA-кнопкой на `#/config` (`onboarding.fixProfile` × 8). Когда пользователь меняет профиль, /api/health возвращает `ok: true` и следующий mount dashboard молча убирает баннер. Новые CSS правила `.hero-banner` + `.hero-banner--warning`. 941 → **942** модульных. (UX-D-B)

@@ -10,6 +10,12 @@
 
 
 
+## [1.58.49] — 2026-05-20
+
+**chore(tooling): TOOL-1 — `make clean-test-fixtures` と親プロジェクト `data/pipeline.md` から example.com 行を削除するスクリプトを追加。** `--dry-run` 対応。CI-isolated テスト 4 件。942 → **946** ユニット。(TOOL-1)
+
+---
+
 ## [1.58.48] — 2026-05-20
 
 **fix(ux/onboarding): UX-D-B — プロフィールがデフォルトテンプレートのままなら `#/dashboard` に警告バナーを表示。** /api/health で `Profile customized: false` を検出すると `.hero-banner--warning` を表示。新 i18n キー `onboarding.fixtureWarning` + `onboarding.fixProfile` × 8。941 → **942** ユニット。(UX-D-B)

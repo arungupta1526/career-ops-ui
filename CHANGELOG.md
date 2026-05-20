@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.49] — 2026-05-20
+
+**chore(tooling): TOOL-1 — `make clean-test-fixtures` + `scripts/clean-test-fixtures.mjs`.** v1.58.36 audit: `${CAREER_OPS_ROOT}/data/pipeline.md` had accumulated 1252+ `example.com/job/<n>` lines from regression runs. Manual cleanup was tedious. New [scripts/clean-test-fixtures.mjs](scripts/clean-test-fixtures.mjs) reads `${CAREER_OPS_ROOT or ..}/data/pipeline.md`, drops every line containing `example.com` (case-insensitive), preserves real ATS URLs verbatim, prints the count, and exits 0. `--dry-run` flag prints the would-be result to stdout without touching the file. New [Makefile](Makefile) with `make clean-test-fixtures` and `make clean-test-fixtures-dry-run` targets. 4 new CI-isolated tests in [tests/clean-test-fixtures.test.mjs](tests/clean-test-fixtures.test.mjs) (uses `mkdtempSync` for a synthetic parent — no real-file writes). 942 → **946** unit (4 new TOOL-1 cases). (TOOL-1)
+
+---
+
 ## [1.58.48] — 2026-05-20
 
 **fix(ux/onboarding): UX-D-B — `#/dashboard` shows a global warning banner when the user is still on the default fixture profile.** v1.58.36 audit: `/api/health` already includes a `{ name: "Profile customized", ok: false }` row (server checks for `Acceptance Test` / `Jane Smith` / other template names in `server/lib/store.mjs`), but the user only saw it after navigating to `#/health`. Meanwhile every advisor output (Apply / Followup / Contacto / Deep) was addressed to the fixture name — broken first impression. New `profileFixtureBanner()` in [public/js/views/dashboard.js](public/js/views/dashboard.js) renders a `.hero-banner.hero-banner--warning` at the top of the route when the check fails, with localized message (`onboarding.fixtureWarning` × 8) + a CTA button linking to `#/config` (`onboarding.fixProfile` × 8). When the user replaces the fixture, /api/health flips `ok: true` and the next dashboard mount silently omits the banner. New CSS `.hero-banner` + `.hero-banner--warning` rules. 941 → **942** unit. (UX-D-B)

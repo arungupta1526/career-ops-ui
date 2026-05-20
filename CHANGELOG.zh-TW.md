@@ -10,6 +10,12 @@
 
 
 
+## [1.58.49] — 2026-05-20
+
+**chore(tooling): TOOL-1 — 新增 `make clean-test-fixtures` 與腳本,用於從父專案 `data/pipeline.md` 移除 example.com 行。** 支援 `--dry-run`。4 個 CI-isolated 測試。942 → **946** 單元。(TOOL-1)
+
+---
+
 ## [1.58.48] — 2026-05-20
 
 **fix(ux/onboarding): UX-D-B — 當使用者仍使用預設範本資料時,`#/dashboard` 頂部顯示全域警告橫幅。** /api/health 偵測到 `Profile customized: false` 時顯示 `.hero-banner--warning`。新 i18n 鍵 `onboarding.fixtureWarning` + `onboarding.fixProfile` × 8。941 → **942** 單元。(UX-D-B)

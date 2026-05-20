@@ -10,6 +10,12 @@
 
 
 
+## [1.58.49] — 2026-05-20
+
+**chore(tooling): TOOL-1 — `make clean-test-fixtures` 와 부모 프로젝트 `data/pipeline.md` 에서 example.com 라인을 제거하는 스크립트 추가.** `--dry-run` 지원. CI-isolated 테스트 4 개. 942 → **946** 유닛. (TOOL-1)
+
+---
+
 ## [1.58.48] — 2026-05-20
 
 **fix(ux/onboarding): UX-D-B — 프로필이 기본 템플릿일 때 `#/dashboard` 에 경고 배너 표시.** /api/health 의 `Profile customized: false` 검출 시 `.hero-banner--warning` 표시. 새 i18n 키 `onboarding.fixtureWarning` + `onboarding.fixProfile` × 8. 941 → **942** 유닛. (UX-D-B)

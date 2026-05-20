@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.49] — 2026-05-20
+
+**chore(tooling): TOOL-1 — `make clean-test-fixtures` + script para eliminar líneas `example.com` de `data/pipeline.md` del proyecto padre.** Soporta `--dry-run`. 4 tests CI-isolated. 942 → **946** unitarios. (TOOL-1)
+
+---
+
 ## [1.58.48] — 2026-05-20
 
 **fix(ux/onboarding): UX-D-B — banner global en `#/dashboard` cuando el perfil sigue en el template por defecto.** Nuevo `profileFixtureBanner()` que muestra `.hero-banner--warning` al detectar `Profile customized: false` en /api/health. Nuevas claves i18n `onboarding.fixtureWarning` + `onboarding.fixProfile` × 8. 941 → **942** unitarios. (UX-D-B)
