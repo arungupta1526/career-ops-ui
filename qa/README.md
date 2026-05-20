@@ -4,10 +4,13 @@ Tracks regressions, fix-prompts, and live evidence across releases.
 
 ## CURRENT — four perennial, version-agnostic prompts
 
-> v1.59.0 (2026-05-20) closed the maturity-10 cycle (UX-A1 → UX-A15,
-> 15 single-fix releases v1.58.52 → v1.59.0). See
-> [`REGRESSION-PROMPT-MATURITY-10.md`](./REGRESSION-PROMPT-MATURITY-10.md)
-> for the post-cycle verification ladder. v1.58.x cycle stale docs
+> v1.59.7 (2026-05-20) closed the final polish cycle on top of the
+> maturity-10 baseline (UX-A1 → UX-A15 + v1.59.2 chip hotfix + v1.59.3
+> UX-A5-r2 + v1.59.4 NEW-OR1 + v1.59.5 NEW-F1 + v1.59.6 NEW-D2-motion
+> + v1.59.7 NEW-D3-cache — 22 releases total v1.58.52 → v1.59.7). See
+> [`REGRESSION-PROMPT-FINAL.md`](./REGRESSION-PROMPT-FINAL.md) for the
+> post-cycle verification ladder, live-smoke checklist, and the 22
+> regression-locked invariants. v1.58.x + v1.59.0-v1.59.1 stale docs
 > archived to [`archive/v159-cycle/`](./archive/v159-cycle/).
 
 ## CURRENT — perennial, version-agnostic prompts

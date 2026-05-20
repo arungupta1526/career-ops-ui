@@ -676,6 +676,31 @@ live-smoke checklist.
 
 **Cycle stats:** 15 single-fix releases + 1 verification patch (v1.59.1, NEW-D1 guard relaxation) · 962 unit tests at v1.59.1 (was 949 at v1.58.51) · 100% CI-green · all AI-review LGTM · zero rollbacks.
 
+---
+
+## §15 — v1.59.2 → v1.59.7 final polish cycle invariants (regression-locked)
+
+The 7-release cycle that closed the FIX-PROMPT-FINAL-CONSOLIDATED queue. Each row has a static or behavioural guard in `tests/qa-report-fixes.test.mjs` or `tests/api-404-json.test.mjs`. See `qa/REGRESSION-PROMPT-FINAL.md` for the post-cycle verification ladder.
+
+| Release | Ticket | Lock-test asserts |
+|---|---|---|
+| v1.59.2 | chip hotfix | Provider chips read `Array.isArray(keysConfigured).length`; NAME map keyed by `anthropic` (server contract); `.api-keys__summary` NOT `position: sticky` |
+| v1.59.3 | UX-A5-r2 | `help.js` TOC `rootMargin: '-20% 0% -55% 0%'` (25 % band) · explicit `root: null` · `applyCurrent(id)` initial-state computation |
+| v1.59.4 | NEW-OR1 | `refreshApiSummary` race-safe: `inFlight` token drops stale resolves · atomic `replaceChildren()` swap · `lastGoodSt` cache survives transient null |
+| v1.59.5 | NEW-F1 | `app.all('/api/*', …)` JSON-404 on GET/POST/PUT/DELETE (was GET-only) · new test suite `tests/api-404-json.test.mjs` (5 cases) |
+| v1.59.6 | NEW-D2-motion | `@media (prefers-reduced-motion: reduce)` block · `animation-duration: 0.01ms` + `transition-duration: 0.01ms` + `scroll-behavior: auto` |
+| v1.59.7 | NEW-D3-cache | `GET /api/cv` sends `Cache-Control: no-store` |
+
+**Cycle stats:** 7 releases · 971 unit tests at v1.59.7 (was 962 at v1.59.1) · 1 chip hotfix (v1.59.2, user-reported visual + count bug) · all CI-green · all AI-review LGTM.
+
+**Carry-over lessons added to the doctrine recap (`qa/REGRESSION-PROMPT-FINAL.md` §0):**
+
+- Server contract reminder: `keysConfigured` is an ARRAY, `activeProvider` is the resolved NAME (`anthropic`, not the env value `claude`).
+- `position: sticky` + `z-index: <N>` creates a stacking context that overlaps anything below it on scroll — only use sticky when overlap is intentional.
+- `app.get('/api/*', …)` is GET-only — use `app.all` for JSON-404 fallback across all verbs.
+- DOM refresh races during Save: build new nodes first, then `replaceChildren()` atomically.
+- `IntersectionObserver` `rootMargin` too tight = scroll skips the trigger zone (10 % band → 25 % band).
+
 **Carry-over lessons added to `CLAUDE.md` § Hard-won lessons:**
 
 - `saveBtn.onclick =` is a footgun on `c()`-built elements — they register handlers via `addEventListener`. v1.58.58 patch.
