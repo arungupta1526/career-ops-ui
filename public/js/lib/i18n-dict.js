@@ -237,6 +237,9 @@ window.__I18N_DICT = {
   // NEW-D2 (v1.58.39) — Dashboard top-bar Refresh button feedback.
   'dash.refreshAria': { en: 'Refresh dashboard counters', es: 'Actualizar los contadores del panel', 'pt-BR': 'Atualizar os contadores do painel', ko: '대시보드 카운터 새로고침', ja: 'ダッシュボードのカウンタを更新', ru: 'Обновить счётчики панели', 'zh-CN': '刷新仪表盘计数', 'zh-TW': '重新整理儀表板計數' },
   'dash.refreshed':   { en: 'Dashboard refreshed', es: 'Panel actualizado', 'pt-BR': 'Painel atualizado', ko: '대시보드 새로고침됨', ja: 'ダッシュボードを更新しました', ru: 'Панель обновлена', 'zh-CN': '仪表盘已刷新', 'zh-TW': '儀表板已重新整理' },
+  // UX-D-B (v1.58.48) — Dashboard global banner when on a fixture profile.
+  'onboarding.fixtureWarning': { en: 'Your profile is still on the default template. Every report and email will use this name until you fix it.', es: 'Tu perfil aún usa la plantilla por defecto. Cada informe y correo usará este nombre hasta que lo cambies.', 'pt-BR': 'Seu perfil ainda usa o template padrão. Cada relatório e e-mail usará este nome até você corrigir.', ko: '프로필이 아직 기본 템플릿입니다. 수정하기 전까지 모든 리포트와 이메일이 이 이름을 사용합니다.', ja: 'プロフィールがデフォルトテンプレートのままです。修正するまで、すべてのレポートとメールがこの名前を使用します。', ru: 'Профиль всё ещё на дефолтном шаблоне. Все отчёты и письма будут идти от этого имени, пока не исправите.', 'zh-CN': '你的资料仍是默认模板。每份报告和邮件都会使用这个名称,直到你修改为止。', 'zh-TW': '你的個人資料仍是預設範本。每份報告和郵件都會使用這個名稱,直到你修改為止。' },
+  'onboarding.fixProfile':     { en: 'Open profile settings', es: 'Abrir ajustes de perfil', 'pt-BR': 'Abrir ajustes do perfil', ko: '프로필 설정 열기', ja: 'プロフィール設定を開く', ru: 'Открыть настройки профиля', 'zh-CN': '打开个人资料设置', 'zh-TW': '開啟個人資料設定' },
   // U-4 (v1.58.24) — toast technical detail summary
   'toast.details':   { en: 'Details', es: 'Detalles', 'pt-BR': 'Detalhes', ko: '세부 정보', ja: '詳細', ru: 'Подробнее', 'zh-CN': '详细信息', 'zh-TW': '詳細資訊' },
   // U-8 (v1.58.28) — collapsible Generate-prompt block summary.

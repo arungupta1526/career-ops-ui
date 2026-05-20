@@ -10,6 +10,12 @@
 
 
 
+## [1.58.48] — 2026-05-20
+
+**fix(ux/onboarding): UX-D-B — на `#/dashboard` появляется глобальный предупреждающий баннер, если пользователь всё ещё на дефолтном fixture-профиле.** v1.58.36 аудит: `/api/health` уже возвращает `{ name: "Profile customized", ok: false }` (`server/lib/store.mjs` проверяет `Acceptance Test` / `Jane Smith` / прочие шаблонные имена), но пользователь видел это только зайдя на `#/health`. При этом каждое advisor-output (Apply / Followup / Contacto / Deep) обращалось к fixture-имени — испорченное первое впечатление. Новый `profileFixtureBanner()` в [public/js/views/dashboard.js](public/js/views/dashboard.js) рендерит `.hero-banner.hero-banner--warning` в начале маршрута, когда чек fail, с локализованным сообщением (`onboarding.fixtureWarning` × 8) + CTA-кнопкой на `#/config` (`onboarding.fixProfile` × 8). Когда пользователь меняет профиль, /api/health возвращает `ok: true` и следующий mount dashboard молча убирает баннер. Новые CSS правила `.hero-banner` + `.hero-banner--warning`. 941 → **942** модульных. (UX-D-B)
+
+---
+
 ## [1.58.47] — 2026-05-20
 
 **fix(ux/naming): UX-D-C — кнопка `Quick scan` в шапке переименована в `Открыть Scan`, чтобы метка соответствовала поведению.** v1.58.36 аудит: «Quick scan» намекало на мгновенный скан с дефолтными настройками, но обработчик на [public/js/app.js](public/js/app.js#L140) только навигирует на `#/scan` — сам скан не запускается. Переименовано через ключ `top.quickscan` во всех 8 локалях (en `Open Scan` / es `Abrir Scan` / pt-BR `Abrir Scan` / ko `Scan 열기` / ja `Scan を開く` / ru `Открыть Scan` / zh-CN `打开 Scan` / zh-TW `開啟 Scan`). Дефолтный текст в HTML также обновлён. Поведение без изменений; только честность метки. 940 → **941** модульных. (UX-D-C)

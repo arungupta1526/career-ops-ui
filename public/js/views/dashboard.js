@@ -67,7 +67,36 @@ Router.register('dashboard', async () => {
     ]);
   }
 
+  // UX-D-B (v1.58.48) — global banner that flags the user when they're
+  // still on the default "Acceptance Test" / template profile. The
+  // server-side checkProfileCustomized() (server/lib/store.mjs) puts a
+  // `{ name: "Profile customized", ok: false }` row in /api/health; if
+  // we see it here we surface it loudly at the top of the Dashboard
+  // (instead of waiting for the user to wander to /#/health). Each
+  // advisor output (Apply / Followup / Contacto / Deep / etc.) would
+  // otherwise be addressed to "Acceptance Test" — broken first impression.
+  function profileFixtureBanner() {
+    if (!health || !Array.isArray(health.checks)) return null;
+    const row = health.checks.find((x) => x && x.name === 'Profile customized');
+    if (!row || row.ok) return null;
+    return c('div', {
+      className: 'hero-banner hero-banner--warning',
+      role: 'status',
+      'aria-live': 'polite',
+      id: 'profile-fixture-banner',
+    }, [
+      c('p', { className: 'hero-banner__msg' },
+        t('onboarding.fixtureWarning',
+          'Your profile is still on the default template. Every report and email will use this name until you fix it.')),
+      c('a', {
+        href: '#/config',
+        className: 'btn btn-primary btn-sm',
+      }, t('onboarding.fixProfile', 'Open profile settings')),
+    ]);
+  }
+
   const root = c('div', null, [
+    profileFixtureBanner(),
     c('header', { className: 'page-header' }, [
       c('div', null, [
         c('h1', { className: 'page-title' }, t('dash.title')),

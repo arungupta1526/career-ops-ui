@@ -10,6 +10,12 @@
 
 
 
+## [1.58.48] — 2026-05-20
+
+**fix(ux/onboarding): UX-D-B — 프로필이 기본 템플릿일 때 `#/dashboard` 에 경고 배너 표시.** /api/health 의 `Profile customized: false` 검출 시 `.hero-banner--warning` 표시. 새 i18n 키 `onboarding.fixtureWarning` + `onboarding.fixProfile` × 8. 941 → **942** 유닛. (UX-D-B)
+
+---
+
 ## [1.58.47] — 2026-05-20
 
 **fix(ux/naming): UX-D-C — 상단바 "Quick scan" 을 `Scan 열기` 로 개명(실제 스캔을 시작하지 않고 단지 이동만 하므로).** 8 언어 업데이트. 940 → **941** 유닛. (UX-D-C)

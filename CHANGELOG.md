@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.48] — 2026-05-20
+
+**fix(ux/onboarding): UX-D-B — `#/dashboard` shows a global warning banner when the user is still on the default fixture profile.** v1.58.36 audit: `/api/health` already includes a `{ name: "Profile customized", ok: false }` row (server checks for `Acceptance Test` / `Jane Smith` / other template names in `server/lib/store.mjs`), but the user only saw it after navigating to `#/health`. Meanwhile every advisor output (Apply / Followup / Contacto / Deep) was addressed to the fixture name — broken first impression. New `profileFixtureBanner()` in [public/js/views/dashboard.js](public/js/views/dashboard.js) renders a `.hero-banner.hero-banner--warning` at the top of the route when the check fails, with localized message (`onboarding.fixtureWarning` × 8) + a CTA button linking to `#/config` (`onboarding.fixProfile` × 8). When the user replaces the fixture, /api/health flips `ok: true` and the next dashboard mount silently omits the banner. New CSS `.hero-banner` + `.hero-banner--warning` rules. 941 → **942** unit. (UX-D-B)
+
+---
+
 ## [1.58.47] — 2026-05-20
 
 **fix(ux/naming): UX-D-C — top-bar `Quick scan` renamed to `Open Scan` so the label matches the actual behavior.** v1.58.36 audit: "Quick scan" implied an instant scan with sensible defaults, but the click handler at [public/js/app.js](public/js/app.js#L140) only navigates to `#/scan` — no scan starts. Renamed via the `top.quickscan` i18n key in all 8 locales (en `Open Scan` / es `Abrir Scan` / pt-BR `Abrir Scan` / ko `Scan 열기` / ja `Scan を開く` / ru `Открыть Scan` / zh-CN `打开 Scan` / zh-TW `開啟 Scan`). HTML default text in `index.html` updated to match. Behavior unchanged; only the label honesty improved. 940 → **941** unit. (UX-D-C)

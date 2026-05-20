@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.48] — 2026-05-20
+
+**fix(ux/onboarding): UX-D-B — banner global en `#/dashboard` cuando el perfil sigue en el template por defecto.** Nuevo `profileFixtureBanner()` que muestra `.hero-banner--warning` al detectar `Profile customized: false` en /api/health. Nuevas claves i18n `onboarding.fixtureWarning` + `onboarding.fixProfile` × 8. 941 → **942** unitarios. (UX-D-B)
+
+---
+
 ## [1.58.47] — 2026-05-20
 
 **fix(ux/naming): UX-D-C — el botón "Quick scan" de la barra superior pasa a llamarse `Abrir Scan` para reflejar que solo navega (no inicia un scan).** Actualizado en las 8 locales. 940 → **941** unitarios. (UX-D-C)

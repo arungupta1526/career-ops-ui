@@ -1181,6 +1181,26 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
    in help.js applies `.toc-current` to the link whose H2 is currently
    in the reading band. Uses the brand color and a left-border so the
    active item reads at a glance, including in dark mode. */
+/* UX-D-B (v1.58.48) — Dashboard global banner shown until the user
+   replaces the default "Acceptance Test" / template profile. Yellow
+   warning band at the top of the view so the user can't miss it
+   while every advisor output is still addressed to the fixture name. */
+.hero-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-3, 12px);
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: var(--space-4, 16px);
+  background: var(--paper, #fff);
+  border: 1px solid var(--slate, #ddd);
+}
+.hero-banner--warning {
+  background: #fff8e1;
+  border-color: #f0c674;
+  color: #5a4500;
+}
+.hero-banner__msg { margin: 0; font-size: 14px; flex: 1; }
+
 .help-toc a.toc-current {
   color: var(--rausch, #ff385c);
   font-weight: 600;

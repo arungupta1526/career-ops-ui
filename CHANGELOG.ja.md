@@ -10,6 +10,12 @@
 
 
 
+## [1.58.48] — 2026-05-20
+
+**fix(ux/onboarding): UX-D-B — プロフィールがデフォルトテンプレートのままなら `#/dashboard` に警告バナーを表示。** /api/health で `Profile customized: false` を検出すると `.hero-banner--warning` を表示。新 i18n キー `onboarding.fixtureWarning` + `onboarding.fixProfile` × 8。941 → **942** ユニット。(UX-D-B)
+
+---
+
 ## [1.58.47] — 2026-05-20
 
 **fix(ux/naming): UX-D-C — トップバーの「Quick scan」を `Scan を開く` に改名(動作はナビゲーションのみで実際にスキャンは開始しないため)。** 8 言語で更新。940 → **941** ユニット。(UX-D-C)

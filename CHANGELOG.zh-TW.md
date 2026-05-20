@@ -10,6 +10,12 @@
 
 
 
+## [1.58.48] — 2026-05-20
+
+**fix(ux/onboarding): UX-D-B — 當使用者仍使用預設範本資料時,`#/dashboard` 頂部顯示全域警告橫幅。** /api/health 偵測到 `Profile customized: false` 時顯示 `.hero-banner--warning`。新 i18n 鍵 `onboarding.fixtureWarning` + `onboarding.fixProfile` × 8。941 → **942** 單元。(UX-D-B)
+
+---
+
 ## [1.58.47] — 2026-05-20
 
 **fix(ux/naming): UX-D-C — 頂列 "Quick scan" 重新命名為 `開啟 Scan`(它只是導航,並不真正啟動掃描)。** 8 語言更新。940 → **941** 單元。(UX-D-C)

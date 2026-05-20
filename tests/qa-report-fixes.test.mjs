@@ -37,6 +37,34 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-D-B (v1.58.48): #/dashboard renders a fixture-profile warning banner when /api/health flags `Profile customized: false`', () => {
+  const dash = read('public', 'js', 'views', 'dashboard.js');
+  assert.match(dash, /function profileFixtureBanner\(\)/,
+    'dashboard.js must define profileFixtureBanner()');
+  assert.match(dash, /health\.checks\.find\([^)]+'Profile customized'/,
+    "banner must look for the 'Profile customized' check from /api/health");
+  assert.match(dash, /'hero-banner hero-banner--warning'/,
+    'banner must use .hero-banner.hero-banner--warning classes');
+  assert.match(dash, /t\('onboarding\.fixtureWarning'/,
+    "banner message must come from t('onboarding.fixtureWarning', …)");
+  assert.match(dash, /t\('onboarding\.fixProfile'/,
+    "banner CTA label must come from t('onboarding.fixProfile', …)");
+  // i18n parity for both keys.
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  for (const key of ['onboarding.fixtureWarning', 'onboarding.fixProfile']) {
+    const row = dict.match(new RegExp(`'${key.replace(/\./g, '\\.')}':\\s*\\{([^}]+)\\}`));
+    assert.ok(row, `i18n-dict.js missing '${key}'`);
+    for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+      const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+      assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+        `'${key}' must have a non-empty ${lang} value`);
+    }
+  }
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /\.hero-banner\s*\{/, '.hero-banner CSS rule must exist');
+  assert.match(css, /\.hero-banner--warning\s*\{/, '.hero-banner--warning rule must exist');
+});
+
 test('UX-D-C (v1.58.47): top-bar `Quick scan` renamed to `Open Scan` so the label matches the behavior', () => {
   // The button only navigates to #/scan — it does not start a scan.
   // The pre-fix "Quick scan" implied an instant action; "Open Scan"
