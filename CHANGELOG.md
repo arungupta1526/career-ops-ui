@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.65] — 2026-05-20
+
+**test(ui): UX-A2 (v1.58.65) — lock-test on Modes structured field-form.** The 5-field structured form for `#/config → Modes` was already shipped in v1.54.3 (canonical Target Roles / Adaptive Framing / Exit Narrative / Comp Targets / Location Policy + repeatable line-inputs for list-kind fields + × remove + add-row affordance + tagged `{mode: sections|markdown}` collect()). The UX-A2 audit assumed it was missing because all 5 sections initially appeared as `<textarea>` (an artifact of the field-form scaffolding pass before file load). This regression-lock test in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs) prevents a future PR from collapsing the field-form back to raw markdown. No code change. 960 → **961** unit. (UX-A2)
+
+---
+
+
+
 ## [1.58.64] — 2026-05-20
 
 **fix(i18n): UX-A11 (v1.58.64) — es / pt-BR copy polish: English loanwords replaced.** `eval.subtitle` (es) now uses ajuste del CV / Puntaje / cabecera / informe; pt-BR uses aderência do CV / Pontuação / cabeçalho / relatório. `pipe.title` (es) refined to Pipeline de candidaturas (candidate-side perspective). pt-BR vagas retained. 959 → **960** unit. (UX-A11)

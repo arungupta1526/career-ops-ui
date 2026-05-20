@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.65] — 2026-05-20
+
+**test(ui): UX-A2 (v1.58.65) — test de bloqueo del field-form estructurado de Modes.** Nuevo test que protege la implementación v1.54.3 contra regresiones. (UX-A2)
+
+---
+
+
+
 ## [1.58.64] — 2026-05-20
 
 **fix(i18n): UX-A11 (v1.58.64) — pulido del copy en español.** eval.subtitle ahora usa ajuste del CV, Puntaje, cabecera, informe. pipe.title ahora es Pipeline de candidaturas. (UX-A11)

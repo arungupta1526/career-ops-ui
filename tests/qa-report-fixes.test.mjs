@@ -37,6 +37,37 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-A2 (v1.58.65): ModesForm renders all 5 canonical fields as repeatable line-inputs + prose textareas', () => {
+  // The v1.54.3 ModesForm already implemented the field-form, but
+  // UX-A2 in the audit assumed it was missing. This lock-test
+  // documents the existing capability and prevents a future collapse
+  // back to raw markdown:
+  //   - All 5 canonical fields are in CANON, in the canonical order.
+  //   - Target Roles / Adaptive Framing / Comp Targets are `kind: list`
+  //     (repeatable line-inputs).
+  //   - Exit Narrative / Location Policy are `kind: prose` (textareas).
+  //   - List rows render with × remove + a footer "+ add" button.
+  //   - collect() returns the tagged payload the server merges.
+  const mf = read('public', 'js', 'lib', 'modes-form.js');
+  const expected = [
+    { key: 'Target Roles',     kind: 'list' },
+    { key: 'Adaptive Framing', kind: 'list' },
+    { key: 'Exit Narrative',   kind: 'prose' },
+    { key: 'Comp Targets',     kind: 'list' },
+    { key: 'Location Policy',  kind: 'prose' },
+  ];
+  for (const { key, kind } of expected) {
+    const re = new RegExp(`key:\\s*'${key.replace(/ /g, ' ')}',\\s*kind:\\s*'${kind}'`);
+    assert.match(mf, re, `CANON must list '${key}' as kind: ${kind}`);
+  }
+  // Repeatable line-inputs (× remove + + add affordance).
+  assert.match(mf, /config\.modesRemoveItem/, 'list rows must have × remove with i18n key config.modesRemoveItem');
+  assert.match(mf, /onClick:\s*\(\)\s*=>\s*addRow\(''\)/, 'card footer must wire + add row affordance');
+  // The collect() contract is tagged {mode: sections, sections}|{mode: markdown, markdown}.
+  assert.match(mf, /mode:\s*'sections'/, "collect() must return mode: 'sections' for merge");
+  assert.match(mf, /mode:\s*'markdown'/, "collect() must return mode: 'markdown' for rebuild");
+});
+
 test('UX-A11 (v1.58.64): es/pt-BR copy polish — English loanwords replaced with native equivalents', () => {
   const dict = read('public', 'js', 'lib', 'i18n-dict.js');
   // The ES eval.subtitle previously used "fit CV", "Score", "header",
