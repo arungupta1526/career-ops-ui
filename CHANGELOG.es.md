@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.54] — 2026-05-20
+
+**fix(ux): UX-A1 (v1.58.54) — aviso defensivo de estructura para el brief de Deep.** Cuando el brief guardado no incluye al menos 3 de las 6 secciones canónicas (Company snapshot / Engineering culture / Recent news / Glassdoor / Interview process / Negotiation leverage), `public/js/views/deep.js` antepone un aviso no bloqueante con enlace a la referencia. Solución a nivel de UI; la corrección en el prompt vive en el proyecto padre. (UX-A1)
+
+---
+
+
+
 ## [1.58.53] — 2026-05-20
 
 **fix(ux): UX-A6 — todo saved-card pasa por un único helper `renderSavedCard()`.** Garantiza la estructura `<span>+<time>` en cada path de renderizado. 948 → **949** unitarios. (UX-A6)

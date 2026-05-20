@@ -153,7 +153,35 @@ Router.register('deep', async () => {
         }, '📄 ' + t('common.generatePdf', 'Generate PDF')),
       ]),
     ]);
+    // UX-A1 (v1.58.54) — defensive structure check: the canonical
+    // Deep-research brief promised in career-ops.org/docs has 6 H2
+    // sections (Company snapshot / Engineering culture / Recent news
+    // / Glassdoor / Interview process / Negotiation leverage). The
+    // root prompt-layer fix lives in the parent project (C-1, blocked)
+    // — until it lands, when the saved brief is meta-narration with
+    // fewer than 3 of these sections we surface a non-blocking warning
+    // explaining what the brief should look like, with a link to the
+    // canonical reference. Defensive only — never rewrites the brief.
+    function looksLikeStructuredBrief(md) {
+      const expected = ['Company snapshot', 'Engineering culture', 'Recent news',
+                        'Glassdoor', 'Interview process', 'Negotiation leverage'];
+      const found = expected.filter((h) => new RegExp('^##\\s+' + h, 'mi').test(md));
+      return found.length >= 3;
+    }
+    const briefWarning = !looksLikeStructuredBrief(markdown || '')
+      ? c('div', { className: 'brief-warning', role: 'status' }, [
+          c('strong', null, t('deep.briefUnstructured.title',
+            "This brief doesn't match the canonical 6-section structure")),
+          c('p', null, t('deep.briefUnstructured.body',
+            'Re-run with Run live, or check `modes/deep.md` in your parent project to enforce the final-form output.')),
+          c('a', {
+            href: 'https://career-ops.org/docs/introduction/guides/scan-job-portals',
+            target: '_blank', rel: 'noopener noreferrer',
+          }, t('deep.docsLink', 'Read the deep-research reference')),
+        ])
+      : null;
     const body = c('div', { className: 'card md', html: UI.md(markdown || '') });
+    if (briefWarning) card.appendChild(briefWarning);
     card.append(header, body);
     out.appendChild(card);
   }

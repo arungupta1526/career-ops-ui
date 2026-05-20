@@ -528,6 +528,26 @@ body.sidebar-open .sidebar-backdrop { display: block; }
   white-space: nowrap;
 }
 
+/* UX-A1 (v1.58.54) — Defensive Deep-brief structure warning. When a
+   saved brief lacks ≥3 of the 6 canonical H2 sections (Company snapshot
+   / Engineering culture / Recent news / Glassdoor / Interview process
+   / Negotiation leverage), the renderer prepends a non-blocking warning
+   card with a link to the docs. Styled as a soft alert so it doesn't
+   look like a hard error. */
+.brief-warning {
+  margin: 0 0 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--warn-bg, #fff7e6);
+  border-left: 3px solid var(--warn-border, #f0a020);
+  color: var(--warn-fg, #663d00);
+  font-size: 0.92em;
+  line-height: 1.5;
+}
+.brief-warning strong { display: block; margin-bottom: 4px; }
+.brief-warning p { margin: 0 0 6px; }
+.brief-warning a { color: inherit; text-decoration: underline; }
+
 /* M-8 (v1.58.13) — interactive Apply checklist. The pre-fix view
    rendered the checklist as a plain <pre> block; users couldn't tick
    anything. Now each item is a real checkbox+label row, persisted per

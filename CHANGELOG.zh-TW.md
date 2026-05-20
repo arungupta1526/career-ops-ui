@@ -10,6 +10,14 @@
 
 
 
+## [1.58.54] — 2026-05-20
+
+**fix(ux): UX-A1 (v1.58.54) — Deep 簡報結構防禦性警告。** 當儲存的簡報缺少 6 個標準章節(Company snapshot / Engineering culture / Recent news / Glassdoor / Interview process / Negotiation leverage)中至少 3 個時,`public/js/views/deep.js` 會在內容前顯示一個非阻塞警告並連結到參考文件。這是 UI 層防護;根本的提示層修復位於父專案。(UX-A1)
+
+---
+
+
+
 ## [1.58.53] — 2026-05-20
 
 **fix(ux): UX-A6 — 所有 saved-card 通過單一 `renderSavedCard()` 輔助函式渲染。** 保證任何渲染路徑下都有 `<span>+<time>` 結構。948 → **949** 單元。(UX-A6)

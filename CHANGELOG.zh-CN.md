@@ -10,6 +10,14 @@
 
 
 
+## [1.58.54] — 2026-05-20
+
+**fix(ux): UX-A1 (v1.58.54) — Deep 简报结构防御性警告。** 当保存的简报缺少 6 个标准章节(Company snapshot / Engineering culture / Recent news / Glassdoor / Interview process / Negotiation leverage)中至少 3 个时,`public/js/views/deep.js` 会在内容前显示一个非阻塞警告并链接到参考文档。这是 UI 层防护;根本的提示层修复位于父项目。(UX-A1)
+
+---
+
+
+
 ## [1.58.53] — 2026-05-20
 
 **fix(ux): UX-A6 — 所有 saved-card 通过单一 `renderSavedCard()` 助手渲染。** 保证任何渲染路径下都有 `<span>+<time>` 结构。948 → **949** 单元。(UX-A6)

@@ -10,6 +10,14 @@
 
 
 
+## [1.58.54] — 2026-05-20
+
+**fix(ux): UX-A1 (v1.58.54) — Deep ブリーフ構造の防御的警告。** 保存されたブリーフに標準の 6 セクション(Company snapshot / Engineering culture / Recent news / Glassdoor / Interview process / Negotiation leverage)のうち 3 つ未満しか含まれていない場合、`public/js/views/deep.js` は非ブロッキングの警告とリファレンスへのリンクを先頭に表示します。UI のガードレールであり、プロンプトレベルの修正は親プロジェクトで行います。(UX-A1)
+
+---
+
+
+
 ## [1.58.53] — 2026-05-20
 
 **fix(ux): UX-A6 — すべての saved-card が単一の `renderSavedCard()` ヘルパーを経由。** どのレンダリングパスでも `<span>+<time>` 構造が保証される。948 → **949** ユニット。(UX-A6)

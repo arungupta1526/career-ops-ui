@@ -10,6 +10,14 @@
 
 
 
+## [1.58.54] — 2026-05-20
+
+**fix(ux): UX-A1 (v1.58.54) — Deep 브리프 구조 방어 경고.** 저장된 브리프에 표준 6개 섹션(Company snapshot / Engineering culture / Recent news / Glassdoor / Interview process / Negotiation leverage) 중 3개 미만이 포함되면 `public/js/views/deep.js`가 비차단 경고와 레퍼런스 링크를 앞에 표시합니다. UI 가드레일이며, 프롬프트 단계 수정은 상위 프로젝트에서 진행됩니다. (UX-A1)
+
+---
+
+
+
 ## [1.58.53] — 2026-05-20
 
 **fix(ux): UX-A6 — 모든 saved-card 가 단일 `renderSavedCard()` 헬퍼를 통과.** 모든 렌더 경로에서 `<span>+<time>` 구조 보장. 948 → **949** 유닛. (UX-A6)

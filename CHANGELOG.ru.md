@@ -10,6 +10,14 @@
 
 
 
+## [1.58.54] — 2026-05-20
+
+**fix(ux): UX-A1 (v1.58.54) — защитное предупреждение о структуре Deep-брифа.** Если в сохранённом брифе отсутствует не менее 3 из 6 канонических разделов (Company snapshot / Engineering culture / Recent news / Glassdoor / Interview process / Negotiation leverage), `public/js/views/deep.js` показывает над контентом неблокирующее предупреждение со ссылкой на канон. Это UI-страховка; корневая правка промпта живёт в родительском проекте. (UX-A1)
+
+---
+
+
+
 ## [1.58.53] — 2026-05-20
 
 **fix(ux): UX-A6 (NEW-M4-r1) — каждая saved-research карточка проходит через единый helper `renderSavedCard()`.** Верификационный регресс v1.58.51 показал: одна карточка рендерилась без структурных детей (title+date как один text node — `software-engineer-generalyesterday`), а другая с правильной `<span>` + `<time>` структурой. Правка в [public/js/views/deep.js](public/js/views/deep.js#L26-L75): извлечён `renderSavedCard(f)`, всегда выдающий `.saved-card__title` + `.saved-card__date datetime=…`. Любой render-путь (page-load `renderArchive`, post-`Run live`, будущие точки) проходит через единый helper — flex-gap layout M-4 v1.58.11 работает только с правильными структурными детьми. 948 → **949** модульных. (UX-A6)

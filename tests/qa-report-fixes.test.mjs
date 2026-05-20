@@ -37,6 +37,36 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-A1 (v1.58.54): showResult prepends a brief-warning when ≥3 canonical H2s are missing', () => {
+  const deep = read('public', 'js', 'views', 'deep.js');
+  assert.match(deep, /function looksLikeStructuredBrief\(md\)/,
+    'deep.js must define looksLikeStructuredBrief(md) for the canonical H2 audit');
+  // The six canonical H2 section titles must all be in the expected list.
+  for (const section of ['Company snapshot', 'Engineering culture', 'Recent news',
+                         'Glassdoor', 'Interview process', 'Negotiation leverage']) {
+    assert.ok(deep.includes(section),
+      `deep.js must list '${section}' as one of the six canonical H2 sections`);
+  }
+  assert.match(deep, /className:\s*'brief-warning'/,
+    'deep.js must render a .brief-warning element when the brief lacks structure');
+  assert.match(deep, /deep\.briefUnstructured\.title/,
+    'deep.js must use the i18n key deep.briefUnstructured.title for the warning headline');
+  // The warning must be appended into the card before header+body so it
+  // surfaces above the rendered markdown, not buried at the bottom.
+  assert.match(deep, /if \(briefWarning\) card\.appendChild\(briefWarning\)/,
+    'deep.js must conditionally appendChild(briefWarning) into the card');
+
+  // The .brief-warning class must have a real CSS rule (not just markup).
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /\.brief-warning\s*\{/, 'app.css must define a .brief-warning rule');
+
+  // All 8 locales must carry the three UX-A1 i18n keys.
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  for (const key of ['deep.briefUnstructured.title', 'deep.briefUnstructured.body', 'deep.docsLink']) {
+    assert.ok(dict.includes(`'${key}'`), `i18n-dict.js must define '${key}'`);
+  }
+});
+
 test('UX-A6 (v1.58.53): every saved-research card flows through a single `renderSavedCard()` helper', () => {
   const deep = read('public', 'js', 'views', 'deep.js');
   assert.match(deep, /function renderSavedCard\(f\)/,
