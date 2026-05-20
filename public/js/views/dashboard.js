@@ -40,6 +40,53 @@ Router.register('dashboard', async () => {
     ]);
   }
 
+  // UX-A3 (v1.58.55) — active-provider chip near the P0 CTAs. The
+  // OR-model (Anthropic→Gemini→OpenAI→Qwen→OpenRouter) is the core
+  // trust mechanic but Dashboard didn't show which provider is active
+  // — the user had to wander to Health to know. This chip mounts
+  // empty, fetches `/api/status/providers`, then renders. It re-fetches
+  // on `providers-changed` (dispatched from #/config save) and on
+  // `visibilitychange` (tab refocus from another window where the user
+  // may have changed `LLM_PROVIDER`) — same pattern as the shared
+  // UI.providerCostHint helper (v1.58.41).
+  function providerChip() {
+    const chip = c('div', {
+      className: 'dash-chip dash-chip--provider',
+      role: 'status',
+      'aria-live': 'polite',
+    }, '');
+    async function refresh() {
+      let st = null;
+      try {
+        const r = await fetch('/api/status/providers');
+        if (r.ok) st = await r.json();
+      } catch { /* offline → say nothing */ }
+      // Clear children safely (CSP-compatible — no innerHTML).
+      while (chip.firstChild) chip.removeChild(chip.firstChild);
+      if (!st) { chip.hidden = true; return; }
+      chip.hidden = false;
+      const NAME = { claude: 'Anthropic', gemini: 'Gemini', openai: 'OpenAI', qwen: 'Qwen', openrouter: 'OpenRouter' };
+      if (!st.activeProvider) {
+        chip.classList.add('dash-chip--manual');
+        chip.appendChild(c('span', { className: 'dash-chip__icon', 'aria-hidden': 'true' }, '📋'));
+        chip.appendChild(c('span', { className: 'dash-chip__label' },
+          t('dash.provider.manual', 'Manual prompt mode (no API key set)')));
+      } else {
+        chip.classList.remove('dash-chip--manual');
+        const name = NAME[st.activeProvider] || st.activeProvider;
+        const lbl = t('dash.provider.live', 'Live evals') + ': ' + name +
+          (st.activeModel ? ' ' + st.activeModel : '');
+        chip.appendChild(c('span', { className: 'dash-chip__icon', 'aria-hidden': 'true' }, '⚡'));
+        chip.appendChild(c('span', { className: 'dash-chip__label' }, lbl));
+      }
+    }
+    refresh();
+    const onVisibility = () => { if (!document.hidden) refresh(); };
+    document.addEventListener('visibilitychange', onVisibility);
+    document.addEventListener('providers-changed', refresh);
+    return chip;
+  }
+
   // v1.55.5 — UX-3: a visually dominant hero. Two P0 CTAs as large
   // buttons + a single focal recent-activity hint (last evaluation,
   // linked) so a returning user sees progress and a new user sees the
@@ -64,6 +111,7 @@ Router.register('dashboard', async () => {
           '🌐 ' + t('dash.scanNow', 'Scan now')),
       ]),
       focal,
+      providerChip(),
     ]);
   }
 

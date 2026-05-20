@@ -367,6 +367,10 @@ window.__I18N_DICT = {
   'dash.system.set': { en: 'set', es: 'puesta', 'pt-BR': 'definida', ko: '설정됨', ja: '設定済', ru: 'установлен', 'zh-CN': '已设置', 'zh-TW': '已設定' },
   'dash.system.unset': { en: 'unset', es: 'no puesta', 'pt-BR': 'não definida', ko: '미설정', ja: '未設定', ru: 'не установлен', 'zh-CN': '未设置', 'zh-TW': '未設定' },
 
+  // UX-A3 (v1.58.55) — active-provider chip in dashboard hero.
+  'dash.provider.live':   { en: 'Live evals', es: 'Evaluaciones en vivo', 'pt-BR': 'Avaliações ao vivo', ko: '실시간 평가', ja: 'ライブ評価', ru: 'Боевые оценки', 'zh-CN': '实时评估', 'zh-TW': '即時評估' },
+  'dash.provider.manual': { en: 'Manual prompt mode (no API key set)', es: 'Modo manual (sin clave API)', 'pt-BR': 'Modo manual (sem chave API)', ko: '수동 프롬프트 모드 (API 키 없음)', ja: '手動プロンプトモード (API キー未設定)', ru: 'Ручной режим (API-ключ не задан)', 'zh-CN': '手动 prompt 模式(未设置 API 密钥)', 'zh-TW': '手動 prompt 模式(未設定 API 金鑰)' },
+
   // Scan
   'scan.title':     { en: 'Vacancy search', es: 'Búsqueda de vacantes', 'pt-BR': 'Busca de vagas', ko: '채용 공고 검색', ja: '求人検索', ru: 'Поиск вакансий', 'zh-CN': '职位搜索', 'zh-TW': '職位搜尋' },
   // v1.20.1 (H-3) — Active Companies badge labels referenced from scan.js.

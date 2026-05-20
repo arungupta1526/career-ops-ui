@@ -10,6 +10,14 @@
 
 
 
+## [1.58.55] — 2026-05-20
+
+**feat(ui): UX-A3 (v1.58.55) — Dashboard 活動供應方晶片。** `#/dashboard` 主區現在顯示當前活動的 LLM 供應方(`⚡ Live evals: Anthropic claude-sonnet-4-6` 或 `📋 Manual prompt mode`)。在 `#/config` 變更 `LLM_PROVIDER` 或分頁重新獲得焦點時自動更新。(UX-A3)
+
+---
+
+
+
 ## [1.58.54] — 2026-05-20
 
 **fix(ux): UX-A1 (v1.58.54) — Deep 簡報結構防禦性警告。** 當儲存的簡報缺少 6 個標準章節(Company snapshot / Engineering culture / Recent news / Glassdoor / Interview process / Negotiation leverage)中至少 3 個時,`public/js/views/deep.js` 會在內容前顯示一個非阻塞警告並連結到參考文件。這是 UI 層防護;根本的提示層修復位於父專案。(UX-A1)

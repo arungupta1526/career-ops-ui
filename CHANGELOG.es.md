@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.55] — 2026-05-20
+
+**feat(ui): UX-A3 (v1.58.55) — chip de proveedor activo en el Dashboard.** El hero de `#/dashboard` ahora muestra qué proveedor LLM está activo (`⚡ Live evals: Anthropic claude-sonnet-4-6` o `📋 Manual prompt mode`). Se actualiza automáticamente al cambiar `LLM_PROVIDER` en `#/config` y al recuperar foco en la pestaña. (UX-A3)
+
+---
+
+
+
 ## [1.58.54] — 2026-05-20
 
 **fix(ux): UX-A1 (v1.58.54) — aviso defensivo de estructura para el brief de Deep.** Cuando el brief guardado no incluye al menos 3 de las 6 secciones canónicas (Company snapshot / Engineering culture / Recent news / Glassdoor / Interview process / Negotiation leverage), `public/js/views/deep.js` antepone un aviso no bloqueante con enlace a la referencia. Solución a nivel de UI; la corrección en el prompt vive en el proyecto padre. (UX-A1)

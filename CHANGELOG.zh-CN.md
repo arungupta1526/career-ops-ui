@@ -10,6 +10,14 @@
 
 
 
+## [1.58.55] — 2026-05-20
+
+**feat(ui): UX-A3 (v1.58.55) — Dashboard 活动提供方芯片。** `#/dashboard` 主区现在显示当前活动的 LLM 提供方(`⚡ Live evals: Anthropic claude-sonnet-4-6` 或 `📋 Manual prompt mode`)。在 `#/config` 更改 `LLM_PROVIDER` 或标签页重新获得焦点时自动更新。(UX-A3)
+
+---
+
+
+
 ## [1.58.54] — 2026-05-20
 
 **fix(ux): UX-A1 (v1.58.54) — Deep 简报结构防御性警告。** 当保存的简报缺少 6 个标准章节(Company snapshot / Engineering culture / Recent news / Glassdoor / Interview process / Negotiation leverage)中至少 3 个时,`public/js/views/deep.js` 会在内容前显示一个非阻塞警告并链接到参考文档。这是 UI 层防护;根本的提示层修复位于父项目。(UX-A1)

@@ -37,6 +37,27 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-A3 (v1.58.55): dashboard renders an active-provider chip wired to /api/status/providers', () => {
+  const dash = read('public', 'js', 'views', 'dashboard.js');
+  assert.match(dash, /function providerChip\(\)/,
+    'dashboard.js must define providerChip() helper');
+  assert.match(dash, /\/api\/status\/providers/,
+    'providerChip must fetch /api/status/providers (existing endpoint)');
+  assert.match(dash, /dash-chip--provider/, 'chip must carry .dash-chip--provider class');
+  assert.match(dash, /document\.addEventListener\('providers-changed', refresh\)/,
+    'chip must re-render on providers-changed event (#/config save dispatches it)');
+  assert.match(dash, /document\.addEventListener\('visibilitychange', onVisibility\)/,
+    'chip must re-render on tab refocus (cross-tab provider switch)');
+  // i18n keys present in 8 locales.
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  for (const key of ['dash.provider.live', 'dash.provider.manual']) {
+    assert.ok(dict.includes(`'${key}'`), `i18n-dict.js must define '${key}'`);
+  }
+  // CSS rule present.
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /\.dash-chip--provider\s*\{/, 'app.css must define .dash-chip--provider');
+});
+
 test('UX-A1 (v1.58.54): showResult prepends a brief-warning when ≥3 canonical H2s are missing', () => {
   const deep = read('public', 'js', 'views', 'deep.js');
   assert.match(deep, /function looksLikeStructuredBrief\(md\)/,

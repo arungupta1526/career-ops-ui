@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.55] — 2026-05-20
+
+**feat(ui): UX-A3 (v1.58.55) — Dashboard active-provider chip.** Above-the-fold chip in [public/js/views/dashboard.js](public/js/views/dashboard.js) hero now surfaces whether the OR-model fell through to a live provider (e.g. `⚡ Live evals: Anthropic claude-sonnet-4-6`) or whether the user is in `📋 Manual prompt mode (no API key set)`. Re-fetches on `providers-changed` (dispatched by [#/config](public/js/views/config.js) save) and on `visibilitychange` (cross-tab refocus). Reuses the existing `/api/status/providers` endpoint (no new API surface). Three i18n keys × 8 locales; one CSS rule (`.dash-chip--provider`). 950 → **951** unit. (UX-A3)
+
+---
+
+
+
 ## [1.58.54] — 2026-05-20
 
 **fix(ux): UX-A1 (v1.58.54) — defensive Deep-brief structure warning.** The canonical Deep-research brief promised in [career-ops.org/docs](https://career-ops.org/docs/introduction/guides/scan-job-portals) has six H2 sections (Company snapshot / Engineering culture / Recent news / Glassdoor / Interview process / Negotiation leverage). When the upstream prompt drifts and the saved brief is meta-narration instead of the final form, [public/js/views/deep.js](public/js/views/deep.js) now detects the regression (≥3 of the six H2s missing) and prepends a non-blocking `.brief-warning` card explaining what the brief should look like and linking to the canonical reference. The root prompt-layer fix lives in the parent project (`modes/deep.md`, blocked from here); this UI guardrail surfaces the drift instead of silently rendering a degenerate brief. CSS rule added to [public/css/app.css](public/css/app.css); three new i18n keys (`deep.briefUnstructured.title` / `.body` / `deep.docsLink`) cover all 8 locales. New static guard in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs). 949 → **950** unit. (UX-A1)

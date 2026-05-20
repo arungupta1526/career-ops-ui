@@ -548,6 +548,26 @@ body.sidebar-open .sidebar-backdrop { display: block; }
 .brief-warning p { margin: 0 0 6px; }
 .brief-warning a { color: inherit; text-decoration: underline; }
 
+/* UX-A3 (v1.58.55) — Dashboard active-provider chip. Pill below the
+   hero CTAs. Soft surface, rounded, inline-flex with icon + label so
+   the user knows whether they're in live-eval mode or manual-prompt
+   fallback without having to visit Health. */
+.dash-chip--provider {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--surface-elev1, #f3f4f6);
+  border: 1px solid var(--border, #e5e7eb);
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+.dash-chip--provider[hidden] { display: none; }
+.dash-chip--manual { color: var(--muted, #6b7280); }
+.dash-chip__icon { font-size: 1.05em; }
+
 /* M-8 (v1.58.13) — interactive Apply checklist. The pre-fix view
    rendered the checklist as a plain <pre> block; users couldn't tick
    anything. Now each item is a real checkbox+label row, persisted per
