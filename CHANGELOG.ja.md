@@ -8,6 +8,14 @@
 
 ---
 
+
+
+## [1.58.18] — 2026-05-20
+
+**fix(i18n): I-3 — ヘルプ TOC 項目 2/5/13/14 の非ラテンロケールでの英語残りを排除。** 修正前、複数のロケールヘルプ束で `## 2. App settings & API keys`、`## 5. Portals & Sources`、`## 13. Mode prompts`、`## 14. Apply checklist` が混在していた(ru/ja/ko/zh-CN/zh-TW)。今は 8 言語全てで完全にローカライズ。913 → **914** ユニット。(I-3)
+
+---
+
 ## [1.58.17] — 2026-05-20
 
 **fix(i18n): I-2 — Saved-research の日付ラベルを `Intl.RelativeTimeFormat` でロケール化。** [public/js/views/deep.js](public/js/views/deep.js#L57-L82) の `formatRelative()` は英語の `today` / `1d ago` / `Nd ago` をハードコードしていた。`Intl.RelativeTimeFormat(I18n.getLang(), { numeric: 'auto' })` に置換 — ブラウザネイティブで「今日/昨日」「сегодня/вчера」等のローカライズ表現を取得。7 日以上前は `Intl.DateTimeFormat(locale, { dateStyle: 'medium' })` にフォールバック。912 → **913** ユニット。(I-2)

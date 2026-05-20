@@ -340,7 +340,7 @@ El feedback es un **stepper** vertical (lista ordenada, `aria-current` en el pas
 
 ---
 
-## 2. App settings & API keys (`#/config`)
+## 2. Ajustes de la app y claves API (`#/config`)
 
 > **Novedades v1.55 → v1.56.** Sin clave LLM, un banner rojo en cada pantalla explica que ⚡ Ejecutar en vivo está en modo prompt manual y enlaza aquí; con una clave se vuelve un chip discreto con el proveedor activo. Antes de cada botón ⚡ Ejecutar en vivo (`#/auto`, `#/evaluate`, `#/deep`, modos) se muestra un coste estimado honesto (p. ej. "Coste estimado: OpenAI gpt-5-codex · ~$0.04/eval", o sin coste de API en modo manual). `#/scan` oculta filtros secundarios tras un desplegable **Filtros avanzados**; `#/tracker` añade chips de embudo clicables + paginación de servidor opcional; `#/pipeline` virtualiza más de 1000 filas.
 
@@ -1151,7 +1151,7 @@ Misma cadena de fallback que Evaluate:
 
 ---
 
-## 13. Mode prompts (las siete páginas `/#/<mode>`)
+## 13. Prompts de modos (las siete páginas `/#/<mode>`)
 
 Siete generadores de prompts: ideas de **Project**, planes de
 **Training**, emails de **Follow-up**, evaluaciones **Batch**,
@@ -1194,7 +1194,7 @@ modos que el proyecto padre solo soporta dentro de Claude Code
 
 ---
 
-## 14. Apply checklist (`#/apply`)
+## 14. Checklist de aplicación (`#/apply`)
 
 Una vez que has decidido aplicar, esta página Apply helper genera una
 checklist de envío para el paso de candidatura real. **NO**

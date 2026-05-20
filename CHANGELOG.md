@@ -6,6 +6,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+
+
+## [1.58.18] — 2026-05-20
+
+**fix(i18n): I-3 — help TOC items 2/5/13/14 free of English bleed in non-Latin locales.** Pre-fix several locale help bundles still showed `## 2. App settings & API keys`, `## 5. Portals & Sources`, `## 13. Mode prompts`, `## 14. Apply checklist` (ru/ja/ko/zh-CN/zh-TW). Now fully localized in all 8 locales (RU `Подсказки режимов` / `Чек-лист отклика`, JA `応募チェックリスト`, KO `앱 설정 및 API 키` / `포털 및 소스` / `지원 체크리스트`, zh-CN `应用设置与 API 密钥` / `模式提示` / `申请清单`, zh-TW `應用設定與 API 金鑰` / `招聘版面與來源` / `模式提示` / `申請清單`). 913 → **914** unit (negative-match guard: items 2/5/13/14 contain none of `App|settings|Apply|checklist|Portals|Sources|Mode|prompts` for the 5 non-Latin locales). (I-3)
+
+---
+
 ## [1.58.17] — 2026-05-20
 
 **fix(i18n): I-2 — saved-research dates now use `Intl.RelativeTimeFormat` per locale.** The `formatRelative()` helper in [public/js/views/deep.js](public/js/views/deep.js#L57-L82) returned hardcoded English `today` / `1d ago` / `Nd ago` regardless of UI language. Replaced with `Intl.RelativeTimeFormat(I18n.getLang(), { numeric: 'auto' })` — the browser-native localized "today/yesterday/N days ago" string (сегодня/вчера, 今日/昨日, etc.). Dates older than 7 days fall back to `Intl.DateTimeFormat(locale, { dateStyle: 'medium' })`. Defensive try/catch keeps the old English fallback for ancient browsers without Intl. 912 → **913** unit. (I-2)

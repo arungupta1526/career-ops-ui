@@ -326,7 +326,7 @@ Evaluate → Reports → Deep research → Apply checklist → Outreach
 
 ---
 
-## 2. App settings & API 키 (`#/config`)
+## 2. 앱 설정 및 API 키 (`#/config`)
 
 > **v1.55 → v1.56 새 기능.** LLM 키가 없으면 모든 화면의 빨간 배너가 ⚡ 라이브 실행이 수동 프롬프트 모드임을 알리고 여기로 연결합니다; 키가 있으면 활성 제공자를 표시하는 조용한 칩이 됩니다. 모든 ⚡ 라이브 실행 버튼(`#/auto`, `#/evaluate`, `#/deep`, 모드) 앞에 정직한 예상 비용이 표시됩니다(예: "예상 비용: OpenAI gpt-5-codex · ~$0.04/eval", 수동 모드는 API 비용 없음). `#/scan`은 보조 필터를 **고급 필터** 디스클로저 뒤로, `#/tracker`는 클릭형 퍼널 칩 + 선택적 서버 페이지네이션, `#/pipeline`은 1000행 초과 시 가상화.
 
@@ -498,7 +498,7 @@ Health 페이지는 `full_name`이 알려진 자리표시자 이름과 일치하
 
 ---
 
-## 5. Portals & 소스 (`portals.yml`)
+## 5. 포털 및 소스 (`portals.yml`)
 
 스캐너 설정은 부모 루트의 `portals.yml`에 있습니다. 세 섹션이
 중요합니다. SPA의 세 섹션(아래)은
@@ -1146,7 +1146,7 @@ Evaluate와 동일한 폴백 체인:
 
 ---
 
-## 14. Apply checklist (`#/apply`)
+## 14. 지원 체크리스트 (`#/apply`)
 
 지원을 결정한 다음 이 Apply 헬퍼 페이지가 실제 지원 단계용 제출
 체크리스트를 생성합니다. 폼을 자동 채우지는 **않습니다** — 그

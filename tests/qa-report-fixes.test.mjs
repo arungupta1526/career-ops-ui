@@ -30,6 +30,26 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('I-3 (v1.58.18): help TOC items 2/5/13/14 contain no Latin English bleed in non-Latin locales', () => {
+  // v1.58.3 regression: '## 2. App settings & API keys', '## 5. Portals
+  // & Sources', '## 13. Mode prompts', '## 14. Apply checklist' bled
+  // English into ru / ja / ko / zh-CN / zh-TW help bundles. Items 2,
+  // 5, 13, 14 must now contain no top-level English glossary terms
+  // (App, settings, Apply, checklist, Portals, Sources, Mode, prompts)
+  // in those 5 locales.
+  const banned = /\b(App|settings|Apply|checklist|Portals|Sources|Mode|prompts)\b/;
+  for (const locale of ['ru', 'ja', 'ko-KR', 'zh-CN', 'zh-TW']) {
+    const text = read('docs', 'help', `${locale}.md`);
+    for (const n of [2, 5, 13, 14]) {
+      const re = new RegExp(`^## ${n}\\. (.+)$`, 'm');
+      const m = text.match(re);
+      assert.ok(m, `${locale}.md missing H2 item ${n}`);
+      assert.ok(!banned.test(m[1]),
+        `${locale}.md H2 item ${n} still contains English: ${m[1]}`);
+    }
+  }
+});
+
 test('I-2 (v1.58.17): formatRelative uses Intl.RelativeTimeFormat with the active locale', () => {
   const deep = read('public', 'js', 'views', 'deep.js');
   // The pre-fix hardcoded English strings are gone:

@@ -297,7 +297,7 @@ JD。輔助器會生成逐步的投遞檢查清單:
 
 ---
 
-## 2. App settings 與 API 金鑰(`#/config`)
+## 2. 應用設定與 API 金鑰(`#/config`)
 
 > **v1.55 → v1.56 新功能。** 未設定 LLM 金鑰時,每螢幕的紅色橫幅說明 ⚡ 即時執行處於手動提示模式並連結至此;設定金鑰後變為顯示作用中提供方的低調徽章。每個 ⚡ 即時執行按鈕(`#/auto`、`#/evaluate`、`#/deep`、模式)前顯示誠實的預估費用(如「預估費用:OpenAI gpt-5-codex · ~$0.04/eval」,手動模式則無 API 費用)。`#/scan` 將次要篩選收入**進階篩選**摺疊區;`#/tracker` 新增可點擊漏斗晶片 + 可選伺服器端分頁;`#/pipeline` 超過 1000 列時虛擬化。
 
@@ -462,7 +462,7 @@ Health 頁面有一項 **Profile customized** 檢查,只要
 
 ---
 
-## 5. Portals 與 Sources(`portals.yml`)
+## 5. 招聘版面與來源(`portals.yml`)
 
 掃描器設定檔位於父專案根目錄的 `portals.yml`。三個區塊很重要。
 SPA 的三個區塊(下方)與
@@ -1045,7 +1045,7 @@ tracker」按鈕。
 
 ---
 
-## 13. Mode 提示(七個 `/#/<mode>` 頁面)
+## 13. 模式提示(七個 `/#/<mode>` 頁面)
 
 七個提示產生器:**Project** 想法、**Training** 計畫、
 **Follow-up** 郵件、**Batch** 評估、**Outreach** 給招募人員、
@@ -1083,7 +1083,7 @@ Evaluate、`deep` → Deep research),以及父專案只在 Claude Code
 
 ---
 
-## 14. Apply checklist(`#/apply`)
+## 14. 申請清單(`#/apply`)
 
 決定要申請後,這個 Apply 輔助頁會為實際的申請步驟產生一份投遞
 檢查清單。它 **不會** 自動填表 — 那個流程仍留在 Claude Code 的

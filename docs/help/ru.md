@@ -1133,7 +1133,7 @@ reportSlug?, notes?, date? }`. Дедуп по `(company, role)` без учёт
 
 ---
 
-## 13. Mode prompts (семь страниц `/#/<mode>`)
+## 13. Подсказки режимов (семь страниц `/#/<mode>`)
 
 Семь prompt builders: **Project**-идеи, **Training**-планы,
 **Follow-up**-письма, **Batch**-оценки, **Outreach** к рекрутерам,
@@ -1175,7 +1175,7 @@ Gemini), с `cv.md` + `profile.yml` + `_shared.md`, инлайн через
 
 ---
 
-## 14. Apply checklist (`#/apply`)
+## 14. Чек-лист отклика (`#/apply`)
 
 Когда вы решили подаваться, эта страница Apply helper генерирует
 чек-лист подачи для самого шага отправки. Она **НЕ** заполняет формы

@@ -342,7 +342,7 @@ Feedback é um **stepper** vertical (lista ordenada, `aria-current` no passo ati
 
 ---
 
-## 2. App settings & API keys (`#/config`)
+## 2. Configurações do app e chaves de API (`#/config`)
 
 > **Novidades v1.55 → v1.56.** Sem chave LLM, um banner vermelho em cada tela explica que ⚡ Executar ao vivo está em modo de prompt manual e leva aqui; com uma chave vira um chip discreto com o provedor ativo. Antes de cada botão ⚡ Executar ao vivo (`#/auto`, `#/evaluate`, `#/deep`, modos) aparece um custo estimado honesto (ex.: "Custo estimado: OpenAI gpt-5-codex · ~$0.04/eval", ou sem custo de API no modo manual). `#/scan` recolhe filtros secundários atrás de um disclosure **Filtros avançados**; `#/tracker` adiciona chips de funil clicáveis + paginação de servidor opcional; `#/pipeline` virtualiza acima de 1000 linhas.
 
@@ -1150,7 +1150,7 @@ Mesma cadeia de fallback do Evaluate:
 
 ---
 
-## 13. Mode prompts (as sete páginas `/#/<mode>`)
+## 13. Prompts de modos (as sete páginas `/#/<mode>`)
 
 Sete construtores de prompts: ideias de **Project**, planos de
 **Training**, emails de **Follow-up**, avaliações em **Batch**,
@@ -1193,7 +1193,7 @@ ficam fora desta UI deliberadamente.
 
 ---
 
-## 14. Apply checklist (`#/apply`)
+## 14. Checklist de candidatura (`#/apply`)
 
 Depois que você decidiu se candidatar, esta página de assistente
 Apply gera um checklist de envio para a etapa real de candidatura.

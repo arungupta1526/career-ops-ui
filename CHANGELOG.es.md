@@ -10,6 +10,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+
+
+## [1.58.18] — 2026-05-20
+
+**fix(i18n): I-3 — ítems 2/5/13/14 del TOC de ayuda sin restos de inglés en locales no latinos.** Algunos bundles de ayuda aún mostraban `## 2. App settings & API keys`, `## 5. Portals & Sources`, `## 13. Mode prompts`, `## 14. Apply checklist` (ru/ja/ko/zh-CN/zh-TW). Ahora totalmente localizados en los 8 idiomas. 913 → **914** unitarios. (I-3)
+
+---
+
 ## [1.58.17] — 2026-05-20
 
 **fix(i18n): I-2 — fechas de Saved-research ahora usan `Intl.RelativeTimeFormat` por locale.** El helper `formatRelative()` en [public/js/views/deep.js](public/js/views/deep.js#L57-L82) devolvía `today` / `1d ago` / `Nd ago` en inglés en todos los idiomas. Sustituido por `Intl.RelativeTimeFormat(I18n.getLang(), { numeric: 'auto' })` — la cadena nativa del navegador (hoy/ayer, сегодня/вчера, 今日/昨日, etc.). Fechas > 7 días caen a `Intl.DateTimeFormat(locale, { dateStyle: 'medium' })`. 912 → **913** unitarios. (I-2)

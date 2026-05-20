@@ -8,6 +8,14 @@
 
 ---
 
+
+
+## [1.58.18] — 2026-05-20
+
+**fix(i18n): I-3 — 帮助 TOC 项 2/5/13/14 在非拉丁语言下消除英文残留。** 修复前部分本地化帮助文档中仍含有 `## 2. App settings & API keys`、`## 5. Portals & Sources`、`## 13. Mode prompts`、`## 14. Apply checklist`。现 8 种语言全部完全本地化。913 → **914** 单元。(I-3)
+
+---
+
 ## [1.58.17] — 2026-05-20
 
 **fix(i18n): I-2 — Saved-research 卡片日期改用 `Intl.RelativeTimeFormat` 按语言本地化。** [public/js/views/deep.js](public/js/views/deep.js#L57-L82) 的 `formatRelative()` 之前在任何语言下都硬编码英文 `today` / `1d ago` / `Nd ago`。改为 `Intl.RelativeTimeFormat(I18n.getLang(), { numeric: 'auto' })` — 浏览器原生本地化字符串("今天/昨天/N 天前", "сегодня/вчера" 等)。超过 7 天的日期回退到 `Intl.DateTimeFormat(locale, { dateStyle: 'medium' })`。912 → **913** 单元。(I-2)

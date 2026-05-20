@@ -8,6 +8,14 @@
 
 ---
 
+
+
+## [1.58.18] — 2026-05-20
+
+**fix(i18n): I-3 — 도움말 TOC 항목 2/5/13/14, 비라틴 로케일에서 영어 잔재 제거.** 수정 전 여러 로케일 도움말 번들에 `## 2. App settings & API keys`, `## 5. Portals & Sources`, `## 13. Mode prompts`, `## 14. Apply checklist` 가 남아 있었음. 이제 8 개 언어에서 완전히 현지화. 913 → **914** 유닛. (I-3)
+
+---
+
 ## [1.58.17] — 2026-05-20
 
 **fix(i18n): I-2 — Saved-research 날짜 라벨을 `Intl.RelativeTimeFormat` 으로 로케일화.** [public/js/views/deep.js](public/js/views/deep.js#L57-L82) 의 `formatRelative()` 가 영어 `today` / `1d ago` / `Nd ago` 를 하드코딩했었다. `Intl.RelativeTimeFormat(I18n.getLang(), { numeric: 'auto' })` 로 교체 — 브라우저 네이티브의 로컬라이즈된 "오늘/어제/N일 전" 문자열 사용. 7일 초과 시 `Intl.DateTimeFormat(locale, { dateStyle: 'medium' })` 로 폴백. 912 → **913** 유닛. (I-2)

@@ -8,6 +8,14 @@
 
 ---
 
+
+
+## [1.58.18] — 2026-05-20
+
+**fix(i18n): I-3 — пункты 2/5/13/14 в TOC справки без английских остатков в нелатинских локалях.** До правки в части help-бандлов оставались `## 2. App settings & API keys`, `## 5. Portals & Sources`, `## 13. Mode prompts`, `## 14. Apply checklist`. Теперь полностью локализованы во всех 8 локалях (RU `Подсказки режимов` / `Чек-лист отклика`). 913 → **914** модульных. (I-3)
+
+---
+
 ## [1.58.17] — 2026-05-20
 
 **fix(i18n): I-2 — даты на карточках Saved-research теперь используют `Intl.RelativeTimeFormat` для активной локали.** В [public/js/views/deep.js](public/js/views/deep.js#L57-L82) `formatRelative()` возвращал «today» / «1d ago» / «Nd ago» на любом языке. Заменено на `Intl.RelativeTimeFormat(I18n.getLang(), { numeric: 'auto' })` — нативная локализованная строка («сегодня/вчера/N дней назад», «今日/昨日», и т.д.). Даты старше 7 дней — `Intl.DateTimeFormat(locale, { dateStyle: 'medium' })`. 912 → **913** модульных. (I-2)
