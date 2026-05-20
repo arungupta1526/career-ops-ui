@@ -552,9 +552,18 @@ Router.register('config', async () => {
     while (apiSummary.firstChild) apiSummary.removeChild(apiSummary.firstChild);
     if (!st) { apiSummary.hidden = true; return; }
     apiSummary.hidden = false;
-    const NAME = { claude: 'Anthropic', gemini: 'Gemini', openai: 'OpenAI', qwen: 'Qwen', openrouter: 'OpenRouter' };
-    const active = st.activeProvider ? (NAME[st.activeProvider] || st.activeProvider) : t('dash.provider.manual', 'Manual prompt mode');
-    const count = typeof st.keysConfigured === 'number' ? st.keysConfigured : 0;
+    // v1.59.2 — the server returns `keysConfigured` as an ARRAY of
+    // provider names (filter+map over hasXxxKey()) and `activeProvider`
+    // as lowercase short names (`anthropic` / `gemini` / `openai` /
+    // `qwen` / `openrouter` — note `anthropic`, NOT `claude`). The
+    // pre-fix chip checked `typeof keysConfigured === 'number'`
+    // (always false → "0 / 5") and a `claude:` key in NAME (never
+    // matched → lowercase fallback like "Active: anthropic").
+    const NAME = { anthropic: 'Anthropic', gemini: 'Gemini', openai: 'OpenAI', qwen: 'Qwen', openrouter: 'OpenRouter' };
+    const active = st.activeProvider
+      ? (NAME[st.activeProvider] || st.activeProvider)
+      : t('dash.provider.manual', 'Manual prompt mode');
+    const count = Array.isArray(st.keysConfigured) ? st.keysConfigured.length : 0;
     const activeLabel = c('span', { className: 'api-keys__active' },
       t('config.activeProvider', 'Active') + ': ' + active);
     const countLabel = c('span', { className: 'api-keys__count' },

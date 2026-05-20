@@ -68,7 +68,11 @@ Router.register('dashboard', async () => {
       while (chip.firstChild) chip.removeChild(chip.firstChild);
       if (!st) { chip.hidden = true; return; }
       chip.hidden = false;
-      const NAME = { claude: 'Anthropic', gemini: 'Gemini', openai: 'OpenAI', qwen: 'Qwen', openrouter: 'OpenRouter' };
+      // v1.59.2 — server returns `anthropic` lowercase, not `claude`
+      // (the LLM_PROVIDER env value is `claude` but the resolved name
+      // is `anthropic`). Pre-fix the NAME lookup missed and the chip
+      // showed `Live evals: anthropic` instead of `Anthropic`.
+      const NAME = { anthropic: 'Anthropic', gemini: 'Gemini', openai: 'OpenAI', qwen: 'Qwen', openrouter: 'OpenRouter' };
       if (!st.activeProvider) {
         chip.classList.add('dash-chip--manual');
         chip.appendChild(c('span', { className: 'dash-chip__icon', 'aria-hidden': 'true' }, '📋'));

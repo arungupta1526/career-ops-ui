@@ -121,7 +121,7 @@ test('UX-A15 (v1.58.63): dashboard Pipeline tile carries the qa-tile--primary vi
     'primary tile label must be bolder (font-weight: 600)');
 });
 
-test('UX-A9 (v1.58.62): #/config API-keys panel has a sticky Active/Keys summary chip', () => {
+test('UX-A9 (v1.58.62 + v1.59.2): #/config API-keys panel has an Active/Keys summary chip with correct count + provider key', () => {
   const cfg = read('public', 'js', 'views', 'config.js');
   assert.match(cfg, /className:\s*'api-keys__summary'/,
     'config.js must render an .api-keys__summary element');
@@ -131,14 +131,25 @@ test('UX-A9 (v1.58.62): #/config API-keys panel has a sticky Active/Keys summary
   assert.match(cfg, /config\.keysConfiguredPrefix/, 'summary must use i18n key config.keysConfiguredPrefix');
   assert.match(cfg, /document\.addEventListener\('providers-changed', refreshApiSummary\)/,
     'summary must subscribe to providers-changed for live updates after Save');
+  // v1.59.2 — count comes from Array.length, not typeof === 'number'.
+  assert.match(cfg, /Array\.isArray\(st\.keysConfigured\)\s*\?\s*st\.keysConfigured\.length/,
+    'count must read keysConfigured.length (server returns an array)');
+  // v1.59.2 — NAME map keyed by 'anthropic' (server returns lowercase
+  // resolved provider name), NOT 'claude'.
+  assert.match(cfg, /\{\s*anthropic:\s*'Anthropic'/,
+    'NAME map must key on "anthropic" (server contract — not "claude")');
   // i18n keys present in 8 locales.
   const dict = read('public', 'js', 'lib', 'i18n-dict.js');
   for (const key of ['config.activeProvider', 'config.keysConfiguredPrefix']) {
     assert.ok(dict.includes(`'${key}'`), `i18n-dict.js must define '${key}'`);
   }
-  // CSS rule present.
+  // CSS rule present and (v1.59.2) NOT sticky-overlapping.
   const css = read('public', 'css', 'app.css');
   assert.match(css, /\.api-keys__summary\s*\{/, 'app.css must style .api-keys__summary');
+  // v1.59.2 — assert the sticky positioning is gone (it created
+  // overlap with the tablist + page header on scroll).
+  assert.ok(!/\.api-keys__summary\s*\{[^}]*position:\s*sticky/.test(css),
+    '.api-keys__summary must NOT use position: sticky (overlapped other elements)');
 });
 
 test('UX-A8 (v1.58.61): README documents the make clean-test-fixtures first-run step', () => {

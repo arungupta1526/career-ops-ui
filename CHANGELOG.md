@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.59.2] — 2026-05-20
+
+**fix(ui): v1.59.2 — UX-A9 / UX-A3 chip count + overlap (post-v1.59.1 hotfix).** Three real bugs in the v1.58.62 / v1.58.55 chips, user-reported on the staging surface:\n\n1. **Always `Keys: 0 / 5`.** `/api/status/providers` returns `keysConfigured` as an **array** of provider names; pre-fix `typeof === number` was always false. Now uses `Array.isArray(st.keysConfigured) ? st.keysConfigured.length : 0`.\n2. **Lowercase provider name.** Server returns `anthropic` (not `claude` — `LLM_PROVIDER` env value vs resolved provider name); the NAME map was keyed by `claude:` so it always fell through to the lowercase fallback. Re-keyed `{anthropic, gemini, openai, qwen, openrouter}` in both [public/js/views/config.js](public/js/views/config.js) and [public/js/views/dashboard.js](public/js/views/dashboard.js).\n3. **Sticky chip overlapped other elements.** `.api-keys__summary` had `position: sticky` + `z-index: 5` and created a stacking context that floated above the tablist + page header on scroll. Dropped sticky — the chip is at the top of a short panel already. Lock-test updated to forbid the sticky position. (No version bump alone — counts on existing UX-A3 / UX-A9 lock-tests.) (post-cycle hotfix)
+
+---
+
+
+
 ## [1.59.1] — 2026-05-20
 
 **fix(test): v1.59.1 — NEW-D1 i18n-no-latin-leaks guard accepts UX-A11 polished ES copy.** During final verification of the v1.59.0 ship I caught a regression: the v1.58.37 NEW-D1 static guard asserted `pipe.title[es]` must match `/vacant|vaca/i` (locking the old `Pipeline de vacantes`). UX-A11 (v1.58.64) refined that to `Pipeline de candidaturas` (candidate-side perspective). Fix: relax the regex to `/vacant|vaca|candidatur/i` so either contextualizing noun passes. No production-code change. 962 unit tests, 0 fail.

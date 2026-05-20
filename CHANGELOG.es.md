@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.59.2] — 2026-05-20
+
+**fix(ui): v1.59.2 — chip Active/Keys: cuenta correcta, nombre del proveedor capitalizado, sin solapamiento.** (post-v1.59.1 hotfix)
+
+---
+
+
+
 ## [1.59.1] — 2026-05-20
 
 **fix(test): v1.59.1 — NEW-D1 guard acepta el copy ES pulido en UX-A11.** Relajada la regex que bloqueaba `pipe.title[es]` a `vacantes`. Ahora también acepta `candidaturas`. (v1.59.1)
