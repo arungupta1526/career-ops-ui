@@ -10,6 +10,12 @@
 
 
 
+## [1.58.19] — 2026-05-20
+
+**fix(i18n): I-4 — 러시아어 `#/followup` 에서 라틴어 `cadence` / `follow-up` 누출 제거.** RU followup 문자열(H1, 힌트)에 `cadence`, `follow-up`, `scope`, `timeline` 이 섞여 있었으나 러시아어 네이티브 표현으로 치환. 914 → **915** 유닛. (I-4)
+
+---
+
 ## [1.58.18] — 2026-05-20
 
 **fix(i18n): I-3 — 도움말 TOC 항목 2/5/13/14, 비라틴 로케일에서 영어 잔재 제거.** 수정 전 여러 로케일 도움말 번들에 `## 2. App settings & API keys`, `## 5. Portals & Sources`, `## 13. Mode prompts`, `## 14. Apply checklist` 가 남아 있었음. 이제 8 개 언어에서 완전히 현지화. 913 → **914** 유닛. (I-3)

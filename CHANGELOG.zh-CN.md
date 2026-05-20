@@ -10,6 +10,12 @@
 
 
 
+## [1.58.19] — 2026-05-20
+
+**fix(i18n): I-4 — 俄语 `#/followup` 不再泄漏 `cadence` / `follow-up`。** RU followup 字符串(H1、提示)中混有 `cadence`、`follow-up`、`scope`、`timeline`。已替换为俄语本地表达。914 → **915** 单元。(I-4)
+
+---
+
 ## [1.58.18] — 2026-05-20
 
 **fix(i18n): I-3 — 帮助 TOC 项 2/5/13/14 在非拉丁语言下消除英文残留。** 修复前部分本地化帮助文档中仍含有 `## 2. App settings & API keys`、`## 5. Portals & Sources`、`## 13. Mode prompts`、`## 14. Apply checklist`。现 8 种语言全部完全本地化。913 → **914** 单元。(I-3)

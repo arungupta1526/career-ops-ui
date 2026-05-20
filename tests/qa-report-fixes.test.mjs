@@ -30,6 +30,26 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('I-4 (v1.58.19): RU followup strings contain no Latin `cadence`/`follow-up` leakage', () => {
+  // v1.58.3: RU `#/followup` H1 was 'Советник по cadence follow-up'; subtitle
+  // 'ISO-дата (YYYY-MM-DD) — основа для cadence.'. Translate.
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  const ruFollowup = dict.split('\n')
+    .filter((l) => /^\s*'followup\./.test(l))
+    .map((l) => {
+      const m = l.match(/ru:\s*'([^']+)'/);
+      return m ? m[1] : null;
+    })
+    .filter(Boolean);
+  assert.ok(ruFollowup.length >= 10, 'should find ≥ 10 followup.* RU strings');
+  for (const s of ruFollowup) {
+    assert.ok(!/\bcadence\b/i.test(s),
+      `RU followup string must not contain 'cadence': ${s}`);
+    assert.ok(!/\bfollow-up\b/i.test(s),
+      `RU followup string must not contain 'follow-up': ${s}`);
+  }
+});
+
 test('I-3 (v1.58.18): help TOC items 2/5/13/14 contain no Latin English bleed in non-Latin locales', () => {
   // v1.58.3 regression: '## 2. App settings & API keys', '## 5. Portals
   // & Sources', '## 13. Mode prompts', '## 14. Apply checklist' bled

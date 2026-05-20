@@ -10,6 +10,12 @@
 
 
 
+## [1.58.19] — 2026-05-20
+
+**fix(i18n): I-4 — ロシア語 `#/followup` のラテン語 `cadence` / `follow-up` 流出を排除。** RU の followup 関連文字列(H1、ヒント)に `cadence`、`follow-up`、`scope`、`timeline` が混じっていたが、ロシア語ネイティブ表現に置換。914 → **915** ユニット。(I-4)
+
+---
+
 ## [1.58.18] — 2026-05-20
 
 **fix(i18n): I-3 — ヘルプ TOC 項目 2/5/13/14 の非ラテンロケールでの英語残りを排除。** 修正前、複数のロケールヘルプ束で `## 2. App settings & API keys`、`## 5. Portals & Sources`、`## 13. Mode prompts`、`## 14. Apply checklist` が混在していた(ru/ja/ko/zh-CN/zh-TW)。今は 8 言語全てで完全にローカライズ。913 → **914** ユニット。(I-3)

@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.19] — 2026-05-20
+
+**fix(i18n): I-4 — RU `#/followup` H1 + hints no longer leak Latin `cadence` / `follow-up` / `scope` / `timeline`.** v1.58.3 RU regression: H1 `Советник по cadence follow-up`; hint `ISO-дата (YYYY-MM-DD) — основа для cadence.`; notesHint `timeline, internal hold, …`. All replaced with native Russian: `Советник по ритму касаний`, `ISO-дата (ГГГГ-ММ-ДД) — основа для расчёта ритма касаний.`, `сроки, внутренняя пауза, праздники`. companyHint `scope` → `область`. 914 → **915** unit (negative-match guard: no `cadence` / `follow-up` in any RU followup.* string). (I-4)
+
+---
+
 ## [1.58.18] — 2026-05-20
 
 **fix(i18n): I-3 — help TOC items 2/5/13/14 free of English bleed in non-Latin locales.** Pre-fix several locale help bundles still showed `## 2. App settings & API keys`, `## 5. Portals & Sources`, `## 13. Mode prompts`, `## 14. Apply checklist` (ru/ja/ko/zh-CN/zh-TW). Now fully localized in all 8 locales (RU `Подсказки режимов` / `Чек-лист отклика`, JA `応募チェックリスト`, KO `앱 설정 및 API 키` / `포털 및 소스` / `지원 체크리스트`, zh-CN `应用设置与 API 密钥` / `模式提示` / `申请清单`, zh-TW `應用設定與 API 金鑰` / `招聘版面與來源` / `模式提示` / `申請清單`). 913 → **914** unit (negative-match guard: items 2/5/13/14 contain none of `App|settings|Apply|checklist|Portals|Sources|Mode|prompts` for the 5 non-Latin locales). (I-3)
