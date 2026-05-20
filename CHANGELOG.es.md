@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.30] — 2026-05-20
+
+**fix(ux): U-10 — los botones Normalizar / Dedup / Merge del Tracker se desactivan cuando `data/applications.md` está vacío.** Tooltip localizado (`track.fixEmpty` × 8 idiomas) explica que hay que añadir filas primero. 922 → **923** unitarios. (U-10)
+
+---
+
 ## [1.58.29] — 2026-05-20
 
 **fix(ux): U-9 — la fila contador ↔ filtro de `#/pipeline` se apila verticalmente en ventanas estrechas.** Nueva clase `.pipeline-controls` + `@media (max-width: 720px)` que estira el filtro a 100% del ancho. 921 → **922** unitarios. (U-9)

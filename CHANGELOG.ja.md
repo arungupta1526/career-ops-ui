@@ -10,6 +10,12 @@
 
 
 
+## [1.58.30] — 2026-05-20
+
+**fix(ux): U-10 — Tracker の Normalize / Dedup / Merge ボタンが `data/applications.md` 空のとき無効化。** ローカライズされたツールチップ (`track.fixEmpty` × 8 言語) が理由を表示。922 → **923** ユニット。(U-10)
+
+---
+
 ## [1.58.29] — 2026-05-20
 
 **fix(ux): U-9 — `#/pipeline` のカウンタ ↔ フィルタ行が狭幅で縦積みに。** 新しい `.pipeline-controls` クラスと `@media (max-width: 720px)` でフィルタを横幅 100% に拡張。921 → **922** ユニット。(U-9)

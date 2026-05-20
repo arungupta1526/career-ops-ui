@@ -239,6 +239,8 @@ window.__I18N_DICT = {
   // U-8 (v1.58.28) — collapsible Generate-prompt block summary.
   'prompt.show':     { en: 'Show prompt', es: 'Mostrar prompt', 'pt-BR': 'Mostrar prompt', ko: '프롬프트 표시', ja: 'プロンプトを表示', ru: 'Показать prompt', 'zh-CN': '显示提示词', 'zh-TW': '顯示提示詞' },
   'prompt.lines':    { en: 'lines', es: 'líneas', 'pt-BR': 'linhas', ko: '줄', ja: '行', ru: 'строк', 'zh-CN': '行', 'zh-TW': '行' },
+  // U-10 (v1.58.30) — empty-tracker tooltip for normalize/dedup/merge.
+  'track.fixEmpty':  { en: 'Add a row to the tracker first — this rewrites data/applications.md and there is nothing to rewrite yet.', es: 'Añade una fila al tracker primero — esto reescribe data/applications.md y aún no hay nada que reescribir.', 'pt-BR': 'Adicione uma linha ao tracker primeiro — isto reescreve data/applications.md e ainda não há nada a reescrever.', ko: '먼저 트래커에 행을 추가하세요 — data/applications.md 를 다시 쓰는 작업인데 아직 다시 쓸 내용이 없습니다.', ja: 'まずトラッカーに行を追加してください — data/applications.md を書き換える操作で、書き換える対象がありません。', ru: 'Сначала добавьте строку в трекер — это переписывает data/applications.md, а переписывать пока нечего.', 'zh-CN': '请先在 tracker 中添加一行 — 此操作会重写 data/applications.md,但目前没有内容可重写。', 'zh-TW': '請先在 tracker 中加入一列 — 此操作會重寫 data/applications.md,但目前沒有內容可重寫。' },
   // v1.18.0 — WCAG 2.4.1 skip link.
   'a11y.skipToContent': { en: 'Skip to main content', es: 'Saltar al contenido principal', 'pt-BR': 'Pular para o conteúdo principal', ko: '주요 콘텐츠로 이동', ja: 'メインコンテンツへスキップ', ru: 'Перейти к основному содержимому', 'zh-CN': '跳到主要内容', 'zh-TW': '跳到主要內容' },
   'common.generatePdf': { en: 'Generate PDF', es: 'Generar PDF', 'pt-BR': 'Gerar PDF', ko: 'PDF 생성', ja: 'PDF を生成', ru: 'Создать PDF', 'zh-CN': '生成 PDF', 'zh-TW': '產生 PDF' },

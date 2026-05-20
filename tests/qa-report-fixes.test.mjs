@@ -37,6 +37,24 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('U-10 (v1.58.30): tracker Normalize/Dedup/Merge buttons disabled when rows is empty', () => {
+  const tr = read('public', 'js', 'views', 'tracker.js');
+  assert.match(tr, /const empty = rows\.length === 0;/,
+    'tracker must compute the empty flag from rows.length === 0');
+  assert.match(tr, /disabled:\s*empty/, 'each button must declare disabled: empty');
+  assert.match(tr, /'aria-disabled':\s*empty\s*\?\s*'true'\s*:\s*'false'/,
+    "each button must declare aria-disabled mirroring the disabled state");
+  assert.match(tr, /t\('track\.fixEmpty'/, 'empty tooltip must come from t("track.fixEmpty", …)');
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  const row = dict.match(/'track\.fixEmpty':\s*\{([^}]+)\}/);
+  assert.ok(row, "i18n-dict.js missing 'track.fixEmpty'");
+  for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+    const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+    assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+      `'track.fixEmpty' must have a non-empty ${lang} value`);
+  }
+});
+
 test('U-9 (v1.58.29): pipeline counter ↔ filter row stacks at narrow viewports via .pipeline-controls', () => {
   const pipeline = read('public', 'js', 'views', 'pipeline.js');
   assert.match(pipeline, /className:\s*'flex gap-3 mb-3 pipeline-controls'/,

@@ -10,6 +10,12 @@
 
 
 
+## [1.58.30] — 2026-05-20
+
+**fix(ux): U-10 — `data/applications.md` 為空時,Tracker 的 Normalize / Dedup / Merge 按鈕停用。** 在地化提示 (`track.fixEmpty` × 8 語言) 說明原因。922 → **923** 單元。(U-10)
+
+---
+
 ## [1.58.29] — 2026-05-20
 
 **fix(ux): U-9 — `#/pipeline` 計數 ↔ 過濾列在窄螢幕垂直堆疊。** 新 `.pipeline-controls` 類別配合 `@media (max-width: 720px)` 把過濾拉伸到 100% 寬度。921 → **922** 單元。(U-9)

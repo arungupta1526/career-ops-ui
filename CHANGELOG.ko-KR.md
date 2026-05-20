@@ -10,6 +10,12 @@
 
 
 
+## [1.58.30] — 2026-05-20
+
+**fix(ux): U-10 — Tracker 의 Normalize / Dedup / Merge 버튼이 `data/applications.md` 가 비었을 때 비활성화.** 현지화 툴팁(`track.fixEmpty` × 8 언어)이 이유를 설명. 922 → **923** 유닛. (U-10)
+
+---
+
 ## [1.58.29] — 2026-05-20
 
 **fix(ux): U-9 — `#/pipeline` 카운터 ↔ 필터 행이 좁은 뷰포트에서 세로로 쌓임.** 새 `.pipeline-controls` 클래스와 `@media (max-width: 720px)` 로 필터 너비 100%. 921 → **922** 유닛. (U-9)

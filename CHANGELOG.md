@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.30] — 2026-05-20
+
+**fix(ux): U-10 — Tracker Normalize / Dedup / Merge buttons disabled when `data/applications.md` is empty.** v1.58.3 QA: clicking these buttons on an empty tracker still hit the parent project rewrite endpoints — a no-op the user could not tell was futile. Now [public/js/views/tracker.js](public/js/views/tracker.js#L187-L210) sets `disabled` + `aria-disabled` + a localized tooltip (`track.fixEmpty` × 8 locales) explaining why ("Add a row to the tracker first — this rewrites data/applications.md and there is nothing to rewrite yet."). When rows exist, the buttons re-enable and show the existing `track.fixHint` tooltip. 922 → **923** unit. (U-10)
+
+---
+
 ## [1.58.29] — 2026-05-20
 
 **fix(ux): U-9 — `#/pipeline` counter ↔ filter row stacks vertically on narrow viewports.** v1.58.3 QA: at ≤ 720 px the `In queue: N` chip and the filter input fought for horizontal space and pushed the input to a cramped column. New `.pipeline-controls` class in [public/js/views/pipeline.js](public/js/views/pipeline.js#L377-L385); CSS rule under `@media (max-width: 720px)` sets `flex-direction: column` + stretches `#pipe-filter` to 100% width. Desktop unchanged. 921 → **922** unit. (U-9)

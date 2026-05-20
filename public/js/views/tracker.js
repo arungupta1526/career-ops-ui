@@ -184,11 +184,29 @@ Router.register('tracker', async () => {
         c('h1', { className: 'page-title' }, t('track.title')),
         c('p', { className: 'page-subtitle' }, `${rows.length} ${t('track.entriesIn')} data/applications.md`),
       ]),
-      c('div', { className: 'flex gap-3' }, [
-        c('button', { className: 'btn btn-ghost', title: t('track.fixHint', 'Rewrites data/applications.md in place'), onClick: (e) => runFix(e.currentTarget, '/api/run/normalize', t) }, t('track.normalize')),
-        c('button', { className: 'btn btn-ghost', title: t('track.fixHint', 'Rewrites data/applications.md in place'), onClick: (e) => runFix(e.currentTarget, '/api/run/dedup', t) }, t('track.dedup')),
-        c('button', { className: 'btn btn-ghost', title: t('track.fixHint', 'Rewrites data/applications.md in place'), onClick: (e) => runFix(e.currentTarget, '/api/run/merge', t) }, t('track.merge')),
-      ]),
+      // U-10 (v1.58.30) — Normalize / Dedup / Merge buttons disabled
+      // when data/applications.md is empty. Clicking them on an empty
+      // tracker is a no-op that still hit the parent project; now the
+      // user sees the action is unavailable and gets a localized
+      // tooltip explaining why.
+      (() => {
+        const empty = rows.length === 0;
+        const emptyTitle = t('track.fixEmpty', 'Add a row to the tracker first — this rewrites data/applications.md and there is nothing to rewrite yet.');
+        const enabledTitle = t('track.fixHint', 'Rewrites data/applications.md in place');
+        const make = (api, label) =>
+          c('button', {
+            className: 'btn btn-ghost',
+            disabled: empty,
+            title: empty ? emptyTitle : enabledTitle,
+            'aria-disabled': empty ? 'true' : 'false',
+            onClick: (e) => runFix(e.currentTarget, api, t),
+          }, label);
+        return c('div', { className: 'flex gap-3' }, [
+          make('/api/run/normalize', t('track.normalize')),
+          make('/api/run/dedup', t('track.dedup')),
+          make('/api/run/merge', t('track.merge')),
+        ]);
+      })(),
     ]),
 
     c('div', { className: 'card mb-3' }, [
