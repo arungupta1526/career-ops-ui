@@ -9,7 +9,7 @@
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#testes)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requisitos)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.58.35-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.35)
+[![release](https://img.shields.io/badge/release-v1.58.36-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.36)
 
 > **Recente (v1.55 → v1.58):** **saída de pesquisa limpa e formatada** (#/deep + Pesquisa salva removem andaime `<tool_call>`/`<tool_response>`) + varredura de bugs do relatório QA (`#/followup` data ISO, negrito markdown em citações da ajuda, toast de duplicado honesto, alias `#/outreach`) + **provedor OpenRouter** (uma chave → 300+ modelos, dropdown ao vivo em `#/config`) + correção de «validation failed» em `#/config` (chaves coladas com espaços/quebra de linha agora salvam), banner de onboarding + chip de provedor ativo, custos honestos de ⚡ Executar ao vivo, ETA em `#/auto`, disclosure de Filtros avançados + Stop proeminente em `#/scan`, CTAs hero em `#/dashboard`, virtualização >1000 linhas em `#/pipeline`, paginação de servidor + chips de funil em `#/tracker`, e polimento de acessibilidade — detalhe por versão em [CHANGELOG.pt-BR.md](CHANGELOG.pt-BR.md).
 
@@ -192,6 +192,7 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 | **Health**       | Todos os checks de setup em badges OK / OPTIONAL / FAIL + botões para rodar `doctor.mjs` e `verify-pipeline.mjs`.   |
 | **Help**         | Guia do usuário em Markdown dentro do app (`/#/help`), localizado nos 8 idiomas suportados (en / es / pt-BR / ko-KR / ja / ru / zh-CN / zh-TW). |
 | **Activity log** | Trilha de auditoria de cada request que altera estado (escritas, runs, scans). Segredos redigidos. |
+| **Notificações** 🔔 *(v1.58.34 / v1.58.35)* | Sino na barra superior com badge vermelho de não lidos. Clique → drawer direito com as últimas 50 toasts (por aba, por sessão) — Sucesso / Erro / Info-progresso, cada uma com hora local, mensagem e, se aplicável, postfix `(MÉTODO /caminho · HTTP NNN)` em `<details>`. A ajuda **§18** documenta cada categoria. O drawer abre **somente** ao clicar no sino (ou Enter / Space); fecha via ×, Esc, ou novo clique. |
 
 Atalhos globais de teclado:
 

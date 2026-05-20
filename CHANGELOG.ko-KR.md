@@ -10,6 +10,12 @@
 
 
 
+## [1.58.36] — 2026-05-20
+
+**chore(docs): v1.58.36 — v1.58.x 사이클 종료 시점의 전체 하우스키핑 스윕.** 코드 변경 없음. (1) qa/: 버전 고정 스냅샷 3 개(`REGRESSION-END-TO-END-v1.58.16/33/35.md`)를 `qa/archive/v158-cycle/` 로 이동. (2) `REGRESSION-FINAL.md` 에 **§12** 추가(v1.58.4 → v1.58.35 모든 불변). (3) `UX-AUDIT-PROMPT.md` 에 30 행 추가. (4) docs/architecture/ 갱신(FRONTEND 드로어, TESTING 합계 928/62/20/23). (5) CLAUDE.md 에 "v1.58.x 사이클의 교훈" 섹션 추가. (6) README ×8 에 "알림 🔔" 행 추가 + 오래된 테스트 카운트 수정. 베이스라인 무변. (housekeeping)
+
+---
+
 ## [1.58.35] — 2026-05-20
 
 **fix(ui): v1.58.35 — 알림 드로어 자동 열림 버그 수정 + 도움말에 §18 "알림" 추가(사용자 보고).** v1.58.34 버그: `.notif-drawer { display: flex }` 가 UA `[hidden] { display: none }` 를 덮어쓰고 있었음. `.notif-drawer[hidden] { display: none }` 명시. 드로어는 벨 클릭으로만 열림. 8 개 언어 도움말에 §18 추가(카테고리 표 + 키보드). 927 → **928** 유닛. (사용자 보고)

@@ -9,7 +9,7 @@
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#тесты)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#требования)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.58.35-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.35)
+[![release](https://img.shields.io/badge/release-v1.58.36-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.36)
 
 > **Недавнее (v1.55 → v1.58):** **чистый форматированный вывод исследований** (#/deep и Сохранённые исследования убирают echo `<tool_call>`/`<tool_response>`) + прогон багов внешнего QA-отчёта (ISO-дата на `#/followup`, markdown-жирный в блок-цитатах help, честный тост дубля pipeline, `#/outreach` алиас) + **провайдер OpenRouter** (один ключ → 300+ моделей, живой список в `#/config`) + исправление «validation failed» на `#/config` (ключи, вставленные с пробелами/переносом строки, теперь сохраняются), экранный онбординг-баннер + чип активного провайдера, честные подсказки стоимости ⚡ Запуска вживую, ETA на `#/auto`, раскрывашка Расширенных фильтров + заметный Stop на `#/scan`, hero-CTA на `#/dashboard`, виртуализация >1000 строк на `#/pipeline`, серверная пагинация + чипы воронки на `#/tracker`, полировка доступности — детали по версиям в [CHANGELOG.ru.md](CHANGELOG.ru.md).
 
@@ -192,6 +192,7 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 | **Health**       | Все проверки конфигурации в виде badge OK / OPTIONAL / FAIL и кнопки для запуска `doctor.mjs` и `verify-pipeline.mjs`. |
 | **Help**         | Встроенное руководство пользователя в Markdown (`/#/help`), переведённое на все 8 поддерживаемых языков (en / es / pt-BR / ko-KR / ja / ru / zh-CN / zh-TW). |
 | **Журнал активности** | Аудит-журнал всех изменяющих состояние запросов (writes, runs, scans). Секреты редактируются. |
+| **Уведомления** 🔔 *(v1.58.34 / v1.58.35)* | Колокольчик в верхней панели с красным badge непрочитанных. Клик → правый drawer показывает последние 50 toast (per-tab, per-session) — Success / Error / Info-progress, у каждой локальное время, текст и, если есть, технический хвост `(METHOD /path · HTTP NNN)` в `<details>`. Справка **§18** документирует каждую категорию. Drawer открывается **только** по клику на колокольчик (или клавиатура Enter / Space); закрывается ×, Esc или повторным кликом по колокольчику. |
 
 Глобальные клавиатурные сокращения:
 

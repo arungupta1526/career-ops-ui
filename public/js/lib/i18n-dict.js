@@ -604,6 +604,8 @@ window.__I18N_DICT = {
   'notif.empty':     { en: 'No notifications yet.', es: 'Aún no hay notificaciones.', 'pt-BR': 'Ainda não há notificações.', ko: '아직 알림이 없습니다.', ja: 'まだ通知はありません。', ru: 'Уведомлений пока нет.', 'zh-CN': '暂无通知。', 'zh-TW': '尚無通知。' },
   'notif.bellAria':  { en: 'Notifications — open recent toasts journal', es: 'Notificaciones — abrir el diario de toasts recientes', 'pt-BR': 'Notificações — abrir o diário de toasts recentes', ko: '알림 — 최근 토스트 저널 열기', ja: '通知 — 最近のトーストジャーナルを開く', ru: 'Уведомления — открыть журнал недавних тостов', 'zh-CN': '通知 — 打开最近的 toast 日志', 'zh-TW': '通知 — 開啟最近的 toast 日誌' },
   'notif.closeAria': { en: 'Close notifications', es: 'Cerrar notificaciones', 'pt-BR': 'Fechar notificações', ko: '알림 닫기', ja: '通知を閉じる', ru: 'Закрыть уведомления', 'zh-CN': '关闭通知', 'zh-TW': '關閉通知' },
+  // v1.58.36 (M-3) — SR announcement for unread badge count.
+  'notif.unread':    { en: '{n} unread', es: '{n} sin leer', 'pt-BR': '{n} não lidas', ko: '{n} 안 읽음', ja: '{n} 未読', ru: '{n} непрочит.', 'zh-CN': '{n} 未读', 'zh-TW': '{n} 未讀' },
 
   'rep.allReports': { en: '← All reports', es: '← Todos los reportes', 'pt-BR': '← Todos relatórios', ko: '← 모든 보고서', ja: '← すべてのレポート', ru: '← Все отчёты', 'zh-CN': '← 所有报告', 'zh-TW': '← 所有報告' },
   'rep.openJd':     { en: 'Open JD ↗', es: 'Abrir JD ↗', 'pt-BR': 'Abrir JD ↗', ko: 'JD 열기 ↗', ja: 'JD を開く ↗', ru: 'Открыть JD ↗', 'zh-CN': '打开 JD ↗', 'zh-TW': '開啟 JD ↗' },

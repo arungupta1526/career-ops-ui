@@ -15,7 +15,7 @@ step.
 
 - **Server**: Node ≥ 18, Express 4 + js-yaml + multer. `.mjs` only (ESM). ~130-LOC orchestrator + 15 route modules under `server/lib/routes/`.
 - **SPA**: Vanilla JS, hash-router, no framework, no bundler. Files served as-is from `public/`.
-- **Tests**: `node --test` + Playwright. Baseline at v1.22.0 = 474+ unit / 32 Playwright. Don't reduce coverage.
+- **Tests**: `node --test` + Playwright. Baseline at v1.58.35 = 928 unit / 62 Playwright (smoke+full-cycle+forms) + 20 smoke E2E + 23 comprehensive E2E. Don't reduce coverage.
 - **i18n**: 8 locales (`en`, `es`, `pt-BR`, `ko`, `ja`, `ru`, `zh-CN`, `zh-TW`). DICT in `public/js/lib/i18n.js`; CI canary enforces every used key exists in every locale.
 
 ## Hard rules (Copilot, don't break these)

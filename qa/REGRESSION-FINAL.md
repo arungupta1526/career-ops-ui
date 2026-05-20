@@ -24,7 +24,7 @@ vX=$(node -p "require('./package.json').version")
 npm ci && npm run test:ci          # MUST: N/N pass · ✓ no .also( · ✓ CHANGELOG parity all 8 @ vX
 node tests/e2e.mjs                 # MUST: failed: 0
 node tests/e2e-comprehensive.mjs   # MUST: 0 failed
-npm run test:e2e:browser           # MUST: 32/32 · NO "generated asynchronous activity" / "not ok 2"
+npm run test:e2e:browser           # MUST: 62/62 (v1.58.35 baseline) · NO "generated asynchronous activity" / "not ok 2"
 node --test tests/sh-files.test.mjs        # MUST: green
 node scripts/check-changelog-parity.mjs    # MUST: all 8 locales @ vX
 node scripts/check-no-also-leftovers.mjs   # MUST: ✓
@@ -299,6 +299,188 @@ the ★ ones live.
   `santifer/career-ops` commit (see `qa/G-005-closure-kit.md`
   STEP 1) or the model gets contradictory instructions. Renderer is
   schema-tolerant; help §9 ×8 already canonical A-F (v1.15.0).
+
+---
+
+## §12 — v1.58.x cycle invariants (regression-locked at v1.58.4 → v1.58.35)
+
+The 32 single-fix releases v1.58.4 → v1.58.35 closed the FIX-PROMPT
+§1 backlog (post-MASTER regression). Every row below has a dedicated
+static guard in `tests/qa-report-fixes.test.mjs` (plus a Playwright
+contract for the notifications drawer). None may regress.
+
+**Security envelope (HIGH / stop-ship):**
+
+- ★ **CSP unconditional** (NEW-1, **CLOSED v1.58.4**): every response
+  (including loopback `/api/health`) ships
+  `Content-Security-Policy: default-src 'self'; script-src 'self';
+  frame-ancestors 'none'; …`. No `'unsafe-inline'` / `'unsafe-eval'`.
+  Playwright route-walk over en/ru/ja/zh-TW × 7 routes asserts zero
+  CSP violations in the console.
+- **`isValidJobUrl` template-placeholder rejection** (NEW-2, **CLOSED
+  v1.58.7**): paired `${T}` / `{{T}}` / `<%T%>` are rejected with the
+  exact "contain no script or template characters" message;
+  single-brace `{normal}` ATS paths preserved.
+
+**Provider surface:**
+
+- **5 provider rows on `#/health`** (user feat, **CLOSED v1.58.8**):
+  `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
+  `QWEN_API_KEY`, `OPENROUTER_API_KEY` — same `isUsableKey` gate.
+- **Cost hint tracks OpenRouter** (M-7, **CLOSED v1.58.12**):
+  `EST.openrouter = null` → localized `cost varies (router picks)`
+  via the new `cost.varies` i18n key × 8.
+
+**A11y / WCAG (Level AA):**
+
+- ★ **`:focus-visible` ring on form fields** (M-1, **CLOSED v1.58.9**):
+  explicit `.input/.textarea/.select/.searchbar input:focus-visible`
+  rules paint the brand ring on keyboard focus only; the base
+  `outline: none` no longer wins via higher specificity.
+- **Top-bar search aria-label localized** (I-1, **CLOSED v1.58.15**):
+  new generic `data-i18n-aria-label` hook in `applyI18n()` swaps
+  `aria-label` on every language change. Reusable for any future
+  control.
+
+**i18n parity (8 locales):**
+
+- **Saved-research relative time** (I-2, **CLOSED v1.58.17**):
+  `formatRelative()` uses `Intl.RelativeTimeFormat(I18n.getLang(),
+  { numeric: 'auto' })` — `today` / `yesterday` / `N days ago` in the
+  active locale. Older dates fall back to `Intl.DateTimeFormat`.
+- **Help TOC items 2/5/13/14** (I-3, **CLOSED v1.58.18**): no English
+  bleed in `ru/ja/ko-KR/zh-CN/zh-TW` (negative match: no
+  `App|settings|Apply|checklist|Portals|Sources|Mode|prompts`).
+- **RU `#/followup` H1 + hints** (I-4, **CLOSED v1.58.19**): no Latin
+  `cadence` / `follow-up` / `scope` / `timeline` leakage.
+- **Footer hotkey per platform** (I-6, **CLOSED v1.58.20**):
+  `top.langhint` uses a `{hotkey}` placeholder; `applyFooterHotkey()`
+  substitutes ⌘K (macOS/iOS) vs Ctrl+K (else); localized verb stays.
+
+**UX (one-fix-per-release, all M-* / U-* and follow-ups):**
+
+- **`UI.modal()` drains progress toast** (M-2, **CLOSED v1.58.10**):
+  auto-dismisses any in-flight toast as the first executable
+  statement; defence-in-depth at the boundary.
+- **Saved-research card title↔date gap** (M-4, **CLOSED v1.58.11**):
+  structural `.saved-card { display: inline-flex; gap: var(--space-2) }`
+  + semantic `<time datetime="…">`.
+- **Apply checklist interactive** (M-8, **CLOSED v1.58.13**): real
+  `<input type=checkbox>` per item, per-URL `localStorage`
+  persistence, Copy-unchecked + Reset buttons. 5 new i18n keys × 8.
+- **Connection-banner Refresh feedback** (M-9, **CLOSED v1.58.14**):
+  synchronous `Refreshing…` toast + `sessionStorage['refreshedToast']`
+  bridge → localized `Refreshed` success toast on next boot.
+- **Top-bar Doctor modal title** (BUG-008-tb, **CLOSED v1.58.6**):
+  `UI.modal(I18n.t('top.doctor', 'Doctor'), …)` matches the button's
+  visible label across all 8 locales.
+- **Brand-button hover-flicker** (user-reported, **CLOSED v1.58.16**):
+  `.btn-primary` / `.btn-danger` keep gradient on hover, dim via
+  `filter: brightness(0.92)`; `.btn` transition list adds `filter`.
+  No more gradient↔solid CSS swap that the browser couldn't
+  interpolate.
+- **`#/cv` H1 + subtitle** (U-1, **CLOSED v1.58.21**): supersedes
+  v1.56.0 UX-9 chip by-design; standard `.page-title` / `.page-subtitle`
+  pair restored. Single-`<h1>` invariant unchanged (F-V54-A still
+  shifts the preview's `# Name` to `<h2>`).
+- **`#/auto` H1 emoji-wrap** (U-2, **CLOSED v1.58.22**): ✨ moved to
+  a sibling `<span class="page-icon" aria-hidden="true">`;
+  `.page-header--icon` uses CSS grid (`auto 1fr`) so the H1 never
+  wraps because of the emoji.
+- **`#/followup` `lastContact` placeholder** (U-3, **CLOSED
+  v1.58.23**): computed at render time as `today − 14 days`; the
+  frozen `2026-04-21` is gone.
+- **Toast detail in `<details>`** (U-4, **CLOSED v1.58.24**): the
+  `(METHOD /path · HTTP NNN)` postfix is parsed out of the headline
+  and rendered in a collapsible `<details class="toast-detail">`
+  with localized `toast.details` summary × 8 locales. BUG-006
+  invariant preserved — postfix still reachable in DOM.
+- **Dashboard CTA dedupe** (U-5, **CLOSED v1.58.25**): removed
+  `Open Pipeline` header button + `Scan all sources` Quick-action
+  tile (both were duplicates of sidebar/hero entry-points).
+- **Scan Active-companies tooltip** (U-6, **CLOSED v1.58.26**):
+  localized `title` + `aria-label` from new `scan.activeCo.help` × 8
+  explain N (active) vs M (total in portals.yml).
+- **verify-pipeline modal `===` strip** (U-7, **CLOSED v1.58.27**):
+  `.replace(/^={10,}$/gm, '')` removes the 50-char ASCII dividers
+  that pushed the modal body wider than necessary.
+- **Generate-prompt block collapsed by default** (U-8, **CLOSED
+  v1.58.28**): `showPrompt()` wraps the `<pre>` in
+  `<details class="prompt-block">`; summary `Show prompt (N lines)`
+  (`prompt.show` / `prompt.lines` × 8). Copy / Run-live stay above
+  the fold.
+- **Pipeline counter↔filter responsive stack** (U-9, **CLOSED
+  v1.58.29**): `.pipeline-controls` class + `@media (max-width: 720px)`
+  rule stacks vertically and stretches the filter to 100%.
+- **Tracker Normalize/Dedup/Merge disabled when empty** (U-10,
+  **CLOSED v1.58.30**): each button gets `disabled` + `aria-disabled`
+  + localized `track.fixEmpty` tooltip when `data/applications.md`
+  is empty.
+- **Tracker Legitimacy header info chip** (U-11, **CLOSED v1.58.31**):
+  `<span class="th-info" tabindex="0" role="img">ⓘ</span>` with
+  `title` + `aria-label` from `track.col.legitimacy.help` × 8;
+  keyboard-reachable (WCAG 2.4.7).
+- **Help TOC filter min-width** (U-12, **CLOSED v1.58.32**):
+  `.help-toc__filter { min-width: 16ch }` so KO `섹션 필터` /
+  JA `セクションをフィルター` never clip.
+- **Toast journal capture API** (U-13, **CLOSED v1.58.33**):
+  per-tab in-memory `toastHistory` (cap 50) + `UI.getToastHistory()`
+  exposed.
+- **Page-header safety-net spacing** (U-14, **CLOSED v1.58.33**):
+  `.page-header h1 + p { margin-block-start: var(--space-2); color: var(--foggy) }`
+  catches any page that uses raw `<h1>+<p>` without `.page-subtitle`.
+- **CV editor dirty-state** (U-15, **CLOSED v1.58.33**): Save button
+  gets `.btn-dirty` + localized `cv.unsaved` tooltip when textarea
+  diverges from baseline; reset on successful Save.
+
+**v1.58.34 — Notifications drawer (closes U-13 chrome):**
+
+- ★ **Bell + drawer behavior** (**CLOSED v1.58.34**): `🔔` button in
+  the top-bar with red unread badge; right-slide `<aside role="dialog">`
+  lists every captured toast (newest first) with localized timestamp,
+  message, and (when present) the U-4 technical postfix. `UI.onToast(fn)`
+  pub/sub layered on top of the v1.58.33 capture so subscribers
+  receive the entry just appended (try/catch-guarded; subscriber
+  throws never break the toast pipeline). 4 new i18n keys ×8
+  (`notif.{title,empty,bellAria,closeAria}`).
+
+**v1.58.35 — Drawer auto-open fix + help §18 (user-reported):**
+
+- ★ **Drawer hidden at boot; opens ONLY via bell** (**CLOSED v1.58.35**):
+  user-reported bug: `.notif-drawer { display: flex }` shadowed UA
+  `[hidden] { display: none }` (author-level cascade wins over UA),
+  so the drawer was visible on every page load and clicking × did
+  nothing. Fix: explicit `.notif-drawer[hidden] { display: none }` +
+  `.notif-badge[hidden] { display: none }`. Static guard locks
+  exactly **one** `open()` call site in `app.js` (the bell click
+  ternary) so no future edit can introduce another auto-open path.
+  **Playwright contract** (`tests/playwright-smoke.mjs`):
+  drawer hidden at boot · `aria-expanded === 'false'` at boot ·
+  click bell → opens · click × → closes · Esc closes · toast while
+  closed bumps unread badge → opening drawer lists the entry and
+  resets the badge.
+- ★ **Help §18 Notifications** (**CLOSED v1.58.35**): new H2 in all
+  8 locales of `docs/help/*.md` documents the 3 toast categories
+  (Success / Error / Info-progress) — what triggers each, visual
+  cues, what is **NOT** a notification (Doctor/verify modals, SSE
+  log lines, spinner-only states), and the keyboard contract
+  (Click / Enter / Space / Esc / × / re-click bell). H2 parity lock
+  in `tests/{canonical-docs-coverage,help-ru-config-section,help-ui}.test.mjs`
+  lifted 17 → **18**; H3 lock 70 → **73**.
+
+**Lessons captured for future ships:**
+
+- `[hidden]` is a no-op against an author-level `display:` rule on
+  the same element. Always pair an explicit `[hidden] { display: none }`
+  override or toggle via class instead.
+- `npm test 2>&1 | grep …` masks the test process exit code (`grep`
+  returns 0 on match even when `npm test` exited non-zero). Always
+  split: run `npm test` first, capture `$?`, then grep separately.
+  Two ships (v1.58.27 / v1.58.30) shipped failing tests because of
+  this pattern; both were repaired in the next release.
+- `cleanLlmMarkdown` is NOT an XSS sanitizer. `stripDangerousMarkdown`
+  is the CV ingress boundary; `UI.md()` is the SPA render boundary.
+  Adding the LLM declutter step to either is a category error.
 
 ---
 

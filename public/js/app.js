@@ -231,11 +231,19 @@ I18n.onChange(() => {
     const closeBtn = document.getElementById('notif-close');
     if (!bell || !drawer || !list || !badge || !closeBtn) return;
     let unread = 0;
+    // v1.58.36 (M-1) — scope the Esc keydown listener to the open
+    // state (attach on open, detach on close). The previous
+    // implementation registered a global keydown listener at boot
+    // that fired on every keystroke worldwide; mirroring the modal
+    // pattern (api.js _modalKeydown) tightens the contract and
+    // survives any future double-init.
+    const onEsc = (e) => { if (e.key === 'Escape') close(); };
     const open = () => {
       drawer.hidden = false;
       bell.setAttribute('aria-expanded', 'true');
       render();
       unread = 0; updateBadge();
+      document.addEventListener('keydown', onEsc);
       // Focus the close button so keyboard users land somewhere
       // dismissable; per ARIA APG drawer pattern.
       setTimeout(() => closeBtn.focus(), 0);
@@ -243,23 +251,45 @@ I18n.onChange(() => {
     const close = () => {
       drawer.hidden = true;
       bell.setAttribute('aria-expanded', 'false');
-      bell.focus();
+      document.removeEventListener('keydown', onEsc);
+      // v1.58.36 (L-4) — preventScroll keeps the page from jumping
+      // to the top if the topbar has scrolled out of view on tiny
+      // viewports. WAI-ARIA APG recommendation.
+      bell.focus({ preventScroll: true });
     };
     function updateBadge() {
-      if (unread > 0) { badge.textContent = String(unread); badge.hidden = false; }
-      else { badge.hidden = true; }
+      if (unread > 0) {
+        badge.textContent = String(unread);
+        badge.hidden = false;
+        // v1.58.36 (M-3) — announce unread count to screen readers
+        // via aria-label since the visible digit alone is purely
+        // visual. The aria-live region in the parent button polls
+        // for accessibility-tree updates.
+        badge.setAttribute('aria-label',
+          (window.I18n && I18n.t && I18n.t('notif.unread', '{n} unread'))
+            ? (I18n.t('notif.unread', '{n} unread').replace('{n}', String(unread)))
+            : (unread + ' unread'));
+      } else {
+        badge.hidden = true;
+        badge.removeAttribute('aria-label');
+      }
     }
     function render() {
       const items = UI.getToastHistory().slice().reverse(); // newest first
       list.innerHTML = '';
       empty.hidden = items.length > 0;
+      // v1.58.36 (L-5) — defensive locale fallback. If I18n hasn't
+      // booted (test harness or very early render), `getLang()`
+      // would throw inside the render loop and break the drawer.
+      // Mirrors api.js:264 (toast summary) pattern.
+      const locale = (window.I18n && I18n.getLang && I18n.getLang()) || 'en';
       for (const it of items) {
         const li = document.createElement('li');
         li.className = 'notif-item notif-item--' + (it.type || 'info');
         const time = document.createElement('time');
         const d = new Date(it.ts);
         time.dateTime = d.toISOString();
-        time.textContent = d.toLocaleTimeString(I18n.getLang(), { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        time.textContent = d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         const msg = document.createElement('p');
         msg.className = 'notif-item__msg';
         msg.textContent = it.message;
@@ -276,9 +306,9 @@ I18n.onChange(() => {
     }
     bell.addEventListener('click', () => (drawer.hidden ? open() : close()));
     closeBtn.addEventListener('click', close);
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !drawer.hidden) close();
-    });
+    // v1.58.36 (M-1) — global Esc listener moved into open()/close()
+    // above so the handler is only live while the drawer is open
+    // (no longer fires on every keystroke worldwide).
     // New toasts arrive via UI.onToast — re-render if open, otherwise
     // bump the unread badge so the bell signals there's something new.
     UI.onToast(() => {

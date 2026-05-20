@@ -723,6 +723,18 @@ test('Playwright smoke: notifications drawer is hidden at boot, opens only via b
   assert.match(firstMsg, /test notification — drawer end-to-end/,
     'newest entry text must match the toast message');
 
+  // (10) v1.58.36 (L-6) — an error toast carrying the U-4 endpoint
+  // postfix must render the postfix as a separate <code class="notif-item__detail">
+  // inside the drawer entry. Closes the U-4 ↔ U-13 ↔ drawer chain.
+  await page.evaluate(() => window.UI.toast('boom (GET /api/x · HTTP 500)', 'error'));
+  await page.waitForTimeout(60);
+  const detailCount = await page.locator('#notif-list .notif-item .notif-item__detail').count();
+  assert.ok(detailCount >= 1,
+    `error toast with endpoint postfix must render a .notif-item__detail in the drawer; found ${detailCount}`);
+  const detailText = await page.locator('#notif-list .notif-item .notif-item__detail').first().textContent();
+  assert.match(detailText, /\(GET \/api\/x · HTTP 500\)/,
+    'detail node must contain the technical postfix verbatim');
+
   await closePage(page);
 });
 

@@ -56,7 +56,15 @@ test('v1.58.35: notifications drawer hides via `[hidden]` (CSS override) + help 
   // The notif-bell click handler is the SOLE entry-point — verify no
   // other auto-open call site exists in app.js.
   const app = read('public', 'js', 'app.js');
-  const openCalls = (app.match(/(?<!const\s)open\(\)/g) || []).length;
+  // Strip comments before counting open() so doc-strings can mention
+  // the call site without tripping the guard. v1.58.36 (M-1) added
+  // an explanatory comment that referenced open()/close() and broke
+  // the naive regex; strip line + block comments first.
+  const appCode = app
+    .replace(/\/\*[\s\S]*?\*\//g, '')        // /* … */
+    .replace(/^[ \t]*\/\/.*$/gm, '')         // // …
+    .replace(/[^:]\/\/[^\n]*$/gm, '');       // trailing // … (avoid http://)
+  const openCalls = (appCode.match(/(?<!const\s)open\(\)/g) || []).length;
   // open() is referenced exactly: once in the ternary bell click
   // (`drawer.hidden ? open() : close()`). Anywhere else risks
   // auto-opening.
@@ -85,6 +93,10 @@ test('v1.58.34: notifications drawer wires bell + onToast subscribe + 4 i18n key
     'toast() must notify subscribers on every push');
   assert.match(api, /return\s*\{[^}]*onToast\s*\}/,
     'UI return must export onToast');
+  // v1.58.36 (L-7) — onToast must return an unsubscribe function so
+  // long-lived sessions can clean up per-mount subscribers.
+  assert.match(api, /function onToast\(fn\) \{ toastSubscribers\.add\(fn\); return \(\) => toastSubscribers\.delete\(fn\); \}/,
+    'onToast must return an unsubscribe closure');
 
   // index.html — bell button + drawer shell.
   const html = read('public', 'index.html');

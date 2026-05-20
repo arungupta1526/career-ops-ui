@@ -71,7 +71,7 @@ See `docs/sdd/SDD-GUIDE.md` for the full workflow.
 - **File size targets** (from `~/.claude/rules/coding-style.md`): <400 lines per file. `server/index.mjs` was 1230 LOC at v1.7.x; **P-2 phase 1** (v1.8.0) split it to 762 LOC, **P-2 phase 2** (v1.9.0) finished the job — now ~130 LOC orchestrator. New routes go into `server/lib/routes/<topic>.mjs` exporting `register<Topic>Routes(app)`. Fifteen route modules cover: activity, auto-pipeline (server-side SSE auto-pipeline), batch (batch evaluate), config, content (cv/profile/portals/modes), health (+ dashboard), help, jds, llm (evaluate/deep/mode/apply/interview-prep), openrouter (GET /api/openrouter/models — model-catalogue proxy), pipeline (+ preview), reports, runners (buffered + streaming + PDFs), scan (in-process), tracker.
 - **Routes follow REST norms:** `GET /api/<resource>`, `POST /api/<resource>` (create/append), `PUT /api/<resource>` (replace), `DELETE /api/<resource>/:id`. Streaming uses `GET /api/stream/<verb>` with SSE.
 - **Conventional commits:** `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`. Optional scope: `feat(scan): …`, `fix(api): …`. Breaking change: `feat!:`.
-- **Versioning:** `package.json` is the source of truth (currently 1.58.35). The footer reads it via `/api/health`. The parent's `VERSION` file is reported separately as `parentVersion` — they drift independently.
+- **Versioning:** `package.json` is the source of truth (currently 1.58.36). The footer reads it via `/api/health`. The parent's `VERSION` file is reported separately as `parentVersion` — they drift independently.
 
 See `docs/sdd/CONVENTIONS.md` for the complete list (CSS, i18n keys, error handling, logging).
 
@@ -80,10 +80,28 @@ See `docs/sdd/CONVENTIONS.md` for the complete list (CSS, i18n keys, error handl
 ## Testing discipline
 
 - **Unit / integration:** `node --test tests/*.test.mjs`. Spawn `createApp()` in-process, hit it with `fetch` against an ephemeral port. Never hardcode `4317`.
+- **Baseline at v1.58.35:** **928** unit · **62** Playwright (smoke + full-cycle + forms) · **20** smoke E2E · **23** comprehensive E2E. The next ship must keep all four ≥ this floor.
 - **E2E:** `tests/e2e.mjs` and `tests/e2e-comprehensive.mjs` run the real server end-to-end. They're long but they catch SPA regressions the unit tests can't.
 - **Coverage floor:** 80 % on non-trivial logic. Current baseline is ~93 % line / ~83 % branch — keep it there or above. Run `npm run test:coverage`.
 - **TDD when adding behavior:** red → green → refactor. Skip TDD only for pure refactors with full coverage already present.
 - **No mocks of internal collaborators.** If you need to fake the parent project, point `CAREER_OPS_ROOT` at a `mktemp -d` and write the minimal files (`cv.md`, `portals.yml`, …) the path under test needs.
+
+---
+
+## Hard-won lessons (v1.58.x cycle — 32 single-fix releases)
+
+These are the traps that cost a release each. Don't re-step.
+
+1. **`[hidden]` is a no-op against an author `display:` rule** (v1.58.34 → v1.58.35 user-reported drawer bug). Author CSS beats UA-level `[hidden] { display: none }` even at the same author specificity (last rule wins). If a component class sets `display: flex / inline-flex / grid`, always add an explicit `.selector[hidden] { display: none }` override — or toggle a class instead of the `hidden` attribute.
+2. **`npm test 2>&1 | grep …` masks the exit code** (v1.58.27 / v1.58.30). `grep` returns 0 on match even when `npm test` failed. Two ships shipped failing tests because of this pattern; both were repaired in the next release. Always split: run `npm test` first, capture `$?`, then grep separately. The same applies to `git commit … 2>&1 | tail -3` — that hides commit-hook failures too.
+3. **`cleanLlmMarkdown` is NOT an XSS sanitizer** (v1.58.3 R-2 doctrine). The XSS boundary is `UI.md()` on the client and `stripDangerousMarkdown()` on the CV ingress server side. Adding the LLM declutter step (`cleanLlmMarkdown`) to either is a category error. Keep responsibilities split.
+4. **Author level cascade order matters when overriding UA defaults** (v1.58.35 lesson). The UA stylesheet for `[hidden]` is `display: none`. An author rule `.x { display: flex }` on the same element wins regardless of order in the cascade because author > user-agent. The general rule: any `display:` on an element shadows the UA `[hidden]` behavior.
+5. **Doctrine: one-fix-per-release.** 32 v1.58.x releases all CI-green, all AI-review-LGTM. The single batched ship (v1.58.33 — U-13/U-14/U-15) was justified only because the three items shared CSS + tests and closed the cycle's leftovers. Otherwise: HIGH → MEDIUM → LOW, never bundled. Each release ships: bump + CHANGELOG ×8 (parity-gated) + a test + Playwright-verify + pre-commit AI-review LGTM + `ci.yml` green + redeploy.
+6. **Pre-commit AI review is advisory; `ci.yml` is the hard gate.** A green pre-commit + red CI is possible (v1.58.0 lesson). Watch the CI run, not just the local commit hook.
+7. **`PATHS` resolves once per process.** Static guard in `tests/paths-once.test.mjs`. Don't dynamically reimport `paths.mjs` to bust the cache — it breaks CI-isolated tests that bootstrap their own `CAREER_OPS_ROOT`.
+8. **Help bundle parity (H2 + H3)** is locked by `tests/{canonical-docs-coverage,help-ru-config-section,help-ui}.test.mjs`. As of v1.58.35: **18** H2 sections (was 17 pre-§18 Notifications), **73** H3 subsections (was 70). Adding a new help section means bumping these counts in all three test files.
+9. **`UI.toast()` parses its own postfix** (v1.58.24 / U-4). A trailing `(METHOD /path · HTTP NNN)` is auto-tucked into a collapsed `<details>`. Don't manually pre-strip it at the call site — the renderer handles it and the journal (v1.58.33 / U-13) captures the headline+detail split.
+10. **Notifications drawer** (v1.58.34 / v1.58.35) is the only place that re-surfaces toasts. Don't add ad-hoc `console.log` for user-facing diagnostics; use `UI.toast(msg, kind)` and it'll automatically land in the journal.
 
 ---
 

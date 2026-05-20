@@ -9,11 +9,14 @@ validates the current `HEAD`. Save run reports under
 `qa/v54-regression/<date>-{REGRESSION,UX-AUDIT,FUNCTIONALITY}.md`.
 
 1. **[`REGRESSION-FINAL.md`](./REGRESSION-FINAL.md)** — the single
-   authoritative full-project regression prompt (§0 hard-gate → §11:
+   authoritative full-project regression prompt (§0 hard-gate → §12:
    routes, a11y, config/model selectors, the Modes canonical-schema
    field-form, deploy-hygiene, LLM-key routing, SSE disconnect
-   hygiene, SSRF, i18n/docs parity, the test pyramid, and §11 the
-   consolidated v1.55.x→v1.56.0 UX-fix invariants + CLOSED-IN ledger).
+   hygiene, SSRF, i18n/docs parity, the test pyramid, **§11** the
+   consolidated v1.55.x→v1.56.4 UX-fix invariants, **§12** the
+   v1.58.4→v1.58.35 cycle invariants (32 single-fix releases: NEW-1
+   CSP + 13 M/I items + 15 U items + notifications drawer) — all
+   CLOSED-IN with their lock-test).
 2. **[`UX-AUDIT-PROMPT.md`](./UX-AUDIT-PROMPT.md)** — a Senior
    UX-designer heuristic + task-based audit judged against the
    canonical product intent at <https://career-ops.org/docs> (12

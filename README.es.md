@@ -9,7 +9,7 @@
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.58.35-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.35)
+[![release](https://img.shields.io/badge/release-v1.58.36-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.36)
 
 > **Reciente (v1.55 → v1.58):** **salida de investigación limpia y formateada** (#/deep + Investigación guardada eliminan andamiaje `<tool_call>`/`<tool_response>`) + barrido de bugs del informe QA (`#/followup` fecha ISO, negrita markdown en citas de ayuda, toast de duplicado honesto, alias `#/outreach`) + **proveedor OpenRouter** (una clave → 300+ modelos, desplegable en vivo en `#/config`) + corrección de «validation failed» en `#/config` (las claves pegadas con espacios/salto de línea ahora se guardan), banner de onboarding + chip de proveedor activo, costes honestos de ⚡ Ejecutar en vivo, ETA en `#/auto`, desplegable de Filtros avanzados + Stop prominente en `#/scan`, CTAs hero en `#/dashboard`, virtualización >1000 filas en `#/pipeline`, paginación de servidor + chips de embudo en `#/tracker`, y pulido de accesibilidad — detalle por versión en [CHANGELOG.es.md](CHANGELOG.es.md).
 
@@ -192,6 +192,7 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 | **Health**       | Todas las comprobaciones de instalación como badges OK / OPTIONAL / FAIL + botones para ejecutar `doctor.mjs` y `verify-pipeline.mjs`. |
 | **Help**         | Guía de usuario en Markdown dentro de la app (`/#/help`), localizada para los 8 idiomas soportados (en / es / pt-BR / ko-KR / ja / ru / zh-CN / zh-TW). |
 | **Activity log** | Rastro de auditoría de cada request que cambia estado (escrituras, ejecuciones, escaneos). Secretos redactados. |
+| **Notificaciones** 🔔 *(v1.58.34 / v1.58.35)* | Campana superior con badge rojo de no leídos. Click → drawer derecho con las últimas 50 toasts (por pestaña, por sesión) — Éxito / Error / Info-progreso, cada una con hora local, mensaje y, si aplica, postfix `(MÉTODO /ruta · HTTP NNN)` en `<details>`. La ayuda **§18** documenta cada categoría. El drawer se abre **solo** al hacer clic en la campana (o Enter / Space); se cierra con ×, Esc, o haciendo clic de nuevo. |
 
 Atajos de teclado globales:
 

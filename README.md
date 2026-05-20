@@ -9,7 +9,7 @@
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.58.35-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.35)
+[![release](https://img.shields.io/badge/release-v1.58.36-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.36)
 
 > **Recent (v1.55 → v1.58):** **clean, formatted research output** (`#/deep` + Saved research strip echoed `<tool_call>` / `<tool_response>` agent scaffolding) + external QA-report bug sweep (`#/followup` ISO-date validation, markdown bold in help block-quotes, honest pipeline-dup toast, doctor-modal polish, `#/outreach` alias), **OpenRouter provider** (one key → 300+ models, live `#/config` dropdown) + `#/config` "validation failed" fix, on-screen onboarding banner + active-provider chip, honest ⚡ Run-live cost hints, `#/auto` ETA, `#/scan` Advanced-filters disclosure, `#/pipeline` >1000-row virtualization, `#/tracker` server-side pagination + funnel chips, plus a11y polish — see [CHANGELOG.md](CHANGELOG.md) for the full per-release detail.
 
@@ -192,12 +192,13 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 | **Health**       | All setup checks in OK / OPTIONAL / FAIL badges + buttons to run `doctor.mjs` and `verify-pipeline.mjs`.           |
 | **Help**         | In-app Markdown user guide (`/#/help`), localized for all 8 supported languages (en / es / pt-BR / ko-KR / ja / ru / zh-CN / zh-TW). |
 | **Activity log** | Audit trail of every state-changing request (writes, runs, scans). Secrets redacted. |
+| **Notifications** 🔔 *(v1.58.34 / v1.58.35)* | Top-bar bell with red unread badge. Click to slide-in a drawer listing the last 50 toasts (per tab, per session) — Success / Error / Info-progress, each with a localized timestamp, the human message, and any `(METHOD /path · HTTP NNN)` postfix tucked into a `<details>`. Help **§18** documents every category. Drawer opens **only** on bell click (or keyboard Enter / Space); closes via ×, Esc, or re-clicking the bell. |
 
 Global keyboard shortcuts:
 
-- `Ctrl+K` / `Cmd+K` — focus the global search.
+- `Ctrl+K` / `Cmd+K` — focus the global search. The footer hint adapts per platform (⌘K on macOS/iOS, Ctrl+K elsewhere) with the localized verb (v1.58.20).
 - Pasting a URL into global search auto-adds it to the pipeline.
-- `Esc` — close any open modal.
+- `Esc` — close any open modal **or** the notifications drawer (v1.58.34).
 
 ---
 
@@ -296,7 +297,7 @@ career-ops-ui/
 │  ├─ sdd/{SDD-GUIDE,CONVENTIONS}.md
 │  ├─ architecture/{OVERVIEW,SERVER,FRONTEND,API,DATA-FLOWS}.md
 │  └─ reviews/REVIEW-*.md
-└─ tests/                    # 284 unit + 12 Playwright + 23 e2e:full + 20 e2e:smoke
+└─ tests/                    # 928 unit + 62 Playwright + 23 e2e:full + 20 e2e:smoke (baseline @ v1.58.35)
    ├─ parsers.test.mjs       # markdown / pipeline / report parsers (pure functions)
    ├─ api.test.mjs           # every endpoint, ephemeral server, no network
    ├─ {ru,en}-scanner.test.mjs   # mocked fetch

@@ -165,6 +165,37 @@ re-open one with concrete live evidence that it regressed:
 | UX-N1 — per-route locale-aware `document.title` | v1.56.2 | `document-title-per-route.test.mjs` |
 | key-detection — placeholder/short keys rejected (no false "✓ set", no mis-route) | v1.56.3 | `key-detection-rejects-placeholder.test.mjs` |
 | UX-N2 — visible platform-aware ⌘K / Ctrl K hint | v1.56.4 | `cmdk-hint-visible.test.mjs` |
+| NEW-1 — CSP unconditional on every response | v1.58.4 | `tests/playwright-smoke.mjs` (zero CSP violations on en/ru/ja/zh-TW × 7 routes) |
+| BUG-008-tb — top-bar Doctor modal title parity ×8 locales | v1.58.6 | `qa-report-fixes.test.mjs` |
+| NEW-2 — `isValidJobUrl` rejects paired `${…}` / `{{…}}` | v1.58.7 | `qa-report-fixes.test.mjs` |
+| (user feat) — OPENAI / QWEN / OPENROUTER rows on `#/health` | v1.58.8 | `qa-report-fixes.test.mjs` |
+| M-1 — `:focus-visible` ring on form fields (WCAG 2.4.7) | v1.58.9 | `qa-report-fixes.test.mjs` + Playwright Tab-traversal |
+| M-2 — `UI.modal()` auto-dismisses progress toast | v1.58.10 | `qa-report-fixes.test.mjs` |
+| M-4 — saved-research card title↔date structural gap | v1.58.11 | `qa-report-fixes.test.mjs` |
+| M-7 — cost hint follows OpenRouter (`cost varies`) | v1.58.12 | `qa-report-fixes.test.mjs` |
+| M-8 — interactive Apply checklist + per-URL persist | v1.58.13 | `qa-report-fixes.test.mjs` |
+| M-9 — connection-banner Refresh feedback toast | v1.58.14 | `qa-report-fixes.test.mjs` |
+| I-1 — top-bar search aria-label localized | v1.58.15 | `qa-report-fixes.test.mjs` |
+| (user-reported) — brand-button hover-flicker | v1.58.16 | `qa-report-fixes.test.mjs` |
+| I-2 — `Intl.RelativeTimeFormat` for saved-research dates | v1.58.17 | `qa-report-fixes.test.mjs` |
+| I-3 — help TOC items 2/5/13/14 English-bleed strip | v1.58.18 | `qa-report-fixes.test.mjs` (negative match) |
+| I-4 — RU `#/followup` no Latin `cadence`/`follow-up` | v1.58.19 | `qa-report-fixes.test.mjs` |
+| I-6 — footer hotkey ⌘K (Mac) vs Ctrl+K (else) localized | v1.58.20 | `qa-report-fixes.test.mjs` |
+| U-1 — `#/cv` H1 + subtitle (supersedes UX-9 chip by design) | v1.58.21 | `qa-report-fixes.test.mjs` + updated `cv-single-h1.test.mjs` |
+| U-2 — `#/auto` H1 emoji-wrap (page-icon span + grid) | v1.58.22 | `qa-report-fixes.test.mjs` |
+| U-3 — `#/followup` date placeholder = today − 14 d | v1.58.23 | `qa-report-fixes.test.mjs` |
+| U-4 — toast endpoint postfix in `<details>` | v1.58.24 | `qa-report-fixes.test.mjs` |
+| U-5 — Dashboard CTA dedupe | v1.58.25 | `qa-report-fixes.test.mjs` |
+| U-6 — `#/scan` Active-companies tooltip | v1.58.26 | `qa-report-fixes.test.mjs` |
+| U-7 — verify-pipeline modal `===` divider strip | v1.58.27 | `qa-report-fixes.test.mjs` |
+| U-8 — Generate-prompt block collapsed by default | v1.58.28 | `qa-report-fixes.test.mjs` |
+| U-9 — `#/pipeline` controls stack ≤720 px | v1.58.29 | `qa-report-fixes.test.mjs` |
+| U-10 — Tracker actions disabled when empty | v1.58.30 | `qa-report-fixes.test.mjs` |
+| U-11 — Tracker Legitimacy info chip + aria | v1.58.31 | `qa-report-fixes.test.mjs` |
+| U-12 — Help TOC filter min-width 16ch | v1.58.32 | `qa-report-fixes.test.mjs` |
+| U-13 + U-14 + U-15 — toast journal capture + page-header safety + CV dirty-state | v1.58.33 | `qa-report-fixes.test.mjs` |
+| Notifications drawer chrome (closes U-13) — bell + slide-in `<aside role="dialog">` | v1.58.34 | `qa-report-fixes.test.mjs` |
+| Drawer `[hidden]` CSS override + help §18 Notifications ×8 | v1.58.35 | `qa-report-fixes.test.mjs` + `playwright-smoke.mjs` end-to-end (9 assertions) |
 
 Senior-obs ledger: S-7→v1.54.6, W-001→v1.54.7, S-1→UX-3, S-2→UX-7,
 S-3→UX-4, S-4→UX-1, S-5→UX-9, S-6→UX-8. The **only open backlog

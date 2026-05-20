@@ -18,7 +18,7 @@ This document explains how the test suite is structured, what each tier guarante
 
 ```
                     ┌─────────────────────────┐
-                    │       E2E (Playwright)  │  20+12 cases, headless Chromium
+                    │       E2E (Playwright)  │  62+20+23 cases, headless Chromium
                     │       e2e/ + e2e:full   │  full SPA + server + parent-fixture
                     └─────────────────────────┘
                   ┌───────────────────────────────┐
@@ -40,7 +40,7 @@ This document explains how the test suite is structured, what each tier guarante
    └──────────────────────────────────────────────────────────────────┘  CLI / hook layer
 ```
 
-> **Totals (v1.56.0):** 813 `node --test` cases across 110 files (Tier 1–3),
+> **Totals (v1.58.35):** **928** `node --test` cases across **117** files (Tier 1–3),
 > plus 4 Playwright/E2E surfaces. (v1.55.1→v1.56.0 added 12 CI-isolated
 > suites for the consolidated UX fix-prompt: auto-stepper-prerender,
 > cv-editor-a11y, onboarding-key-banner, auto-eta-stop, dashboard-hero,
@@ -128,7 +128,7 @@ This document explains how the test suite is structured, what each tier guarante
 
 **Lives in:** `tests/playwright-smoke.mjs`, `tests/playwright-full-cycle.mjs`, `tests/e2e.mjs`, `tests/e2e-comprehensive.mjs`.
 
-**Existing flows (32 Playwright + 20 smoke + 23 comprehensive):**
+**Existing flows (62 Playwright + 20 smoke + 23 comprehensive):**
 
 - Dashboard render + footer version
 - Sidebar navigation (every route from CV → Help)

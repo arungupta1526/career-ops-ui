@@ -10,6 +10,12 @@
 
 
 
+## [1.58.36] — 2026-05-20
+
+**chore(docs): v1.58.36 — v1.58.x 周期收尾的完整文档清理。** 不改代码。(1) qa/:3 个版本固定快照(`REGRESSION-END-TO-END-v1.58.16/33/35.md`)移到 `qa/archive/v158-cycle/`。(2) `REGRESSION-FINAL.md` 新增 **§12**(v1.58.4 → v1.58.35 全部不变量)。(3) `UX-AUDIT-PROMPT.md` 新增 30 行已关闭条目。(4) docs/architecture/ 刷新(FRONTEND 抽屉、TESTING 合计 928/62/20/23)。(5) CLAUDE.md 新增「v1.58.x 周期的硬经验教训」章节。(6) README ×8 新增「通知 🔔」行 + 修正过时的测试计数。基线无变化。(housekeeping)
+
+---
+
 ## [1.58.35] — 2026-05-20
 
 **fix(ui): v1.58.35 — 通知抽屉不再自动打开 + 帮助新增 §18「通知」(用户反馈)。** v1.58.34 bug:`.notif-drawer { display: flex }` 战胜了 UA 的 `[hidden] { display: none }`。修复:显式添加 `.notif-drawer[hidden] { display: none }`。抽屉仅在点击铃铛时打开。8 种语言的帮助新增 §18(类别表 + 键盘)。927 → **928** 单元。(用户反馈)

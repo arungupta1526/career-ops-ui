@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.36] — 2026-05-20
+
+**chore(docs): v1.58.36 — limpieza completa al cerrar el ciclo v1.58.x.** Sin cambios de código. (1) qa/: 3 snapshots versionados (`REGRESSION-END-TO-END-v1.58.16/33/35.md`) archivados en `qa/archive/v158-cycle/`. (2) `REGRESSION-FINAL.md` añade **§12** con todos los invariantes v1.58.4 → v1.58.35. (3) `UX-AUDIT-PROMPT.md` extendido con 30 filas cerradas. (4) docs/architecture/ actualizado (FRONTEND drawer, TESTING totales 928/62/20/23). (5) CLAUDE.md gana sección "Lecciones difíciles del ciclo v1.58.x". (6) README ×8 con nueva fila "Notificaciones 🔔" + conteo de tests corregido. Baseline sin cambios. (housekeeping)
+
+---
+
 ## [1.58.35] — 2026-05-20
 
 **fix(ui): v1.58.35 — el drawer de notificaciones ya no se auto-abre + nueva §18 "Notificaciones" en la ayuda.** Bug v1.58.34: `.notif-drawer { display: flex }` ganaba contra UA `[hidden] { display: none }`. Fix con `.notif-drawer[hidden] { display: none }` explícito + sólo se abre al hacer clic en el sino. Nueva §18 en las 8 traducciones de la ayuda con la tabla de categorías. 927 → **928** unitarios. (reporte de usuario)

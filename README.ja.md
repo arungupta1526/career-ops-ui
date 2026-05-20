@@ -9,7 +9,7 @@
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.58.35-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.35)
+[![release](https://img.shields.io/badge/release-v1.58.36-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.36)
 
 > **最近 (v1.55 → v1.58):** **整形済みの調査出力**（#/deep・保存済み調査が `<tool_call>`/`<tool_response>` を除去）+ 外部 QA レポートのバグ一掃（`#/followup` ISO 日付、help 引用内の太字、重複 pipeline トーストの正直化、`#/outreach` エイリアス）+ **OpenRouter プロバイダ**（1 キーで 300+ モデル、`#/config` のライブ・ドロップダウン）+ `#/config` の「validation failed」修正（空白/改行付きで貼り付けたキーも保存可能に）、オンボーディングバナー + アクティブプロバイダチップ、正直な ⚡ ライブ実行コストヒント、`#/auto` ETA、`#/scan` 詳細フィルターディスクロージャ + 目立つ Stop、`#/dashboard` ヒーロー CTA、`#/pipeline` 1000 行超の仮想化、`#/tracker` サーバーページネーション + ファネルチップ、アクセシビリティ調整 — バージョン別詳細は [CHANGELOG.ja.md](CHANGELOG.ja.md)。
 
@@ -192,6 +192,7 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 | **Health**       | すべてのセットアップチェックを OK / OPTIONAL / FAIL バッジで表示し、`doctor.mjs` と `verify-pipeline.mjs` を実行するボタンを備えます。 |
 | **Help**         | アプリ内 Markdown ユーザーガイド(`/#/help`)。サポート対象の 8 言語すべてにローカライズ済みです(en / es / pt-BR / ko-KR / ja / ru / zh-CN / zh-TW)。 |
 | **Activity log** | すべての状態変更リクエスト(書き込み・実行・スキャン)の監査証跡。シークレットはマスク済みです。 |
+| **通知** 🔔 *(v1.58.34 / v1.58.35)* | トップバーのベル + 赤い未読バッジ。クリック → 右ドロワーが最新 50 件のトースト(タブ単位/セッション単位)を表示 — 成功 / エラー / 情報-進行、それぞれにローカル時刻・メッセージ・必要に応じて `(METHOD /path · HTTP NNN)` 末尾を `<details>` で表示。ヘルプ **§18** が各カテゴリを説明。ドロワーは **ベルのクリック時にのみ** 開く(キーボード Enter / Space 含む)。× / Esc / ベル再クリックで閉じる。|
 
 グローバルキーボードショートカット:
 

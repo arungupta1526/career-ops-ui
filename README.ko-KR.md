@@ -9,7 +9,7 @@
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.58.35-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.35)
+[![release](https://img.shields.io/badge/release-v1.58.36-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.36)
 
 > **최근 (v1.55 → v1.58):** **깔끔하게 포맷된 조사 출력**(#/deep·저장된 조사가 `<tool_call>`/`<tool_response>` 제거) + 외부 QA 리포트 버그 일괄 수정(`#/followup` ISO 날짜, help 인용 내 굵게, 중복 pipeline 토스트 정직화, `#/outreach` 별칭) + **OpenRouter 제공자**(키 하나 → 300+ 모델, `#/config` 라이브 드롭다운) + `#/config` 「validation failed」 수정(공백/줄바꿈 포함해 붙여넣은 키도 저장됨), 온보딩 배너 + 활성 제공자 칩, 정직한 ⚡ 라이브 실행 비용 힌트, `#/auto` ETA, `#/scan` 고급 필터 디스클로저 + 눈에 띄는 Stop, `#/dashboard` 히어로 CTA, `#/pipeline` 1000행 초과 가상화, `#/tracker` 서버 페이지네이션 + 퍼널 칩, 접근성 다듬기 — 버전별 상세는 [CHANGELOG.ko-KR.md](CHANGELOG.ko-KR.md).
 
@@ -192,6 +192,7 @@ CAREER_OPS_ROOT=/path/to/career-ops bash bin/start.sh
 | **Health**       | 모든 setup 체크를 OK / OPTIONAL / FAIL 배지로 보여 주며, `doctor.mjs`와 `verify-pipeline.mjs` 실행 버튼을 제공합니다.           |
 | **Help**         | 인앱 마크다운 사용자 가이드(`/#/help`). 지원되는 8개 언어(en / es / pt-BR / ko-KR / ja / ru / zh-CN / zh-TW)로 현지화되어 있습니다. |
 | **Activity log** | 상태를 변경하는 모든 요청(writes, runs, scans)에 대한 감사 추적. 시크릿은 redact 처리됩니다. |
+| **알림** 🔔 *(v1.58.34 / v1.58.35)* | 상단바 벨 + 빨간 안 읽음 배지. 클릭 → 우측 드로어가 최근 50 개의 토스트(탭별/세션별) 표시 — 성공 / 오류 / 정보-진행, 각 항목에 현지화된 시각·메시지·필요 시 `(METHOD /path · HTTP NNN)` 후미가 `<details>` 안에 포함. 도움말 **§18** 가 모든 카테고리 설명. 드로어는 **벨 클릭에서만** 열림(키보드 Enter / Space 포함); ×, Esc, 또는 벨 재클릭으로 닫힘. |
 
 전역 키보드 단축키:
 
