@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.34] — 2026-05-20
+
+**feat(ui): v1.58.34 — Drawer de notificaciones (cierra U-13 por completo).** Sobre la captura de v1.58.33: nueva API `UI.onToast(fn)` (pub/sub), campana 🔔 en la top-bar con badge de no leídos, drawer derecho con título/vacío/items localizados (`notif.* × 8`). Esc + cerrar + click en la campana cierran. 926 → **927** unitarios. (U-13 follow-up)
+
+---
+
 ## [1.58.33] — 2026-05-20
 
 **fix(ux): U-13 + U-14 + U-15 — diario de toasts (cap 50 + `UI.getToastHistory()`) + selector de seguridad para `.page-header h1 + p` + indicador de cambios sin guardar en `#/cv`.** Cierra el ciclo v1.58.x. Nueva clave i18n `cv.unsaved` × 8 idiomas. 925 → **926** unitarios. (U-13/U-14/U-15)

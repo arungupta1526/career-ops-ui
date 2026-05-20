@@ -599,6 +599,11 @@ window.__I18N_DICT = {
   'track.col.legitimacy.help': { en: 'Confidence that the posting is real (High / Caution / Suspicious).', es: 'Confianza en que la oferta es real (Alta / Precaución / Sospechosa).', 'pt-BR': 'Confiança de que a vaga é real (Alta / Atenção / Suspeita).', ko: '공고가 진짜일 가능성 (높음 / 주의 / 의심).', ja: '求人が本物である信頼度 (高 / 注意 / 疑い).', ru: 'Достоверность вакансии (высокая / осторожно / подозрительная).', 'zh-CN': '该招聘真实性的信心(高 / 注意 / 可疑)。', 'zh-TW': '該招聘真實性的信心(高 / 注意 / 可疑)。' },
   // U-15 (v1.58.33) — CV editor unsaved-changes tooltip.
   'cv.unsaved':      { en: 'Unsaved changes — click Save to persist.', es: 'Cambios sin guardar — haz clic en Guardar para persistir.', 'pt-BR': 'Alterações não salvas — clique em Salvar para persistir.', ko: '저장되지 않은 변경 — 저장하려면 Save 를 누르세요.', ja: '未保存の変更 — 保存するには Save をクリック。', ru: 'Несохранённые изменения — нажмите Сохранить.', 'zh-CN': '未保存的更改 — 点击保存以持久化。', 'zh-TW': '未儲存的變更 — 點擊儲存以保存。' },
+  // v1.58.34 — notifications drawer keys (closes U-13).
+  'notif.title':     { en: 'Notifications', es: 'Notificaciones', 'pt-BR': 'Notificações', ko: '알림', ja: '通知', ru: 'Уведомления', 'zh-CN': '通知', 'zh-TW': '通知' },
+  'notif.empty':     { en: 'No notifications yet.', es: 'Aún no hay notificaciones.', 'pt-BR': 'Ainda não há notificações.', ko: '아직 알림이 없습니다.', ja: 'まだ通知はありません。', ru: 'Уведомлений пока нет.', 'zh-CN': '暂无通知。', 'zh-TW': '尚無通知。' },
+  'notif.bellAria':  { en: 'Notifications — open recent toasts journal', es: 'Notificaciones — abrir el diario de toasts recientes', 'pt-BR': 'Notificações — abrir o diário de toasts recentes', ko: '알림 — 최근 토스트 저널 열기', ja: '通知 — 最近のトーストジャーナルを開く', ru: 'Уведомления — открыть журнал недавних тостов', 'zh-CN': '通知 — 打开最近的 toast 日志', 'zh-TW': '通知 — 開啟最近的 toast 日誌' },
+  'notif.closeAria': { en: 'Close notifications', es: 'Cerrar notificaciones', 'pt-BR': 'Fechar notificações', ko: '알림 닫기', ja: '通知を閉じる', ru: 'Закрыть уведомления', 'zh-CN': '关闭通知', 'zh-TW': '關閉通知' },
 
   'rep.allReports': { en: '← All reports', es: '← Todos los reportes', 'pt-BR': '← Todos relatórios', ko: '← 모든 보고서', ja: '← すべてのレポート', ru: '← Все отчёты', 'zh-CN': '← 所有报告', 'zh-TW': '← 所有報告' },
   'rep.openJd':     { en: 'Open JD ↗', es: 'Abrir JD ↗', 'pt-BR': 'Abrir JD ↗', ko: 'JD 열기 ↗', ja: 'JD を開く ↗', ru: 'Открыть JD ↗', 'zh-CN': '打开 JD ↗', 'zh-TW': '開啟 JD ↗' },

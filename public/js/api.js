@@ -224,6 +224,11 @@ window.UI = (function () {
   const TOAST_HISTORY_CAP = 50;
   const toastHistory = [];
   function getToastHistory() { return toastHistory.slice(); }
+  // v1.58.34 — pub/sub on top of the U-13 capture so the notifications
+  // drawer can re-render without polling getToastHistory(). Subscribers
+  // receive the entry just appended.
+  const toastSubscribers = new Set();
+  function onToast(fn) { toastSubscribers.add(fn); return () => toastSubscribers.delete(fn); }
   // U-4 (v1.58.24) — strip the technical "(METHOD /path · HTTP NNN)"
   // postfix from the toast's headline text and stash it in a collapsed
   // `<details>` element so the human sentence reads cleanly by default.
@@ -238,8 +243,13 @@ window.UI = (function () {
     const detail = m ? m[0].trim() : '';
     // U-13 (v1.58.33) — capture into the in-memory journal before
     // rendering so a future drawer can show kind/timestamp/message.
-    toastHistory.push({ ts: Date.now(), type: type || 'info', message: headline, detail });
+    const entry = { ts: Date.now(), type: type || 'info', message: headline, detail };
+    toastHistory.push(entry);
     if (toastHistory.length > TOAST_HISTORY_CAP) toastHistory.shift();
+    // v1.58.34 — notify subscribers (defensive: ignore subscriber throws).
+    for (const fn of toastSubscribers) {
+      try { fn(entry); } catch { /* drawer must never break the toast pipeline */ }
+    }
     // Reset the toast root to a clean state.
     while (t.firstChild) t.removeChild(t.firstChild);
     const p = document.createElement('p');
@@ -722,5 +732,5 @@ window.UI = (function () {
     return node;
   }
 
-  return { toast, dismissToast, modal, closeModal, confirm, el, escapeHtml, md, withSpinner, paginate, providerCostHint, getToastHistory };
+  return { toast, dismissToast, modal, closeModal, confirm, el, escapeHtml, md, withSpinner, paginate, providerCostHint, getToastHistory, onToast };
 })();

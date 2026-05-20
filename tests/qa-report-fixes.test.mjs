@@ -37,16 +37,67 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('v1.58.34: notifications drawer wires bell + onToast subscribe + 4 i18n keys', () => {
+  // U-13 follow-up — the drawer UI promised but deferred in v1.58.33.
+  // UI exposes onToast() pub/sub on top of the v1.58.33 capture.
+  const api = read('public', 'js', 'api.js');
+  assert.match(api, /const toastSubscribers = new Set\(\)/,
+    'api.js must declare a toastSubscribers Set');
+  assert.match(api, /function onToast\(fn\)/, 'onToast() must be defined');
+  assert.match(api, /toastSubscribers\.add\(fn\)/, 'onToast must add subscribers');
+  assert.match(api, /for \(const fn of toastSubscribers\)/,
+    'toast() must notify subscribers on every push');
+  assert.match(api, /return\s*\{[^}]*onToast\s*\}/,
+    'UI return must export onToast');
+
+  // index.html — bell button + drawer shell.
+  const html = read('public', 'index.html');
+  assert.match(html, /id="notif-bell"[^>]*aria-haspopup="dialog"[^>]*aria-controls="notif-drawer"/,
+    'index.html must declare the notif-bell with aria-haspopup+aria-controls');
+  assert.match(html, /id="notif-badge"[^>]*hidden/, 'notif-badge must start hidden');
+  assert.match(html, /id="notif-drawer"[^>]*role="dialog"/,
+    'notif-drawer must be role="dialog"');
+  assert.match(html, /data-i18n="notif\.title"/, 'drawer title must use data-i18n');
+  assert.match(html, /data-i18n="notif\.empty"/, 'empty state must use data-i18n');
+
+  // app.js — drawer behavior: open/close, badge increment, onToast subscribe.
+  const app = read('public', 'js', 'app.js');
+  assert.match(app, /UI\.onToast\(/, 'app.js must subscribe via UI.onToast()');
+  assert.match(app, /UI\.getToastHistory\(\)\.slice\(\)\.reverse\(\)/,
+    'drawer render must show newest-first');
+  assert.match(app, /bell\.setAttribute\('aria-expanded',\s*'true'\)/,
+    'bell aria-expanded must flip true on open');
+  assert.match(app, /e\.key === 'Escape'/, 'Escape must close the drawer');
+
+  // i18n parity for the 4 new keys.
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  for (const key of ['notif.title', 'notif.empty', 'notif.bellAria', 'notif.closeAria']) {
+    const row = dict.match(new RegExp(`'${key.replace(/\./g, '\\.')}':\\s*\\{([^}]+)\\}`));
+    assert.ok(row, `i18n-dict.js missing '${key}'`);
+    for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+      const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+      assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+        `'${key}' must have a non-empty ${lang} value`);
+    }
+  }
+  // CSS contract — bell, drawer, item rules exist.
+  const css = read('public', 'css', 'app.css');
+  for (const sel of ['.notif-bell', '.notif-badge', '.notif-drawer', '.notif-drawer__head', '.notif-item']) {
+    assert.match(css, new RegExp(`${sel.replace(/[.\-]/g, (m) => '\\' + m)}\\s*\\{`),
+      `${sel} CSS rule must exist`);
+  }
+});
+
 test('U-13/U-14/U-15 (v1.58.33): toast journal + page-header spacing safety net + CV dirty-state', () => {
   // U-13 — UI.getToastHistory() exposed + history append guarded by cap.
   const api = read('public', 'js', 'api.js');
   assert.match(api, /const toastHistory = \[\]/, 'api.js must declare toastHistory array');
   assert.match(api, /TOAST_HISTORY_CAP\s*=\s*50/, 'cap must be 50');
-  assert.match(api, /toastHistory\.push\(\{\s*ts:\s*Date\.now\(\)/,
-    'toast() must push { ts, type, message, detail } before render');
+  assert.match(api, /const entry = \{\s*ts:\s*Date\.now\(\)[\s\S]*?toastHistory\.push\(entry\)/,
+    'toast() must build { ts, type, message, detail } and push before render');
   assert.match(api, /toastHistory\.shift\(\)/, 'must trim oldest beyond the cap');
   assert.match(api, /function getToastHistory\(\)/, 'getToastHistory() must be defined');
-  assert.match(api, /return\s*\{\s*toast,[^}]*getToastHistory\s*\}/,
+  assert.match(api, /return\s*\{\s*toast,[\s\S]*?getToastHistory\b/,
     'UI return must export getToastHistory');
 
   // U-14 — global page-header safety net rule.

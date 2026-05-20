@@ -1178,6 +1178,72 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
 .btn.btn-dirty { box-shadow: 0 0 0 3px var(--rausch-dark, #e31c5f); }
 .btn.btn-dirty::before { content: '● '; opacity: .9; }
 
+/* v1.58.34 — Notifications bell + right-slide drawer (closes U-13). */
+.notif-bell {
+  position: relative;
+  background: transparent;
+  border: 1px solid var(--slate, #ddd);
+  border-radius: 8px;
+  width: 36px; height: 36px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.notif-bell:hover { background: var(--beach, #f7f7f7); }
+.notif-bell:focus-visible { outline: 2px solid var(--rausch, #ff385c); outline-offset: 2px; }
+.notif-badge {
+  position: absolute;
+  top: -4px; right: -4px;
+  background: var(--rausch, #ff385c);
+  color: #fff;
+  min-width: 16px; height: 16px;
+  border-radius: 8px;
+  font-size: 10px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 4px;
+}
+.notif-drawer {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: min(380px, 92vw);
+  background: var(--paper, #fff);
+  border-left: 1px solid var(--slate, #ddd);
+  box-shadow: -8px 0 24px rgba(0,0,0,.1);
+  z-index: 9999;
+  display: flex; flex-direction: column;
+  animation: notif-slide-in 200ms ease-out;
+}
+@keyframes notif-slide-in {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+.notif-drawer__head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--slate, #eee);
+}
+.notif-drawer__head h2 { margin: 0; font-size: 16px; }
+.notif-drawer__close {
+  background: transparent; border: none; font-size: 24px; cursor: pointer;
+  padding: 0; width: 32px; height: 32px; line-height: 1;
+}
+.notif-drawer__close:focus-visible { outline: 2px solid var(--rausch, #ff385c); outline-offset: 2px; border-radius: 4px; }
+.notif-drawer__list { list-style: none; margin: 0; padding: 8px; overflow-y: auto; flex: 1; }
+.notif-drawer__empty { margin: 24px; color: var(--foggy, #999); font-size: 13px; text-align: center; }
+.notif-item {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border-left: 3px solid var(--slate, #ddd);
+  margin-bottom: 8px;
+  background: var(--beach, #fafafa);
+}
+.notif-item--error   { border-left-color: var(--rausch, #ff385c); }
+.notif-item--success { border-left-color: var(--kazan, #00a699); }
+.notif-item > time { font-size: 11px; color: var(--foggy, #999); }
+.notif-item__msg { margin: 0; font-size: 13px; }
+.notif-item__detail { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: var(--foggy, #999); background: transparent; }
+
 /* U-9 (v1.58.29) — Pipeline counter ↔ filter row. Above 720 px the
    flex gap-3 layout already works; at narrower widths the filter
    input is cramped, so stack vertically and stretch it full-width. */

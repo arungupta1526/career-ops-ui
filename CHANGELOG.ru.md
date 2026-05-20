@@ -10,6 +10,12 @@
 
 
 
+## [1.58.34] — 2026-05-20
+
+**feat(ui): v1.58.34 — Drawer уведомлений (полностью закрывает U-13).** v1.58.33 положил данные (in-memory `toastHistory` cap 50 + `UI.getToastHistory()`) и явно отложил UI-обвязку. Сейчас она здесь. **`UI.onToast(fn)`** — pub/sub поверх capture в [public/js/api.js](public/js/api.js#L222-L233); подписчики получают только что записанный entry, и каждый коллбек ловится в try/catch — баг в drawer-е никогда не порвёт toast-конвейер. **Колокольчик** 🔔 в шапке с красным badge непрочитанных, `aria-haspopup="dialog"` + `aria-controls` + `aria-expanded`. **Right-slide `<aside role="dialog">`** с локализованным заголовком (`notif.title`), пустым состоянием (`notif.empty`) и элементами: локализованный `toLocaleTimeString` + сообщение + (если есть) технический хвост из U-4. Новейшие сверху; самые старые выпадают по cap 50. Esc + кнопка закрыть + повторный клик по колокольчику — закрывают drawer; фокус возвращается на колокольчик (WAI-ARIA APG drawer pattern). 4 новых ключа i18n × 8 локалей. CSS: `.notif-bell`, `.notif-badge`, `.notif-drawer`, `.notif-drawer__head`, `.notif-item`. 926 → **927** модульных; Playwright 61/61 без изменений. (U-13 follow-up)
+
+---
+
 ## [1.58.33] — 2026-05-20
 
 **fix(ux): U-13 + U-14 + U-15 — журнал toast-уведомлений (кеп 50 + `UI.getToastHistory()`) + предохранительное CSS-правило `.page-header h1 + p` + индикатор несохранённых изменений в `#/cv`.** Финальный релиз цикла v1.58.x. **U-13:** каждый вызов `UI.toast()` пушит `{ ts, type, message, detail }` в in-memory `toastHistory` с лимитом 50; экспонирован через `UI.getToastHistory()` — будущая drawer-UI отложена. **U-14:** новое правило `.page-header h1 + p { margin-block-start: var(--space-2); color: var(--foggy); }` для страниц с сырым `<h1>+<p>` без класса `.page-subtitle`. **U-15:** кнопка Save в `#/cv` получает класс `.btn-dirty` + локализованный tooltip `cv.unsaved` × 8, когда текстарея расходится с последним сохранённым baseline; успешный Save переустанавливает baseline. Загрузка CV диспатчит синтетический `input`-event, чтобы программное `ta.value = …` тоже включало dirty. CSS `.btn.btn-dirty` рисует кольцо `--rausch-dark` + `● ` префикс. 925 → **926** модульных. (U-13/U-14/U-15)

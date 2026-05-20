@@ -215,6 +215,78 @@ I18n.onChange(() => {
   }
   applyFooterHotkey();
   I18n.onChange(applyFooterHotkey);
+
+  // v1.58.34 — Notifications drawer. Builds on top of U-13's
+  // UI.getToastHistory() + UI.onToast() (v1.58.33). The drawer slides
+  // in from the right and lists every toast captured this session
+  // (cap 50, oldest dropped). A red dot on the bell tracks UNREAD
+  // entries; opening the drawer marks all read. No persistence — the
+  // journal is volatile (per-tab, per-session).
+  (function notifDrawer() {
+    const bell = document.getElementById('notif-bell');
+    const drawer = document.getElementById('notif-drawer');
+    const list = document.getElementById('notif-list');
+    const empty = document.getElementById('notif-empty');
+    const badge = document.getElementById('notif-badge');
+    const closeBtn = document.getElementById('notif-close');
+    if (!bell || !drawer || !list || !badge || !closeBtn) return;
+    let unread = 0;
+    const open = () => {
+      drawer.hidden = false;
+      bell.setAttribute('aria-expanded', 'true');
+      render();
+      unread = 0; updateBadge();
+      // Focus the close button so keyboard users land somewhere
+      // dismissable; per ARIA APG drawer pattern.
+      setTimeout(() => closeBtn.focus(), 0);
+    };
+    const close = () => {
+      drawer.hidden = true;
+      bell.setAttribute('aria-expanded', 'false');
+      bell.focus();
+    };
+    function updateBadge() {
+      if (unread > 0) { badge.textContent = String(unread); badge.hidden = false; }
+      else { badge.hidden = true; }
+    }
+    function render() {
+      const items = UI.getToastHistory().slice().reverse(); // newest first
+      list.innerHTML = '';
+      empty.hidden = items.length > 0;
+      for (const it of items) {
+        const li = document.createElement('li');
+        li.className = 'notif-item notif-item--' + (it.type || 'info');
+        const time = document.createElement('time');
+        const d = new Date(it.ts);
+        time.dateTime = d.toISOString();
+        time.textContent = d.toLocaleTimeString(I18n.getLang(), { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const msg = document.createElement('p');
+        msg.className = 'notif-item__msg';
+        msg.textContent = it.message;
+        li.appendChild(time);
+        li.appendChild(msg);
+        if (it.detail) {
+          const code = document.createElement('code');
+          code.className = 'notif-item__detail';
+          code.textContent = it.detail;
+          li.appendChild(code);
+        }
+        list.appendChild(li);
+      }
+    }
+    bell.addEventListener('click', () => (drawer.hidden ? open() : close()));
+    closeBtn.addEventListener('click', close);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !drawer.hidden) close();
+    });
+    // New toasts arrive via UI.onToast — re-render if open, otherwise
+    // bump the unread badge so the bell signals there's something new.
+    UI.onToast(() => {
+      if (!drawer.hidden) render();
+      else { unread = Math.min(99, unread + 1); updateBadge(); }
+    });
+  })();
+
   search.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       const q = search.value.trim();

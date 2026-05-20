@@ -148,6 +148,14 @@
           <kbd class="kbd-shortcut" aria-hidden="true" data-mac="⌘K" data-other="Ctrl K"></kbd>
         </div>
         <div class="topbar-actions">
+          <!-- v1.58.34 — notifications bell. Opens the right-slide
+               drawer that re-surfaces the in-memory toast journal
+               captured by U-13 (v1.58.33). aria-haspopup=dialog +
+               aria-controls binds the bell to the drawer element. -->
+          <button class="notif-bell" id="notif-bell" type="button"
+            aria-haspopup="dialog" aria-controls="notif-drawer" aria-expanded="false"
+            data-i18n-aria-label="notif.bellAria"
+            aria-label="Notifications">🔔<span class="notif-badge" id="notif-badge" hidden>0</span></button>
           <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle theme" title="Toggle theme">🌙</button>
           <button class="btn btn-ghost" id="btn-doctor" data-i18n="top.doctor">Doctor</button>
           <button class="btn btn-primary" id="btn-quick-scan" data-i18n="top.quickscan">Quick scan</button>
@@ -161,6 +169,18 @@
     </main>
 
     <div id="toast" class="toast" hidden role="status" aria-live="assertive"></div>
+    <!-- v1.58.34 — notifications drawer. Stores the in-memory toast
+         journal (up to 50 entries). aria-modal=false: drawer overlays
+         but does not trap focus globally; Esc + backdrop click close
+         it. Localized title + empty-state via notif.* i18n keys. -->
+    <aside id="notif-drawer" class="notif-drawer" role="dialog" aria-modal="false" aria-labelledby="notif-title" hidden>
+      <div class="notif-drawer__head">
+        <h2 id="notif-title" data-i18n="notif.title">Notifications</h2>
+        <button class="notif-drawer__close" id="notif-close" type="button" data-i18n-aria-label="notif.closeAria" aria-label="Close notifications">×</button>
+      </div>
+      <ol class="notif-drawer__list" id="notif-list" role="list"></ol>
+      <p class="notif-drawer__empty" id="notif-empty" data-i18n="notif.empty">No notifications yet.</p>
+    </aside>
     <div id="modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div class="modal-backdrop" data-close aria-hidden="true"></div>
       <div class="modal-card">
