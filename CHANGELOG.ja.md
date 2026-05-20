@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.15] — 2026-05-20
+
+**fix(a11y/i18n): I-1 — トップバー検索の `aria-label` と非表示 `<label>` を i18n 化。** 従来は全 8 言語で英文の aria-label がスクリーンリーダーに読まれていた。[public/js/app.js](public/js/app.js#L4-L29) に汎用 `data-i18n-aria-label` フックを追加 — `applyI18n()` が `data-i18n` / `data-i18n-placeholder` と同様に言語変更時に `aria-label` を差し替える。新規 i18n キー 2 つ(`top.search.aria`、`top.search.label`)を 8 言語に追加。任意の将来のコントロールでも再利用可。910 → **911** ユニット。(I-1)
+
+---
+
 ## [1.58.14] — 2026-05-20
 
 **fix(ux): M-9 — 接続バナーの「更新」ボタンにフィードバックを追加(従来は無音リロード)。** v1.58.13 以前はクリックで即 `location.reload()` を呼んでいた。今は「更新中…」トーストを即表示し、`sessionStorage['refreshedToast']` をセット、ボタンを `disabled` に(連打で重ねない)、リロードを 200ms 遅延させてトーストを描画。次回ブートで app.js がフラグを検出し、成功トースト「更新しました」を出す。新規 i18n キー 2 つ(`common.refreshing`、`common.refreshed`)を 8 言語で追加。909 → **910** ユニット。(M-9)

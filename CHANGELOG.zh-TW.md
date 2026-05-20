@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.15] — 2026-05-20
+
+**fix(a11y/i18n): I-1 — 頂列搜尋的 `aria-label` 和視覺隱藏 `<label>` 現已本地化。** 此前所有 8 種語言下,螢幕閱讀器聽到的都是英文 aria-label。[public/js/app.js](public/js/app.js#L4-L29) 新增通用 `data-i18n-aria-label` 鉤子 — `applyI18n()` 在每次語言切換時更新 `aria-label`,與 `data-i18n` / `data-i18n-placeholder` 對稱。新增 2 個 i18n 鍵(`top.search.aria`, `top.search.label`)覆蓋 8 種語言。鉤子可被任何未來控制元件重複使用。910 → **911** 單元。(I-1)
+
+---
+
 ## [1.58.14] — 2026-05-20
 
 **fix(ux): M-9 — 連線橫幅的「重新整理」按鈕現在提供回饋(之前為靜默重新載入)。** 在 v1.58.13 之前,處理器直接呼叫 `location.reload()`。現在點擊會立即彈出「重新整理中…」的 toast,設定 `sessionStorage['refreshedToast']`,把按鈕設為 `disabled` 防止雙擊堆疊,並把 reload 延遲 200ms 讓 toast 繪製。下次啟動時 app.js 偵測到旗標,彈出成功 toast「已重新整理」。在 8 種語言中新增 2 個 i18n 鍵(`common.refreshing`, `common.refreshed`)。909 → **910** 單元。(M-9)

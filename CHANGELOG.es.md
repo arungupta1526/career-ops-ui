@@ -10,6 +10,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 ---
 
+## [1.58.15] — 2026-05-20
+
+**fix(a11y/i18n): I-1 — `aria-label` y `<label>` oculto del buscador superior ahora se localizan.** Antes los lectores de pantalla en cualquier idioma escuchaban el aria-label inglés. Nuevo hook genérico `data-i18n-aria-label` en [public/js/app.js](public/js/app.js#L4-L29) — `applyI18n()` actualiza `aria-label` en cada cambio de idioma como ya lo hace para `data-i18n` y `data-i18n-placeholder`. Dos nuevas claves i18n (`top.search.aria`, `top.search.label`) en los 8 idiomas. El hook es reutilizable para cualquier control futuro. 910 → **911** unitarios. (I-1)
+
+---
+
 ## [1.58.14] — 2026-05-20
 
 **fix(ux): M-9 — el botón `Actualizar` del banner de conexión ahora da feedback (antes era una recarga silenciosa).** Hasta v1.58.13 el handler llamaba directamente a `location.reload()`. Ahora muestra un toast `Actualizando…`, marca `sessionStorage['refreshedToast']`, desactiva el botón para evitar dobles clics, y difiere la recarga 200 ms para que el toast pinte. En el arranque siguiente, app.js detecta la marca y emite un toast de éxito `Actualizado`. 2 nuevas claves i18n (`common.refreshing`, `common.refreshed`) en los 8 idiomas. 909 → **910** unitarios. (M-9)

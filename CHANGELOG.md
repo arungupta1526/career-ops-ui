@@ -6,6 +6,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ---
 
+## [1.58.15] — 2026-05-20
+
+**fix(a11y/i18n): I-1 — top-bar search `aria-label` and visually-hidden label now localized.** v1.58.3 verified the global search input shipped `aria-label="Global search — Cmd+K to focus, paste a URL and Enter for auto-pipeline"` regardless of UI language. Screen-reader users on RU/JA/zh-CN/etc. were stuck with English. New generic `data-i18n-aria-label` hook in [public/js/app.js](public/js/app.js#L4-L29) mirrors the existing `data-i18n` / `data-i18n-placeholder` pattern — `applyI18n()` iterates every `[data-i18n-aria-label]` element and calls `el.setAttribute('aria-label', I18n.t(key, …))` on each language change. The top-bar input now declares `data-i18n-aria-label="top.search.aria"`; the visually-hidden `<label>` declares `data-i18n="top.search.label"`. Two new i18n keys (`top.search.aria`, `top.search.label`) added across all 8 locales. The hook is reusable — any future control just adds the attribute. 910 → **911** unit (`tests/qa-report-fixes.test.mjs` asserts the HTML markup wiring, the app.js handler shape, the 8-locale i18n parity, and a sanity check that RU ≠ EN so a copy-paste-English regression can't slip through). (I-1)
+
+---
+
 ## [1.58.14] — 2026-05-20
 
 **fix(ux): M-9 — connection-banner `Refresh` now gives feedback (was silent reload).** v1.58.3 verified the global Refresh button called `location.reload()` synchronously — user sees a brief flash but no explicit signal that anything happened. Fix in [public/js/app.js](public/js/app.js#L131-L161): the click handler now (1) emits a transient `Refreshing…` toast, (2) sets `sessionStorage['refreshedToast']` so the *next* page boot can surface a success toast (the in-flight one is destroyed by navigation), (3) disables the button to swallow rapid double-clicks (no stacking), and (4) defers `location.reload()` by 200 ms so the in-flight toast paints first. On boot, app.js checks the sessionStorage flag, clears it, and emits a success `Refreshed` toast (deferred so it lands after the SPA settles). Two new i18n keys (`common.refreshing`, `common.refreshed`) added across all 8 locales. 909 → **910** unit (`tests/qa-report-fixes.test.mjs` asserts the synchronous progress toast, deferred reload, disabled-guard, sessionStorage handoff, success toast on next boot, and 8-locale i18n parity). (M-9)

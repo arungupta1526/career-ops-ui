@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.15] — 2026-05-20
+
+**fix(a11y/i18n): I-1 — 顶栏搜索的 `aria-label` 和视觉隐藏 `<label>` 现已本地化。** 之前所有 8 种语言下,屏幕阅读器听到的都是英文 aria-label。[public/js/app.js](public/js/app.js#L4-L29) 新增通用 `data-i18n-aria-label` 钩子 — `applyI18n()` 在每次语言切换时更新 `aria-label`,与 `data-i18n` / `data-i18n-placeholder` 对称。新增 2 个 i18n 键(`top.search.aria`, `top.search.label`)覆盖 8 种语言。钩子可被任何未来控件复用。910 → **911** 单元。(I-1)
+
+---
+
 ## [1.58.14] — 2026-05-20
 
 **fix(ux): M-9 — 连接横幅的"刷新"按钮现在提供反馈(之前为静默重载)。** 在 v1.58.13 之前,处理器直接调用 `location.reload()`。现在点击会立即弹出"刷新中…"的 toast,设置 `sessionStorage['refreshedToast']`,把按钮置为 `disabled` 防止双击叠加,并把 reload 延迟 200ms 让 toast 渲染。下次启动时 app.js 检测到标记,弹出成功 toast"已刷新"。在 8 种语言中新增 2 个 i18n 键(`common.refreshing`, `common.refreshed`)。909 → **910** 单元。(M-9)

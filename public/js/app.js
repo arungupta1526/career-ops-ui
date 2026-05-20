@@ -11,6 +11,16 @@ function applyI18n() {
     const key = el.getAttribute('data-i18n-placeholder');
     el.placeholder = I18n.t(key, el.placeholder);
   });
+  // I-1 (v1.58.15) — `data-i18n-aria-label` mirrors the placeholder
+  // pattern so the global search input (and any future control) gets
+  // its aria-label localized on every language change. Pre-fix the
+  // top-bar search hardcoded the English aria-label across all 8
+  // locales; screen-reader users were stuck with English regardless
+  // of the SPA's UI language.
+  document.querySelectorAll('[data-i18n-aria-label]').forEach((el) => {
+    const key = el.getAttribute('data-i18n-aria-label');
+    el.setAttribute('aria-label', I18n.t(key, el.getAttribute('aria-label') || ''));
+  });
 }
 
 function renderLangSwitcher() {

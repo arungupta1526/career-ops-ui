@@ -131,13 +131,14 @@
       <header class="topbar" role="banner">
         <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle menu" aria-controls="sidebar" aria-expanded="false" type="button">☰</button>
         <div class="searchbar" role="search">
-          <label for="global-search" class="visually-hidden">Search companies, roles, or URLs</label>
+          <label for="global-search" class="visually-hidden" data-i18n="top.search.label">Search companies, roles, or URLs</label>
           <input
             type="text"
             id="global-search"
             data-i18n-placeholder="top.search"
             placeholder="Find a company, role or URL…"
             autocomplete="off"
+            data-i18n-aria-label="top.search.aria"
             aria-label="Global search — Cmd+K to focus, paste a URL and Enter for auto-pipeline"
           />
           <!-- v1.56.4 — UX-N2: visible, platform-aware shortcut hint.

@@ -8,6 +8,12 @@
 
 ---
 
+## [1.58.15] — 2026-05-20
+
+**fix(a11y/i18n): I-1 — 상단바 검색의 `aria-label` 과 시각적 숨김 `<label>` 을 i18n 화.** 이전에는 모든 8 개 언어에서 영문 aria-label 이 스크린 리더에 노출되었다. [public/js/app.js](public/js/app.js#L4-L29) 에 범용 `data-i18n-aria-label` 훅 추가 — `applyI18n()` 이 언어 변경 시 `data-i18n` / `data-i18n-placeholder` 와 동일하게 `aria-label` 을 교체. 새 i18n 키 2 개(`top.search.aria`, `top.search.label`)를 8 언어에 추가. 어떤 미래 컨트롤에도 재사용 가능. 910 → **911** 유닛. (I-1)
+
+---
+
 ## [1.58.14] — 2026-05-20
 
 **fix(ux): M-9 — 연결 배너의 새로고침 버튼에 피드백 추가(이전엔 무음 리로드).** v1.58.13 까지 클릭 시 곧바로 `location.reload()` 를 호출했다. 이제 "새로고침 중…" 토스트를 즉시 표시하고, `sessionStorage['refreshedToast']` 를 설정하며, 버튼을 `disabled` 처리해 빠른 더블클릭에서 토스트가 쌓이지 않게 하고, 리로드를 200ms 지연시켜 토스트가 그려진 뒤에 페이지가 새로 로드되도록 한다. 다음 부팅 때 app.js 가 플래그를 감지하고 성공 토스트 "새로고침됨" 을 출력. 새 i18n 키 2 개(`common.refreshing`, `common.refreshed`)를 8 언어에 추가. 909 → **910** 유닛. (M-9)

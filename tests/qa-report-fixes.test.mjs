@@ -30,6 +30,59 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('I-1 (v1.58.15): top-bar search aria-label + visually-hidden label are localized via data-i18n', () => {
+  const html = read('public', 'index.html');
+  // The visually-hidden <label> for the search input must declare its
+  // i18n key so applyI18n() can swap the text on language change.
+  assert.match(
+    html,
+    /<label for="global-search"[^>]*data-i18n="top\.search\.label"/,
+    'visually-hidden label for #global-search must use data-i18n="top.search.label"'
+  );
+  // The input's aria-label must use the new data-i18n-aria-label hook.
+  assert.match(
+    html,
+    /id="global-search"[\s\S]{0,400}?data-i18n-aria-label="top\.search\.aria"/,
+    '#global-search must declare data-i18n-aria-label="top.search.aria"'
+  );
+
+  // app.js must process data-i18n-aria-label alongside data-i18n /
+  // data-i18n-placeholder so the attribute actually swaps on lang
+  // change (the contract is symmetric).
+  const app = read('public', 'js', 'app.js');
+  assert.match(
+    app,
+    /document\.querySelectorAll\('\[data-i18n-aria-label\]'\)\.forEach/,
+    'applyI18n() must iterate [data-i18n-aria-label] and apply aria-label'
+  );
+  assert.match(
+    app,
+    /el\.setAttribute\('aria-label',\s*I18n\.t\(key,/,
+    'data-i18n-aria-label handler must call el.setAttribute(aria-label, I18n.t(key, …))'
+  );
+
+  // i18n parity — both new keys present + non-trivially translated
+  // (at least one non-EN locale differs from EN so the test catches a
+  // fresh-add that forgot to translate).
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  for (const key of ['top.search.label', 'top.search.aria']) {
+    const re = new RegExp(`'${key.replace(/\./g, '\\.')}':\\s*\\{([^}]*)\\}`);
+    const row = dict.match(re);
+    assert.ok(row, `i18n-dict.js missing '${key}'`);
+    for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+      const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+      assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+        `'${key}' must have a non-empty ${lang} value`);
+    }
+    // Sanity — at least one CJK / Cyrillic locale must differ from EN
+    // (catches the accidental copy-paste-EN bug).
+    const enM = row[1].match(/\ben:\s*['"]([^'"]+)['"]/);
+    const ruM = row[1].match(/\bru:\s*['"]([^'"]+)['"]/);
+    assert.ok(enM && ruM && enM[1] !== ruM[1],
+      `'${key}' must have a non-English Russian translation`);
+  }
+});
+
 test('M-9 (v1.58.14): connection-banner Refresh emits a localized toast (no silent reload)', () => {
   const app = read('public', 'js', 'app.js');
   // Click handler must show the in-flight toast (synchronous before
