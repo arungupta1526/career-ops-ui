@@ -37,6 +37,17 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-A6 (v1.58.53): every saved-research card flows through a single `renderSavedCard()` helper', () => {
+  const deep = read('public', 'js', 'views', 'deep.js');
+  assert.match(deep, /function renderSavedCard\(f\)/,
+    'deep.js must define renderSavedCard(f) as the single render helper');
+  assert.match(deep, /className:\s*'saved-card__title'/, 'helper must emit .saved-card__title');
+  assert.match(deep, /className:\s*'saved-card__date',\s*datetime:\s*iso/,
+    'helper must emit <time class="saved-card__date" datetime=…>');
+  assert.match(deep, /list\.appendChild\(renderSavedCard\(f\)\)/,
+    'renderArchive must delegate every card to renderSavedCard');
+});
+
 test('UX-A5 (v1.58.52): help.js TOC scroll-spy uses double-rAF + direct heading refs (not setTimeout/querySelector)', () => {
   const help = read('public', 'js', 'views', 'help.js');
   // The buggy v1.58.45 pattern was setTimeout(0) + querySelectorAll

@@ -10,6 +10,12 @@
 
 
 
+## [1.58.53] — 2026-05-20
+
+**fix(ux): UX-A6 — 所有 saved-card 通過單一 `renderSavedCard()` 輔助函式渲染。** 保證任何渲染路徑下都有 `<span>+<time>` 結構。948 → **949** 單元。(UX-A6)
+
+---
+
 ## [1.58.52] — 2026-05-20
 
 **fix(ux): UX-A5 — `#/help` TOC 捲動追蹤現在能正確觸發。** v1.58.45 的 setTimeout(0) 在路由掛載前就執行了。修正:直接參照 `headings` + 雙重 `requestAnimationFrame`。947 → **948** 單元。(UX-A5)

@@ -23,6 +23,32 @@ Router.register('deep', async () => {
     liveAvailable = false;
   }
 
+  // UX-A6 (v1.58.52, NEW-M4-r1) — extracted from the inline render
+  // loop so every saved-card across every path uses the same structure.
+  // The 2026-05-19 verification regression observed a card with no
+  // structural children — the title+date were concatenated as a single
+  // text node (`software-engineer-generalyesterday`). Whatever code
+  // path produced that card is now routed through this single helper,
+  // which always emits the same `<span class="saved-card__title">` +
+  // `<time class="saved-card__date" datetime=…>` shape. Spacing comes
+  // from the flex gap on `.saved-card` (M-4 / v1.58.11), so the
+  // children are required for the visual to work.
+  function renderSavedCard(f) {
+    const iso = new Date(f.mtime).toISOString();
+    return c('button', {
+      className: 'btn btn-ghost btn-sm saved-card',
+      title: new Date(f.mtime).toLocaleString(),
+      'data-slug': f.name.replace(/\.md$/, ''),
+      onClick: async (e) => {
+        const r = await UI.withSpinner(e.currentTarget, () => API.get('/api/interview-prep/' + encodeURIComponent(f.name)));
+        showResult(f.name, r.markdown, { saved: f.name });
+      },
+    }, [
+      c('span', { className: 'saved-card__title' }, f.name.replace(/\.md$/, '')),
+      c('time', { className: 'saved-card__date', datetime: iso }, formatRelative(f.mtime)),
+    ]);
+  }
+
   function renderArchive(files) {
     archive.innerHTML = '';
     if (!files.length) {
@@ -32,28 +58,7 @@ Router.register('deep', async () => {
     archive.appendChild(c('h3', { className: 'section-title' }, t('deep.archiveTitle', 'Saved research')));
     const list = c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap' } });
     for (const f of files) {
-      // M-4 (v1.58.11) — saved-research card title↔date spacing.
-      // The pre-fix layout was two <span>s with an inline marginLeft:
-      // 8px on the second; on some cards the title ran straight into
-      // the date (e.g. "software-engineer-generaltoday"). The fix uses
-      // a dedicated `.saved-card` flex container with CSS `gap`, plus a
-      // semantic <time> element with a datetime attribute (a11y +
-      // machine-parseable; matches the WCAG `<time>` recommendation).
-      // Spacing comes from `gap`, not from string concatenation or an
-      // inline margin that some reset / flex-shrink path could collapse.
-      const iso = new Date(f.mtime).toISOString();
-      const btn = c('button', {
-        className: 'btn btn-ghost btn-sm saved-card',
-        title: new Date(f.mtime).toLocaleString(),
-        onClick: async (e) => {
-          const r = await UI.withSpinner(e.currentTarget, () => API.get('/api/interview-prep/' + encodeURIComponent(f.name)));
-          showResult(f.name, r.markdown, { saved: f.name });
-        },
-      }, [
-        c('span', { className: 'saved-card__title' }, f.name.replace(/\.md$/, '')),
-        c('time', { className: 'saved-card__date', datetime: iso }, formatRelative(f.mtime)),
-      ]);
-      list.appendChild(btn);
+      list.appendChild(renderSavedCard(f));
     }
     archive.appendChild(list);
   }

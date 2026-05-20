@@ -10,6 +10,12 @@
 
 
 
+## [1.58.53] — 2026-05-20
+
+**fix(ux): UX-A6 — すべての saved-card が単一の `renderSavedCard()` ヘルパーを経由。** どのレンダリングパスでも `<span>+<time>` 構造が保証される。948 → **949** ユニット。(UX-A6)
+
+---
+
 ## [1.58.52] — 2026-05-20
 
 **fix(ux): UX-A5 — `#/help` TOC スクロールスパイが正しく発火するように。** v1.58.45 の setTimeout(0) は router マウント前に発火していた。fix: `headings` の直接参照 + 二重 `requestAnimationFrame`。947 → **948** ユニット。(UX-A5)

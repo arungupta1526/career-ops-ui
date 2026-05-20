@@ -10,6 +10,12 @@
 
 
 
+## [1.58.53] — 2026-05-20
+
+**fix(ux): UX-A6 — 모든 saved-card 가 단일 `renderSavedCard()` 헬퍼를 통과.** 모든 렌더 경로에서 `<span>+<time>` 구조 보장. 948 → **949** 유닛. (UX-A6)
+
+---
+
 ## [1.58.52] — 2026-05-20
 
 **fix(ux): UX-A5 — `#/help` TOC 스크롤 스파이가 정상 동작.** v1.58.45 의 setTimeout(0) 이 라우터 마운트 전에 실행되었음. fix: `headings` 직접 참조 + 이중 `requestAnimationFrame`. 947 → **948** 유닛. (UX-A5)

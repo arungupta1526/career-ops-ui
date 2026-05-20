@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.53] — 2026-05-20
+
+**fix(ux): UX-A6 — todo saved-card pasa por un único helper `renderSavedCard()`.** Garantiza la estructura `<span>+<time>` en cada path de renderizado. 948 → **949** unitarios. (UX-A6)
+
+---
+
 ## [1.58.52] — 2026-05-20
 
 **fix(ux): UX-A5 — scroll-spy del TOC en `#/help` ahora dispara correctamente.** Regresión de v1.58.45 (setTimeout(0) era demasiado temprano). Fix: refs directas a `headings` + doble `requestAnimationFrame`. 947 → **948** unitarios. (UX-A5)

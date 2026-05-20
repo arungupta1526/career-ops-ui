@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.53] — 2026-05-20
+
+**fix(ux): UX-A6 (NEW-M4-r1) — every saved-research card flows through a single `renderSavedCard()` helper.** v1.58.51 verification regression observed: one card rendered with no structural children (title+date as a single concatenated text node — `software-engineer-generalyesterday`) while another rendered with the proper `<span>` + `<time>` shape — depending on whether the card was page-load-rendered or runtime-inserted. Fix in [public/js/views/deep.js](public/js/views/deep.js#L26-L75): extracted `renderSavedCard(f)` that always emits `.saved-card__title` + `.saved-card__date datetime=…`. Whatever render path inserts a card (page-load `renderArchive`, post-`Run live`, or future code paths) routes through this single helper — the M-4 v1.58.11 flex-gap layout only works with the structural children present. 948 → **949** unit. (UX-A6)
+
+---
+
 ## [1.58.52] — 2026-05-20
 
 **fix(ux): UX-A5 (NEW-K1) — `#/help` TOC scroll-spy actually fires now (regression from v1.58.45).** v1.58.51 verification regression caught: 18 H2 elements with ids, 18 TOC `<a>` links, but **0** links ever received `.toc-current` after scroll. Root cause: v1.58.45 wired the observer inside a `setTimeout(0)` that fired BEFORE the router appended the view to `#content`; `document.querySelectorAll(".help-article h2[id]")` matched nothing. Fix in [public/js/views/help.js](public/js/views/help.js#L155-L200): new `mountTocSpy()` observes the **synchronously-built `headings` refs** we already hold (no document re-query); deferred via **double `requestAnimationFrame`** so it fires after the first paint that includes the mounted view. 947 → **948** unit. (UX-A5)

@@ -10,6 +10,12 @@
 
 
 
+## [1.58.53] — 2026-05-20
+
+**fix(ux): UX-A6 (NEW-M4-r1) — каждая saved-research карточка проходит через единый helper `renderSavedCard()`.** Верификационный регресс v1.58.51 показал: одна карточка рендерилась без структурных детей (title+date как один text node — `software-engineer-generalyesterday`), а другая с правильной `<span>` + `<time>` структурой. Правка в [public/js/views/deep.js](public/js/views/deep.js#L26-L75): извлечён `renderSavedCard(f)`, всегда выдающий `.saved-card__title` + `.saved-card__date datetime=…`. Любой render-путь (page-load `renderArchive`, post-`Run live`, будущие точки) проходит через единый helper — flex-gap layout M-4 v1.58.11 работает только с правильными структурными детьми. 948 → **949** модульных. (UX-A6)
+
+---
+
 ## [1.58.52] — 2026-05-20
 
 **fix(ux): UX-A5 (NEW-K1) — scroll-spy для TOC на `#/help` снова работает (регресс из v1.58.45).** Верификационный регресс v1.58.51 показал: 18 H2-элементов с id, 18 TOC `<a>` ссылок, но **0** ссылок получают `.toc-current` при скролле. Причина: в v1.58.45 observer был обернут в `setTimeout(0)`, который срабатывал ДО того, как роутер монтировал view в `#content`; `document.querySelectorAll(".help-article h2[id]")` не находил ничего. Правка в [public/js/views/help.js](public/js/views/help.js#L155-L200): новый `mountTocSpy()` наблюдает за **синхронно построенными refs `headings`** (без re-query документа); deferred через **двойной `requestAnimationFrame`** — наблюдатель привязывается после первого paint, который включает смонтированный view. 947 → **948** модульных. (UX-A5)
