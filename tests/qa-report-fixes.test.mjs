@@ -37,6 +37,19 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-A4 (v1.58.56): .lang-btn meets WCAG 2.5.8 minimum touch-target (≥ 28×28 px)', () => {
+  const css = read('public', 'css', 'app.css');
+  // The pre-fix rule was `padding: 4px 8px` with no min-height — pulling
+  // buttons to 23–25 px tall, below the 24×24 WCAG 2.5.8 floor.
+  assert.match(css, /\.lang-btn\s*\{[^}]*min-height:\s*28px/,
+    '.lang-btn must declare min-height: 28px (WCAG 2.5.8 floor)');
+  assert.match(css, /\.lang-btn\s*\{[^}]*min-width:\s*28px/,
+    '.lang-btn must declare min-width: 28px for short labels (en/ja)');
+  // Padding now 6px 10px (vs pre-fix 4px 8px) for visual balance.
+  assert.ok(/\.lang-btn\s*\{[^}]*padding:\s*6px 10px/.test(css),
+    '.lang-btn padding must be 6px 10px to match the new vertical rhythm');
+});
+
 test('UX-A3 (v1.58.55): dashboard renders an active-provider chip wired to /api/status/providers', () => {
   const dash = read('public', 'js', 'views', 'dashboard.js');
   assert.match(dash, /function providerChip\(\)/,

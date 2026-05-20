@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.56] — 2026-05-20
+
+**fix(a11y): UX-A4 (v1.58.56) — `.lang-btn` meets WCAG 2.5.8 minimum touch-target.** Pre-fix the language buttons in the sidebar footer measured 23–25 px tall × 47–72 px wide (below the 24×24 WCAG 2.5.8 / WCAG 2.2 AA floor). [public/css/app.css](public/css/app.css) now declares `min-height: 28px` + `min-width: 28px` + `padding: 6px 10px` on `.lang-btn` — every locale label clears the floor with comfortable margin. Sidebar grows by 6 px total (negligible). Lock-test in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs). 951 → **952** unit. (UX-A4)
+
+---
+
+
+
 ## [1.58.55] — 2026-05-20
 
 **feat(ui): UX-A3 (v1.58.55) — Dashboard active-provider chip.** Above-the-fold chip in [public/js/views/dashboard.js](public/js/views/dashboard.js) hero now surfaces whether the OR-model fell through to a live provider (e.g. `⚡ Live evals: Anthropic claude-sonnet-4-6`) or whether the user is in `📋 Manual prompt mode (no API key set)`. Re-fetches on `providers-changed` (dispatched by [#/config](public/js/views/config.js) save) and on `visibilitychange` (cross-tab refocus). Reuses the existing `/api/status/providers` endpoint (no new API surface). Two i18n keys × 8 locales (`dash.provider.live`, `dash.provider.manual`); one CSS rule (`.dash-chip--provider`). Lifecycle cleanup on `hashchange` away from `#/dashboard` so listeners don't stack across navigation (M-1 discipline). 950 → **951** unit. (UX-A3)

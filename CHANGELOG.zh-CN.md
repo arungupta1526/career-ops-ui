@@ -10,6 +10,14 @@
 
 
 
+## [1.58.56] — 2026-05-20
+
+**fix(a11y): UX-A4 (v1.58.56) — `.lang-btn` 满足 WCAG 2.5.8 最小触控目标尺寸。** 修复前语言按钮高 23–25 px,低于 24×24 px 标准。现在通过 `min-height: 28px` + `min-width: 28px` 达到 WCAG 2.2 AA 合规。(UX-A4)
+
+---
+
+
+
 ## [1.58.55] — 2026-05-20
 
 **feat(ui): UX-A3 (v1.58.55) — Dashboard 活动提供方芯片。** `#/dashboard` 主区现在显示当前活动的 LLM 提供方(`⚡ Live evals: Anthropic claude-sonnet-4-6` 或 `📋 Manual prompt mode`)。在 `#/config` 更改 `LLM_PROVIDER` 或标签页重新获得焦点时自动更新。(UX-A3)

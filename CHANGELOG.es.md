@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.56] — 2026-05-20
+
+**fix(a11y): UX-A4 (v1.58.56) — `.lang-btn` cumple el tamaño mínimo de objetivo táctil WCAG 2.5.8.** Antes los botones de idioma medían 23–25 px de alto, por debajo del piso de 24×24 px. Ahora `min-height: 28px` + `min-width: 28px` garantizan el cumplimiento WCAG 2.2 AA. (UX-A4)
+
+---
+
+
+
 ## [1.58.55] — 2026-05-20
 
 **feat(ui): UX-A3 (v1.58.55) — chip de proveedor activo en el Dashboard.** El hero de `#/dashboard` ahora muestra qué proveedor LLM está activo (`⚡ Live evals: Anthropic claude-sonnet-4-6` o `📋 Manual prompt mode`). Se actualiza automáticamente al cambiar `LLM_PROVIDER` en `#/config` y al recuperar foco en la pestaña. (UX-A3)

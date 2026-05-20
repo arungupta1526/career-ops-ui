@@ -10,6 +10,14 @@
 
 
 
+## [1.58.56] — 2026-05-20
+
+**fix(a11y): UX-A4 (v1.58.56) — `.lang-btn` が WCAG 2.5.8 の最小タッチターゲットを満たしました。** 修正前は言語ボタンの高さが 23–25 px で 24×24 px 基準を下回っていましたが、`min-height: 28px` + `min-width: 28px` を指定し WCAG 2.2 AA に準拠しました。(UX-A4)
+
+---
+
+
+
 ## [1.58.55] — 2026-05-20
 
 **feat(ui): UX-A3 (v1.58.55) — Dashboard アクティブプロバイダチップ。** `#/dashboard` のヒーローに現在の LLM プロバイダ(`⚡ Live evals: Anthropic claude-sonnet-4-6` または `📋 Manual prompt mode`)を表示。`#/config` で `LLM_PROVIDER` を変更したときやタブにフォーカスが戻ったときに自動更新。(UX-A3)

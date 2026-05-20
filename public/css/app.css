@@ -1031,13 +1031,24 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
 }
 .lang-btn {
   font-size: 11px;
-  padding: 4px 8px;
+  /* UX-A4 (v1.58.56) — WCAG 2.5.8 (AA from WCAG 2.2) requires a 24×24
+     minimum touch-target. Pre-fix lang buttons measured 23–25 px tall
+     with 47–72 px wide depending on the locale label, so KO/JA users
+     consistently undershot the threshold. Bumping min-height to 28 px
+     + symmetric padding gives every label ≥ 28×40 px without changing
+     the sidebar layout (the sidebar grows by 6 px total). */
+  min-height: 28px;
+  min-width: 28px;
+  padding: 6px 10px;
   border-radius: 6px;
   border: 1px solid transparent;
   background: transparent;
   color: var(--foggy);
   cursor: pointer;
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: background var(--transition), color var(--transition);
 }
 .lang-btn:hover { background: var(--beach); color: var(--hof); }

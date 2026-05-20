@@ -10,6 +10,14 @@
 
 
 
+## [1.58.56] — 2026-05-20
+
+**fix(a11y): UX-A4 (v1.58.56) — `.lang-btn` 이 WCAG 2.5.8 최소 터치 타깃 크기를 충족.** 이전에 언어 버튼은 높이 23–25 px 로 24×24 px 기준 미달이었으나, 이제 `min-height: 28px` + `min-width: 28px` 로 WCAG 2.2 AA 를 충족합니다. (UX-A4)
+
+---
+
+
+
 ## [1.58.55] — 2026-05-20
 
 **feat(ui): UX-A3 (v1.58.55) — Dashboard 활성 공급자 칩.** `#/dashboard` 히어로에 현재 활성 LLM 공급자가 표시됩니다(`⚡ Live evals: Anthropic claude-sonnet-4-6` 또는 `📋 Manual prompt mode`). `#/config` 에서 `LLM_PROVIDER` 변경 또는 탭 포커스 복원 시 자동 갱신. (UX-A3)
