@@ -37,6 +37,26 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-D-J (v1.58.42): every advisor view renders a localized ETA chip next to the cost hint', () => {
+  for (const f of ['evaluate.js', 'deep.js', 'mode-page.js']) {
+    const v = read('public', 'js', 'views', f);
+    assert.match(v, /className:\s*'advisor-eta'/,
+      `${f} must render a <span class="advisor-eta"> chip`);
+    assert.match(v, /t\('advisor\.eta'/,
+      `${f} must localize the ETA via t('advisor.eta', …)`);
+  }
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  const row = dict.match(/'advisor\.eta':\s*\{([^}]+)\}/);
+  assert.ok(row, "i18n-dict.js missing 'advisor.eta'");
+  for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+    const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+    assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+      `'advisor.eta' must have a non-empty ${lang} value`);
+  }
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /\.advisor-eta\b/, '.advisor-eta CSS rule must exist');
+});
+
 test('UX-D-I (v1.58.41): cost-hint re-fetches on visibility-change + on `providers-changed` custom event', () => {
   // Background — v1.58.12 (M-7) wired the cost hint to /api/status/providers
   // but only fetched once at node creation. If the user switched

@@ -487,8 +487,13 @@ body.sidebar-open .sidebar-backdrop { display: block; }
    same filter-based dim so .btn-danger doesn't flash on hover either. */
 .btn-danger:hover { filter: brightness(0.92); }
 
-/* v1.55.4 — UX-6: honest "~1–2 min" ETA chip next to #/auto Run. */
-.auto-eta {
+/* v1.55.4 — UX-6: honest "~1–2 min" ETA chip next to #/auto Run.
+   UX-D-J (v1.58.42) — the same chip shape on the other advisor pages
+   (Evaluate / Deep / mode pages). Same styling, different copy
+   (~30s for fast advisors; auto stays at ~1–2 min because it's the
+   only multi-step SSE pipeline). */
+.auto-eta,
+.advisor-eta {
   font-size: 12px;
   color: var(--foggy);
   white-space: nowrap;

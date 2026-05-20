@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.42] — 2026-05-20
+
+**fix(ux): UX-D-J — per-advisor ETA chip parity with `#/auto` (UX-6 v1.55.4).** v1.58.36 audit: only `#/auto` showed an honest "⏱ ~1–2 min" chip next to its Run button; the other 7 LLM-driven advisor pages (`#/evaluate`, `#/deep`, plus the 5 mode pages — project / training / followup / contacto / interview-prep / patterns) ran a similar 10-60s call but gave no time hint. Adds a `<span class="advisor-eta">⏱ ~30s</span>` (localized via new `advisor.eta` key × 8) next to `UI.providerCostHint(t)` in [evaluate.js](public/js/views/evaluate.js), [deep.js](public/js/views/deep.js), and [mode-page.js](public/js/views/mode-page.js). CSS extends `.auto-eta` to cover `.advisor-eta` with the same styling. The original `auto.eta` chip stays at `~1–2 min` (it's the only multi-step SSE pipeline). 935 → **936** unit. (UX-D-J)
+
+---
+
 ## [1.58.41] — 2026-05-20
 
 **fix(ux/truthfulness): UX-D-I — cost-hint now re-fetches on tab focus + on `providers-changed` event (M-7 v1.58.12 follow-up).** v1.58.12 wired `UI.providerCostHint(t)` to `/api/status/providers` but only fetched ONCE at node creation. If the user opened `#/config` in another tab, picked a different provider, and switched back, the cost line would silently lie until they navigated away and back. Fix in [public/js/api.js](public/js/api.js#L676-L740): extract a named `refreshCostLine()` function and bind it to `document.visibilitychange` (tab regains focus) + a new `providers-changed` `CustomEvent`. The `#/config` Save handler in [public/js/views/config.js](public/js/views/config.js) dispatches the event after a successful POST, so in-page cost lines (`#/auto`, `#/deep`, `#/evaluate`, mode pages) refresh **without** a page reload or route re-mount. 934 → **935** unit. (UX-D-I)

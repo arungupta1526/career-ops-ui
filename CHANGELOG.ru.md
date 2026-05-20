@@ -10,6 +10,12 @@
 
 
 
+## [1.58.42] — 2026-05-20
+
+**fix(ux): UX-D-J — паритет ETA-чипа на всех advisor-страницах с `#/auto` (UX-6 v1.55.4).** v1.58.36 аудит: только `#/auto` показывал честный «⏱ ~1–2 min» рядом с Run; остальные 7 LLM-страниц (`#/evaluate`, `#/deep`, 5 mode-страниц — project/training/followup/contacto/interview-prep/patterns) совершали похожий 10-60 с вызов и не давали подсказку про время. Добавлен `<span class="advisor-eta">⏱ ~30s</span>` (локализация через новый ключ `advisor.eta` × 8) рядом с `UI.providerCostHint(t)` в [evaluate.js](public/js/views/evaluate.js), [deep.js](public/js/views/deep.js), [mode-page.js](public/js/views/mode-page.js). CSS правило `.auto-eta` расширено на `.advisor-eta` с тем же стилем. Оригинальный `auto.eta` остаётся «~1–2 min» — это единственный multi-step SSE-пайплайн. 935 → **936** модульных. (UX-D-J)
+
+---
+
 ## [1.58.41] — 2026-05-20
 
 **fix(ux/truthfulness): UX-D-I — cost-hint теперь перечитывает `/api/status/providers` при возврате фокуса на вкладку и по событию `providers-changed` (последствие M-7 v1.58.12).** v1.58.12 связал `UI.providerCostHint(t)` с `/api/status/providers`, но запрос делался ОДИН раз при создании ноды. Если пользователь открывал `#/config` в другой вкладке, менял провайдера и возвращался — cost-line молча отображал старое значение, пока не происходил переход с маршрута и обратно. Правка в [public/js/api.js](public/js/api.js#L676-L740): извлечена именованная функция `refreshCostLine()` и привязана к `document.visibilitychange` (фокус вернулся на вкладку) + новому `CustomEvent("providers-changed")`. Обработчик Save в [public/js/views/config.js](public/js/views/config.js) диспатчит этот event после успешного POST, и cost-line на `#/auto`, `#/deep`, `#/evaluate`, mode-страницах обновляется **без** перезагрузки страницы или re-mount маршрута. 934 → **935** модульных. (UX-D-I)

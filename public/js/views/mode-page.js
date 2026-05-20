@@ -380,6 +380,8 @@
         c('div', { className: 'flex gap-3' }, [manualBtn, runLiveBtn]),
         // v1.56.0 — UX-10: honest cost ballpark before the live run.
         UI.providerCostHint(t),
+      // UX-D-J (v1.58.42) — advisor ETA chip parity with #/auto (UX-6).
+      c('span', { className: 'advisor-eta' }, '⏱ ' + t('advisor.eta', '~30s')),
       ]),
       c('div', { className: 'mt-5' }, out),
     ]);
