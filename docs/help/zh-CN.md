@@ -1491,3 +1491,32 @@ russian_portals:
 - **为 RU 信任 `tracked_companies`。** 该列表仅用于 EN ATS
   来源。RU adapter 改为从
   `russian_portals.queries` 自驱动 —— 没有按公司的条目。
+
+---
+
+## 18. 通知(顶栏的 🔔)
+
+> v1.58.34 — 右下角的所有 toast 同时被记录到内存日志(上限 50,溢出删除最旧)。点击顶栏的 🔔 打开右侧 **通知** 抽屉,重新查看错过的消息。日志按标签页/会话存在 — 关闭标签即清空。
+
+抽屉**仅在点击铃铛时打开**(或键盘聚焦 + Enter / Space)。不会自动打开。红色徽章显示自上次打开以来未读条数;打开后清零。
+
+### 类别
+
+| 类别 | 触发条件 | 视觉提示 |
+|---|---|---|
+| **成功** | `Saved`、`Copied`、`Refreshed`、扫描完成、CV 导入、apply-checklist 操作、个人资料保存 | 左侧绿色边;绿色 toast 背景 |
+| **错误** | URL 校验失败、带 `(METHOD /path · HTTP NNN)` 后缀的 API 错误、网络失败、pipeline-400 重复、doctor/verify 非零退出 | 左侧红色边;红色 toast 背景;技术后缀塞入 `详细信息` `<details>`(U-4) |
+| **信息 / 进度** | `Running doctor.mjs…`、`Refreshing…`、`Loading…`、扫描进度 | 左侧灰色边 |
+
+每条显示:本地时间、人类可读消息、(若有)`(METHOD /path · HTTP NNN)` 等等技术细节(等宽字体)。
+
+### 不属于通知
+
+- Doctor / verify 结果模态(模态,不是 toast)。
+- `#/scan` / `#/auto` 的 SSE 日志行(直接写入页面正文)。
+- 不带 toast 的纯 spinner 加载状态。
+
+### 键盘
+
+- 铃铛**点击**或聚焦后 **Enter / Space** → 打开。
+- **Esc**、**×**、再次点击铃铛 → 关闭;焦点回到铃铛。

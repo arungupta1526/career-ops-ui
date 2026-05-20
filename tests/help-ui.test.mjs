@@ -97,10 +97,10 @@ test('every help doc covers the same 17 sections (all 8 locales — P-8 expanded
   // applying for jobs and preparing for interviews. v1.9.2 expanded
   // from 14 → 16 sections (added App settings & API keys, Interview
   // preparation; renamed Setup hints → Troubleshooting).
-  // v1.29.0 — 16 → 17 (added "How to add a new job-portal source"
+  // v1.29.0 — 16 → 17 (added "How to add a new job-portal source" — v1.29.0); 17 → 18 (added §18 "Notifications" — v1.58.35)
   // alongside the 3 new RU adapters: Trudvsem / GetMatch / GeekJob).
   const helpDir = resolve(ROOT, 'docs', 'help');
-  const SECTION_COUNT = 17;
+  const SECTION_COUNT = 18;
   const ALL_LOCALES = ['en', 'es', 'pt-BR', 'ko-KR', 'ja', 'ru', 'zh-CN', 'zh-TW'];
   for (const lang of ALL_LOCALES) {
     const fname = `${lang}.md`;

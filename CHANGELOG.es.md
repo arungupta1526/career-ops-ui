@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.35] — 2026-05-20
+
+**fix(ui): v1.58.35 — el drawer de notificaciones ya no se auto-abre + nueva §18 "Notificaciones" en la ayuda.** Bug v1.58.34: `.notif-drawer { display: flex }` ganaba contra UA `[hidden] { display: none }`. Fix con `.notif-drawer[hidden] { display: none }` explícito + sólo se abre al hacer clic en el sino. Nueva §18 en las 8 traducciones de la ayuda con la tabla de categorías. 927 → **928** unitarios. (reporte de usuario)
+
+---
+
 ## [1.58.34] — 2026-05-20
 
 **feat(ui): v1.58.34 — Drawer de notificaciones (cierra U-13 por completo).** Sobre la captura de v1.58.33: nueva API `UI.onToast(fn)` (pub/sub), campana 🔔 en la top-bar con badge de no leídos, drawer derecho con título/vacío/items localizados (`notif.* × 8`). Esc + cerrar + click en la campana cierran. 926 → **927** unitarios. (U-13 follow-up)

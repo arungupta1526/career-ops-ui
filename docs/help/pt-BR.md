@@ -1652,3 +1652,32 @@ Recarregue `#/scan` no navegador. O dropdown do filtro de fonte capta a nova ent
 - **Confiar em `tracked_companies` para RU.** Essa lista é só para fontes
   ATS EN. Os adapters RU se autoabastecem a partir de
   `russian_portals.queries` — sem entradas por empresa.
+
+---
+
+## 18. Notificações (🔔 na barra superior)
+
+> v1.58.34 — todo toast no canto inferior direito também é capturado em um diário in-memory (limite 50, mais antigos descartados). Clique no 🔔 da barra superior para abrir o drawer **Notificações** e revisar o que perdeu. O diário é por aba/sessão — fechar a aba o limpa.
+
+O drawer **só abre ao clicar no sino** (ou Enter / Space com foco). Nunca abre sozinho. O badge vermelho conta entradas não vistas; abrir o drawer reseta o badge.
+
+### Categorias
+
+| Categoria | Quando dispara | Pista visual |
+|---|---|---|
+| **Sucesso** | `Salvo`, `Copiado`, `Atualizado`, scan completo, CV importado, ações de apply-checklist, perfil salvo | borda esquerda verde; toast verde |
+| **Erro** | URL inválida, erros de API com postfix `(MÉTODO /caminho · HTTP NNN)`, falhas de rede, duplicatas de pipeline-400, doctor/verify exit ≠ 0 | borda esquerda vermelha; toast vermelho; postfix em `Detalhes` (U-4) |
+| **Info / progresso** | `Running doctor.mjs…`, `Refreshing…`, `Loading…`, progresso do scan | borda esquerda cinza |
+
+Cada entrada mostra hora local, mensagem humana e, se houver, postfix técnico em monospace.
+
+### O que NÃO é notificação
+
+- Modal de resultado de Doctor / verify (modal, não toast).
+- Linhas SSE em `#/scan` / `#/auto` (vão direto pro corpo da página).
+- Estados de spinner sem toast.
+
+### Teclado
+
+- **Clique** ou **Enter / Space** no sino → abrir.
+- **Esc**, **×**, ou novo clique no sino → fechar; foco volta ao sino.

@@ -1202,6 +1202,12 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
   display: inline-flex; align-items: center; justify-content: center;
   padding: 0 4px;
 }
+/* v1.58.35 — author `display:` on .notif-badge / .notif-drawer
+   overrode the UA `[hidden] { display: none }` (same specificity,
+   author wins) so the `hidden` attribute did nothing — the badge
+   showed `0` constantly and the drawer never hid. Explicit overrides
+   restore the expected hiding behaviour. */
+.notif-badge[hidden] { display: none; }
 .notif-drawer {
   position: fixed;
   top: 0; right: 0; bottom: 0;
@@ -1213,6 +1219,12 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
   display: flex; flex-direction: column;
   animation: notif-slide-in 200ms ease-out;
 }
+/* v1.58.35 — explicit `[hidden]` override. The `.notif-drawer`
+   `display: flex` above shadowed the UA `[hidden] { display: none }`
+   rule (same author-level specificity, last rule wins), so the
+   drawer was VISIBLE on every page load even though the markup had
+   `hidden` set. Restore correct hide-by-attribute behaviour. */
+.notif-drawer[hidden] { display: none; }
 @keyframes notif-slide-in {
   from { transform: translateX(100%); }
   to   { transform: translateX(0); }

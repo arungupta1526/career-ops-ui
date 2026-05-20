@@ -113,7 +113,7 @@ test('every help-bundle keeps the 17-H2 parity contract after v1.29.1 edit', () 
     if (baseline === null) baseline = h2;
     assert.equal(h2, baseline, `${lang}.md has ${h2} H2 sections, expected ${baseline}`);
   }
-  assert.equal(baseline, 17, `expected 17 H2 sections, got ${baseline}`);
+  assert.equal(baseline, 18, `expected 18 H2 sections, got ${baseline}`);
 });
 
 test('WS10: every help-bundle has identical H3 parity (en + 7 locales)', () => {
@@ -128,5 +128,5 @@ test('WS10: every help-bundle has identical H3 parity (en + 7 locales)', () => {
     if (baseline === null) baseline = h3;
     assert.equal(h3, baseline, `${lang}.md has ${h3} H3 subsections, expected ${baseline}`);
   }
-  assert.equal(baseline, 70, `expected 70 H3 subsections per bundle, got ${baseline}`);
+  assert.equal(baseline, 73, `expected 73 H3 subsections per bundle, got ${baseline}`); // v1.58.35 §18 added 3 H3s
 });

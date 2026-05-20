@@ -37,6 +37,42 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('v1.58.35: notifications drawer hides via `[hidden]` (CSS override) + help §18 in all 8 locales', () => {
+  // BUG (user-reported): the drawer was always visible on page load
+  // because `.notif-drawer { display: flex }` shadowed the UA
+  // `[hidden] { display: none }` rule. Fix in app.css:
+  //     .notif-drawer[hidden] { display: none; }
+  //     .notif-badge[hidden]  { display: none; }
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /\.notif-drawer\[hidden\]\s*\{[^}]*display:\s*none/,
+    "must add an explicit '.notif-drawer[hidden] { display: none }' rule");
+  assert.match(css, /\.notif-badge\[hidden\]\s*\{[^}]*display:\s*none/,
+    "must add an explicit '.notif-badge[hidden] { display: none }' rule");
+  // The drawer markup must still ship with the `hidden` attribute so
+  // the new CSS rule has something to match.
+  const html = read('public', 'index.html');
+  assert.match(html, /<aside id="notif-drawer"[^>]*hidden/,
+    'notif-drawer must declare the hidden attribute at boot');
+  // The notif-bell click handler is the SOLE entry-point — verify no
+  // other auto-open call site exists in app.js.
+  const app = read('public', 'js', 'app.js');
+  const openCalls = (app.match(/(?<!const\s)open\(\)/g) || []).length;
+  // open() is referenced exactly: once in the ternary bell click
+  // (`drawer.hidden ? open() : close()`). Anywhere else risks
+  // auto-opening.
+  assert.equal(openCalls, 1,
+    `app.js must call open() exactly once (only from the bell click ternary). Found ${openCalls}.`);
+
+  // Help §18 — every locale must document the categories.
+  for (const locale of ['en', 'es', 'ja', 'ko-KR', 'pt-BR', 'ru', 'zh-CN', 'zh-TW']) {
+    const help = read('docs', 'help', `${locale}.md`);
+    assert.match(help, /^## 18\. /m, `${locale}.md must include H2 "## 18. <Notifications>"`);
+    // The categories table must be present (3 rows: success / error / info).
+    assert.match(help, /\| \*\*[\s\S]*?\*\*[\s\S]*?\| /,
+      `${locale}.md §18 must include the category table`);
+  }
+});
+
 test('v1.58.34: notifications drawer wires bell + onToast subscribe + 4 i18n keys', () => {
   // U-13 follow-up — the drawer UI promised but deferred in v1.58.33.
   // UI exposes onToast() pub/sub on top of the v1.58.33 capture.

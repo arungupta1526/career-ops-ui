@@ -1733,3 +1733,43 @@ new entry up automatically (single source of truth via
 - **Trusting `tracked_companies` for RU.** That list is for EN ATS
   sources only. RU adapters drive themselves from
   `russian_portals.queries` instead — no per-company entries.
+
+---
+
+## 18. Notifications (🔔 in the top bar)
+
+> v1.58.34 — every toast that appears in the bottom-right corner is also captured
+> into an in-memory journal (cap 50, oldest dropped). Click the 🔔 bell in the
+> top bar to open the right-slide **Notifications** drawer and re-read anything
+> you missed. The journal is per-tab, per-session — closing the tab clears it.
+
+The drawer **only opens when you click the bell** (or activate it with Enter /
+Space when it's keyboard-focused). It never appears on its own. The red badge on
+the bell counts entries you haven't seen since the last open; opening the drawer
+clears the badge.
+
+### Notification categories
+
+| Category | When it fires | Visual cue |
+|---|---|---|
+| **Success** | `Saved`, `Copied`, `Refreshed`, scan complete, CV imported, apply-checklist actions ("Copied unchecked", "Reset"), profile saved, pipeline URL added | green left border in the drawer; green toast background |
+| **Error** | URL validation failure (must start with `http://` / `https://`, no script/template characters), API errors with the `(METHOD /path · HTTP NNN)` postfix, network failures (server down), pipeline-400 duplicates, doctor / verify-pipeline non-zero exit | red left border; red toast background; technical postfix tucked into the `Details` `<details>` block (U-4 / v1.58.24) |
+| **Info / progress** | `Running doctor.mjs…`, `Running verify-pipeline.mjs…`, `Refreshing…`, `Loading…`, `Generating prompt…`, scan progress lines | grey left border; default toast background |
+
+Every drawer entry shows:
+
+- **Timestamp** (`HH:MM:SS` localized to the active SPA language).
+- **Message** (the human sentence, with the technical postfix stripped from the headline per U-4).
+- **Details** (when present — the API call's `(METHOD /path · HTTP NNN)` postfix or any other technical aside, monospace).
+
+### What is NOT a notification
+
+- The Doctor / verify-pipeline **result modal** (full stdout / stderr) — that's a modal, not a toast, and not journaled.
+- SSE log lines on `#/scan` and `#/auto` — those stream into the page body, not into the toast pipeline.
+- Spinner-only loading states (those use `UI.withSpinner` without a toast).
+
+### Keyboard
+
+- **Click** or focus + **Enter / Space** on the bell → opens the drawer.
+- **Esc**, click the **×** close button, or click the bell again → closes the drawer; focus returns to the bell.
+- **Tab** while the drawer is open → moves through the close button and any focusable details inside; the drawer is `aria-modal="false"`, so Tab does not trap (you can still reach the rest of the page).

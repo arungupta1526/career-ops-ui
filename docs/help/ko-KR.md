@@ -1580,3 +1580,32 @@ russian_portals:
 - **RU에 `tracked_companies` 의존.** 그 목록은 EN ATS
   소스 전용입니다. RU 어댑터는 대신
   `russian_portals.queries`에서 스스로 구동합니다 — 회사별 항목 없음.
+
+---
+
+## 18. 알림 (상단바의 🔔)
+
+> v1.58.34 — 우측 하단에 나타나는 모든 토스트는 in-memory 저널(최대 50, 오래된 것 삭제)에 캡처됩니다. 상단바의 🔔 을 클릭하면 우측 슬라이드 **알림** 드로어가 열려 놓친 메시지를 다시 확인할 수 있습니다. 저널은 탭/세션 단위 — 탭을 닫으면 비워집니다.
+
+드로어는 **벨 클릭 시에만 열립니다**(또는 키보드 포커스 + Enter / Space). 자동으로 열리지 않습니다. 빨간 배지는 마지막 열람 후 안 읽은 개수를 표시하고, 열면 초기화됩니다.
+
+### 카테고리
+
+| 카테고리 | 발생 시점 | 시각적 신호 |
+|---|---|---|
+| **성공** | `Saved`, `Copied`, `Refreshed`, 스캔 완료, CV 임포트, apply-checklist 액션, 프로필 저장 | 왼쪽 테두리 녹색; 녹색 토스트 배경 |
+| **오류** | URL 검증 실패, `(METHOD /path · HTTP NNN)` 접미사가 붙은 API 오류, 네트워크 실패, pipeline-400 중복, doctor/verify 비정상 종료 | 왼쪽 테두리 빨강; 빨간 토스트 배경; 기술 접미사는 `세부 정보` `<details>` 에 격납 (U-4) |
+| **정보 / 진행** | `Running doctor.mjs…`, `Running verify-pipeline.mjs…`, `Refreshing…`, `Loading…`, 스캔 진행 | 왼쪽 테두리 회색 |
+
+각 항목: 시각(`HH:MM:SS`, 현재 언어), 메시지(U-4 로 헤드라인은 정리됨), 있을 경우 `(METHOD /path · HTTP NNN)` 등 기술 세부 사항(monospace).
+
+### 알림이 아닌 것
+
+- Doctor / verify 결과 모달(모달은 토스트와 별개, 저널 외).
+- `#/scan` / `#/auto` 의 SSE 로그(페이지 본문에 직접 출력).
+- 토스트 없는 spinner-only 로딩 상태.
+
+### 키보드
+
+- 벨 **클릭** 또는 focus + **Enter / Space** → 드로어 열기.
+- **Esc**, **×**, 벨 재클릭 → 닫기; 포커스 벨로 복귀.
