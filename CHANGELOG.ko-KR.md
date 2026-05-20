@@ -10,6 +10,12 @@
 
 
 
+## [1.58.25] — 2026-05-20
+
+**fix(ux/ia): U-5 — Dashboard CTA 중복 제거(헤더의 `Open Pipeline` 버튼과 `Scan all sources` 타일 제거).** 사이드바와 히어로가 이미 두 경로를 다루며, v1.58.3 QA 의 4× Pipeline / 4× Scan 이 각 2× 로 줄어듦. 917 → **918** 유닛. (U-5)
+
+---
+
 ## [1.58.24] — 2026-05-20
 
 **fix(ux): U-4 — 에러 토스트의 "(METHOD /path · HTTP NNN)" 후미를 접힌 `<details>` 안으로 이동.** 기술 정보는 DOM 에 보존(BUG-006 불변), 헤드라인은 사람이 읽을 문장만 남음. 새 i18n 키 `toast.details` × 8 언어. 916 → **917** 유닛. (U-4)

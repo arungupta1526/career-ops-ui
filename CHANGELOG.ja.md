@@ -10,6 +10,12 @@
 
 
 
+## [1.58.25] — 2026-05-20
+
+**fix(ux/ia): U-5 — Dashboard の CTA を整理(ヘッダの `Open Pipeline` ボタンと Quick-action の `Scan all sources` タイルを削除)。** サイドバーとヒーロが既に両ルートをカバーしており、v1.58.3 QA の 4× Pipeline / 4× Scan を 2× ずつに減らした。917 → **918** ユニット。(U-5)
+
+---
+
 ## [1.58.24] — 2026-05-20
 
 **fix(ux): U-4 — エラートーストの "(METHOD /path · HTTP NNN)" 末尾を折りたたみ `<details>` に格納。** 技術的詳細は DOM 内に保持(BUG-006 不変条件)、ヘッドラインは人間向けの文だけが残る。新規 i18n キー `toast.details` × 8 言語。916 → **917** ユニット。(U-4)

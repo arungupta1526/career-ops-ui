@@ -10,6 +10,12 @@
 
 
 
+## [1.58.25] — 2026-05-20
+
+**fix(ux/ia): U-5 — 仪表盘 CTA 去重(移除 header 的 `Open Pipeline` 按钮和 Quick-action 中 `Scan all sources` 卡片)。** 侧边栏与 hero 已覆盖两条路由;v1.58.3 QA 的 4× Pipeline / 4× Scan 减为各 2×。917 → **918** 单元。(U-5)
+
+---
+
 ## [1.58.24] — 2026-05-20
 
 **fix(ux): U-4 — 错误 toast 把 "(METHOD /path · HTTP NNN)" 后缀塞入折叠的 `<details>` 中。** 技术细节仍保留在 DOM 中(BUG-006 不变量),但标题更清爽。新增 i18n 键 `toast.details` × 8 语言。916 → **917** 单元。(U-4)

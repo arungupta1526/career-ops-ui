@@ -73,12 +73,12 @@ Router.register('dashboard', async () => {
         c('h1', { className: 'page-title' }, t('dash.title')),
         c('p', { className: 'page-subtitle' }, t('dash.subtitle')),
       ]),
-      // v1.55.5 — UX-3: only the secondary action stays in the header;
-      // the two P0 journeys are promoted into the hero block below so
-      // the single most valuable next action is unmistakable.
-      c('div', { className: 'flex gap-3' }, [
-        c('button', { className: 'btn btn-ghost', onClick: () => Router.go('/pipeline') }, '📋 ' + t('dash.openPipeline')),
-      ]),
+      // U-5 (v1.58.25) — removed the header 'Open Pipeline' button.
+      // The sidebar already routes to /pipeline; the hero block already
+      // promotes the two P0 CTAs; keeping a third (header) entry-point
+      // bloated the dashboard's IA (4× Pipeline + 4× Scan was the
+      // v1.58.3 QA finding).
+      c('div', { className: 'flex gap-3' }, []),
     ]),
 
     // ── v1.55.5 (UX-3) — hero: the 2 P0 CTAs + a focal recent hint ──
@@ -96,8 +96,11 @@ Router.register('dashboard', async () => {
     c('section', { className: 'section' }, [
       c('h2', { className: 'section-title' }, t('dash.quick.title', 'Quick actions')),
 
+      // U-5 (v1.58.25) — dropped the duplicate 'Scan all sources' card.
+      // The Scan-now hero CTA already routes to /scan; carrying a
+      // second tile in 'Search & Apply' was the 4× Scan duplication
+      // the v1.58.3 QA flagged.
       qaGroup('dash.quick.searchApply', 'Search & Apply', [
-        qa('🌐', 'dash.quick.scanCta', 'Scan all sources', 'dash.quick.scanSub', 'Greenhouse · Ashby · Lever · hh.ru · Habr', '/scan'),
         qa('📥', 'nav.pipeline', 'Pipeline', 'dash.quick.pipelineSub', `${data.counts.pipeline} pending URLs`, '/pipeline'),
         qa('▶', 'dash.quick.evaluateCta', 'Evaluate a JD', 'dash.quick.evaluateSub', 'Anthropic-first scoring', '/evaluate'),
         qa('≡', 'nav.tracker', 'Tracker', 'dash.quick.trackerSub', `${data.counts.applications} applications`, '/tracker'),

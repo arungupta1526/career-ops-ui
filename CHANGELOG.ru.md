@@ -10,6 +10,12 @@
 
 
 
+## [1.58.25] — 2026-05-20
+
+**fix(ux/ia): U-5 — дедуп CTA на Dashboard (убраны кнопка `Open Pipeline` в шапке и плитка `Scan all sources` в Quick actions).** v1.58.3 QA нашла 4× Pipeline / 4× Scan точек входа на Dashboard. Hero уже даёт `✨ Auto-pipeline a URL` + `🌐 Scan now`, сайдбар уже ведёт к `/pipeline` — двойники в шапке и Quick actions были чистым шумом. Удалены, hero + sidebar остаются каноническими entry-points. 917 → **918** модульных. (U-5)
+
+---
+
 ## [1.58.24] — 2026-05-20
 
 **fix(ux): U-4 — toast-уведомления об ошибках прячут хвост "(METHOD /path · HTTP NNN)" в свернутый `<details>`.** v1.57.1 добавил what/where/why postfix к каждой ошибке API; технический хвост обязан оставаться в DOM (инвариант BUG-006), но в заголовке тоста он конкурирует с человеческой фразой. Теперь `UI.toast()` парсит хвост через `TOAST_ENDPOINT_RE` и кладёт его в `<details class="toast-detail">` с локализованным `<summary>` (`toast.details` × 8). Заголовок чистый, технический детал — в одном клике. Инвариант BUG-006 сохраняется. 916 → **917** модульных. (U-4)

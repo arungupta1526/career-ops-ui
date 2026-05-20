@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.25] — 2026-05-20
+
+**fix(ux/ia): U-5 — Dashboard CTA dedupe (removed duplicate Open-Pipeline header button + duplicate Scan-all-sources Quick-action tile).** v1.58.3 QA flagged 4× Pipeline / 4× Scan entry-points on Dashboard. v1.55.5 promoted the two P0 hero CTAs (`✨ Auto-pipeline a URL` + `🌐 Scan now`); the header `📋 Open Pipeline` button and the Quick-action `🌐 Scan all sources` tile were then strict duplicates (sidebar already routes to /pipeline; hero already routes to /scan). Removed both in [public/js/views/dashboard.js](public/js/views/dashboard.js). Hero pair + sidebar remain canonical entry-points. 917 → **918** unit. (U-5)
+
+---
+
 ## [1.58.24] — 2026-05-20
 
 **fix(ux): U-4 — toast error messages now tuck the "(METHOD /path · HTTP NNN)" postfix into a collapsed `<details>`.** v1.57.1 appended a what/where/why postfix to every API error so opaque "validation failed" became "validation failed — … (POST /api/config · HTTP 400)". The technical part is required (BUG-006 invariant — must remain reachable in the DOM), but on the toast headline it competes with the human sentence. `UI.toast()` in [public/js/api.js](public/js/api.js#L215-L266) now parses the trailing postfix with `TOAST_ENDPOINT_RE` and renders it inside a `<details class="toast-detail">` with a localized `<summary>` (`toast.details` key × 8 locales). Headline stays clean; the technical detail is one click away. New `.toast .toast-msg` / `.toast .toast-detail` CSS rules. BUG-006 invariant preserved (postfix still in DOM). 916 → **917** unit. (U-4)

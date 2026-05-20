@@ -15,11 +15,16 @@ const __d = dirname(fileURLToPath(import.meta.url));
 const V = (f) => readFileSync(resolve(__d, '..', 'public', 'js', 'views', f), 'utf8');
 const DICT = readFileSync(resolve(__d, '..', 'public', 'js', 'lib', 'i18n-dict.js'), 'utf8');
 
-test('#33 dashboard: all 3 header CTAs carry a leading icon', () => {
+test('#33 dashboard: hero CTAs carry a leading icon', () => {
+  // v1.58.25 (U-5) — the header `Open Pipeline` CTA was removed (dupe of
+  // sidebar /pipeline). Two hero CTAs remain — '✨ Auto-pipeline a URL'
+  // (primary) and '🌐 Scan now' (secondary) — both still icon-prefixed.
   const d = V('dashboard.js');
-  assert.match(d, /'📋 ' \+ t\('dash\.openPipeline'\)/);
   assert.match(d, /'🌐 ' \+ t\('dash\.scanNow'/);
   assert.match(d, /'✨ ' \+ t\('dash\.autoPipeline'/);
+  // Negative: the removed CTA must stay gone.
+  assert.ok(!/'📋 ' \+ t\('dash\.openPipeline'\)/.test(d),
+    "v1.58.25 (U-5) removed the 'Open Pipeline' header CTA");
 });
 
 test('#34 settings: archetype fit/level chips are self-describing + aria', () => {

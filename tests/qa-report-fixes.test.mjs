@@ -30,6 +30,31 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('U-5 (v1.58.25): dashboard CTA duplicates removed (no `Open Pipeline` header btn, no `Scan all sources` tile)', () => {
+  const dash = read('public', 'js', 'views', 'dashboard.js');
+  // Pre-fix the header carried '📋 ' + t('dash.openPipeline'); that
+  // button must be gone (sidebar handles /pipeline already).
+  assert.ok(
+    !/onClick:\s*\(\)\s*=>\s*Router\.go\('\/pipeline'\)\s*\}\s*,\s*'📋 '\s*\+\s*t\('dash\.openPipeline'\)/.test(dash),
+    "'Open Pipeline' header button must be removed (duplicates sidebar /pipeline)",
+  );
+  // Pre-fix qa('🌐', 'dash.quick.scanCta', 'Scan all sources', …, '/scan')
+  // duplicated the hero 'Scan now' CTA. It must be removed too.
+  assert.ok(
+    !/qa\('🌐',\s*'dash\.quick\.scanCta'/.test(dash),
+    "'Scan all sources' Quick-action tile must be removed (duplicates hero Scan-now CTA)",
+  );
+  // Negative-count: the unique `Router.go('/pipeline')` and
+  // `Router.go('/scan')` references should be ≤ 2 each on the dashboard
+  // (hero + Quick-action Pipeline tile for /pipeline; hero only for /scan).
+  const pipelineRefs = [...dash.matchAll(/Router\.go\('\/pipeline'\)/g)].length;
+  const scanRefs = [...dash.matchAll(/Router\.go\('\/scan'\)/g)].length;
+  assert.ok(pipelineRefs <= 2,
+    `dashboard.js should have at most 2 Router.go('/pipeline') sites, found ${pipelineRefs}`);
+  assert.ok(scanRefs <= 2,
+    `dashboard.js should have at most 2 Router.go('/scan') sites, found ${scanRefs}`);
+});
+
 test('U-4 (v1.58.24): toast splits the "(METHOD /path · HTTP NNN)" postfix into a collapsible <details>', () => {
   const api = read('public', 'js', 'api.js');
   // Toast renderer must define the endpoint-detail regex:
