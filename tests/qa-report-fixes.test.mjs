@@ -41,7 +41,7 @@ test('DOC-1 (v1.58.50): qa/REGRESSION-FINAL.md has §5a documenting English-by-p
   const final = read('qa', 'REGRESSION-FINAL.md');
   assert.match(final, /^## §5a — Server error bodies are English-by-policy/m,
     "REGRESSION-FINAL.md must declare a §5a English-by-policy section");
-  assert.match(final, /Accept-Language[\s\S]{0,400}?not\s+read/i,
+  assert.match(final, /Accept-Language[\s\S]{0,400}?not[\s\S]{0,40}?read/i,
     "§5a must call out that Accept-Language is not currently read");
   assert.match(final, /v1\.59/,
     '§5a must point to v1.59 as the future-feature gate for localized errors');
