@@ -1146,6 +1146,14 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
 .toast .toast-detail > summary::after { content: ' ▾'; opacity: .7; }
 .toast .toast-detail[open] > summary::after { content: ' ▴'; }
 .toast .toast-detail > code { display: block; margin-top: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; background: rgba(0,0,0,.15); padding: 4px 6px; border-radius: 4px; }
+
+/* U-8 (v1.58.28) — collapsible <details> wrapper around the generated
+   prompt on the 7 mode pages. Default closed so the page chrome and
+   the Copy / Run-live actions stay visible above the fold. */
+.prompt-block { margin: var(--space-3, 12px) 0; }
+.prompt-block > summary { cursor: pointer; -webkit-user-select: none; user-select: none; padding: 6px 8px; border-radius: 4px; background: var(--beach, #f7f7f7); font-weight: 600; }
+.prompt-block > summary:hover { filter: brightness(0.97); }
+.prompt-block[open] > summary { margin-bottom: 8px; }
 @keyframes slide-in {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }

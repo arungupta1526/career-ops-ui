@@ -25,9 +25,41 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.match(api, /function dismissToast\(\)/);
   assert.match(api, /return \{ toast, dismissToast, modal,/);
   const health = read('public', 'js', 'views', 'health.js');
-  assert.match(health, /UI\.dismissToast\(\);\s*\n\s*UI\.modal\(t\('health\.runDoctor'\)/);
-  assert.match(health, /UI\.dismissToast\(\);\s*\n\s*UI\.modal\(t\('health\.verify'\)/);
+  // v1.58.27 (U-7) introduced an intermediate `const stripped = …` line
+  // between `UI.dismissToast()` and `UI.modal(t('health.verify'), …)`
+  // in the verify handler. The BUG-007/008 contract is still satisfied:
+  // dismissToast runs BEFORE modal, and the title is the localized key,
+  // not the hardcoded 'doctor'. Loosen the regex from strict adjacency
+  // (\n\s*) to "dismissToast call appears before modal(t('…'))" within
+  // a small text window.
+  assert.match(health, /UI\.dismissToast\(\);[\s\S]{0,1200}?UI\.modal\(t\('health\.runDoctor'\)/);
+  assert.match(health, /UI\.dismissToast\(\);[\s\S]{0,1200}?UI\.modal\(t\('health\.verify'\)/);
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
+});
+
+test('U-8 (v1.58.28): mode-page Generate-prompt wraps the <pre> in a collapsible <details>', () => {
+  const mp = read('public', 'js', 'views', 'mode-page.js');
+  assert.match(mp, /c\('details',\s*\{\s*className:\s*'prompt-block'\s*\}/,
+    "showPrompt must wrap the prompt in <details class=\"prompt-block\">");
+  assert.match(mp, /c\('summary',\s*null,\s*t\('prompt\.show'/,
+    "showPrompt must use t('prompt.show', …) for the summary label");
+  assert.match(mp, /t\('prompt\.lines'/,
+    "showPrompt must localize the 'lines' word too");
+  // i18n parity for the two new keys:
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  for (const key of ['prompt.show', 'prompt.lines']) {
+    const row = dict.match(new RegExp(`'${key.replace(/\./g, '\\.')}':\\s*\\{([^}]+)\\}`));
+    assert.ok(row, `i18n-dict.js missing '${key}'`);
+    for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+      const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+      assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+        `'${key}' must have a non-empty ${lang} value`);
+    }
+  }
+  // CSS rule must exist:
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /\.prompt-block\s*\{/, '.prompt-block rule must exist');
+  assert.match(css, /\.prompt-block\s*>\s*summary\s*\{/, '.prompt-block > summary rule must exist');
 });
 
 test('U-7 (v1.58.27): verify-pipeline modal strips `==========` ASCII dividers', () => {

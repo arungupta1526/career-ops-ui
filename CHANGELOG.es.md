@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.28] — 2026-05-20
+
+**fix(ux): U-8 — el bloque del prompt generado ahora está colapsado por defecto en las 7 páginas de modo.** Envuelto en `<details class="prompt-block">`; el resumen muestra "Show prompt (N lines)" localizado (`prompt.show` / `prompt.lines` × 8). Copy + Run-live se mantienen visibles. 920 → **921** unitarios. (U-8)
+
+---
+
 ## [1.58.27] — 2026-05-20
 
 **fix(ux): U-7 — los divisores ASCII `===` de `verify-pipeline.mjs` se eliminan del modal de resultado.** Regex `^={10,}$` aplicada en el handler antes de renderizar. 919 → **920** unitarios. (U-7)

@@ -10,6 +10,12 @@
 
 
 
+## [1.58.28] — 2026-05-20
+
+**fix(ux): U-8 — 7 個 mode 頁面的生成提示詞區塊預設折疊。** 包裹在 `<details class="prompt-block">` 中;摘要顯示在地化的 "Show prompt (N lines)"(`prompt.show` / `prompt.lines` × 8)。Copy + Run-live 仍可見。920 → **921** 單元。(U-8)
+
+---
+
 ## [1.58.27] — 2026-05-20
 
 **fix(ux): U-7 — `verify-pipeline.mjs` 的 `===` ASCII 分隔線從結果視窗中移除。** 在處理函式內透過正則 `^={10,}$` 預先剝離。919 → **920** 單元。(U-7)

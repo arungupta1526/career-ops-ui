@@ -271,9 +271,22 @@
 
     function showPrompt(prompt, message, slug) {
       out.innerHTML = '';
+      // U-8 (v1.58.28) — the generated prompt was rendered inline as an
+      // open <pre> block; for the 7 generic mode pages (Project /
+      // Training / Patterns / Followup / Interview prep / …) the block
+      // routinely runs 1200+ px and pushed the Copy + Run-live buttons
+      // far below the fold. Wrap in <details class="prompt-block">
+      // collapsed by default so the next-action buttons stay visible.
+      // The summary shows the line count so the user knows the prompt
+      // exists and how big it is without expanding.
+      const lineCount = (prompt || '').split('\n').length;
+      const details = c('details', { className: 'prompt-block' }, [
+        c('summary', null, t('prompt.show', 'Show prompt') + ` (${lineCount} ${t('prompt.lines', 'lines')})`),
+        c('pre', { className: 'console', style: { maxHeight: '60vh', overflow: 'auto' } }, prompt),
+      ]);
       out.appendChild(c('div', { className: 'card' }, [
         c('p', { style: { color: 'var(--foggy)' } }, message || ''),
-        c('pre', { className: 'console', style: { maxHeight: '60vh', overflow: 'auto' } }, prompt),
+        details,
         c('div', { className: 'flex gap-3 mt-3' }, [
           c('button', {
             className: 'btn btn-primary',

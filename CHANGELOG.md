@@ -8,6 +8,13 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.28] — 2026-05-20
+
+**fix(ux): U-8 — Generate-prompt block is collapsed by default on the 7 mode pages.** The inline `<pre>` previously ran 1200+ px after the user clicked Generate prompt, pushing Copy + Run-live below the fold. [public/js/views/mode-page.js](public/js/views/mode-page.js#L272-L300) `showPrompt()` now wraps the `<pre>` in `<details class="prompt-block">` collapsed by default; summary shows `Show prompt (N lines)` localized via the new `prompt.show` / `prompt.lines` keys × 8 locales. Copy / Run-live remain immediately visible. Also fixed a pre-existing v1.58.27 regression where the BUG-007/008 contract test rejected the U-7 reformat (intermediate `const stripped` between dismissToast/modal); loosened the adjacency regex from `
+s*` to `[sS]{0,1200}?` while still asserting `UI.dismissToast()` runs before `UI.modal(t(…))`. 920 → **921** unit. (U-8)
+
+---
+
 ## [1.58.27] — 2026-05-20
 
 **fix(ux): U-7 — `verify-pipeline.mjs` ASCII `===` dividers stripped from the result modal.** The script prints `=========`-runs (≥ 50 chars) between sections; in the 14 px monospace modal the run pushed the body wider than the rest of the SPA needs. Strip in [public/js/views/health.js](public/js/views/health.js#L23-L38) via `.replace(/^={10,}$/gm, "")` before rendering; whitespace already separates sections. 919 → **920** unit. (U-7)

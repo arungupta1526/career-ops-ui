@@ -10,6 +10,12 @@
 
 
 
+## [1.58.28] — 2026-05-20
+
+**fix(ux): U-8 — 7 개 모드 페이지에서 생성된 프롬프트 블록이 기본 접힘.** `<details class="prompt-block">` 로 래핑되고, 요약은 "Show prompt (N lines)" 가 현지화(`prompt.show` / `prompt.lines` × 8). Copy + Run-live 는 그대로 노출. 920 → **921** 유닛. (U-8)
+
+---
+
 ## [1.58.27] — 2026-05-20
 
 **fix(ux): U-7 — `verify-pipeline.mjs` 의 `===` ASCII 구분자를 결과 모달에서 제거.** 핸들러에서 `^={10,}$` 정규식으로 사전 제거. 919 → **920** 유닛. (U-7)
