@@ -1135,6 +1135,17 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
 }
 .toast.error { background: var(--rausch); }
 .toast.success { background: var(--kazan); }
+/* U-4 (v1.58.24) — collapsible technical detail inside the toast. The
+   human sentence stays at the top; the "(METHOD /path · HTTP NNN)"
+   postfix is tucked into <details> so it's reachable (BUG-006
+   invariant) without dominating the toast. */
+.toast .toast-msg { margin: 0; }
+.toast .toast-detail { margin-top: 6px; font-size: 12px; opacity: .9; }
+.toast .toast-detail > summary { cursor: pointer; -webkit-user-select: none; user-select: none; list-style: none; }
+.toast .toast-detail > summary::marker { content: ''; }
+.toast .toast-detail > summary::after { content: ' ▾'; opacity: .7; }
+.toast .toast-detail[open] > summary::after { content: ' ▴'; }
+.toast .toast-detail > code { display: block; margin-top: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; background: rgba(0,0,0,.15); padding: 4px 6px; border-radius: 4px; }
 @keyframes slide-in {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }

@@ -214,9 +214,38 @@ window.API = (function () {
 
 window.UI = (function () {
   let toastTimer;
+  // U-4 (v1.58.24) — strip the technical "(METHOD /path · HTTP NNN)"
+  // postfix from the toast's headline text and stash it in a collapsed
+  // `<details>` element so the human sentence reads cleanly by default.
+  // BUG-006 still requires the technical detail to be reachable in
+  // the DOM — the <details> satisfies that invariant.
+  const TOAST_ENDPOINT_RE = /\s*\((GET|POST|PUT|PATCH|DELETE)\s+\S+\s+·\s+HTTP\s+\d{3}\)\s*$/;
   function toast(msg, type) {
     const t = document.getElementById('toast');
-    t.textContent = msg;
+    const raw = String(msg ?? '');
+    const m = raw.match(TOAST_ENDPOINT_RE);
+    const headline = m ? raw.slice(0, m.index).trimEnd() : raw;
+    const detail = m ? m[0].trim() : '';
+    // Reset the toast root to a clean state.
+    while (t.firstChild) t.removeChild(t.firstChild);
+    const p = document.createElement('p');
+    p.className = 'toast-msg';
+    p.textContent = headline;
+    t.appendChild(p);
+    if (detail) {
+      const d = document.createElement('details');
+      d.className = 'toast-detail';
+      const s = document.createElement('summary');
+      // i18n: fall back gracefully if I18n hasn't booted yet.
+      s.textContent = (window.I18n && I18n.t)
+        ? I18n.t('toast.details', 'Details')
+        : 'Details';
+      const code = document.createElement('code');
+      code.textContent = detail;
+      d.appendChild(s);
+      d.appendChild(code);
+      t.appendChild(d);
+    }
     t.className = 'toast ' + (type || '');
     t.hidden = false;
     clearTimeout(toastTimer);
@@ -227,7 +256,7 @@ window.UI = (function () {
     // actually readable. Success/info keep the snappy 3.5s.
     const isErr = type === 'error';
     const dwell = isErr
-      ? Math.min(20000, Math.max(9000, 60 * msg.length))
+      ? Math.min(20000, Math.max(9000, 60 * raw.length))
       : 3500;
     toastTimer = setTimeout(() => (t.hidden = true), dwell);
   }

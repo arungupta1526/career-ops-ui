@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.24] — 2026-05-20
+
+**fix(ux): U-4 — toast error messages now tuck the "(METHOD /path · HTTP NNN)" postfix into a collapsed `<details>`.** v1.57.1 appended a what/where/why postfix to every API error so opaque "validation failed" became "validation failed — … (POST /api/config · HTTP 400)". The technical part is required (BUG-006 invariant — must remain reachable in the DOM), but on the toast headline it competes with the human sentence. `UI.toast()` in [public/js/api.js](public/js/api.js#L215-L266) now parses the trailing postfix with `TOAST_ENDPOINT_RE` and renders it inside a `<details class="toast-detail">` with a localized `<summary>` (`toast.details` key × 8 locales). Headline stays clean; the technical detail is one click away. New `.toast .toast-msg` / `.toast .toast-detail` CSS rules. BUG-006 invariant preserved (postfix still in DOM). 916 → **917** unit. (U-4)
+
+---
+
 ## [1.58.23] — 2026-05-20
 
 **fix(ux): U-3 — `#/followup` `lastContact` placeholder now adapts to today − 14 days (was the frozen ISO `2026-04-21`).** Static placeholders rot — readers parse them as both a format hint AND a plausible recent example, and the latter drifts into the distant past as time passes. Compute the placeholder at render time in [public/js/views/mode-page.js](public/js/views/mode-page.js#L165-L181): `new Date(); d.setDate(d.getDate() - 14); d.toISOString().slice(0, 10)`. Special-cased only for `cfg.slug === 'followup' && spec.name === 'lastContact'`; every other field still pulls its placeholder from i18n. 915 → **916** unit. (U-3)

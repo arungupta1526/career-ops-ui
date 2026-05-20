@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.24] — 2026-05-20
+
+**fix(ux): U-4 — los toasts de error tucan el postfijo "(MÉTODO /ruta · HTTP NNN)" dentro de un `<details>` colapsado.** El postfijo técnico sigue presente en el DOM (invariante de BUG-006), pero el titular humano queda limpio. Nueva clave i18n `toast.details` × 8 idiomas. 916 → **917** unitarios. (U-4)
+
+---
+
 ## [1.58.23] — 2026-05-20
 
 **fix(ux): U-3 — el placeholder de `lastContact` en `#/followup` ahora se calcula como hoy − 14 días.** Antes el placeholder era el ISO congelado `2026-04-21` y envejecía mal; ahora se computa en render via `new Date()` con `setDate(getDate() - 14)`. 915 → **916** unitarios. (U-3)

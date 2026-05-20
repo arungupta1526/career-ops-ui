@@ -30,6 +30,34 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('U-4 (v1.58.24): toast splits the "(METHOD /path · HTTP NNN)" postfix into a collapsible <details>', () => {
+  const api = read('public', 'js', 'api.js');
+  // Toast renderer must define the endpoint-detail regex:
+  assert.match(api, /TOAST_ENDPOINT_RE\s*=\s*\/.*GET\|POST\|PUT\|PATCH\|DELETE.*HTTP/,
+    'TOAST_ENDPOINT_RE must exist and match METHOD /path · HTTP NNN');
+  // Headline + detail must be emitted as separate DOM nodes:
+  assert.match(api, /createElement\('p'\)/, 'toast must create a <p> for the headline');
+  assert.match(api, /createElement\('details'\)/, 'toast must create a <details> for the technical detail');
+  assert.match(api, /createElement\('summary'\)/, 'toast must create a <summary>');
+  assert.match(api, /I18n\.t\('toast\.details',\s*'Details'\)/,
+    "summary must use I18n.t('toast.details', 'Details')");
+
+  // i18n parity for toast.details:
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  const row = dict.match(/'toast\.details':\s*\{([^}]+)\}/);
+  assert.ok(row, "i18n-dict.js missing 'toast.details'");
+  for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+    const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+    assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+      `'toast.details' must have a non-empty ${lang} value`);
+  }
+
+  // CSS contract — collapsible block exists:
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /\.toast\s+\.toast-detail\s*\{/, '.toast .toast-detail rule must exist');
+  assert.match(css, /\.toast\s+\.toast-detail\s+>\s+code\s*\{/, '.toast .toast-detail > code rule must exist');
+});
+
 test('U-3 (v1.58.23): #/followup lastContact placeholder is computed as today − 14 days', () => {
   const mp = read('public', 'js', 'views', 'mode-page.js');
   // The placeholder for followup.lastContact must be computed at render

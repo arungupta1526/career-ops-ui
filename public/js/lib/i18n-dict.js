@@ -234,6 +234,8 @@ window.__I18N_DICT = {
   // surfaced on the next page boot via sessionStorage['refreshedToast'].
   'common.refreshing': { en: 'Refreshing…', es: 'Actualizando…', 'pt-BR': 'Atualizando…', ko: '새로고침 중…', ja: '更新中…', ru: 'Обновление…', 'zh-CN': '刷新中…', 'zh-TW': '重新整理中…' },
   'common.refreshed':  { en: 'Refreshed', es: 'Actualizado', 'pt-BR': 'Atualizado', ko: '새로고침됨', ja: '更新しました', ru: 'Обновлено', 'zh-CN': '已刷新', 'zh-TW': '已重新整理' },
+  // U-4 (v1.58.24) — toast technical detail summary
+  'toast.details':   { en: 'Details', es: 'Detalles', 'pt-BR': 'Detalhes', ko: '세부 정보', ja: '詳細', ru: 'Подробнее', 'zh-CN': '详细信息', 'zh-TW': '詳細資訊' },
   // v1.18.0 — WCAG 2.4.1 skip link.
   'a11y.skipToContent': { en: 'Skip to main content', es: 'Saltar al contenido principal', 'pt-BR': 'Pular para o conteúdo principal', ko: '주요 콘텐츠로 이동', ja: 'メインコンテンツへスキップ', ru: 'Перейти к основному содержимому', 'zh-CN': '跳到主要内容', 'zh-TW': '跳到主要內容' },
   'common.generatePdf': { en: 'Generate PDF', es: 'Generar PDF', 'pt-BR': 'Gerar PDF', ko: 'PDF 생성', ja: 'PDF を生成', ru: 'Создать PDF', 'zh-CN': '生成 PDF', 'zh-TW': '產生 PDF' },

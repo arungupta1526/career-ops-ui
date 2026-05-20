@@ -10,6 +10,12 @@
 
 
 
+## [1.58.24] — 2026-05-20
+
+**fix(ux): U-4 — 错误 toast 把 "(METHOD /path · HTTP NNN)" 后缀塞入折叠的 `<details>` 中。** 技术细节仍保留在 DOM 中(BUG-006 不变量),但标题更清爽。新增 i18n 键 `toast.details` × 8 语言。916 → **917** 单元。(U-4)
+
+---
+
 ## [1.58.23] — 2026-05-20
 
 **fix(ux): U-3 — `#/followup` 的 `lastContact` 占位符改为今日 − 14 天动态计算。** 固定 `2026-04-21` 会随时间老化;现在在渲染时通过 `new Date()` + `setDate(getDate() - 14)` 生成 ISO YYYY-MM-DD。915 → **916** 单元。(U-3)
