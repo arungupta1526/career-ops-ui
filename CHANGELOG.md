@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.47] — 2026-05-20
+
+**fix(ux/naming): UX-D-C — top-bar `Quick scan` renamed to `Open Scan` so the label matches the actual behavior.** v1.58.36 audit: "Quick scan" implied an instant scan with sensible defaults, but the click handler at [public/js/app.js](public/js/app.js#L140) only navigates to `#/scan` — no scan starts. Renamed via the `top.quickscan` i18n key in all 8 locales (en `Open Scan` / es `Abrir Scan` / pt-BR `Abrir Scan` / ko `Scan 열기` / ja `Scan を開く` / ru `Открыть Scan` / zh-CN `打开 Scan` / zh-TW `開啟 Scan`). HTML default text in `index.html` updated to match. Behavior unchanged; only the label honesty improved. 940 → **941** unit. (UX-D-C)
+
+---
+
 ## [1.58.46] — 2026-05-20
 
 **fix(ux): UX-D-D — `#/apply` checklist substitutes `{company}-{role}` with slugs derived from the URL/JD.** v1.58.36 audit: the generated checklist's item 5 read `Save filled answers to interview-prep/{company}-{role}.md before submitting.` — the literal `{company}-{role}` placeholders were displayed verbatim and the user had to mentally substitute (or, worse, paste them as-is). New `extractSlugs(url, jd)` + `substitutePlaceholders(text, url, jd)` in [public/js/views/apply.js](public/js/views/apply.js#L36-L93): the host whitelist (`greenhouse / lever / ashby / workable / smartrecruiters / workday`) picks `company` out of the URL path or subdomain, then derives `role` from the trailing path slug (stripped of trailing numeric IDs) — or, as fallback, from the JD's first line. If extraction fails (unknown host / no JD), placeholders become `[company]` / `[role]` (square-bracket convention for "fill in"). Substitution runs once before `parseChecklist`, so the live checklist + Copy-unchecked output stay coherent. 939 → **940** unit. (UX-D-D)

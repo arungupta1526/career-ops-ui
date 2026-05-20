@@ -10,6 +10,12 @@
 
 
 
+## [1.58.47] — 2026-05-20
+
+**fix(ux/naming): UX-D-C — 상단바 "Quick scan" 을 `Scan 열기` 로 개명(실제 스캔을 시작하지 않고 단지 이동만 하므로).** 8 언어 업데이트. 940 → **941** 유닛. (UX-D-C)
+
+---
+
 ## [1.58.46] — 2026-05-20
 
 **fix(ux): UX-D-D — `#/apply` 체크리스트의 `{company}-{role}` 을 URL/JD 에서 추출한 슬러그로 치환.** 이전엔 플레이스홀더가 그대로 표시. 새 `extractSlugs` + `substitutePlaceholders` 가 Greenhouse/Lever/Ashby/Workable/SmartRecruiters/Workday 인식. 폴백 `[company]/[role]`. 939 → **940** 유닛. (UX-D-D)

@@ -10,6 +10,12 @@
 
 
 
+## [1.58.47] — 2026-05-20
+
+**fix(ux/naming): UX-D-C — トップバーの「Quick scan」を `Scan を開く` に改名(動作はナビゲーションのみで実際にスキャンは開始しないため)。** 8 言語で更新。940 → **941** ユニット。(UX-D-C)
+
+---
+
 ## [1.58.46] — 2026-05-20
 
 **fix(ux): UX-D-D — `#/apply` チェックリストの `{company}-{role}` を URL/JD 由来のスラグに置換。** 以前はプレースホルダがそのまま表示されていた。新 `extractSlugs` + `substitutePlaceholders` が Greenhouse/Lever/Ashby/Workable/SmartRecruiters/Workday を認識。フォールバックは `[company]/[role]`。939 → **940** ユニット。(UX-D-D)

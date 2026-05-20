@@ -37,6 +37,25 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-D-C (v1.58.47): top-bar `Quick scan` renamed to `Open Scan` so the label matches the behavior', () => {
+  // The button only navigates to #/scan — it does not start a scan.
+  // The pre-fix "Quick scan" implied an instant action; "Open Scan"
+  // is honest about the nav-only behavior.
+  const html = read('public', 'index.html');
+  assert.ok(!/data-i18n="top\.quickscan">Quick scan</.test(html),
+    "pre-fix 'Quick scan' default label must be gone from index.html");
+  assert.match(html, /data-i18n="top\.quickscan">Open Scan</,
+    "index.html must declare 'Open Scan' as the default label");
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  const row = dict.match(/'top\.quickscan':\s*\{([^}]+)\}/);
+  assert.ok(row, "i18n-dict.js missing 'top.quickscan'");
+  // EN value must be the new label.
+  assert.match(row[1], /en:\s*'Open Scan'/,
+    "top.quickscan EN must be 'Open Scan'");
+  // Old loaded "Quick scan" / "Búsqueda rápida" / "Быстрый скан" gone in en/es/ru.
+  assert.ok(!/en:\s*'Quick scan'/.test(row[1]), "EN 'Quick scan' is gone");
+});
+
 test('UX-D-D (v1.58.46): apply checklist substitutes {company}-{role} with slugs derived from URL/JD', () => {
   const apply = read('public', 'js', 'views', 'apply.js');
   assert.match(apply, /function substitutePlaceholders\(/,

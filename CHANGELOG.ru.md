@@ -10,6 +10,12 @@
 
 
 
+## [1.58.47] — 2026-05-20
+
+**fix(ux/naming): UX-D-C — кнопка `Quick scan` в шапке переименована в `Открыть Scan`, чтобы метка соответствовала поведению.** v1.58.36 аудит: «Quick scan» намекало на мгновенный скан с дефолтными настройками, но обработчик на [public/js/app.js](public/js/app.js#L140) только навигирует на `#/scan` — сам скан не запускается. Переименовано через ключ `top.quickscan` во всех 8 локалях (en `Open Scan` / es `Abrir Scan` / pt-BR `Abrir Scan` / ko `Scan 열기` / ja `Scan を開く` / ru `Открыть Scan` / zh-CN `打开 Scan` / zh-TW `開啟 Scan`). Дефолтный текст в HTML также обновлён. Поведение без изменений; только честность метки. 940 → **941** модульных. (UX-D-C)
+
+---
+
 ## [1.58.46] — 2026-05-20
 
 **fix(ux): UX-D-D — checklist на `#/apply` подставляет `{company}-{role}` слагами, вычисленными из URL/JD.** v1.58.36 аудит: item 5 чеклиста читался как `Save filled answers to interview-prep/{company}-{role}.md before submitting.` — литералы `{company}-{role}` отрисовывались дословно, пользователь должен был мысленно подставлять значения (или, хуже, оставлял их как есть). Новые `extractSlugs(url, jd)` + `substitutePlaceholders(text, url, jd)` в [public/js/views/apply.js](public/js/views/apply.js#L36-L93): white-list хостов (`greenhouse / lever / ashby / workable / smartrecruiters / workday`) выделяет `company` из path или поддомена, затем `role` из последнего сегмента пути (с обрезкой trailing numeric id) — или, как fallback, из первой строки JD. Если извлечение не удалось (unknown host / нет JD), плейсхолдеры становятся `[company]` / `[role]` (square-bracket convention для «заполни сам»). Substitution выполняется один раз перед `parseChecklist`, поэтому live checklist и Copy-unchecked output остаются согласованными. 939 → **940** модульных. (UX-D-D)

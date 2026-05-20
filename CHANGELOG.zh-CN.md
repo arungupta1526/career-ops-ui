@@ -10,6 +10,12 @@
 
 
 
+## [1.58.47] — 2026-05-20
+
+**fix(ux/naming): UX-D-C — 顶栏 "Quick scan" 重命名为 `打开 Scan`(它只是导航,并不真正启动扫描)。** 8 语言更新。940 → **941** 单元。(UX-D-C)
+
+---
+
 ## [1.58.46] — 2026-05-20
 
 **fix(ux): UX-D-D — `#/apply` 清单将 `{company}-{role}` 替换为从 URL/JD 派生的 slug。** 此前占位符按字面显示。新 `extractSlugs` + `substitutePlaceholders` 识别 Greenhouse/Lever/Ashby/Workable/SmartRecruiters/Workday。回退 `[company]/[role]`。939 → **940** 单元。(UX-D-D)

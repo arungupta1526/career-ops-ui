@@ -205,7 +205,7 @@ window.__I18N_DICT = {
   'top.search.label': { en: 'Search companies, roles, or URLs', es: 'Buscar empresas, roles o URLs', 'pt-BR': 'Buscar empresas, vagas ou URLs', ko: '회사, 직무 또는 URL 검색', ja: '会社、役割、URL を検索', ru: 'Поиск компаний, ролей или URL', 'zh-CN': '搜索公司、职位或 URL', 'zh-TW': '搜尋公司、職位或 URL' },
   'top.search.aria':  { en: 'Global search — Cmd+K to focus, paste a URL and Enter for auto-pipeline', es: 'Búsqueda global — Cmd+K para enfocar, pega una URL y Enter para auto-pipeline', 'pt-BR': 'Busca global — Cmd+K para focar, cole uma URL e Enter para auto-pipeline', ko: '전역 검색 — Cmd+K 로 포커스, URL 을 붙여 넣고 Enter 로 auto-pipeline', ja: 'グローバル検索 — Cmd+K でフォーカス、URL を貼り付け Enter で auto-pipeline', ru: 'Глобальный поиск — Cmd+K для фокуса, вставьте URL и Enter для auto-pipeline', 'zh-CN': '全局搜索 — Cmd+K 聚焦,粘贴 URL 并按 Enter 触发 auto-pipeline', 'zh-TW': '全域搜尋 — Cmd+K 聚焦,貼上 URL 並按 Enter 觸發 auto-pipeline' },
   'top.doctor':     { en: 'Doctor', es: 'Diagnóstico', 'pt-BR': 'Diagnóstico', ko: '진단', ja: '診断', ru: 'Диагностика', 'zh-CN': '诊断', 'zh-TW': '診斷' },
-  'top.quickscan':  { en: 'Quick scan', es: 'Búsqueda rápida', 'pt-BR': 'Busca rápida', ko: '빠른 검색', ja: 'クイック検索', ru: 'Быстрый скан', 'zh-CN': '快速搜索', 'zh-TW': '快速搜尋' },
+  'top.quickscan':  { en: 'Open Scan', es: 'Abrir Scan', 'pt-BR': 'Abrir Scan', ko: 'Scan 열기', ja: 'Scan を開く', ru: 'Открыть Scan', 'zh-CN': '打开 Scan', 'zh-TW': '開啟 Scan' },
   'top.langhint':   { en: '{hotkey} — search', es: '{hotkey} — buscar', 'pt-BR': '{hotkey} — buscar', ko: '{hotkey} — 검색', ja: '{hotkey} — 検索', ru: '{hotkey} — поиск', 'zh-CN': '{hotkey} — 搜索', 'zh-TW': '{hotkey} — 搜尋' },
 
   // Common

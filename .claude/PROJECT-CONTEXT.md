@@ -8,7 +8,7 @@
 > **Audience.** Claude Code subagents, Cursor / Codex / Aider sessions,
 > any IDE assistant that doesn't auto-load CLAUDE.md.
 >
-> **Repo state.** v1.58.46 (2026-05-20). 940 `node --test` cases,
+> **Repo state.** v1.58.47 (2026-05-20). 941 `node --test` cases,
 > 62 Playwright (smoke + full-cycle + forms — incl. new drawer end-to-end). v1.55.1→v1.56.4 consolidated UX fix-prompt
 > complete; **v1.57.0** adds OpenRouter as a 5th headless live-eval
 > provider (one key → 300+ models, live `#/config` model dropdown via
@@ -45,7 +45,7 @@ data files (`cv.md`, `data/applications.md`, `reports/`,
 | Build | None | Files served as-is from `public/` |
 | CI | GitHub Actions, Node 18/20/22 | `.github/workflows/{ci,release,publish-package,ai-review,dashboard-screenshots}.yml` |
 
-**Test baseline (v1.58.46):** 940/940 unit · 62/62 Playwright (smoke + full-cycle + forms — incl. new drawer end-to-end) · 20/20 smoke E2E · 23/23 comprehensive E2E.
+**Test baseline (v1.58.47):** 941/941 unit · 62/62 Playwright (smoke + full-cycle + forms — incl. new drawer end-to-end) · 20/20 smoke E2E · 23/23 comprehensive E2E.
 
 ---
 
