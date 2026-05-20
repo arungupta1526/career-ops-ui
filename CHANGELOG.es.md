@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.59.5] — 2026-05-20
+
+**fix(api): NEW-F1 (v1.59.5) — `/api/*` desconocido devuelve 404 JSON en cada verbo.** `app.get` → `app.all`. (NEW-F1)
+
+---
+
+
+
 ## [1.59.4] — 2026-05-20
 
 **fix(ui): NEW-OR1 (v1.59.4) — chip Active/Keys en `#/config` ahora libre de races.** Construye los nodos antes del swap, token de in-flight, caché del último estado bueno. (NEW-OR1)

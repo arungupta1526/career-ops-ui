@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.59.5] — 2026-05-20
+
+**fix(api): NEW-F1 (v1.59.5) — unknown `/api/*` returns JSON 404 on every verb.** Pre-fix `app.get("/api/*", …)` was GET-only; POST / PUT / DELETE to an unknown api path fell through to the SPA catch-all and returned an HTML 404, breaking SPA clients that do `try { res.json() } catch {}`. Changed to `app.all("/api/*", …)` in [server/index.mjs](server/index.mjs). New test suite [tests/api-404-json.test.mjs](tests/api-404-json.test.mjs) probes GET / POST / PUT / DELETE on `/api/no-such-endpoint` plus an unknown `:name` under a real handler — 5 new tests, all green. 964 → **969** unit. (NEW-F1)
+
+---
+
+
+
 ## [1.59.4] — 2026-05-20
 
 **fix(ui): NEW-OR1 (v1.59.4) — `#/config` API-keys summary chip is race-safe.** User-reported transient `Keys: 0 / 5` flash during Save flows. The previous `refreshApiSummary()` cleared `<span>` children before awaiting the network fetch; a concurrent `providers-changed` event could observe the empty state. New implementation in [public/js/views/config.js](public/js/views/config.js):\n\n1. Build new `<span>` nodes **before** any DOM mutation.\n2. Atomic swap via `apiSummary.replaceChildren(newActive, newCount)` — chip never blanks mid-update.\n3. `inFlight` token counter drops stale resolves when a newer refresh starts.\n4. `lastGoodSt` cache preserves the last known state when fetch returns null (network blip, server reload), so the chip never collapses to `0 / 5` on a transient empty response.\n\nLock-test in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs) asserts all four invariants. 963 → **964** unit. (NEW-OR1)

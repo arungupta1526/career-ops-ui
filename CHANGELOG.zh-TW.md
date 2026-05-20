@@ -10,6 +10,14 @@
 
 
 
+## [1.59.5] — 2026-05-20
+
+**fix(api): NEW-F1 (v1.59.5) — 未知 `/api/*` 在任何 HTTP 動詞上都回傳 JSON 404。** `app.get` → `app.all`。(NEW-F1)
+
+---
+
+
+
 ## [1.59.4] — 2026-05-20
 
 **fix(ui): NEW-OR1 (v1.59.4) — `#/config` Active/Keys 晶片消除競態。** 原子 replaceChildren + 在途權杖 + 上次良好狀態快取。(NEW-OR1)

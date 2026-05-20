@@ -10,6 +10,14 @@
 
 
 
+## [1.59.5] — 2026-05-20
+
+**fix(api): NEW-F1 (v1.59.5) — 알 수 없는 `/api/*` 가 모든 HTTP 동사에서 JSON 404 반환.** `app.get` → `app.all`. (NEW-F1)
+
+---
+
+
+
 ## [1.59.4] — 2026-05-20
 
 **fix(ui): NEW-OR1 (v1.59.4) — `#/config` Active/Keys 칩 경쟁 조건 제거.** atomic replaceChildren + 인-플라이트 토큰 + last-good 캐시. (NEW-OR1)

@@ -127,7 +127,13 @@ export function createApp() {
   registerAutoPipelineRoutes(app);    // v1.16.0 — server-side SSE auto-pipeline (G-007 follow-up)
   // ───────────────────────────── Catch-all → SPA ─────────────────────────────
 
-  app.get('/api/*', (_req, res) => res.status(404).json({ error: 'unknown api' }));
+  // NEW-F1 (v1.59.5) — the previous `app.get('/api/*', …)` was GET-only,
+  // so a POST/PUT/DELETE to an unknown /api/* path fell through to the
+  // SPA catch-all and returned HTML 404 — breaking the SPA's
+  // `try { res.json() } catch {}` clients. `app.all` ensures every
+  // verb gets the JSON `{error: 'unknown api'}` response. Sandbox /
+  // SSRF / DOC-1 (English-by-policy) all preserved.
+  app.all('/api/*', (_req, res) => res.status(404).json({ error: 'unknown api' }));
   app.get('*', (_req, res) => {
     // W-001 — the SPA shell must always revalidate (it references the
     // un-hashed code assets); sendFile bypasses the static setHeaders.
