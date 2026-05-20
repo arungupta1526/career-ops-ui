@@ -10,6 +10,12 @@
 
 
 
+## [1.58.45] — 2026-05-20
+
+**fix(ux): UX-D-K — `#/help` 的 TOC 捲動追蹤高亮目前章節。** `IntersectionObserver` 把 `.toc-current` 套用到目前可見 H2 對應的 TOC 連結。938 → **939** 單元。(UX-D-K)
+
+---
+
 ## [1.58.44] — 2026-05-20
 
 **fix(ux): UX-D-L — `#/deep` 中開啟的 Saved-research 簡報新增內聯 × 關閉按鈕。** 此前只能捲動或離開頁面才能關閉。新 i18n 鍵 `deep.closeBrief` × 8。937 → **938** 單元。(UX-D-L)

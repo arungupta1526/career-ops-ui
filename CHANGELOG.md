@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.45] — 2026-05-20
+
+**fix(ux): UX-D-K — `#/help` TOC scroll-spy highlights the current section.** v1.58.36 audit: as the user scrolled the help body, the TOC sidebar (sticky, ~92 H2 sections) didn't indicate which section they were reading — they had to mentally scan the H2 above the fold against the TOC. New `IntersectionObserver` in [public/js/views/help.js](public/js/views/help.js#L155-L185) observes every `.help-article h2[id]` and applies `.toc-current` to the matching TOC `<a>` link when the H2 enters the upper-third reading band (`rootMargin: "-30% 0% -60% 0%"`). CSS [public/css/app.css](public/css/app.css) gives `.toc-current` a brand-red left-border + `var(--rausch)` color + `font-weight: 600` so the active item reads at a glance. The observer is torn down on hashchange next to the existing scroll listener, so no observer leaks when the user leaves `#/help`. 938 → **939** unit. (UX-D-K)
+
+---
+
 ## [1.58.44] — 2026-05-20
 
 **fix(ux): UX-D-L — `#/deep` opened Saved-research brief now has an inline × close button.** v1.58.36 audit: clicking a saved-research card on `#/deep` rendered the brief body inline (Copy / Download / Open in tab / Generate PDF buttons in the header) but the user had no way to **close** the brief without scrolling away or navigating. New `×` button in [public/js/views/deep.js](public/js/views/deep.js) `showResult()` header — clears `out.innerHTML`, mirrors the modal-close pattern (api.js UI.modal × button), keyboard-reachable, aria-label + title from new `deep.closeBrief` i18n key × 8. 937 → **938** unit. (UX-D-L)

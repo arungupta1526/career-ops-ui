@@ -10,6 +10,12 @@
 
 
 
+## [1.58.45] — 2026-05-20
+
+**fix(ux): UX-D-K — `#/help` 의 TOC 스크롤 스파이가 현재 섹션 강조.** `IntersectionObserver` 가 보이는 H2 에 해당하는 TOC 링크에 `.toc-current` 부여. 938 → **939** 유닛. (UX-D-K)
+
+---
+
 ## [1.58.44] — 2026-05-20
 
 **fix(ux): UX-D-L — `#/deep` 의 Saved-research 에서 열린 brief 에 인라인 × 닫기 버튼 추가.** 이전엔 스크롤하거나 페이지를 떠나야만 닫을 수 있었음. 새 키 `deep.closeBrief` × 8. 937 → **938** 유닛. (UX-D-L)

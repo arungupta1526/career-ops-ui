@@ -10,6 +10,12 @@
 
 
 
+## [1.58.45] — 2026-05-20
+
+**fix(ux): UX-D-K — scroll-spy в TOC `#/help` подсвечивает текущую секцию.** v1.58.36 аудит: при прокрутке тела help страница TOC (sticky, ~92 H2-секций) не показывал, какую секцию читает пользователь. Новый `IntersectionObserver` в [public/js/views/help.js](public/js/views/help.js#L155-L185) наблюдает за каждым `.help-article h2[id]` и применяет `.toc-current` к соответствующей `<a>` ссылке TOC, когда H2 попадает в верхнюю треть viewport (`rootMargin: "-30% 0% -60% 0%"`). CSS [public/css/app.css](public/css/app.css) задаёт `.toc-current` левый бренд-бордер + цвет `var(--rausch)` + `font-weight: 600`. При hashchange observer отключается рядом с существующим scroll-listener — никаких утечек. 938 → **939** модульных. (UX-D-K)
+
+---
+
 ## [1.58.44] — 2026-05-20
 
 **fix(ux): UX-D-L — на `#/deep` у открытого Saved-research brief появилась inline-кнопка × для закрытия.** v1.58.36 аудит: клик по карточке Saved-research отрисовывал тело brief'а внутри страницы (Copy / Download / Open in tab / Generate PDF в шапке), но **закрыть** brief можно было только прокруткой или навигацией. Новая кнопка × в [public/js/views/deep.js](public/js/views/deep.js) в шапке `showResult()` — очищает `out.innerHTML`, повторяет паттерн закрытия модалки (api.js UI.modal × button), доступна с клавиатуры, `aria-label` + `title` из нового ключа `deep.closeBrief` × 8 локалей. 937 → **938** модульных. (UX-D-L)

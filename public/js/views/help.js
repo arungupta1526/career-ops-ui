@@ -151,11 +151,43 @@ Router.register('help', async () => {
   }, '↑ ' + t('help.backToTop', 'Back to top'));
   const onScroll = () => { backTop.style.display = window.scrollY > 600 ? 'block' : 'none'; };
   window.addEventListener('scroll', onScroll, { passive: true });
+
+  // UX-D-K (v1.58.45) — scroll-spy on the TOC. As the user scrolls
+  // the help body, the TOC link for the currently-visible H2 gets
+  // the `.toc-current` class so the user always knows which section
+  // they're reading. IntersectionObserver fires when an <h2>
+  // intersects the upper-third reading band of the viewport; the
+  // observer is created lazily (after DOM mount) and torn down with
+  // the rest of the help-page listeners on hashchange.
+  let tocObserver = null;
+  setTimeout(() => {
+    const articleHeadings = document.querySelectorAll('.help-article h2[id]');
+    if (!articleHeadings.length) return;
+    const linkByTarget = new Map();
+    for (const a of tocLinks) {
+      const id = a.dataset.targetId;
+      if (id) linkByTarget.set(id, a);
+    }
+    tocObserver = new IntersectionObserver((entries) => {
+      // Pick the entry closest to the top of the viewport — multiple
+      // headings can intersect at once on tall sections.
+      const active = entries
+        .filter((e) => e.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+      if (!active) return;
+      for (const link of linkByTarget.values()) link.classList.remove('toc-current');
+      const link = linkByTarget.get(active.target.id);
+      if (link) link.classList.add('toc-current');
+    }, { rootMargin: '-30% 0% -60% 0%', threshold: 0 });
+    articleHeadings.forEach((h) => tocObserver.observe(h));
+  }, 0);
+
   // Detach the listener when the SPA leaves #/help (hashchange).
   const cleanup = () => {
     if (!location.hash.startsWith('#/help')) {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('hashchange', cleanup);
+      if (tocObserver) { tocObserver.disconnect(); tocObserver = null; }
     }
   };
   window.addEventListener('hashchange', cleanup);

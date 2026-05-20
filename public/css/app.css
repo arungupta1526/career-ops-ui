@@ -1176,6 +1176,19 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
    above all 8 locale placeholders. */
 .help-toc__filter { min-width: 16ch; }
 
+/* UX-D-K (v1.58.45) — scroll-spy current-section highlight in the
+   #/help TOC. As the user scrolls the help body, an IntersectionObserver
+   in help.js applies `.toc-current` to the link whose H2 is currently
+   in the reading band. Uses the brand color and a left-border so the
+   active item reads at a glance, including in dark mode. */
+.help-toc a.toc-current {
+  color: var(--rausch, #ff385c);
+  font-weight: 600;
+  border-left: 3px solid var(--rausch, #ff385c);
+  padding-left: 8px;
+  margin-left: -11px; /* keeps the link-row geometry aligned */
+}
+
 /* U-15 (v1.58.33) — CV Save button dirty-state. When the editor has
    unsaved changes, the button gets a `.btn-dirty` class which paints
    a subtle ring + a "● " bullet prefix via :before so the user can

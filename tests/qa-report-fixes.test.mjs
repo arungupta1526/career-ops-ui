@@ -37,6 +37,24 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-D-K (v1.58.45): help TOC has scroll-spy highlighting via IntersectionObserver + `.toc-current` CSS', () => {
+  const help = read('public', 'js', 'views', 'help.js');
+  // IntersectionObserver wired with the .toc-current class toggle.
+  assert.match(help, /new IntersectionObserver\(/,
+    'help.js must use IntersectionObserver for scroll-spy');
+  assert.match(help, /classList\.add\('toc-current'\)/,
+    'observed link must get .toc-current class');
+  assert.match(help, /classList\.remove\('toc-current'\)/,
+    'old current link must lose the .toc-current class');
+  // Observer cleanup on hashchange.
+  assert.match(help, /tocObserver\.disconnect\(\)/,
+    'tocObserver must disconnect on hashchange cleanup');
+  // CSS rule provides the visual.
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /\.help-toc\s+a\.toc-current\s*\{/,
+    '.help-toc a.toc-current CSS rule must exist');
+});
+
 test('UX-D-L (v1.58.44): #/deep saved-research opened brief has an inline × close button', () => {
   const deep = read('public', 'js', 'views', 'deep.js');
   assert.match(deep, /'aria-label':\s*t\('deep\.closeBrief'/,
