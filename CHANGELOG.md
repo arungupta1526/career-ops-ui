@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.59.8] — 2026-05-21
+
+**fix(ux+api): v1.59.8 — UX-A5-r3 + NEW-F1-sub (HIGH + LOW bundled per FIX-PROMPT-FINAL-CONSOLIDATED).** Doctrine-exception release: the 2026-05-20 FINAL REGRESSION-v1.59.7 report explicitly recommended bundling these two. UX-A5-r3 (HIGH) — after 4 ship attempts with IntersectionObserver all failed live verification, [public/js/views/help.js](public/js/views/help.js) replaces the IO entirely with a plain scroll listener. Root cause: with rootMargin -20%/-55% the trigger band ended at 45% of viewport, but scrollIntoView({block:'center'}) lands the target at 50% — JUST below the band end. The new scroll listener probes absolute heading positions every rAF, computes the heading whose top is at-or-above 30% of viewport, applies `.toc-current` — no band, no race, no mount-order gotcha. NEW-F1-sub (LOW) — [server/index.mjs](server/index.mjs) adds a late middleware that inspects `req.originalUrl` (not normalised `req.url`) and bounces any `/api`-prefixed request whose raw URL contains `..` as 404 JSON `{error: 'invalid path'}`. New `UX-A5-r3` lock-test + `NEW-F1-sub` static + behavioural guards in tests/. 971 → **973** unit. (UX-A5-r3 · NEW-F1-sub)
+
+---
+
+
+
 ## [1.59.7] — 2026-05-20
 
 **fix(api): NEW-D3-cache (v1.59.7) — `GET /api/cv` sends `Cache-Control: no-store`.** Matches the SPA-shell policy (W-001 / v1.54.7). `cv.md` is the user-edited primary artifact; a stale browser cache or intermediary proxy could surface yesterday's text and trick the editor into saving over the live version. No ETag dance — the file is small and the GET is rare. New test in [tests/api-404-json.test.mjs](tests/api-404-json.test.mjs) (the suite is the in-process server harness; named for its first test). 970 → **971** unit. (NEW-D3-cache)

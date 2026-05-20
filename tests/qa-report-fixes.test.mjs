@@ -381,41 +381,43 @@ test('NEW-D2-motion (v1.59.6): CSS honours prefers-reduced-motion: reduce', () =
     'must override scroll-behavior: smooth on reduced-motion');
 });
 
-test('UX-A5-r2 (v1.59.3): help.js TOC scroll-spy uses widened rootMargin + initial-state', () => {
+test('UX-A5-r3 (v1.59.8): help.js TOC scroll-spy uses a plain scroll listener (NOT IntersectionObserver)', () => {
   const help = read('public', 'js', 'views', 'help.js');
-  // The pre-r2 rootMargin '-30% 0% -60% 0%' was a 10% band; fast scroll
-  // could skip the trigger zone entirely. v1.59.3 widens to 25%.
-  assert.match(help, /rootMargin:\s*'-20%\s*0%\s*-55%\s*0%'/,
-    'rootMargin must be widened to -20% / -55% (25% trigger band) for fast-scroll robustness');
-  // Explicit root: null (was implicit; the FIX-PROMPT canonical form
-  // calls this out because some authors use root: main which breaks
-  // when main isn't the scrolling element).
-  assert.match(help, /root:\s*null,/, 'IntersectionObserver root must be explicitly null (viewport)');
-  // Initial-state: must mark the closest heading on mount, before any
-  // scroll event fires.
-  assert.match(help, /function applyCurrent\(id\)/,
-    'help.js must define applyCurrent(id) for both observer + initial state');
-  assert.match(help, /const triggerY = window\.scrollY \+ window\.innerHeight \* 0\.2/,
-    'help.js must compute initial active heading from scroll position on mount');
+  // After 4 ship cycles with IntersectionObserver still failing, v1.59.8
+  // switched to a scroll listener. The IO machinery must be gone.
+  assert.ok(!/new IntersectionObserver/.test(help),
+    'help.js must NOT use IntersectionObserver for scroll-spy (replaced by scroll listener in v1.59.8)');
+  // The new path must have the named computeActiveAndApply function +
+  // rAF-throttled scroll listener + double-rAF initial-state.
+  assert.match(help, /function computeActiveAndApply\(\)/,
+    'help.js must define computeActiveAndApply() for the spy');
+  assert.match(help, /window\.addEventListener\('scroll', onSpyScroll,\s*\{\s*passive:\s*true\s*\}\)/,
+    'help.js must register a passive scroll listener for scroll-spy');
+  assert.match(help, /requestAnimationFrame\(\(\)\s*=>\s*requestAnimationFrame\(computeActiveAndApply\)\)/,
+    'help.js must compute initial state via double rAF after mount');
+  // rAF throttling — one rAF per scroll burst.
+  assert.match(help, /requestAnimationFrame\(computeActiveAndApply\)/,
+    'help.js scroll listener must rAF-throttle the recompute');
+  // Cleanup must remove the new listener.
+  assert.match(help, /window\.removeEventListener\('scroll', onSpyScroll\)/,
+    'hashchange cleanup must remove onSpyScroll');
 });
 
-test('UX-A5 (v1.58.52): help.js TOC scroll-spy uses double-rAF + direct heading refs (not setTimeout/querySelector)', () => {
+// UX-A5-r2 (v1.59.3) lock-test SUPERSEDED by UX-A5-r3 (v1.59.8) — the
+// IntersectionObserver wiring it asserted no longer exists; v1.59.8
+// replaced the entire approach with a scroll listener. The new
+// contract is locked by the UX-A5-r3 test above.
+
+// UX-A5 (v1.58.52) lock-test SUPERSEDED by UX-A5-r3 (v1.59.8). The
+// IntersectionObserver-based mountTocSpy that this test asserted no
+// longer exists; v1.59.8 replaced it with a scroll listener after the
+// IO approach failed a 5th regression cycle. The negative-match for
+// the buggy setTimeout(0) + document.querySelectorAll pattern still
+// matters — preserve it as a residual guard.
+test('UX-A5 residual: pre-v1.58.52 setTimeout(0) + document.querySelectorAll pattern must NOT return', () => {
   const help = read('public', 'js', 'views', 'help.js');
-  // The buggy v1.58.45 pattern was setTimeout(0) + querySelectorAll
-  // against the document — fired before the router mounted the view.
-  // The v1.58.52 fix observes the `headings` refs we already hold and
-  // defers via double rAF.
-  assert.match(help, /function mountTocSpy\(\)/,
-    'help.js must define mountTocSpy() to host the observer wiring');
-  assert.match(help, /requestAnimationFrame\(\(\)\s*=>\s*requestAnimationFrame\(mountTocSpy\)\)/,
-    'help.js must defer the observer mount via double requestAnimationFrame');
-  assert.match(help, /headings\.forEach\(\(h\)\s*=>\s*tocObserver\.observe\(h\)\)/,
-    'observer must observe the direct heading refs (not a fresh querySelectorAll)');
-  // The buggy setTimeout(0) wrapper around the observer init must be
-  // gone (we kept setTimeout for other purposes in this file, so we
-  // negative-match the specific shape).
   assert.ok(!/setTimeout\(\(\)\s*=>\s*\{\s*const articleHeadings = document\.querySelectorAll/.test(help),
-    "pre-fix setTimeout(0) + document.querySelectorAll('.help-article h2') wrapper must be gone");
+    "pre-v1.58.52 setTimeout(0) + document.querySelectorAll('.help-article h2') wrapper must stay gone");
 });
 
 test('DOC-1 (v1.58.50): qa/REGRESSION-FINAL.md has §5a documenting English-by-policy server error bodies', () => {
@@ -494,18 +496,17 @@ test('UX-D-D (v1.58.46): apply checklist substitutes {company}-{role} with slugs
   assert.match(apply, /'\[role\]'/, 'unresolved role must fall back to [role]');
 });
 
-test('UX-D-K (v1.58.45): help TOC has scroll-spy highlighting via IntersectionObserver + `.toc-current` CSS', () => {
+test('UX-D-K (v1.58.45) — scroll-spy highlights current section via `.toc-current` class (mechanism: scroll listener since v1.59.8)', () => {
   const help = read('public', 'js', 'views', 'help.js');
-  // IntersectionObserver wired with the .toc-current class toggle.
-  assert.match(help, /new IntersectionObserver\(/,
-    'help.js must use IntersectionObserver for scroll-spy');
+  // The mechanism changed from IntersectionObserver (v1.58.45 → v1.59.3)
+  // to a scroll listener (v1.59.8) after the IO approach failed 5
+  // regression cycles. The OBSERVABLE contract — `.toc-current` toggle
+  // on the matching link — is unchanged and remains the user-visible
+  // promise. Lock the class toggle + CSS rule, not the implementation.
   assert.match(help, /classList\.add\('toc-current'\)/,
     'observed link must get .toc-current class');
   assert.match(help, /classList\.remove\('toc-current'\)/,
     'old current link must lose the .toc-current class');
-  // Observer cleanup on hashchange.
-  assert.match(help, /tocObserver\.disconnect\(\)/,
-    'tocObserver must disconnect on hashchange cleanup');
   // CSS rule provides the visual.
   const css = read('public', 'css', 'app.css');
   assert.match(css, /\.help-toc\s+a\.toc-current\s*\{/,

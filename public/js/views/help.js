@@ -170,7 +170,6 @@ Router.register('help', async () => {
   //   3. Also wire a same-document-DOM-mounted fallback: if `headings`
   //      somehow has no ids (regressed renderer), the observer is a
   //      no-op rather than throwing.
-  let tocObserver = null;
   const linkByTarget = new Map();
   for (const a of tocLinks) {
     const id = a.dataset.targetId;
@@ -181,57 +180,47 @@ Router.register('help', async () => {
     const link = linkByTarget.get(id);
     if (link) link.classList.add('toc-current');
   }
-  function mountTocSpy() {
-    if (tocObserver) return; // idempotent
+  // UX-A5-r3 (v1.59.8) — 5th-cycle confirmation that IntersectionObserver
+  // does not reliably paint `.toc-current` on this page. The previous
+  // implementations chased a smaller and smaller rootMargin (-30%/-60%
+  // → -20%/-55% → live verification still 0 `.toc-current`). Root
+  // cause: when the user uses `scrollIntoView({block: 'center'})` the
+  // heading lands AT 50% of viewport, JUST below the trigger band; the
+  // IO never receives an intersection event for that heading. A plain
+  // scroll listener probing absolute positions every rAF doesn't have
+  // a band at all — every scroll position has exactly one closest
+  // heading above the trigger line. Simpler, more reliable, no mount
+  // race (the listener attaches on mount and recomputes on every
+  // scroll without rAF-deferring the observer attach).
+  let spyScheduled = false;
+  function computeActiveAndApply() {
+    spyScheduled = false;
     if (!headings.length || !linkByTarget.size) return;
-    tocObserver = new IntersectionObserver((entries) => {
-      // Pick the entry closest to the top of the viewport — multiple
-      // headings can intersect at once on tall sections.
-      const active = entries
-        .filter((e) => e.isIntersecting)
-        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
-      if (!active) return;
-      applyCurrent(active.target.id);
-    }, {
-      // UX-A5-r2 (v1.59.3) — widened the visible band from 10 % to
-      // 25 % of viewport (was '-30% 0% -60% 0%'). At the previous
-      // tight band, fast scroll could skip the trigger zone entirely
-      // and no IntersectionObserver entry would ever fire, leaving
-      // every link with `className=""`. The new band intersects on
-      // any heading whose top sits between 20 % and 45 % of the
-      // viewport — generous enough to survive rAF-snapped scrolls.
-      root: null,
-      rootMargin: '-20% 0% -55% 0%',
-      threshold: 0,
-    });
-    headings.forEach((h) => tocObserver.observe(h));
-    // UX-A5-r2 (v1.59.3) — initial-state: the observer only fires on
-    // intersection *changes*, so on first paint nothing is marked
-    // until the user scrolls. Compute the heading closest to the
-    // current scroll position and mark it immediately. Without this,
-    // a freshly-loaded `#/help` with zero scroll shows zero
-    // highlights even though section 1 is visibly the active one.
-    requestAnimationFrame(() => {
-      const triggerY = window.scrollY + window.innerHeight * 0.2;
-      let chosen = headings[0];
-      for (const h of headings) {
-        const absTop = h.getBoundingClientRect().top + window.scrollY;
-        if (absTop <= triggerY) chosen = h;
-      }
-      if (chosen) applyCurrent(chosen.id);
-    });
+    const triggerY = window.scrollY + window.innerHeight * 0.3;
+    let chosen = headings[0];
+    for (const h of headings) {
+      const absTop = h.getBoundingClientRect().top + window.scrollY;
+      if (absTop <= triggerY) chosen = h;
+    }
+    if (chosen) applyCurrent(chosen.id);
   }
-  // Two rAFs = "after the next paint that includes the mounted view".
-  // Single rAF can fire before the router appends, so we always wait
-  // for two — cheap and reliable.
-  requestAnimationFrame(() => requestAnimationFrame(mountTocSpy));
+  function onSpyScroll() {
+    if (spyScheduled) return;
+    spyScheduled = true;
+    requestAnimationFrame(computeActiveAndApply);
+  }
+  window.addEventListener('scroll', onSpyScroll, { passive: true });
+  // Initial state — wait for the router to mount the view, then
+  // compute. Double rAF survives both the route-handler-returns-then-
+  // router-appends sequence AND any layout reflow after first paint.
+  requestAnimationFrame(() => requestAnimationFrame(computeActiveAndApply));
 
-  // Detach the listener when the SPA leaves #/help (hashchange).
+  // Detach both listeners when the SPA leaves #/help (hashchange).
   const cleanup = () => {
     if (!location.hash.startsWith('#/help')) {
       window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('scroll', onSpyScroll);
       window.removeEventListener('hashchange', cleanup);
-      if (tocObserver) { tocObserver.disconnect(); tocObserver = null; }
     }
   };
   window.addEventListener('hashchange', cleanup);

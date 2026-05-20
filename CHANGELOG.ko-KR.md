@@ -10,6 +10,14 @@
 
 
 
+## [1.59.8] — 2026-05-21
+
+**fix(ux+api): v1.59.8 — UX-A5-r3 + NEW-F1-sub (HIGH + LOW 묶음).** FINAL-REGRESSION-v1.59.7 권고에 따른 doctrine 예외. UX-A5-r3: `#/help` 가 IntersectionObserver 를 `scroll` 리스너 + rAF 쓰로틀링으로 교체. NEW-F1-sub: `/api/*` 의 가공되지 않은 `..` 를 404 JSON 으로 거부. (UX-A5-r3 · NEW-F1-sub)
+
+---
+
+
+
 ## [1.59.7] — 2026-05-20
 
 **fix(api): NEW-D3-cache (v1.59.7) — `GET /api/cv` 가 `Cache-Control: no-store` 전송.** CV 는 사용자 핵심 아티팩트이므로 항상 재검증. (NEW-D3-cache)

@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.59.8] — 2026-05-21
+
+**fix(ux+api): v1.59.8 — UX-A5-r3 + NEW-F1-sub (HIGH + LOW agrupados).** Excepción de doctrina autorizada por el reporte FINAL-REGRESSION-v1.59.7. UX-A5-r3: `#/help` cambia el IntersectionObserver por un listener `scroll` con rAF throttling — tras 4 ciclos de fallos del IO, ahora el scroll-spy es robusto en todos los modos de scroll. NEW-F1-sub: middleware que rechaza `..` crudos en `/api/*` con 404 JSON. (UX-A5-r3 · NEW-F1-sub)
+
+---
+
+
+
 ## [1.59.7] — 2026-05-20
 
 **fix(api): NEW-D3-cache (v1.59.7) — `GET /api/cv` envía `Cache-Control: no-store`.** El CV es el artefacto principal del usuario; siempre revalidar. (NEW-D3-cache)

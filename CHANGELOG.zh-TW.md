@@ -10,6 +10,14 @@
 
 
 
+## [1.59.8] — 2026-05-21
+
+**fix(ux+api): v1.59.8 — UX-A5-r3 + NEW-F1-sub (HIGH + LOW 合併)。** FINAL-REGRESSION-v1.59.7 報告授權的 doctrine 例外。UX-A5-r3: `#/help` 將 IntersectionObserver 替換為帶 rAF 節流的 `scroll` 監聽器。NEW-F1-sub: 中介軟體將 `/api/*` 的原始 `..` 以 404 JSON 拒絕。(UX-A5-r3 · NEW-F1-sub)
+
+---
+
+
+
 ## [1.59.7] — 2026-05-20
 
 **fix(api): NEW-D3-cache (v1.59.7) — `GET /api/cv` 傳送 `Cache-Control: no-store`。** CV 是使用者主要工件,始終重新驗證。(NEW-D3-cache)

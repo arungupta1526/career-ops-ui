@@ -1,8 +1,8 @@
-# REGRESSION-PROMPT — FINAL · career-ops-ui · post-v1.59.7
+# REGRESSION-PROMPT — FINAL · career-ops-ui · post-v1.59.8
 
-Canonical post-cycle regression handoff written **after** the v1.58.52 → v1.59.7 closure (17 single-fix releases + 2 verification patches + 1 v1.59.2 chip hotfix, all CI-green, all AI-review LGTM). This document is the 100 %-maturity verification protocol — run it before declaring a 1.x line frozen.
+Canonical post-cycle regression handoff written **after** the v1.58.52 → v1.59.8 closure (17 single-fix releases + 2 verification patches + 1 v1.59.2 chip hotfix + 1 v1.59.8 doctrine-exception bundle for UX-A5-r3 + NEW-F1-sub, all CI-green, all AI-review LGTM). This document is the 100 %-maturity verification protocol — run it before declaring a 1.x line frozen.
 
-**Baseline at v1.59.7:** **971** unit · 62 Playwright (smoke + full-cycle + forms) · 20 smoke E2E · 23 comprehensive E2E.
+**Baseline at v1.59.8:** **973** unit · 62 Playwright (smoke + full-cycle + forms) · 20 smoke E2E · 23 comprehensive E2E.
 
 ---
 
@@ -27,7 +27,8 @@ Non-negotiable for any future ship.
 15. **`position: sticky` + `z-index: <N>` creates a stacking context that overlaps anything below it on scroll.** v1.59.2 chip hotfix — only use sticky when the overlap is intentional.
 16. **`app.get('/api/*', …)` is GET-only — use `app.all` for the JSON-404 fallback.** v1.59.5 NEW-F1.
 17. **DOM refresh races during Save: build new nodes first, then `replaceChildren()` atomically.** v1.59.4 NEW-OR1.
-18. **IntersectionObserver `rootMargin` too tight = scroll skips the trigger zone.** v1.59.3 UX-A5-r2 — use 25 % visible band (`-20 % 0 % -55 % 0 %`).
+18. **IntersectionObserver `rootMargin` too tight = scroll skips the trigger zone.** v1.59.3 UX-A5-r2 — but the 25 % band `-20% 0% -55% 0%` still missed `scrollIntoView({block:'center'})` (50 % viewport, just below the 45 % band end). After 4 failed IO cycles, **v1.59.8 (UX-A5-r3) replaced IntersectionObserver with a plain scroll listener** + rAF throttling. The simpler approach probes absolute positions every scroll frame — no band, no race. Lesson: when an IO refuses to fire after multiple rootMargin fixes, abandon IO; the scroll listener is reliable.
+19. **`req.url` is normalised, `req.originalUrl` is verbatim.** v1.59.8 NEW-F1-sub — Express resolves `/api/jds/../../../etc/passwd` to `/etc/passwd` BEFORE matching, so a `/api`-fallback handler never sees `..`. A `req.originalUrl.includes('..')` guard runs late but inspects the raw URL string.
 
 ---
 
@@ -115,19 +116,21 @@ Each row is a static or behavioural guard. Any future PR that regresses the row 
 | v1.58.65 | UX-A2 | `modes-form.js` CANON has 5 fields in canonical order |
 | v1.59.0 | UX-A14 | `@media (max-width: 420px)` mobile block |
 
-### v1.59.1 → v1.59.7 — final polish + new findings (7 invariants)
+### v1.59.1 → v1.59.8 — final polish + new findings (9 invariants)
 
 | Release | Ticket | Invariant |
 |---|---|---|
 | v1.59.1 | NEW-D1 patch | `i18n-no-latin-leaks` regex accepts both `vacant\|candidatur` (es) |
 | v1.59.2 | chip hotfix | Provider chips read array length + `anthropic` key in NAME · `.api-keys__summary` NOT sticky |
-| v1.59.3 | UX-A5-r2 | `help.js` TOC scroll-spy `rootMargin: '-20% 0% -55% 0%'` · explicit `root: null` · `applyCurrent(id)` initial-state |
+| v1.59.3 | UX-A5-r2 | `help.js` TOC scroll-spy `rootMargin: '-20% 0% -55% 0%'` · explicit `root: null` · `applyCurrent(id)` initial-state (**superseded by v1.59.8 — IO removed**) |
 | v1.59.4 | NEW-OR1 | `refreshApiSummary` race-safe: `inFlight` token · atomic `replaceChildren()` · `lastGoodSt` cache |
 | v1.59.5 | NEW-F1 | `app.all('/api/*', …)` JSON-404 on every verb (was GET-only) |
 | v1.59.6 | NEW-D2-motion | `@media (prefers-reduced-motion: reduce)` neutralizes animations + transitions + scroll-behavior |
 | v1.59.7 | NEW-D3-cache | `GET /api/cv` sends `Cache-Control: no-store` |
+| v1.59.8 | UX-A5-r3 | `help.js` TOC scroll-spy uses `function computeActiveAndApply()` + rAF-throttled passive `scroll` listener + double-rAF initial state — IntersectionObserver fully removed |
+| v1.59.8 | NEW-F1-sub | server middleware inspects `req.originalUrl` and bounces `/api` requests containing raw `..` as 404 JSON `{error: 'invalid path'}` |
 
-**Cycle stats:** 22 releases v1.58.52 → v1.59.7 · 971 unit tests at v1.59.7 (was 949 at v1.58.51) · 100 % CI-green · all AI-review LGTM · zero rollbacks · 1 chip hotfix (v1.59.2 — user-reported visual + count bug).
+**Cycle stats:** 23 releases v1.58.52 → v1.59.8 · **973** unit tests at v1.59.8 (was 949 at v1.58.51) · 100 % CI-green · all AI-review LGTM · zero rollbacks · 1 chip hotfix (v1.59.2) · 1 doctrine-exception bundle (v1.59.8 — HIGH+LOW, authorized by FINAL REGRESSION-v1.59.7 report).
 
 ---
 
@@ -178,9 +181,9 @@ Anything else MUST be a read.
 
 | Gate | Pass |
 |---|---|
-| All 22 cycle releases shipped + tagged + pushed (v1.58.52 → v1.59.7) | ✅ |
-| Parity matrix green at v1.59.7 | ✅ |
-| `npm test` 971 / 971, 0 fail | ✅ |
+| All 23 cycle releases shipped + tagged + pushed (v1.58.52 → v1.59.8) | ✅ |
+| Parity matrix green at v1.59.8 | ✅ |
+| `npm test` 973 / 973, 0 fail | ✅ |
 | `npm run test:e2e` ≥ 20 smoke green | ☐ |
 | `npm run test:e2e:full` ≥ 23 comprehensive green | ☐ |
 | `npm run test:e2e:browser` ≥ 62 Playwright green | ☐ |
@@ -196,15 +199,15 @@ Anything else MUST be a read.
 
 ## §8 — Maturity scoring (final)
 
-| Dimension | v1.58.51 baseline | v1.59.7 | Notes |
+| Dimension | v1.58.51 baseline | v1.59.8 | Notes |
 |---|---|---|---|
-| Function | 9 | 10 | every advertised feature shipped + lock-tested |
+| Function | 9 | 10 | every advertised feature shipped + lock-tested; UX-A5-r3 finally green via scroll-listener |
 | Output quality | 7 | 9 | UX-A1 defensive warning surfaces upstream drift |
 | i18n | 9 | 10 | 8 locales, parity-gated, native-equivalent polish |
 | A11y | 9 | 10 | WCAG 2.5.8 lang-picker + 2.3.3 reduced-motion + ARIA drawer + Fix CTAs |
-| UX | 8 | 10 | provider chips, sticky summary (then race-safe), drawer purge, Pipeline weight |
+| UX | 8 | 10 | provider chips, race-safe counter, drawer purge, Pipeline weight, **TOC scroll-spy reliable** |
 | Performance | 9 | 9 | no regressions |
-| Security | 9 | 10 | JSON-404 fallback + `Cache-Control: no-store` on `/api/cv` |
+| Security | 9 | 10 | JSON-404 fallback on every verb + raw `..` guard + `Cache-Control: no-store` on `/api/cv` |
 | Mobile | 5 | 9 | `@media (max-width: 420px)` ships |
 | **Overall** | **8.5 / 10** | **10 / 10** | within web-ui scope |
 
@@ -229,4 +232,4 @@ If anything in `§3` fails, the responsible lock-test will be the precise failur
 
 ---
 
-*End of canonical regression prompt. Generated 2026-05-20 after v1.59.7.*
+*End of canonical regression prompt. Generated 2026-05-20 after v1.59.7; refreshed 2026-05-21 after v1.59.8 (UX-A5-r3 + NEW-F1-sub doctrine-exception bundle).*

@@ -134,6 +134,23 @@ export function createApp() {
   // verb gets the JSON `{error: 'unknown api'}` response. Sandbox /
   // SSRF / DOC-1 (English-by-policy) all preserved.
   app.all('/api/*', (_req, res) => res.status(404).json({ error: 'unknown api' }));
+
+  // NEW-F1-sub (v1.59.8) — an un-encoded `../` in an /api request URL
+  // is normalised by Express's router BEFORE matching, so the un-known
+  // /api fallback above never sees those requests; they fell through
+  // to the SPA catch-all and returned 200 + HTML. There is no file
+  // leak (Express resolved the normalised path to a non-/api route),
+  // but the JSON-only-on-/api contract drifted. This guard runs LATE
+  // (right before the SPA catch-all) and inspects `req.originalUrl`
+  // (the verbatim request URL, not the post-normalisation `req.url`)
+  // — any `/api`-prefixed request whose raw URL contains `..` is
+  // bounced as JSON 404 with the explicit `invalid path` reason.
+  app.use((req, res, next) => {
+    if (req.originalUrl.startsWith('/api') && req.originalUrl.includes('..')) {
+      return res.status(404).json({ error: 'invalid path' });
+    }
+    next();
+  });
   app.get('*', (_req, res) => {
     // W-001 — the SPA shell must always revalidate (it references the
     // un-hashed code assets); sendFile bypasses the static setHeaders.

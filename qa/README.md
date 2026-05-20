@@ -4,14 +4,17 @@ Tracks regressions, fix-prompts, and live evidence across releases.
 
 ## CURRENT — four perennial, version-agnostic prompts
 
-> v1.59.7 (2026-05-20) closed the final polish cycle on top of the
-> maturity-10 baseline (UX-A1 → UX-A15 + v1.59.2 chip hotfix + v1.59.3
-> UX-A5-r2 + v1.59.4 NEW-OR1 + v1.59.5 NEW-F1 + v1.59.6 NEW-D2-motion
-> + v1.59.7 NEW-D3-cache — 22 releases total v1.58.52 → v1.59.7). See
+> v1.59.8 (2026-05-21) closed the final polish cycle with a doctrine-
+> exception bundle (UX-A5-r3 HIGH + NEW-F1-sub LOW) authorised by the
+> FINAL REGRESSION-v1.59.7 report. The IntersectionObserver-based help
+> TOC scroll-spy is gone — replaced by a scroll listener after 4
+> failed IO cycles. 23 releases total v1.58.52 → v1.59.8. See
 > [`REGRESSION-PROMPT-FINAL.md`](./REGRESSION-PROMPT-FINAL.md) for the
-> post-cycle verification ladder, live-smoke checklist, and the 22
-> regression-locked invariants. v1.58.x + v1.59.0-v1.59.1 stale docs
-> archived to [`archive/v159-cycle/`](./archive/v159-cycle/).
+> post-cycle verification ladder, live-smoke checklist, and the 24
+> regression-locked invariants. The 2026-05-20 FINAL REGRESSION report
+> and the FIX-PROMPT-FINAL-CONSOLIDATED handoff (both closed by
+> v1.59.8) are archived in
+> [`archive/v159-cycle/`](./archive/v159-cycle/).
 
 ## CURRENT — perennial, version-agnostic prompts
 
