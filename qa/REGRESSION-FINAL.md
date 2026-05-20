@@ -649,6 +649,42 @@ Playwright-verify + AI-review LGTM + CI-watch) before the next.
 
 ---
 
+## §14 — v1.58.52 → v1.59.0 maturity-10 cycle invariants (regression-locked)
+
+The 15-release cycle that closed the audit (UX-A1 → UX-A15). Each row
+below has a static guard in `tests/qa-report-fixes.test.mjs`. See
+`qa/REGRESSION-PROMPT-MATURITY-10.md` for the verification ladder and
+live-smoke checklist.
+
+| Release | Ticket | Lock-test asserts |
+|---|---|---|
+| v1.58.52 | UX-A5 | `help.js` uses `mountTocSpy()` + double `requestAnimationFrame` (not `setTimeout(0)` + `document.querySelectorAll`) |
+| v1.58.53 | UX-A6 | Every saved-research card flows through `renderSavedCard(f)` · `.saved-card__title` + `<time class="saved-card__date">` |
+| v1.58.54 | UX-A1 | `looksLikeStructuredBrief()` checks ≥ 3 of 6 canonical H2s · `.brief-warning` rendered when below threshold · 3 i18n keys × 8 |
+| v1.58.55 | UX-A3 | `providerChip()` on `#/dashboard` · subscribes to `providers-changed` + `visibilitychange` · `hashchange` cleanup detaches both |
+| v1.58.56 | UX-A4 | `.lang-btn` `min-height: 28px` + `min-width: 28px` + `padding: 6px 10px` (WCAG 2.5.8) |
+| v1.58.57 | UX-A7 | `config.js` Save dispatches `providers-changed` · `UI.providerCostHint` subscribes · all 4 advisor views call `UI.providerCostHint(t)` |
+| v1.58.58 | UX-A10 | `cv.js` registers `beforeunload` + `hashchange` guards · `isDirty()` reads live · `cv.unsavedConfirm` i18n × 8 |
+| v1.58.59 | UX-A13 | `health.js` `FIX_TARGETS` map · `_API_KEY$` regex fallback → `#/config?tab=api-keys` · `.health-fix` ghost button |
+| v1.58.60 | UX-A12 | `UI.clearToastHistory()` + `UI.dismissToastHistory(ts)` · `notif-clear-all` + per-item `×` · purge sentinels skip unread bump |
+| v1.58.61 | UX-A8 | All 8 READMEs reference `make clean-test-fixtures` + `qa-fixture-*` |
+| v1.58.62 | UX-A9 | `.api-keys__summary` sticky chip · `Active` + `Keys: N/5` · subscribes to `providers-changed` |
+| v1.58.63 | UX-A15 | `qa()` 7th `primary` flag · Pipeline tile = `true` · `.qa-tile--primary` label `font-weight: 600` |
+| v1.58.64 | UX-A11 | es `eval.subtitle` uses `ajuste del CV` / `Puntaje` / `cabecera` / `informe`; pt-BR equivalents · es `pipe.title` = `Pipeline de candidaturas` |
+| v1.58.65 | UX-A2 | `modes-form.js` CANON has 5 fields · 3 list-kind + 2 prose-kind · × remove + + add row · `mode: 'sections'\|'markdown'` collect() |
+| v1.59.0 | UX-A14 | `@media (max-width: 420px)` block · `.card-row` 1fr · `.dash-hero-cta` column + full-width · `.page-header` column · `.qa-grid` minmax(160px, 1fr) |
+
+**Cycle stats:** 15 releases · 962 unit tests at v1.59.0 (was 949 at v1.58.51) · 100% CI-green · all AI-review LGTM · zero rollbacks.
+
+**Carry-over lessons added to `CLAUDE.md` § Hard-won lessons:**
+
+- `saveBtn.onclick =` is a footgun on `c()`-built elements — they register handlers via `addEventListener`. v1.58.58 patch.
+- Lifecycle listeners must scope to the route via `hashchange` cleanup. Same pattern repeated 4× this cycle (v1.58.36/52/55/58).
+- The CHANGELOG.md prose count of i18n keys must match the actual diff — reviewer caught v1.58.55 saying "Three" when only "Two" shipped.
+- Author cascade rule for `[hidden]` — third repeat (after v1.58.34/35). Codified as §4 of `qa/REGRESSION-PROMPT-MATURITY-10.md`.
+
+---
+
 ## §A — EXHAUSTIVE MATRIX (every page × every control × 8 locales)
 
 > Run **after** §0–§11 pass. This is the brute-force sweep: every

@@ -2,7 +2,15 @@
 
 Tracks regressions, fix-prompts, and live evidence across releases.
 
-## CURRENT — three perennial, version-agnostic prompts
+## CURRENT — four perennial, version-agnostic prompts
+
+> v1.59.0 (2026-05-20) closed the maturity-10 cycle (UX-A1 → UX-A15,
+> 15 single-fix releases v1.58.52 → v1.59.0). See
+> [`REGRESSION-PROMPT-MATURITY-10.md`](./REGRESSION-PROMPT-MATURITY-10.md)
+> for the post-cycle verification ladder. v1.58.x cycle stale docs
+> archived to [`archive/v159-cycle/`](./archive/v159-cycle/).
+
+## CURRENT — perennial, version-agnostic prompts
 
 Run on every release; each reads `package.json::version` and
 validates the current `HEAD`. Save run reports under
