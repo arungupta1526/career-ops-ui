@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.64] — 2026-05-20
+
+**fix(i18n): UX-A11 (v1.58.64) — pulido del copy en español.** eval.subtitle ahora usa ajuste del CV, Puntaje, cabecera, informe. pipe.title ahora es Pipeline de candidaturas. (UX-A11)
+
+---
+
+
+
 ## [1.58.63] — 2026-05-20
 
 **fix(ui): UX-A15 (v1.58.63) — tile Pipeline del Dashboard con peso visual primario.** El tile Pipeline ahora destaca con borde de acento, ícono más grande y etiqueta en negrita. (UX-A15)

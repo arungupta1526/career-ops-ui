@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.64] — 2026-05-20
+
+**fix(i18n): UX-A11 (v1.58.64) — es / pt-BR copy polish: English loanwords replaced.** `eval.subtitle` (es) now uses ajuste del CV / Puntaje / cabecera / informe; pt-BR uses aderência do CV / Pontuação / cabeçalho / relatório. `pipe.title` (es) refined to Pipeline de candidaturas (candidate-side perspective). pt-BR vagas retained. 959 → **960** unit. (UX-A11)
+
+---
+
+
+
 ## [1.58.63] — 2026-05-20
 
 **fix(ui): UX-A15 (v1.58.63) — Dashboard Pipeline tile gets visual primary weight.** The Quick-actions grid previously gave every tile equal weight; the highest-frequency action (Pipeline) didn't draw the eye. The `qa()` helper in [public/js/views/dashboard.js](public/js/views/dashboard.js) now accepts a 7th `primary` flag; the Pipeline tile is the only one passing `true` so it gets a subtle accent border + larger icon + bolder label via `.qa-tile--primary` ([public/css/app.css](public/css/app.css)). Tile order, copy, click target, and accessibility name are unchanged. Lock-test in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs). 958 → **959** unit. (UX-A15)

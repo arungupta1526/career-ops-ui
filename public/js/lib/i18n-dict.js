@@ -514,7 +514,11 @@ window.__I18N_DICT = {
   'scan.startEnv':  { en: 'Run', es: 'Ejecuta', 'pt-BR': 'Execute', ko: '실행', ja: '実行', ru: 'Запустите', 'zh-CN': '运行', 'zh-TW': '執行' },
 
   // Pipeline
-  'pipe.title':     { en: 'Pipeline', es: 'Pipeline de vacantes', 'pt-BR': 'Pipeline de vagas', ko: '파이프라인', ja: 'パイプライン', ru: 'Воронка вакансий', 'zh-CN': '流水线', 'zh-TW': '流水線' },
+  // UX-A11 (v1.58.64) — Spanish "Pipeline de vacantes" technically
+  // correct but "Pipeline de candidaturas" reads more naturally for
+  // applicant-tracking context (the user's perspective is candidate-
+  // side, not employer-side). pt-BR keeps "vagas" — natively dominant.
+  'pipe.title':     { en: 'Pipeline', es: 'Pipeline de candidaturas', 'pt-BR': 'Pipeline de vagas', ko: '파이프라인', ja: 'パイプライン', ru: 'Воронка вакансий', 'zh-CN': '流水线', 'zh-TW': '流水線' },
   'pipe.subtitle':  { en: 'Queue of vacancy URLs awaiting evaluation.', es: 'Cola de URLs de vacantes esperando evaluación.', 'pt-BR': 'Fila de URLs de vagas aguardando avaliação.', ko: '평가 대기 중인 채용 공고 URL 대기열.', ja: '評価待ちの求人 URL のキュー。', ru: 'Очередь URL вакансий, ожидающих оценки.', 'zh-CN': '等待评估的职位 URL 队列。', 'zh-TW': '等待評估的職位 URL 佇列。' },
   'pipe.add':       { en: 'Add URL', es: 'Añadir URL', 'pt-BR': 'Adicionar URL', ko: 'URL 추가', ja: 'URL を追加', ru: 'Добавить URL', 'zh-CN': '添加 URL', 'zh-TW': '新增 URL' },
   'pipe.empty':     { en: 'Pipeline is empty. Add a URL below or run a scan.', es: 'El pipeline está vacío. Añade una URL o ejecuta un scan.', 'pt-BR': 'Pipeline vazio. Adicione uma URL ou execute scan.', ko: '파이프라인이 비어 있습니다. URL을 추가하거나 scan을 실행하세요.', ja: 'パイプラインは空です。URL を追加するか scan を実行してください。', ru: 'Pipeline пуст. Добавьте URL ниже или запустите Scan.', 'zh-CN': '流水线为空。在下方添加 URL 或运行 scan。', 'zh-TW': '流水線為空。在下方新增 URL 或執行 scan。' },
@@ -700,7 +704,10 @@ window.__I18N_DICT = {
   // G-005 (v1.15.0): canonical A–F per career-ops.org. Pre-v1.15 reports
   // used A–G with shifted semantics (Risks/Verdict/Legitimacy); they
   // still render as-is for back-compat but new analysis emits A–F.
-  'eval.subtitle':  { en: 'Canonical A–F analysis: Role, CV match, Strategy, Comp, Personalization, STAR stories. Score + legitimacy in report header.', es: 'Análisis canónico A–F: Rol, fit CV, Estrategia, Comp, Personalización, STAR stories. Score + legitimidad en el header del reporte.', 'pt-BR': 'Análise canônica A–F: Vaga, fit CV, Estratégia, Comp, Personalização, STAR stories. Score + legitimidade no header do report.', ko: '표준 A–F 분석: 역할, CV 일치, 전략, 보상, 개인화, STAR 스토리. 점수 + 신뢰도는 리포트 헤더에.', ja: '正規 A–F 分析: 役割、CV 一致、戦略、報酬、パーソナライゼーション、STAR ストーリー。score と legitimacy はレポートヘッダ。', ru: 'Канонический A–F анализ: Role, CV match, Strategy, Comp, Personalization, STAR-истории. Score + legitimacy в header\'е отчёта.', 'zh-CN': '规范 A-F 分析:角色、CV 匹配、策略、薪酬、个性化、STAR 故事。Score 和 legitimacy 在报告头部。', 'zh-TW': '規範 A-F 分析:角色、CV 匹配、策略、薪酬、個人化、STAR 故事。Score 和 legitimacy 在報告標頭。' },
+  // UX-A11 (v1.58.64) — polish: replace English loanwords "fit", "score",
+  // "header", "report" with Spanish/Portuguese native equivalents in
+  // user-facing copy where the original was a calque from English.
+  'eval.subtitle':  { en: 'Canonical A–F analysis: Role, CV match, Strategy, Comp, Personalization, STAR stories. Score + legitimacy in report header.', es: 'Análisis canónico A–F: Rol, ajuste del CV, Estrategia, Compensación, Personalización, historias STAR. Puntaje y legitimidad en la cabecera del informe.', 'pt-BR': 'Análise canônica A–F: Vaga, aderência do CV, Estratégia, Remuneração, Personalização, histórias STAR. Pontuação e legitimidade no cabeçalho do relatório.', ko: '표준 A–F 분석: 역할, CV 일치, 전략, 보상, 개인화, STAR 스토리. 점수 + 신뢰도는 리포트 헤더에.', ja: '正規 A–F 分析: 役割、CV 一致、戦略、報酬、パーソナライゼーション、STAR ストーリー。score と legitimacy はレポートヘッダ。', ru: 'Канонический A–F анализ: Role, CV match, Strategy, Comp, Personalization, STAR-истории. Score + legitimacy в header\'е отчёта.', 'zh-CN': '规范 A-F 分析:角色、CV 匹配、策略、薪酬、个性化、STAR 故事。Score 和 legitimacy 在报告头部。', 'zh-TW': '規範 A-F 分析:角色、CV 匹配、策略、薪酬、個人化、STAR 故事。Score 和 legitimacy 在報告標頭。' },
   'eval.jdLbl':     { en: 'Job Description', es: 'Descripción del puesto', 'pt-BR': 'Descrição da vaga', ko: '채용 공고', ja: '職務記述', ru: 'Job Description', 'zh-CN': '职位描述', 'zh-TW': '職位描述' },
   'eval.btnEval':   { en: '▶ Evaluate', es: '▶ Evaluar', 'pt-BR': '▶ Avaliar', ko: '▶ 평가', ja: '▶ 評価', ru: '▶ Оценить', 'zh-CN': '▶ 评估', 'zh-TW': '▶ 評估' },
   'eval.btnClear':  { en: 'Clear', es: 'Limpiar', 'pt-BR': 'Limpar', ko: '지우기', ja: 'クリア', ru: 'Очистить', 'zh-CN': '清除', 'zh-TW': '清除' },

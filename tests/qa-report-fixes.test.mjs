@@ -37,6 +37,21 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-A11 (v1.58.64): es/pt-BR copy polish — English loanwords replaced with native equivalents', () => {
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  // The ES eval.subtitle previously used "fit CV", "Score", "header",
+  // "reporte"; the polish replaces them with "ajuste del CV",
+  // "Puntaje", "cabecera", "informe" — fewer English calques.
+  assert.match(dict, /es:\s*'Análisis canónico A–F:[^']*ajuste del CV[^']*Puntaje y legitimidad en la cabecera del informe/,
+    'es eval.subtitle must use ajuste del CV + Puntaje + cabecera + informe');
+  // pt-BR analogous polish.
+  assert.match(dict, /'pt-BR':\s*'Análise canônica A–F:[^']*aderência do CV[^']*Pontuação e legitimidade no cabeçalho do relatório/,
+    'pt-BR eval.subtitle must use aderência do CV + Pontuação + cabeçalho + relatório');
+  // pipe.title polish: ES "Pipeline de candidaturas".
+  assert.match(dict, /'pipe\.title':\s*\{[^}]*es:\s*'Pipeline de candidaturas'/,
+    'es pipe.title must read "Pipeline de candidaturas" (candidate-side perspective)');
+});
+
 test('UX-A15 (v1.58.63): dashboard Pipeline tile carries the qa-tile--primary visual weight modifier', () => {
   const dash = read('public', 'js', 'views', 'dashboard.js');
   // The qa() helper must accept a `primary` flag.
