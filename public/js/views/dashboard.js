@@ -74,11 +74,37 @@ Router.register('dashboard', async () => {
         c('p', { className: 'page-subtitle' }, t('dash.subtitle')),
       ]),
       // U-5 (v1.58.25) — removed the header 'Open Pipeline' button.
-      // The sidebar already routes to /pipeline; the hero block already
-      // promotes the two P0 CTAs; keeping a third (header) entry-point
-      // bloated the dashboard's IA (4× Pipeline + 4× Scan was the
-      // v1.58.3 QA finding).
-      c('div', { className: 'flex gap-3' }, []),
+      // NEW-D2 (v1.58.39) — added a Refresh button that re-fetches the
+      // dashboard counters and gives explicit toast feedback. Distinct
+      // from the connection-banner Refresh (v1.58.14 / M-9) which does
+      // a full page reload — this one only re-fetches the data and
+      // re-renders the view in place, so the user can pull fresh
+      // counts without leaving the page or losing scroll position.
+      c('div', { className: 'flex gap-3' }, [
+        c('button', {
+          className: 'btn btn-ghost btn-sm',
+          'data-test': 'dash-refresh',
+          'aria-label': t('dash.refreshAria', 'Refresh dashboard counters'),
+          onClick: async (e) => {
+            const btn = e.currentTarget;
+            UI.toast(I18n.t('common.refreshing', 'Refreshing…'));
+            try {
+              await UI.withSpinner(btn, async () => {
+                const fresh = await API.get('/api/dashboard');
+                // Re-execute the route handler so the view rebuilds
+                // with the new counts; cheap (one fetch already done).
+                Router.go('/dashboard');
+                return fresh;
+              });
+              UI.dismissToast();
+              UI.toast(I18n.t('dash.refreshed', 'Dashboard refreshed'), 'success');
+            } catch (err) {
+              UI.dismissToast();
+              UI.toast((err && err.message) || I18n.t('common.error', 'Refresh failed'), 'error');
+            }
+          },
+        }, '↻ ' + t('common.refresh', 'Refresh')),
+      ]),
     ]),
 
     // ── v1.55.5 (UX-3) — hero: the 2 P0 CTAs + a focal recent hint ──

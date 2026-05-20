@@ -37,6 +37,32 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('NEW-D2 (v1.58.39): #/dashboard header Refresh button gives explicit toast feedback', () => {
+  const dash = read('public', 'js', 'views', 'dashboard.js');
+  // The header must declare a Refresh button with the right ARIA hook
+  // and toast pipeline (Refreshing… → success "Dashboard refreshed"
+  // → error fallback). Distinct from connection-banner Refresh (M-9).
+  assert.match(dash, /'data-test':\s*'dash-refresh'/,
+    'header Refresh button must declare data-test="dash-refresh"');
+  assert.match(dash, /'aria-label':\s*t\('dash\.refreshAria'/,
+    'header Refresh button must declare aria-label: t("dash.refreshAria", …)');
+  assert.match(dash, /UI\.toast\(I18n\.t\('common\.refreshing',[^)]*\)\)/,
+    'header Refresh must emit common.refreshing toast on click');
+  assert.match(dash, /UI\.toast\(I18n\.t\('dash\.refreshed',[^)]*\),\s*'success'\)/,
+    'header Refresh must emit dash.refreshed success toast on completion');
+  // i18n parity for the 2 new keys.
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  for (const key of ['dash.refreshAria', 'dash.refreshed']) {
+    const row = dict.match(new RegExp(`'${key.replace(/\./g, '\\.')}':\\s*\\{([^}]+)\\}`));
+    assert.ok(row, `i18n-dict.js missing '${key}'`);
+    for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+      const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+      assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+        `'${key}' must have a non-empty ${lang} value`);
+    }
+  }
+});
+
 test('NEW-D3 (v1.58.38): #/tracker search input has explicit aria-label distinct from placeholder', () => {
   const tr = read('public', 'js', 'views', 'tracker.js');
   // The input must carry both placeholder and aria-label, sourced

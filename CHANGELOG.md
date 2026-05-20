@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.39] — 2026-05-20
+
+**fix(ux): NEW-D2 — Dashboard header gets a Refresh button with explicit toast feedback (distinct from connection-banner Refresh of M-9 / v1.58.14).** v1.58.36 audit: there was no in-place refresh on `#/dashboard` — the user had to use the connection-banner Refresh (which does a full `location.reload()` and loses scroll position) just to update the four metric counters. New `↻ Refresh` button in the header in [public/js/views/dashboard.js](public/js/views/dashboard.js) re-fetches `/api/dashboard` and re-renders the view in place via `Router.go("/dashboard")` — no page reload, no scroll loss. Toast pipeline: `Refreshing…` (in-flight) → `Dashboard refreshed` (success) or localized error. Two new i18n keys × 8 locales: `dash.refreshAria` (button aria-label) + `dash.refreshed` (success toast). 931 → **932** unit. (NEW-D2)
+
+---
+
 ## [1.58.38] — 2026-05-20
 
 **fix(a11y): NEW-D3 (WCAG 4.1.2) — `#/tracker` search input gets a localized `aria-label` distinct from its placeholder.** v1.58.36 audit: the search input had only `placeholder="Search by company / role…"` and no `aria-label` — screen-reader users heard only the generic role "edit text" with no description of the purpose. Per WCAG 4.1.2 (Name, Role, Value) a standalone search input without an associated `<label>` MUST have an explicit accessible name. Fix in [public/js/views/tracker.js](public/js/views/tracker.js): the `filterText` input now declares `type="search"` + `aria-label: t(track.searchAria, …)`. New `track.searchAria` i18n key in all 8 locales — values explicitly different from the placeholder ("Search applications by company name or role title" vs "Search by company / role…") so the SR doesn't hear the same string twice. 930 → **931** unit. (NEW-D3)

@@ -5,11 +5,11 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | **한국어** | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-931%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-932%20passed-brightgreen)](#tests)
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.58.38-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.38)
+[![release](https://img.shields.io/badge/release-v1.58.39-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.39)
 
 > **최근 (v1.55 → v1.58):** **깔끔하게 포맷된 조사 출력**(#/deep·저장된 조사가 `<tool_call>`/`<tool_response>` 제거) + 외부 QA 리포트 버그 일괄 수정(`#/followup` ISO 날짜, help 인용 내 굵게, 중복 pipeline 토스트 정직화, `#/outreach` 별칭) + **OpenRouter 제공자**(키 하나 → 300+ 모델, `#/config` 라이브 드롭다운) + `#/config` 「validation failed」 수정(공백/줄바꿈 포함해 붙여넣은 키도 저장됨), 온보딩 배너 + 활성 제공자 칩, 정직한 ⚡ 라이브 실행 비용 힌트, `#/auto` ETA, `#/scan` 고급 필터 디스클로저 + 눈에 띄는 Stop, `#/dashboard` 히어로 CTA, `#/pipeline` 1000행 초과 가상화, `#/tracker` 서버 페이지네이션 + 퍼널 칩, 접근성 다듬기 — 버전별 상세는 [CHANGELOG.ko-KR.md](CHANGELOG.ko-KR.md).
 

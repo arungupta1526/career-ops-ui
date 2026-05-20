@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.39] — 2026-05-20
+
+**fix(ux): NEW-D2 — botón Refresh en el header del panel con feedback explícito.** Distinto del Refresh del banner de conexión; este re-fetch in-place sin recargar la página. 2 nuevas claves i18n. 931 → **932** unitarios. (NEW-D2)
+
+---
+
 ## [1.58.38] — 2026-05-20
 
 **fix(a11y): NEW-D3 (WCAG 4.1.2) — input de búsqueda de `#/tracker` con `aria-label` localizado distinto del placeholder.** Antes solo había placeholder; SR no escuchaban el propósito. Nueva clave `track.searchAria` × 8 idiomas, distinta del placeholder. 930 → **931** unitarios. (NEW-D3)

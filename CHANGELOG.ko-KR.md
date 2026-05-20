@@ -10,6 +10,12 @@
 
 
 
+## [1.58.39] — 2026-05-20
+
+**fix(ux): NEW-D2 — 대시보드 헤더의 Refresh 버튼이 명시적 피드백 제공.** 페이지 리로드 없이 재페치 + 재렌더. 2 개의 새 i18n 키. 931 → **932** 유닛. (NEW-D2)
+
+---
+
 ## [1.58.38] — 2026-05-20
 
 **fix(a11y): NEW-D3 (WCAG 4.1.2) — `#/tracker` 검색 입력에 placeholder 와 다른 현지화 `aria-label` 추가.** 이전엔 placeholder 만 있었고 SR 은 목적을 알 수 없었음. 새 i18n 키 `track.searchAria` × 8 언어, placeholder 와 다른 문자열. 930 → **931** 유닛. (NEW-D3)

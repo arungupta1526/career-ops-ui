@@ -234,6 +234,9 @@ window.__I18N_DICT = {
   // surfaced on the next page boot via sessionStorage['refreshedToast'].
   'common.refreshing': { en: 'Refreshing…', es: 'Actualizando…', 'pt-BR': 'Atualizando…', ko: '새로고침 중…', ja: '更新中…', ru: 'Обновление…', 'zh-CN': '刷新中…', 'zh-TW': '重新整理中…' },
   'common.refreshed':  { en: 'Refreshed', es: 'Actualizado', 'pt-BR': 'Atualizado', ko: '새로고침됨', ja: '更新しました', ru: 'Обновлено', 'zh-CN': '已刷新', 'zh-TW': '已重新整理' },
+  // NEW-D2 (v1.58.39) — Dashboard top-bar Refresh button feedback.
+  'dash.refreshAria': { en: 'Refresh dashboard counters', es: 'Actualizar los contadores del panel', 'pt-BR': 'Atualizar os contadores do painel', ko: '대시보드 카운터 새로고침', ja: 'ダッシュボードのカウンタを更新', ru: 'Обновить счётчики панели', 'zh-CN': '刷新仪表盘计数', 'zh-TW': '重新整理儀表板計數' },
+  'dash.refreshed':   { en: 'Dashboard refreshed', es: 'Panel actualizado', 'pt-BR': 'Painel atualizado', ko: '대시보드 새로고침됨', ja: 'ダッシュボードを更新しました', ru: 'Панель обновлена', 'zh-CN': '仪表盘已刷新', 'zh-TW': '儀表板已重新整理' },
   // U-4 (v1.58.24) — toast technical detail summary
   'toast.details':   { en: 'Details', es: 'Detalles', 'pt-BR': 'Detalhes', ko: '세부 정보', ja: '詳細', ru: 'Подробнее', 'zh-CN': '详细信息', 'zh-TW': '詳細資訊' },
   // U-8 (v1.58.28) — collapsible Generate-prompt block summary.

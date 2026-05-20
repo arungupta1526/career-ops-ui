@@ -10,6 +10,12 @@
 
 
 
+## [1.58.39] — 2026-05-20
+
+**fix(ux): NEW-D2 — 仪表盘头部新增 Refresh 按钮并提供明确的反馈 toast。** 与连接横幅的 Refresh 不同;就地再取数 + 再渲染,不刷新页面。2 个新 i18n 键。931 → **932** 单元。(NEW-D2)
+
+---
+
 ## [1.58.38] — 2026-05-20
 
 **fix(a11y): NEW-D3 (WCAG 4.1.2) — `#/tracker` 搜索输入获得与 placeholder 不同的本地化 `aria-label`。** 此前仅有 placeholder,屏幕阅读器无法听到用途。新 i18n 键 `track.searchAria` × 8 语言,与 placeholder 不同。930 → **931** 单元。(NEW-D3)

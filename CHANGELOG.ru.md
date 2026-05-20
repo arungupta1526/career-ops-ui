@@ -10,6 +10,12 @@
 
 
 
+## [1.58.39] — 2026-05-20
+
+**fix(ux): NEW-D2 — на `#/dashboard` появилась кнопка `↻ Refresh` в шапке с явным toast-фидбэком (отличная от Refresh из connection-banner — M-9 v1.58.14).** До правки на `#/dashboard` не было in-place обновления — пользователь использовал banner Refresh, который делает полный `location.reload()` и теряет позицию скролла. Новая кнопка в [public/js/views/dashboard.js](public/js/views/dashboard.js) перечитывает `/api/dashboard` и перерисовывает view через `Router.go("/dashboard")`. Toast-пайплайн: «Обновление…» → «Панель обновлена» (success) / локализованная ошибка. Два новых i18n-ключа × 8 локалей: `dash.refreshAria`, `dash.refreshed`. 931 → **932** модульных. (NEW-D2)
+
+---
+
 ## [1.58.38] — 2026-05-20
 
 **fix(a11y): NEW-D3 (WCAG 4.1.2) — поле поиска на `#/tracker` получает локализованный `aria-label`, отличный от placeholder.** v1.58.36 аудит: у поля поиска был только `placeholder="Search by company / role…"` и не было `aria-label` — скрин-ридеры озвучивали generic-роль «edit text» без описания назначения. По WCAG 4.1.2 (Name, Role, Value) одиночное search-поле без `<label>` ОБЯЗАНО иметь явный accessible name. Правка в [public/js/views/tracker.js](public/js/views/tracker.js): `filterText` теперь декларирует `type="search"` + `aria-label: t(track.searchAria, …)`. Новый ключ `track.searchAria` во всех 8 локалях — значения явно отличаются от placeholder («Поиск заявок по компании или роли» vs «Поиск по компании / роли…»), чтобы SR не повторял ту же строку дважды. 930 → **931** модульных. (NEW-D3)
