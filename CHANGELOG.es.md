@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.44] — 2026-05-20
+
+**fix(ux): UX-D-L — el brief abierto en Saved-research de `#/deep` tiene un botón × para cerrar.** Antes no había forma de cerrar el brief sin desplazarse o navegar. Nueva clave `deep.closeBrief` × 8. 937 → **938** unitarios. (UX-D-L)
+
+---
+
 ## [1.58.43] — 2026-05-20
 
 **fix(ux): UX-D-F — submit vacío en `#/evaluate` muestra toast localizado distinto.** Antes confundía vacío con "demasiado corto". Nueva clave `eval.emptyJd` × 8. 936 → **937** unitarios. (UX-D-F)

@@ -37,6 +37,22 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-D-L (v1.58.44): #/deep saved-research opened brief has an inline × close button', () => {
+  const deep = read('public', 'js', 'views', 'deep.js');
+  assert.match(deep, /'aria-label':\s*t\('deep\.closeBrief'/,
+    'showResult must declare an × button with aria-label: t("deep.closeBrief", …)');
+  assert.match(deep, /onClick:\s*\(\)\s*=>\s*\{\s*out\.innerHTML = ''/,
+    'close button must clear the out container on click');
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  const row = dict.match(/'deep\.closeBrief':\s*\{([^}]+)\}/);
+  assert.ok(row, "i18n-dict.js missing 'deep.closeBrief'");
+  for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+    const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+    assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+      `'deep.closeBrief' must have a non-empty ${lang} value`);
+  }
+});
+
 test('UX-D-F (v1.58.43): empty JD on #/evaluate triggers a distinct localized error toast (not "too short")', () => {
   const ev = read('public', 'js', 'views', 'evaluate.js');
   // Branch order: empty check must precede the <50 check, with its

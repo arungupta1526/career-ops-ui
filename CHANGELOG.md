@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.44] — 2026-05-20
+
+**fix(ux): UX-D-L — `#/deep` opened Saved-research brief now has an inline × close button.** v1.58.36 audit: clicking a saved-research card on `#/deep` rendered the brief body inline (Copy / Download / Open in tab / Generate PDF buttons in the header) but the user had no way to **close** the brief without scrolling away or navigating. New `×` button in [public/js/views/deep.js](public/js/views/deep.js) `showResult()` header — clears `out.innerHTML`, mirrors the modal-close pattern (api.js UI.modal × button), keyboard-reachable, aria-label + title from new `deep.closeBrief` i18n key × 8. 937 → **938** unit. (UX-D-L)
+
+---
+
 ## [1.58.43] — 2026-05-20
 
 **fix(ux): UX-D-F — `#/evaluate` empty-JD submit now shows a distinct localized error toast (was "JD too short").** Before the fix, clicking Evaluate with an empty textarea fell through to the existing `<50 chars` check and yielded `JD too short (min 50 chars)` — accurate but unhelpful: the real problem is "you typed nothing", not "you typed too little". [public/js/views/evaluate.js](public/js/views/evaluate.js#L28-L45) now checks `!jd` first and surfaces a new `eval.emptyJd` error toast (`"JD is required — paste the full job description"`, localized × 8) + focuses the textarea so the user can start typing immediately. The pre-existing `eval.shortJd` toast still fires for 1–49 char input. 936 → **937** unit. (UX-D-F)

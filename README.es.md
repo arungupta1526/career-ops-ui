@@ -5,11 +5,11 @@
 
 [English](README.md) | **Español** | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
-[![tests](https://img.shields.io/badge/tests-937%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-938%20passed-brightgreen)](#tests)
 [![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.58.43-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.43)
+[![release](https://img.shields.io/badge/release-v1.58.44-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.58.44)
 
 > **Reciente (v1.55 → v1.58):** **salida de investigación limpia y formateada** (#/deep + Investigación guardada eliminan andamiaje `<tool_call>`/`<tool_response>`) + barrido de bugs del informe QA (`#/followup` fecha ISO, negrita markdown en citas de ayuda, toast de duplicado honesto, alias `#/outreach`) + **proveedor OpenRouter** (una clave → 300+ modelos, desplegable en vivo en `#/config`) + corrección de «validation failed» en `#/config` (las claves pegadas con espacios/salto de línea ahora se guardan), banner de onboarding + chip de proveedor activo, costes honestos de ⚡ Ejecutar en vivo, ETA en `#/auto`, desplegable de Filtros avanzados + Stop prominente en `#/scan`, CTAs hero en `#/dashboard`, virtualización >1000 filas en `#/pipeline`, paginación de servidor + chips de embudo en `#/tracker`, y pulido de accesibilidad — detalle por versión en [CHANGELOG.es.md](CHANGELOG.es.md).
 

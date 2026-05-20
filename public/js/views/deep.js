@@ -97,6 +97,17 @@ Router.register('deep', async () => {
     const header = c('div', { className: 'flex-between mb-3' }, [
       c('strong', null, title),
       c('div', { className: 'flex gap-3' }, [
+        // UX-D-L (v1.58.44) — explicit close affordance on the opened
+        // brief. Pre-fix the only way to dismiss the inline brief body
+        // was to scroll away or navigate; an X button matches the
+        // modal-close pattern (api.js UI.modal × button) and lives on
+        // the keyboard path (Tab to it, Enter / Space to dismiss).
+        c('button', {
+          className: 'btn btn-ghost btn-sm',
+          'aria-label': t('deep.closeBrief', 'Close brief'),
+          title: t('deep.closeBrief', 'Close brief'),
+          onClick: () => { out.innerHTML = ''; },
+        }, '×'),
         c('button', {
           className: 'btn btn-ghost btn-sm',
           onClick: () => {
