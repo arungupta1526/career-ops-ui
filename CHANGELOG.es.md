@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.57] — 2026-05-20
+
+**test(ui): UX-A7 (v1.58.57) — bloqueo de regresión sobre el contrato de refresco automático del cost-line.** Nueva prueba estática asegura que el evento `providers-changed` se despacha, se suscribe y que todas las vistas de asesor llaman a `UI.providerCostHint`. (UX-A7)
+
+---
+
+
+
 ## [1.58.56] — 2026-05-20
 
 **fix(a11y): UX-A4 (v1.58.56) — `.lang-btn` cumple el tamaño mínimo de objetivo táctil WCAG 2.5.8.** Antes los botones de idioma medían 23–25 px de alto, por debajo del piso de 24×24 px. Ahora `min-height: 28px` + `min-width: 28px` garantizan el cumplimiento WCAG 2.2 AA. (UX-A4)

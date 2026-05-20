@@ -10,6 +10,14 @@
 
 
 
+## [1.58.57] — 2026-05-20
+
+**test(ui): UX-A7 (v1.58.57) — cost-line 自動刷新契約的回歸鎖測試。** 新增靜態測試,確保 `providers-changed` 事件被派發、被訂閱,以及所有 advisor 視圖都呼叫 `UI.providerCostHint`。(UX-A7)
+
+---
+
+
+
 ## [1.58.56] — 2026-05-20
 
 **fix(a11y): UX-A4 (v1.58.56) — `.lang-btn` 達到 WCAG 2.5.8 最小觸控目標尺寸。** 修復前語言按鈕高 23–25 px,低於 24×24 px 標準。現在透過 `min-height: 28px` + `min-width: 28px` 達到 WCAG 2.2 AA 合規。(UX-A4)

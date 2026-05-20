@@ -37,6 +37,38 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-A7 (v1.58.57): cost-line auto-refreshes when LLM_PROVIDER changes (providers-changed wiring)', () => {
+  // The contract — verified statically because Playwright is not in the
+  // node --test suite — is that:
+  //   1. config.js dispatches a `providers-changed` CustomEvent on Save.
+  //   2. The shared UI.providerCostHint helper subscribes via
+  //      document.addEventListener('providers-changed', refreshCostLine).
+  //   3. Every advisor view that surfaces cost (#/deep, #/evaluate,
+  //      #/auto, #/<mode>) calls UI.providerCostHint(t).
+  // If any of those three pieces breaks, the cost line silently lies
+  // after a provider switch — exactly the regression UX-D-I (v1.58.41)
+  // was meant to prevent. This guard locks all three in place.
+  const config = read('public', 'js', 'views', 'config.js');
+  assert.match(config,
+    /document\.dispatchEvent\(new CustomEvent\('providers-changed'\)\)/,
+    'config.js Save handler must dispatch providers-changed CustomEvent');
+
+  const api = read('public', 'js', 'api.js');
+  assert.match(api,
+    /document\.addEventListener\('providers-changed', refreshCostLine\)/,
+    'UI.providerCostHint must subscribe refreshCostLine to providers-changed');
+  assert.match(api,
+    /document\.addEventListener\('visibilitychange', onVisibility\)/,
+    'UI.providerCostHint must also refresh on tab refocus (cross-tab provider switch)');
+
+  // All 4 advisor views call UI.providerCostHint(t).
+  for (const view of ['deep.js', 'evaluate.js', 'auto.js', 'mode-page.js']) {
+    const src = read('public', 'js', 'views', view);
+    assert.match(src, /UI\.providerCostHint\(t\)/,
+      `${view} must call UI.providerCostHint(t) so the cost line auto-refreshes`);
+  }
+});
+
 test('UX-A4 (v1.58.56): .lang-btn meets WCAG 2.5.8 minimum touch-target (≥ 28×28 px)', () => {
   const css = read('public', 'css', 'app.css');
   // The pre-fix rule was `padding: 4px 8px` with no min-height — pulling

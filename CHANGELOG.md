@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.57] — 2026-05-20
+
+**test(ui): UX-A7 (v1.58.57) — lock-test on the cost-line auto-refresh contract.** v1.58.41 (UX-D-I) wired `UI.providerCostHint` to refresh when the user changes `LLM_PROVIDER` mid-session, but the contract had no static guard — any of the three pieces (config.js dispatch, api.js subscribe, advisor-view call site) could regress silently and the cost line would lie. New regression test in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs) locks all three: (1) `config.js` Save handler dispatches `providers-changed`, (2) `UI.providerCostHint` subscribes via `document.addEventListener`, (3) all 4 advisor views (`#/deep`, `#/evaluate`, `#/auto`, `#/<mode>`) call `UI.providerCostHint(t)`. 952 → **953** unit. (UX-A7)
+
+---
+
+
+
 ## [1.58.56] — 2026-05-20
 
 **fix(a11y): UX-A4 (v1.58.56) — `.lang-btn` meets WCAG 2.5.8 minimum touch-target.** Pre-fix the language buttons in the sidebar footer measured 23–25 px tall × 47–72 px wide (below the 24×24 WCAG 2.5.8 / WCAG 2.2 AA floor). [public/css/app.css](public/css/app.css) now declares `min-height: 28px` + `min-width: 28px` + `padding: 6px 10px` on `.lang-btn` — every locale label clears the floor with comfortable margin. Sidebar grows by 6 px total (negligible). Lock-test in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs). 951 → **952** unit. (UX-A4)
