@@ -10,6 +10,12 @@
 
 
 
+## [1.58.46] — 2026-05-20
+
+**fix(ux): UX-D-D — checklist на `#/apply` подставляет `{company}-{role}` слагами, вычисленными из URL/JD.** v1.58.36 аудит: item 5 чеклиста читался как `Save filled answers to interview-prep/{company}-{role}.md before submitting.` — литералы `{company}-{role}` отрисовывались дословно, пользователь должен был мысленно подставлять значения (или, хуже, оставлял их как есть). Новые `extractSlugs(url, jd)` + `substitutePlaceholders(text, url, jd)` в [public/js/views/apply.js](public/js/views/apply.js#L36-L93): white-list хостов (`greenhouse / lever / ashby / workable / smartrecruiters / workday`) выделяет `company` из path или поддомена, затем `role` из последнего сегмента пути (с обрезкой trailing numeric id) — или, как fallback, из первой строки JD. Если извлечение не удалось (unknown host / нет JD), плейсхолдеры становятся `[company]` / `[role]` (square-bracket convention для «заполни сам»). Substitution выполняется один раз перед `parseChecklist`, поэтому live checklist и Copy-unchecked output остаются согласованными. 939 → **940** модульных. (UX-D-D)
+
+---
+
 ## [1.58.45] — 2026-05-20
 
 **fix(ux): UX-D-K — scroll-spy в TOC `#/help` подсвечивает текущую секцию.** v1.58.36 аудит: при прокрутке тела help страница TOC (sticky, ~92 H2-секций) не показывал, какую секцию читает пользователь. Новый `IntersectionObserver` в [public/js/views/help.js](public/js/views/help.js#L155-L185) наблюдает за каждым `.help-article h2[id]` и применяет `.toc-current` к соответствующей `<a>` ссылке TOC, когда H2 попадает в верхнюю треть viewport (`rootMargin: "-30% 0% -60% 0%"`). CSS [public/css/app.css](public/css/app.css) задаёт `.toc-current` левый бренд-бордер + цвет `var(--rausch)` + `font-weight: 600`. При hashchange observer отключается рядом с существующим scroll-listener — никаких утечек. 938 → **939** модульных. (UX-D-K)

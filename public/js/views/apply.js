@@ -33,6 +33,56 @@ Router.register('apply', async () => {
       .map((l) => l.replace(/^(?:[-*•]|\d+[.)]|\[\s?\])\s+/, ''))
       .filter((l) => l.length > 0);
   }
+  // UX-D-D (v1.58.46) — the server-generated checklist item 5 mentions
+  // `interview-prep/{company}-{role}.md`. v1.58.36 audit: the literal
+  // placeholders {company}/{role} were displayed verbatim — the user
+  // had to mentally substitute them before pasting or could leave them
+  // in by accident. Try to extract a company + role slug from the URL
+  // (and optionally the JD's first H1) and substitute. If extraction
+  // fails, replace with `[company]`/`[role]` to make the slot honest
+  // (square-bracket convention for "fill in").
+  function extractSlugs(u, jdText) {
+    let company = '';
+    let role = '';
+    try {
+      const parsed = new URL(u);
+      const host = parsed.hostname.replace(/^www\./, '');
+      const segs = parsed.pathname.split('/').filter(Boolean);
+      // Greenhouse: boards.greenhouse.io/<company>/jobs/<id> → company=segs[0]
+      // Lever:      jobs.lever.co/<company>/<id>
+      // Ashby:      jobs.ashbyhq.com/<company>/<id>
+      // Workable:   apply.workable.com/<company>
+      // SmartRec:   jobs.smartrecruiters.com/<company>/<id>
+      // Hh.ru:      hh.ru/vacancy/<id>   (no company in URL — skip)
+      // Workday:    <company>.wd1.myworkdayjobs.com/...
+      if (/greenhouse|lever|ashby|workable|smartrecruit/.test(host) && segs[0]) {
+        company = segs[0];
+      } else if (/myworkdayjobs/.test(host)) {
+        company = host.split('.')[0];
+      }
+      // The trailing segment often contains the role slug
+      // (e.g. "senior-backend-engineer-4567"). Strip a trailing
+      // numeric id so the slug is human-readable.
+      const last = segs[segs.length - 1] || '';
+      role = last.replace(/-?\d{4,}$/, '').replace(/^\d+-/, '').toLowerCase();
+    } catch { /* not a URL; keep slugs empty */ }
+    // Fallback: try to derive role from JD's first non-empty heading line.
+    if (!role && jdText) {
+      const firstLine = String(jdText).split(/\r?\n/).map((l) => l.trim()).find(Boolean);
+      if (firstLine) {
+        role = firstLine.replace(/^#+\s*/, '').toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
+      }
+    }
+    return { company, role };
+  }
+  function substitutePlaceholders(raw, url, jdText) {
+    if (!raw || !/\{company\}|\{role\}/.test(raw)) return raw;
+    const { company, role } = extractSlugs(url, jdText);
+    return raw
+      .replace(/\{company\}/g, company || '[company]')
+      .replace(/\{role\}/g, role || '[role]');
+  }
   function loadState(slug, n) {
     try {
       const raw = localStorage.getItem(STORAGE_PREFIX + slug);
@@ -98,7 +148,11 @@ Router.register('apply', async () => {
     out.innerHTML = `<div class="loading">…</div>`;
     try {
       const r = await API.post('/api/apply-helper', { url: url.value.trim(), jd: jd.value.trim() });
-      const items = parseChecklist(r.checklist);
+      // UX-D-D (v1.58.46) — substitute {company}-{role} placeholders
+      // before parsing so item 5 reads as `interview-prep/anthropic-senior-backend-engineer.md`
+      // instead of the literal `{company}-{role}.md`.
+      const substituted = substitutePlaceholders(r.checklist, url.value.trim(), jd.value.trim());
+      const items = parseChecklist(substituted);
       const slug = slugForUrl(url.value.trim());
       out.innerHTML = '';
       const card = c('div', { className: 'card' }, [c('p', null, r.message)]);

@@ -10,6 +10,12 @@
 
 
 
+## [1.58.46] — 2026-05-20
+
+**fix(ux): UX-D-D — `#/apply` 체크리스트의 `{company}-{role}` 을 URL/JD 에서 추출한 슬러그로 치환.** 이전엔 플레이스홀더가 그대로 표시. 새 `extractSlugs` + `substitutePlaceholders` 가 Greenhouse/Lever/Ashby/Workable/SmartRecruiters/Workday 인식. 폴백 `[company]/[role]`. 939 → **940** 유닛. (UX-D-D)
+
+---
+
 ## [1.58.45] — 2026-05-20
 
 **fix(ux): UX-D-K — `#/help` 의 TOC 스크롤 스파이가 현재 섹션 강조.** `IntersectionObserver` 가 보이는 H2 에 해당하는 TOC 링크에 `.toc-current` 부여. 938 → **939** 유닛. (UX-D-K)

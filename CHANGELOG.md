@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.46] — 2026-05-20
+
+**fix(ux): UX-D-D — `#/apply` checklist substitutes `{company}-{role}` with slugs derived from the URL/JD.** v1.58.36 audit: the generated checklist's item 5 read `Save filled answers to interview-prep/{company}-{role}.md before submitting.` — the literal `{company}-{role}` placeholders were displayed verbatim and the user had to mentally substitute (or, worse, paste them as-is). New `extractSlugs(url, jd)` + `substitutePlaceholders(text, url, jd)` in [public/js/views/apply.js](public/js/views/apply.js#L36-L93): the host whitelist (`greenhouse / lever / ashby / workable / smartrecruiters / workday`) picks `company` out of the URL path or subdomain, then derives `role` from the trailing path slug (stripped of trailing numeric IDs) — or, as fallback, from the JD's first line. If extraction fails (unknown host / no JD), placeholders become `[company]` / `[role]` (square-bracket convention for "fill in"). Substitution runs once before `parseChecklist`, so the live checklist + Copy-unchecked output stay coherent. 939 → **940** unit. (UX-D-D)
+
+---
+
 ## [1.58.45] — 2026-05-20
 
 **fix(ux): UX-D-K — `#/help` TOC scroll-spy highlights the current section.** v1.58.36 audit: as the user scrolled the help body, the TOC sidebar (sticky, ~92 H2 sections) didn't indicate which section they were reading — they had to mentally scan the H2 above the fold against the TOC. New `IntersectionObserver` in [public/js/views/help.js](public/js/views/help.js#L155-L185) observes every `.help-article h2[id]` and applies `.toc-current` to the matching TOC `<a>` link when the H2 enters the upper-third reading band (`rootMargin: "-30% 0% -60% 0%"`). CSS [public/css/app.css](public/css/app.css) gives `.toc-current` a brand-red left-border + `var(--rausch)` color + `font-weight: 600` so the active item reads at a glance. The observer is torn down on hashchange next to the existing scroll listener, so no observer leaks when the user leaves `#/help`. 938 → **939** unit. (UX-D-K)

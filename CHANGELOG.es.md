@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.46] — 2026-05-20
+
+**fix(ux): UX-D-D — checklist de `#/apply` sustituye `{company}-{role}` por slugs derivados del URL/JD.** Antes los placeholders se mostraban literalmente. Nuevas funciones `extractSlugs` + `substitutePlaceholders` reconocen Greenhouse/Lever/Ashby/Workable/SmartRecruiters/Workday. Fallback `[company]/[role]`. 939 → **940** unitarios. (UX-D-D)
+
+---
+
 ## [1.58.45] — 2026-05-20
 
 **fix(ux): UX-D-K — scroll-spy en el TOC de `#/help` resalta la sección actual.** `IntersectionObserver` aplica `.toc-current` al enlace cuyo H2 está en la banda de lectura. 938 → **939** unitarios. (UX-D-K)

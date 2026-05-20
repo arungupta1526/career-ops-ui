@@ -37,6 +37,25 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-D-D (v1.58.46): apply checklist substitutes {company}-{role} with slugs derived from URL/JD', () => {
+  const apply = read('public', 'js', 'views', 'apply.js');
+  assert.match(apply, /function substitutePlaceholders\(/,
+    'apply.js must define substitutePlaceholders()');
+  assert.match(apply, /function extractSlugs\(/,
+    'apply.js must define extractSlugs()');
+  // Run substitution must happen before parseChecklist sees the text.
+  assert.match(apply, /const substituted = substitutePlaceholders\(r\.checklist,[\s\S]{0,200}const items = parseChecklist\(substituted\)/,
+    'run() must call substitutePlaceholders() before parseChecklist()');
+  // Greenhouse + Lever + Ashby + Workable + SmartRecruiters + Workday
+  // all recognised in the host whitelist.
+  assert.match(apply, /greenhouse\|lever\|ashby\|workable\|smartrecruit/,
+    'host whitelist must include the 5 ATS hosts');
+  assert.match(apply, /myworkdayjobs/, 'must handle Workday subdomain');
+  // Fallback "[company]" / "[role]" markers when extraction fails.
+  assert.match(apply, /'\[company\]'/, 'unresolved company must fall back to [company]');
+  assert.match(apply, /'\[role\]'/, 'unresolved role must fall back to [role]');
+});
+
 test('UX-D-K (v1.58.45): help TOC has scroll-spy highlighting via IntersectionObserver + `.toc-current` CSS', () => {
   const help = read('public', 'js', 'views', 'help.js');
   // IntersectionObserver wired with the .toc-current class toggle.

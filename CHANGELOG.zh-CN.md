@@ -10,6 +10,12 @@
 
 
 
+## [1.58.46] — 2026-05-20
+
+**fix(ux): UX-D-D — `#/apply` 清单将 `{company}-{role}` 替换为从 URL/JD 派生的 slug。** 此前占位符按字面显示。新 `extractSlugs` + `substitutePlaceholders` 识别 Greenhouse/Lever/Ashby/Workable/SmartRecruiters/Workday。回退 `[company]/[role]`。939 → **940** 单元。(UX-D-D)
+
+---
+
 ## [1.58.45] — 2026-05-20
 
 **fix(ux): UX-D-K — `#/help` 的 TOC 滚动追踪高亮当前章节。** `IntersectionObserver` 把 `.toc-current` 应用到当前可见 H2 对应的 TOC 链接。938 → **939** 单元。(UX-D-K)
