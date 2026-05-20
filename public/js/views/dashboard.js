@@ -84,6 +84,18 @@ Router.register('dashboard', async () => {
     const onVisibility = () => { if (!document.hidden) refresh(); };
     document.addEventListener('visibilitychange', onVisibility);
     document.addEventListener('providers-changed', refresh);
+    // M-1 discipline (v1.58.36) — scope listeners to the route lifetime.
+    // Without this, every Router.go('/dashboard') stacks another pair of
+    // listeners on `document` and they fire forever. The cleanup
+    // self-detaches the first time the hash leaves `#/dashboard`.
+    const cleanup = () => {
+      if (!location.hash.startsWith('#/dashboard')) {
+        document.removeEventListener('visibilitychange', onVisibility);
+        document.removeEventListener('providers-changed', refresh);
+        window.removeEventListener('hashchange', cleanup);
+      }
+    };
+    window.addEventListener('hashchange', cleanup);
     return chip;
   }
 

@@ -48,6 +48,11 @@ test('UX-A3 (v1.58.55): dashboard renders an active-provider chip wired to /api/
     'chip must re-render on providers-changed event (#/config save dispatches it)');
   assert.match(dash, /document\.addEventListener\('visibilitychange', onVisibility\)/,
     'chip must re-render on tab refocus (cross-tab provider switch)');
+  // M-1 discipline: listeners must self-detach when leaving #/dashboard.
+  assert.match(dash, /window\.addEventListener\('hashchange', cleanup\)/,
+    'chip must register a hashchange cleanup so listeners do not stack');
+  assert.match(dash, /document\.removeEventListener\('providers-changed', refresh\)/,
+    'cleanup must remove providers-changed listener');
   // i18n keys present in 8 locales.
   const dict = read('public', 'js', 'lib', 'i18n-dict.js');
   for (const key of ['dash.provider.live', 'dash.provider.manual']) {

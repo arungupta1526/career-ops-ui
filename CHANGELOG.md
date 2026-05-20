@@ -10,7 +10,7 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 ## [1.58.55] — 2026-05-20
 
-**feat(ui): UX-A3 (v1.58.55) — Dashboard active-provider chip.** Above-the-fold chip in [public/js/views/dashboard.js](public/js/views/dashboard.js) hero now surfaces whether the OR-model fell through to a live provider (e.g. `⚡ Live evals: Anthropic claude-sonnet-4-6`) or whether the user is in `📋 Manual prompt mode (no API key set)`. Re-fetches on `providers-changed` (dispatched by [#/config](public/js/views/config.js) save) and on `visibilitychange` (cross-tab refocus). Reuses the existing `/api/status/providers` endpoint (no new API surface). Three i18n keys × 8 locales; one CSS rule (`.dash-chip--provider`). 950 → **951** unit. (UX-A3)
+**feat(ui): UX-A3 (v1.58.55) — Dashboard active-provider chip.** Above-the-fold chip in [public/js/views/dashboard.js](public/js/views/dashboard.js) hero now surfaces whether the OR-model fell through to a live provider (e.g. `⚡ Live evals: Anthropic claude-sonnet-4-6`) or whether the user is in `📋 Manual prompt mode (no API key set)`. Re-fetches on `providers-changed` (dispatched by [#/config](public/js/views/config.js) save) and on `visibilitychange` (cross-tab refocus). Reuses the existing `/api/status/providers` endpoint (no new API surface). Two i18n keys × 8 locales (`dash.provider.live`, `dash.provider.manual`); one CSS rule (`.dash-chip--provider`). Lifecycle cleanup on `hashchange` away from `#/dashboard` so listeners don't stack across navigation (M-1 discipline). 950 → **951** unit. (UX-A3)
 
 ---
 
