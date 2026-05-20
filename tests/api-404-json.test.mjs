@@ -84,6 +84,26 @@ test('NEW-F1: DELETE /api/<unknown> returns 404 JSON {error}', async () => {
   assert.equal(r.json?.error, 'unknown api');
 });
 
+test('NEW-D3-cache (v1.59.7): GET /api/cv responds with Cache-Control: no-store', async () => {
+  const r = await probe('GET', '/api/cv');
+  assert.equal(r.status, 200, 'GET /api/cv must 200 (cv.md scaffolded in fixture)');
+  // Pull cache-control from a fresh probe — `probe()` only returns
+  // status/ct/json/text, so do an inline fetch with header capture.
+  const app = createApp();
+  const server = await new Promise((res) => {
+    const s = app.listen(0, '127.0.0.1', () => res(s));
+  });
+  try {
+    const port = server.address().port;
+    const res = await fetch(`http://127.0.0.1:${port}/api/cv`, { redirect: 'manual' });
+    await res.text();
+    const cc = res.headers.get('cache-control');
+    assert.equal(cc, 'no-store', `Cache-Control must be no-store, got ${cc}`);
+  } finally {
+    await new Promise((res) => server.close(res));
+  }
+});
+
 test('NEW-F1: an unknown :name under a real handler is JSON 404 (not HTML fallthrough)', async () => {
   // The /api/jds/:name handler matches and runs its own 404 for an
   // unknown file (`{error: 'not found'}`) — that's also a valid JSON

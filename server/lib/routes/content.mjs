@@ -36,6 +36,13 @@ const upload = multer({
 export function registerContentRoutes(app) {
   // ─── CV ───
   app.get('/api/cv', (_req, res) => {
+    // NEW-D3-cache (v1.59.7) — `cv.md` is the user-edited primary
+    // artifact; a stale browser cache served by an intermediary or
+    // dev-tools "Disable cache" toggle could surface yesterday's text
+    // and trick the editor into saving over it. Match the SPA-shell
+    // policy (W-001 / v1.54.7) — always revalidate. No ETag dance:
+    // the file is small and the GET is rare.
+    res.setHeader('Cache-Control', 'no-store');
     if (!existsSync(PATHS.cv)) return res.json({ markdown: '' });
     res.json({ markdown: readFileSync(PATHS.cv, 'utf8') });
   });

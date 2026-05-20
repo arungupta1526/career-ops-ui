@@ -10,6 +10,14 @@
 
 
 
+## [1.59.7] — 2026-05-20
+
+**fix(api): NEW-D3-cache (v1.59.7) — `GET /api/cv` теперь шлёт `Cache-Control: no-store`.** CV — главный артефакт пользователя; кеш браузера/прокси никогда не должен показывать вчерашний текст. (NEW-D3-cache)
+
+---
+
+
+
 ## [1.59.6] — 2026-05-20
 
 **feat(a11y): NEW-D2-motion (v1.59.6) — поддержка `prefers-reduced-motion: reduce`.** Новый блок `@media` обнуляет анимации, переходы и `scroll-behavior`. WCAG 2.3.3 (AAA). (NEW-D2-motion)

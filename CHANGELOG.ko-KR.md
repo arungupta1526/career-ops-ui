@@ -10,6 +10,14 @@
 
 
 
+## [1.59.7] — 2026-05-20
+
+**fix(api): NEW-D3-cache (v1.59.7) — `GET /api/cv` 가 `Cache-Control: no-store` 전송.** CV 는 사용자 핵심 아티팩트이므로 항상 재검증. (NEW-D3-cache)
+
+---
+
+
+
 ## [1.59.6] — 2026-05-20
 
 **feat(a11y): NEW-D2-motion (v1.59.6) — `prefers-reduced-motion: reduce` 존중.** 새 `@media` 블록이 애니메이션·트랜지션·`scroll-behavior` 를 비활성화. (NEW-D2-motion)

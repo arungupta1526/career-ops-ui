@@ -10,6 +10,14 @@
 
 
 
+## [1.59.7] — 2026-05-20
+
+**fix(api): NEW-D3-cache (v1.59.7) — `GET /api/cv` 傳送 `Cache-Control: no-store`。** CV 是使用者主要工件,始終重新驗證。(NEW-D3-cache)
+
+---
+
+
+
 ## [1.59.6] — 2026-05-20
 
 **feat(a11y): NEW-D2-motion (v1.59.6) — 尊重 `prefers-reduced-motion: reduce`。** 新 `@media` 區塊停用動畫、過渡和 `scroll-behavior`。(NEW-D2-motion)

@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.59.7] — 2026-05-20
+
+**fix(api): NEW-D3-cache (v1.59.7) — `GET /api/cv` sends `Cache-Control: no-store`.** Matches the SPA-shell policy (W-001 / v1.54.7). `cv.md` is the user-edited primary artifact; a stale browser cache or intermediary proxy could surface yesterday's text and trick the editor into saving over the live version. No ETag dance — the file is small and the GET is rare. New test in [tests/api-404-json.test.mjs](tests/api-404-json.test.mjs) (the suite is the in-process server harness; named for its first test). 970 → **971** unit. (NEW-D3-cache)
+
+---
+
+
+
 ## [1.59.6] — 2026-05-20
 
 **feat(a11y): NEW-D2-motion (v1.59.6) — honour `prefers-reduced-motion: reduce`.** New `@media (prefers-reduced-motion: reduce)` block in [public/css/app.css](public/css/app.css) neutralizes `animation-duration` + `transition-duration` to 0.01 ms and forces `scroll-behavior: auto` (so the Help TOC click-to-scroll lands instantly). WCAG 2.3.3 (AAA) — users with vestibular disorders, motion sensitivity, or simply OS-level reduced-motion preference now get an animation-free UI. Static guard in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs). 969 → **970** unit. (NEW-D2-motion)

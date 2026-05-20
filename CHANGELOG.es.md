@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.59.7] — 2026-05-20
+
+**fix(api): NEW-D3-cache (v1.59.7) — `GET /api/cv` envía `Cache-Control: no-store`.** El CV es el artefacto principal del usuario; siempre revalidar. (NEW-D3-cache)
+
+---
+
+
+
 ## [1.59.6] — 2026-05-20
 
 **feat(a11y): NEW-D2-motion (v1.59.6) — respeto a `prefers-reduced-motion: reduce`.** Nuevo bloque `@media` neutraliza animaciones, transiciones y `scroll-behavior`. (NEW-D2-motion)
