@@ -10,6 +10,12 @@
 
 
 
+## [1.58.40] — 2026-05-20
+
+**fix(ux/docs): UX-D-H — 回歸鎖:每個可見的 `career-ops.org/docs/...` 深層連結必須保持可點擊。** 新 `tests/external-doc-links.test.mjs` 校驗 views/*.js 與 docs/help/*.md。932 → **934** 單元。(UX-D-H)
+
+---
+
 ## [1.58.39] — 2026-05-20
 
 **fix(ux): NEW-D2 — 儀表板頂部新增 Refresh 按鈕並提供明確的回饋 toast。** 與連線橫幅的 Refresh 不同;就地重新取數 + 重新渲染,不重新整理頁面。2 個新 i18n 鍵。931 → **932** 單元。(NEW-D2)

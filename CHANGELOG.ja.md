@@ -10,6 +10,12 @@
 
 
 
+## [1.58.40] — 2026-05-20
+
+**fix(ux/docs): UX-D-H — `career-ops.org/docs/...` 深層リンクがクリック可能であることを保証する regression-lock。** 新しい `tests/external-doc-links.test.mjs` が views/*.js と docs/help/*.md を検査。932 → **934** ユニット。(UX-D-H)
+
+---
+
 ## [1.58.39] — 2026-05-20
 
 **fix(ux): NEW-D2 — ダッシュボードヘッダの Refresh ボタンが明示的なフィードバックを提供。** ページリロードなしで再フェッチ + 再レンダリング。2 つの新 i18n キー。931 → **932** ユニット。(NEW-D2)

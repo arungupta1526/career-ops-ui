@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.40] — 2026-05-20
+
+**fix(ux/docs): UX-D-H — regression-lock: every visible `career-ops.org/docs/...` deep-link must be clickable.** v1.58.36 audit verified live: every existing such URL in `public/js/views/*.js` is already inside `c("a", { href, target: "_blank", rel: "noopener noreferrer" }, …)` (apply.js / batch.js / config.js / reports.js), and every `docs/help/*.md` reference uses markdown `[text](url)`. So this release ships only the **regression lock**: new [tests/external-doc-links.test.mjs](tests/external-doc-links.test.mjs) parses every `views/*.js` and `docs/help/*.md` file and fails if a `career-ops.org/docs/<path>` URL is rendered as plain child text (not inside an `<a>` create, attribute slot, or markdown link). Bare brand mentions of `career-ops.org` without `/docs/` path are tolerated (e.g. "career-ops.org schema" in prose). 2 new test cases added to the suite. 932 → **934** unit. (UX-D-H)
+
+---
+
 ## [1.58.39] — 2026-05-20
 
 **fix(ux): NEW-D2 — Dashboard header gets a Refresh button with explicit toast feedback (distinct from connection-banner Refresh of M-9 / v1.58.14).** v1.58.36 audit: there was no in-place refresh on `#/dashboard` — the user had to use the connection-banner Refresh (which does a full `location.reload()` and loses scroll position) just to update the four metric counters. New `↻ Refresh` button in the header in [public/js/views/dashboard.js](public/js/views/dashboard.js) re-fetches `/api/dashboard` and re-renders the view in place via `Router.go("/dashboard")` — no page reload, no scroll loss. Toast pipeline: `Refreshing…` (in-flight) → `Dashboard refreshed` (success) or localized error. Two new i18n keys × 8 locales: `dash.refreshAria` (button aria-label) + `dash.refreshed` (success toast). 931 → **932** unit. (NEW-D2)

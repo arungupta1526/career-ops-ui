@@ -10,6 +10,12 @@
 
 
 
+## [1.58.40] — 2026-05-20
+
+**fix(ux/docs): UX-D-H — regression-lock: каждая видимая ссылка `career-ops.org/docs/<path>` обязана быть кликабельной.** v1.58.36 аудит подтвердил живьём: каждая такая ссылка в `public/js/views/*.js` уже находится внутри `c("a", { href, target: "_blank", rel: "noopener noreferrer" }, …)` (apply.js / batch.js / config.js / reports.js), и каждая ссылка в `docs/help/*.md` использует markdown `[text](url)`. Поэтому в этом релизе только **regression lock**: новый [tests/external-doc-links.test.mjs](tests/external-doc-links.test.mjs) парсит каждый `views/*.js` и `docs/help/*.md` и валит сборку, если `career-ops.org/docs/<path>` URL рендерится как plain child text. Бренд-упоминания `career-ops.org` без `/docs/` пути допускаются (например, «career-ops.org schema» в прозе). 932 → **934** модульных. (UX-D-H)
+
+---
+
 ## [1.58.39] — 2026-05-20
 
 **fix(ux): NEW-D2 — на `#/dashboard` появилась кнопка `↻ Refresh` в шапке с явным toast-фидбэком (отличная от Refresh из connection-banner — M-9 v1.58.14).** До правки на `#/dashboard` не было in-place обновления — пользователь использовал banner Refresh, который делает полный `location.reload()` и теряет позицию скролла. Новая кнопка в [public/js/views/dashboard.js](public/js/views/dashboard.js) перечитывает `/api/dashboard` и перерисовывает view через `Router.go("/dashboard")`. Toast-пайплайн: «Обновление…» → «Панель обновлена» (success) / локализованная ошибка. Два новых i18n-ключа × 8 локалей: `dash.refreshAria`, `dash.refreshed`. 931 → **932** модульных. (NEW-D2)

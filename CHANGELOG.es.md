@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.40] — 2026-05-20
+
+**fix(ux/docs): UX-D-H — regression-lock para que toda URL `career-ops.org/docs/...` visible siga siendo clickeable.** Nueva `tests/external-doc-links.test.mjs` valida views/*.js y docs/help/*.md. 932 → **934** unitarios. (UX-D-H)
+
+---
+
 ## [1.58.39] — 2026-05-20
 
 **fix(ux): NEW-D2 — botón Refresh en el header del panel con feedback explícito.** Distinto del Refresh del banner de conexión; este re-fetch in-place sin recargar la página. 2 nuevas claves i18n. 931 → **932** unitarios. (NEW-D2)

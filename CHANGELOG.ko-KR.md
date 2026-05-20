@@ -10,6 +10,12 @@
 
 
 
+## [1.58.40] — 2026-05-20
+
+**fix(ux/docs): UX-D-H — `career-ops.org/docs/...` 딥링크가 클릭 가능함을 보장하는 regression-lock.** 새 `tests/external-doc-links.test.mjs` 가 views/*.js 와 docs/help/*.md 검사. 932 → **934** 유닛. (UX-D-H)
+
+---
+
 ## [1.58.39] — 2026-05-20
 
 **fix(ux): NEW-D2 — 대시보드 헤더의 Refresh 버튼이 명시적 피드백 제공.** 페이지 리로드 없이 재페치 + 재렌더. 2 개의 새 i18n 키. 931 → **932** 유닛. (NEW-D2)

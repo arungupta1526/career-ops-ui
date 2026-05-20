@@ -10,6 +10,12 @@
 
 
 
+## [1.58.40] — 2026-05-20
+
+**fix(ux/docs): UX-D-H — 回归锁:每个可见的 `career-ops.org/docs/...` 深链必须保持可点击。** 新 `tests/external-doc-links.test.mjs` 校验 views/*.js 与 docs/help/*.md。932 → **934** 单元。(UX-D-H)
+
+---
+
 ## [1.58.39] — 2026-05-20
 
 **fix(ux): NEW-D2 — 仪表盘头部新增 Refresh 按钮并提供明确的反馈 toast。** 与连接横幅的 Refresh 不同;就地再取数 + 再渲染,不刷新页面。2 个新 i18n 键。931 → **932** 单元。(NEW-D2)
