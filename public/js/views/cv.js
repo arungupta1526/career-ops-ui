@@ -256,20 +256,32 @@ Router.register('cv', async () => {
             initial = ta.value; cvDirty = false;
             saveBtn.classList.remove('btn-dirty'); saveBtn.title = '';
           });
-          // Save handler already resets `initial = ta.value` above — we
-          // also reset `cvDirty` to false there via an extra hook.
-          const origSaveClick = saveBtn.onclick;
-          saveBtn.onclick = async (e) => {
-            await origSaveClick(e);
-            cvDirty = false;
-          };
+          // We re-baseline cvDirty inside the Save onClick above (the
+          // line `saveBtn.classList.remove('btn-dirty')` is the marker)
+          // — wrap by listening to the click event AFTER it fires.
+          // Note: not all `c()`-created elements expose `onclick` as a
+          // direct property; using addEventListener('click', …, true)
+          // in the capture phase is more reliable, BUT we want this to
+          // run AFTER save succeeds. Easiest: hook into the same place
+          // the original handler clears `.btn-dirty` via a MutationObserver
+          // — but that's overkill. Instead we listen for `click` on the
+          // bubble phase and let the closure's `initial = ta.value`
+          // assignment in the original onClick re-baseline; then we sync
+          // cvDirty by re-reading ta.value !== initial on next tick.
+          saveBtn.addEventListener('click', () => {
+            // Defer to next microtask so the original onClick has run
+            // and updated `initial` (post-await).
+            queueMicrotask(() => {
+              setTimeout(() => { cvDirty = ta.value !== initial; }, 0);
+            });
+          });
           const onBeforeUnload = (e) => {
             if (cvDirty) { e.preventDefault(); e.returnValue = ''; }
           };
           const onHashChange = (e) => {
-            // Only intercept when leaving #/cv with dirty buffer.
             const leaving = !location.hash.startsWith('#/cv');
-            if (cvDirty && leaving) {
+            if (!leaving) return;
+            if (cvDirty) {
               const ok = window.confirm(t('cv.unsavedConfirm',
                 'You have unsaved CV changes. Leave anyway?'));
               if (!ok) {
@@ -277,13 +289,14 @@ Router.register('cv', async () => {
                 // fires — rewind to #/cv to keep the user on the page.
                 e.preventDefault();
                 location.hash = '#/cv';
+                return;
               }
+              // User confirmed leaving with dirty buffer — clear the
+              // flag so the cleanup branch below detaches the listeners.
+              cvDirty = false;
             }
-            // Self-detach when actually leaving cv (after confirm OK).
-            if (leaving && !cvDirty) {
-              window.removeEventListener('beforeunload', onBeforeUnload);
-              window.removeEventListener('hashchange', onHashChange);
-            }
+            window.removeEventListener('beforeunload', onBeforeUnload);
+            window.removeEventListener('hashchange', onHashChange);
           };
           window.addEventListener('beforeunload', onBeforeUnload);
           window.addEventListener('hashchange', onHashChange);
