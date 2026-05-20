@@ -10,6 +10,14 @@
 
 
 
+## [1.59.10] — 2026-05-21
+
+**fix(api): NEW-F1-sub-r1 (v1.59.10) — middleware для сырого `../` поднят над всеми регистрациями `/api`-роутов.** В v1.59.8 он стоял ПОСЛЕ `app.all('/api/*')` И после регистрации хендлеров, поэтому Express успевал нормализовать URL и middleware никогда не срабатывал. v1.59.10 поднимает guard в начало `createApp()` (выше любого `register*Routes`) — он смотрит на `req.originalUrl` до нормализации. Регекс: `/^\/api(\/|$)/.test && /\.\.\//.test`. Новый [tests/api-path-traversal.test.mjs](tests/api-path-traversal.test.mjs) — 6 кейсов через сырой `http.request` (fetch нормализует `..` на клиенте). 982 → **988** юнит-тестов. (NEW-F1-sub-r1)
+
+---
+
+
+
 ## [1.59.9] — 2026-05-21
 
 **fix(ux): UX-A5-r4 (v1.59.9) — debug-маркер `data-toc-spy="active"` + поведенческий lock-test scroll-spy на Help TOC.** Шестой цикл закрытия: предыдущие 5 закрытий проходили статические тесты, но баг возвращался. v1.59.9 добавляет маркер (любой тестер проверит `document.body.dataset.tocSpy === 'active'`), синхронный initial paint, double-rAF re-compute, resize listener и полную очистку на hashchange. Новый [tests/help-toc-spy-behavior.test.mjs](tests/help-toc-spy-behavior.test.mjs) гоняет алгоритм против 6 сценариев синтетической геометрии + 1 algorithm-parity check против help.js. 973 → **982** юнит-тестов. (UX-A5-r4)

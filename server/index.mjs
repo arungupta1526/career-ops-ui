@@ -107,6 +107,30 @@ export function createApp() {
     },
   }));
 
+  // NEW-F1-sub-r1 (v1.59.10) — raw `../` path-traversal guard.
+  // MUST run BEFORE any /api route handler. Express normalises
+  // `req.url` (collapsing `..` segments) BEFORE matching routes,
+  // so a raw `/api/jds/../../../etc/passwd` is rewritten to
+  // `/etc/passwd` and falls through to the SPA static handler
+  // (200 OK on `index.html`) rather than the JSON-404 fallback.
+  // The v1.59.8 middleware was placed AFTER `app.all('/api/*')`,
+  // which made it un-reachable for any request whose normalised
+  // path no longer started with `/api`. This guard fires first,
+  // inspects `req.originalUrl` (the verbatim request URL Express
+  // has NOT yet normalised), and bounces any `/api`-prefixed raw
+  // `../` traversal as JSON 404 `{error: 'invalid path'}`.
+  //
+  // Pattern: `/^\/api(\/|$)/.test` ensures the path starts with
+  // `/api` followed by `/` or end-of-string (exact prefix, not
+  // `/apiknown`). `/\.\.\//.test` requires a literal `../`
+  // segment (not just `..` in a query string or anchor).
+  app.use((req, res, next) => {
+    if (/^\/api(\/|$)/.test(req.originalUrl) && /\.\.\//.test(req.originalUrl)) {
+      return res.status(404).type('application/json').json({ error: 'invalid path' });
+    }
+    next();
+  });
+
   // --- Route modules (P-2 phase 2 split) ---
   // Each topic lives in server/lib/routes/<topic>.mjs and exports
   // register<Topic>Routes(app). Order grouped by surface for readability.
@@ -135,22 +159,12 @@ export function createApp() {
   // SSRF / DOC-1 (English-by-policy) all preserved.
   app.all('/api/*', (_req, res) => res.status(404).json({ error: 'unknown api' }));
 
-  // NEW-F1-sub (v1.59.8) — an un-encoded `../` in an /api request URL
-  // is normalised by Express's router BEFORE matching, so the un-known
-  // /api fallback above never sees those requests; they fell through
-  // to the SPA catch-all and returned 200 + HTML. There is no file
-  // leak (Express resolved the normalised path to a non-/api route),
-  // but the JSON-only-on-/api contract drifted. This guard runs LATE
-  // (right before the SPA catch-all) and inspects `req.originalUrl`
-  // (the verbatim request URL, not the post-normalisation `req.url`)
-  // — any `/api`-prefixed request whose raw URL contains `..` is
-  // bounced as JSON 404 with the explicit `invalid path` reason.
-  app.use((req, res, next) => {
-    if (req.originalUrl.startsWith('/api') && req.originalUrl.includes('..')) {
-      return res.status(404).json({ error: 'invalid path' });
-    }
-    next();
-  });
+  // NEW-F1-sub (v1.59.8) MIDDLEWARE MOVED — v1.59.10 hoisted the
+  // `req.originalUrl` `..` guard up above all route registrations so
+  // it actually fires before Express's path normalisation. See the
+  // top of createApp() for the new placement. The late-placed copy
+  // here was never reached on un-encoded `..` because Express had
+  // already rewritten the URL to a non-`/api` path by then.
   app.get('*', (_req, res) => {
     // W-001 — the SPA shell must always revalidate (it references the
     // un-hashed code assets); sendFile bypasses the static setHeaders.

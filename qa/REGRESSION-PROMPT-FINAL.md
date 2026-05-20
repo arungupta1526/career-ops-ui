@@ -1,8 +1,8 @@
-# REGRESSION-PROMPT — FINAL · career-ops-ui · post-v1.59.8
+# REGRESSION-PROMPT — FINAL · career-ops-ui · post-v1.59.10
 
-Canonical post-cycle regression handoff written **after** the v1.58.52 → v1.59.8 closure (17 single-fix releases + 2 verification patches + 1 v1.59.2 chip hotfix + 1 v1.59.8 doctrine-exception bundle for UX-A5-r3 + NEW-F1-sub, all CI-green, all AI-review LGTM). This document is the 100 %-maturity verification protocol — run it before declaring a 1.x line frozen.
+Canonical post-cycle regression handoff written **after** the v1.58.52 → v1.59.10 closure (17 single-fix releases + 2 verification patches + 1 v1.59.2 chip hotfix + 1 v1.59.8 doctrine-exception bundle + v1.59.9 UX-A5-r4 (6th-cycle close with behavioural test) + v1.59.10 NEW-F1-sub-r1 (path-traversal guard hoist), all CI-green, all AI-review LGTM). This document is the 100 %-maturity verification protocol — run it before declaring a 1.x line frozen.
 
-**Baseline at v1.59.8:** **973** unit · 62 Playwright (smoke + full-cycle + forms) · 20 smoke E2E · 23 comprehensive E2E.
+**Baseline at v1.59.10:** **988** unit · 62 Playwright (smoke + full-cycle + forms) · 20 smoke E2E · 23 comprehensive E2E.
 
 ---
 
@@ -29,6 +29,8 @@ Non-negotiable for any future ship.
 17. **DOM refresh races during Save: build new nodes first, then `replaceChildren()` atomically.** v1.59.4 NEW-OR1.
 18. **IntersectionObserver `rootMargin` too tight = scroll skips the trigger zone.** v1.59.3 UX-A5-r2 — but the 25 % band `-20% 0% -55% 0%` still missed `scrollIntoView({block:'center'})` (50 % viewport, just below the 45 % band end). After 4 failed IO cycles, **v1.59.8 (UX-A5-r3) replaced IntersectionObserver with a plain scroll listener** + rAF throttling. The simpler approach probes absolute positions every scroll frame — no band, no race. Lesson: when an IO refuses to fire after multiple rootMargin fixes, abandon IO; the scroll listener is reliable.
 19. **`req.url` is normalised, `req.originalUrl` is verbatim.** v1.59.8 NEW-F1-sub — Express resolves `/api/jds/../../../etc/passwd` to `/etc/passwd` BEFORE matching, so a `/api`-fallback handler never sees `..`. A `req.originalUrl.includes('..')` guard runs late but inspects the raw URL string.
+20. **Middleware position matters as much as content.** v1.59.10 NEW-F1-sub-r1 — the v1.59.8 `req.originalUrl` guard was placed AFTER `app.all('/api/*')` AND AFTER all route registrations, so Express's normalisation rewrote the URL before the guard ran. v1.59.10 hoisted it ABOVE every `register*Routes(app)` call. **Express middleware order is strictly imperative; "the right code in the wrong place" is unreachable code.**
+21. **Static lock-tests can pass while the user-visible bug stays open.** v1.59.9 UX-A5-r4 — 5 previous closures all shipped with "tests green" but the same bug returned. Root cause: every test asserted source-code shape (`/IntersectionObserver/`, `/toc-current/` exists in DOM at any time), never the user promise. **A regression-lock test must drive the actual user-facing scenario** — for scroll-spy, that means simulated scroll positions + algorithm output assertions (not just "the file mentions the right symbol").
 
 ---
 
@@ -130,7 +132,16 @@ Each row is a static or behavioural guard. Any future PR that regresses the row 
 | v1.59.8 | UX-A5-r3 | `help.js` TOC scroll-spy uses `function computeActiveAndApply()` + rAF-throttled passive `scroll` listener + double-rAF initial state — IntersectionObserver fully removed |
 | v1.59.8 | NEW-F1-sub | server middleware inspects `req.originalUrl` and bounces `/api` requests containing raw `..` as 404 JSON `{error: 'invalid path'}` |
 
-**Cycle stats:** 23 releases v1.58.52 → v1.59.8 · **973** unit tests at v1.59.8 (was 949 at v1.58.51) · 100 % CI-green · all AI-review LGTM · zero rollbacks · 1 chip hotfix (v1.59.2) · 1 doctrine-exception bundle (v1.59.8 — HIGH+LOW, authorized by FINAL REGRESSION-v1.59.7 report).
+**Cycle stats:** 25 releases v1.58.52 → v1.59.10 · **988** unit tests at v1.59.10 (was 949 at v1.58.51) · 100 % CI-green · all AI-review LGTM · zero rollbacks · 1 chip hotfix (v1.59.2) · 1 doctrine-exception bundle (v1.59.8 — HIGH+LOW, authorized by FINAL REGRESSION-v1.59.7 report) · 1 sixth-cycle behavioural-test close (v1.59.9 UX-A5-r4 + new `tests/help-toc-spy-behavior.test.mjs`).
+
+### v1.59.9 → v1.59.10 — final closure to 100 % (4 invariants)
+
+| Release | Ticket | Invariant |
+|---|---|---|
+| v1.59.9 | UX-A5-r4 (a) | `help.js` sets `<body data-toc-spy="active">` on mount, removes on hashchange cleanup; single-selector "is the spy alive?" check |
+| v1.59.9 | UX-A5-r4 (b) | `help.js` linear scan uses `if (absTop <= triggerY) chosen = h; else break;` (short-circuit, O(active-index) per scroll event); identical formula proved by behavioural test `tests/help-toc-spy-behavior.test.mjs` (7 cases against synthetic geometry + 1 algorithm-parity guard) |
+| v1.59.9 | UX-A5-r4 (c) | `help.js` initial paint: synchronous compute at mount tail + double-rAF re-compute + resize listener subscription |
+| v1.59.10 | NEW-F1-sub-r1 | server `req.originalUrl` `..` guard hoisted ABOVE every `register*Routes(app)` call (was after `app.all('/api/*')` in v1.59.8 — never fired). Pattern: `/^\/api(\/\|$)/.test && /\.\.\//.test`. New `tests/api-path-traversal.test.mjs` (6 cases via raw `http.request` since Node's fetch normalises `..`) |
 
 ---
 

@@ -146,10 +146,14 @@ test('NEW-F1-sub (v1.59.8): server middleware exists in source — raw `..` guar
   // Behavioural test above can vary based on fetch URL normalisation;
   // this static guard locks the middleware presence in server/index.mjs.
   const src = readFileSync(new URL('../server/index.mjs', import.meta.url), 'utf8');
-  assert.match(src, /req\.originalUrl\.startsWith\('\/api'\)\s*&&\s*req\.originalUrl\.includes\('\.\.'\)/,
-    'server/index.mjs must declare the originalUrl-based `..` guard for /api');
-  assert.match(src, /res\.status\(404\)\.json\(\{\s*error:\s*'invalid path'\s*\}\)/,
-    'guard must respond 404 JSON {error: "invalid path"}');
+  // v1.59.10 — the v1.59.8 `.startsWith('/api') && .includes('..')`
+  // pattern was placed AFTER app.all('/api/*') so it never fired.
+  // v1.59.10 hoisted the guard ABOVE all /api route registrations
+  // and tightened the regex to `/^\/api(\/|$)/` + `/\.\.\//.test`.
+  assert.match(src, /\/\^\\\/api\(\\\/\|\$\)\/\.test\(req\.originalUrl\)\s*&&\s*\/\\\.\\\.\\\/\/\.test\(req\.originalUrl\)/,
+    'server/index.mjs must declare the v1.59.10 regex-based `..` guard for /api');
+  assert.match(src, /res\.status\(404\)\.type\('application\/json'\)\.json\(\{\s*error:\s*'invalid path'\s*\}\)/,
+    'guard must respond 404 JSON {error: "invalid path"} (with explicit content-type)');
 });
 
 test('NEW-F1: an unknown :name under a real handler is JSON 404 (not HTML fallthrough)', async () => {

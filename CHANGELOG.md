@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.59.10] — 2026-05-21
+
+**fix(api): NEW-F1-sub-r1 (v1.59.10) — un-encoded `../` traversal guard hoisted above all /api route registrations.** v1.59.8 added a `req.originalUrl.includes('..')` middleware, but it was placed AFTER `app.all('/api/*', JSON-404)` AND AFTER all route handlers — by which time Express had already normalised the URL (collapsing `..` segments). `/api/jds/../../../etc/passwd` was rewritten to `/etc/passwd` and fell through to the SPA static handler (200 OK on `index.html`). v1.59.10 hoists the guard to the TOP of [server/index.mjs](server/index.mjs) `createApp()` (above every `register*Routes(app)` call) so it inspects the verbatim request URL before any normalisation. Pattern: `/^\/api(\/|$)/.test(req.originalUrl) && /\.\.\//.test(req.originalUrl)`. New [tests/api-path-traversal.test.mjs](tests/api-path-traversal.test.mjs) — 6 cases driving the real http module (Node's fetch normalises `..` client-side, so we drop to `http.request` with a verbatim path). Unknown `/api/*` paths still return `{error: 'unknown api'}` from the existing `app.all` fallback. 982 → **988** unit. (NEW-F1-sub-r1)
+
+---
+
+
+
 ## [1.59.9] — 2026-05-21
 
 **fix(ux): UX-A5-r4 (v1.59.9) — Help TOC scroll-spy debug marker + behavioural lock-test.** Sixth-cycle closure: previous five attempts (v1.58.45 / v1.58.52 / v1.59.0 / v1.59.3 / v1.59.8) all shipped with passing static tests but the bug stayed open because the tests asserted source-shape, not behaviour. v1.59.9 fixes the gap: (1) `<body data-toc-spy="active">` debug marker — single selector any tester can use to answer "is the spy alive?" without needing to scroll; (2) synchronous initial paint at mount tail covers the router-pre-paints-view case; (3) double-rAF re-compute covers the route-handler-returns-before-router-appends case; (4) resize listener subscribed so viewport-flip mid-scroll re-paints; (5) cleanup removes BOTH listeners and the marker on hashchange. [public/js/views/help.js](public/js/views/help.js) algorithm: linear scan with `else break;` short-circuit (O(active-index) per scroll event). New [tests/help-toc-spy-behavior.test.mjs](tests/help-toc-spy-behavior.test.mjs) runs the algorithm against 6 synthetic-geometry scenarios + 1 algorithm-parity check against help.js source — the test fails if the algorithm regresses, before any browser run. 973 → **982** unit. (UX-A5-r4)

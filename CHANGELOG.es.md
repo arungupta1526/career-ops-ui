@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.59.10] — 2026-05-21
+
+**fix(api): NEW-F1-sub-r1 (v1.59.10) — middleware de `..` crudo movido arriba de todas las rutas `/api`.** El de v1.59.8 estaba después de `app.all` y nunca disparaba. Ahora corre antes de la normalización de Express. (NEW-F1-sub-r1)
+
+---
+
+
+
 ## [1.59.9] — 2026-05-21
 
 **fix(ux): UX-A5-r4 (v1.59.9) — marcador de debug `data-toc-spy="active"` + lock-test conductual del scroll-spy del Help TOC.** Sexto ciclo: las 5 cerraduras anteriores pasaron las pruebas estáticas pero el bug persistía. v1.59.9 añade marcador, paint inicial síncrono, re-compute con doble rAF, listener de resize, y limpieza completa en hashchange. (UX-A5-r4)
