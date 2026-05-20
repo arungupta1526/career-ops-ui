@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.58] — 2026-05-20
+
+**fix(ux): UX-A10 (v1.58.58) — guard #/cv against leaving with unsaved buffer.** Pre-fix, navigating away from #/cv with unsaved edits silently dropped the buffer. [public/js/views/cv.js](public/js/views/cv.js) now registers a `beforeunload` listener (browser-close confirm — generic dialog per modern browser policy) **and** a `hashchange` listener (SPA-internal nav prompts via localized `window.confirm()` and rewinds the hash if the user cancels). `cvDirty` lives in the save-button IIFE closure; cleanup self-detaches when the hash leaves `#/cv` (M-1 discipline). One new i18n key (`cv.unsavedConfirm`) × 8 locales. 953 → **954** unit. (UX-A10)
+
+---
+
+
+
 ## [1.58.57] — 2026-05-20
 
 **test(ui): UX-A7 (v1.58.57) — lock-test on the cost-line auto-refresh contract.** v1.58.41 (UX-D-I) wired `UI.providerCostHint` to refresh when the user changes `LLM_PROVIDER` mid-session, but the contract had no static guard — any of the three pieces (config.js dispatch, api.js subscribe, advisor-view call site) could regress silently and the cost line would lie. New regression test in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs) locks all three: (1) `config.js` Save handler dispatches `providers-changed`, (2) `UI.providerCostHint` subscribes via `document.addEventListener`, (3) all 4 advisor views (`#/deep`, `#/evaluate`, `#/auto`, `#/<mode>`) call `UI.providerCostHint(t)`. 952 → **953** unit. (UX-A7)

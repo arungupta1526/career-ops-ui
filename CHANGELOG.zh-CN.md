@@ -10,6 +10,14 @@
 
 
 
+## [1.58.58] — 2026-05-20
+
+**fix(ux): UX-A10 (v1.58.58) — 防止 `#/cv` 未保存的编辑丢失。** 浏览器关闭(`beforeunload`)和 SPA 内导航(`hashchange`)在脏缓冲区时显示本地化确认对话框。(UX-A10)
+
+---
+
+
+
 ## [1.58.57] — 2026-05-20
 
 **test(ui): UX-A7 (v1.58.57) — cost-line 自动刷新契约的回归锁测试。** 新增静态测试,确保 `providers-changed` 事件被派发、被订阅,以及所有 advisor 视图都调用 `UI.providerCostHint`。(UX-A7)

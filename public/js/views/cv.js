@@ -230,15 +230,63 @@ Router.register('cv', async () => {
               saveBtn.title = '';
             },
           }, '💾 ' + t('common.save'));
+          // UX-A10 (v1.58.58) — guard the user from losing CV edits.
+          // Pre-fix, leaving #/cv with unsaved changes (browser tab close,
+          // bookmark click, sidebar navigation, hash change) silently
+          // dropped the buffer. We now register two listeners scoped to
+          // the route lifetime:
+          //   - `beforeunload`  → browser shows its generic confirm
+          //     dialog (no custom string per modern browser policy).
+          //   - `hashchange`    → SPA-internal nav prompts via confirm()
+          //     and reverts the hash if the user cancels.
+          // `cvDirty` lives in the IIFE closure; cleanup self-detaches
+          // when the hash leaves `#/cv` so the listeners don't stack
+          // (M-1 discipline, same pattern as the dashboard provider
+          // chip lifecycle in v1.58.55).
+          let cvDirty = false;
           ta.addEventListener('input', () => {
-            const dirty = ta.value !== initial;
-            saveBtn.classList.toggle('btn-dirty', dirty);
-            saveBtn.title = dirty ? t('cv.unsaved', 'Unsaved changes — click Save to persist.') : '';
+            cvDirty = ta.value !== initial;
+            saveBtn.classList.toggle('btn-dirty', cvDirty);
+            saveBtn.title = cvDirty ? t('cv.unsaved', 'Unsaved changes — click Save to persist.') : '';
           });
           // The fetch that hydrates `ta.value` fires a CustomEvent on
           // the textarea so we can re-baseline once the actual CV body
           // arrives (the initial render runs before the API call returns).
-          ta.addEventListener('cv:baseline', () => { initial = ta.value; saveBtn.classList.remove('btn-dirty'); saveBtn.title = ''; });
+          ta.addEventListener('cv:baseline', () => {
+            initial = ta.value; cvDirty = false;
+            saveBtn.classList.remove('btn-dirty'); saveBtn.title = '';
+          });
+          // Save handler already resets `initial = ta.value` above — we
+          // also reset `cvDirty` to false there via an extra hook.
+          const origSaveClick = saveBtn.onclick;
+          saveBtn.onclick = async (e) => {
+            await origSaveClick(e);
+            cvDirty = false;
+          };
+          const onBeforeUnload = (e) => {
+            if (cvDirty) { e.preventDefault(); e.returnValue = ''; }
+          };
+          const onHashChange = (e) => {
+            // Only intercept when leaving #/cv with dirty buffer.
+            const leaving = !location.hash.startsWith('#/cv');
+            if (cvDirty && leaving) {
+              const ok = window.confirm(t('cv.unsavedConfirm',
+                'You have unsaved CV changes. Leave anyway?'));
+              if (!ok) {
+                // The hash has already changed by the time hashchange
+                // fires — rewind to #/cv to keep the user on the page.
+                e.preventDefault();
+                location.hash = '#/cv';
+              }
+            }
+            // Self-detach when actually leaving cv (after confirm OK).
+            if (leaving && !cvDirty) {
+              window.removeEventListener('beforeunload', onBeforeUnload);
+              window.removeEventListener('hashchange', onHashChange);
+            }
+          };
+          window.addEventListener('beforeunload', onBeforeUnload);
+          window.addEventListener('hashchange', onHashChange);
           return saveBtn;
         })(),
       ]),

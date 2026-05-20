@@ -371,6 +371,9 @@ window.__I18N_DICT = {
   'dash.provider.live':   { en: 'Live evals', es: 'Evaluaciones en vivo', 'pt-BR': 'Avaliações ao vivo', ko: '실시간 평가', ja: 'ライブ評価', ru: 'Боевые оценки', 'zh-CN': '实时评估', 'zh-TW': '即時評估' },
   'dash.provider.manual': { en: 'Manual prompt mode (no API key set)', es: 'Modo manual (sin clave API)', 'pt-BR': 'Modo manual (sem chave API)', ko: '수동 프롬프트 모드 (API 키 없음)', ja: '手動プロンプトモード (API キー未設定)', ru: 'Ручной режим (API-ключ не задан)', 'zh-CN': '手动 prompt 模式(未设置 API 密钥)', 'zh-TW': '手動 prompt 模式(未設定 API 金鑰)' },
 
+  // UX-A10 (v1.58.58) — confirm dialog when leaving #/cv with unsaved buffer.
+  'cv.unsavedConfirm': { en: 'You have unsaved CV changes. Leave anyway?', es: 'Tienes cambios de CV sin guardar. ¿Salir de todos modos?', 'pt-BR': 'Você tem alterações de CV não salvas. Sair mesmo assim?', ko: '저장되지 않은 CV 변경 사항이 있습니다. 정말 나가시겠습니까?', ja: '保存されていない CV の変更があります。それでも移動しますか?', ru: 'Есть несохранённые изменения CV. Всё равно уйти?', 'zh-CN': '您有未保存的 CV 更改。仍要离开吗?', 'zh-TW': '您有未儲存的 CV 變更。仍要離開嗎?' },
+
   // Scan
   'scan.title':     { en: 'Vacancy search', es: 'Búsqueda de vacantes', 'pt-BR': 'Busca de vagas', ko: '채용 공고 검색', ja: '求人検索', ru: 'Поиск вакансий', 'zh-CN': '职位搜索', 'zh-TW': '職位搜尋' },
   // v1.20.1 (H-3) — Active Companies badge labels referenced from scan.js.

@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.58] — 2026-05-20
+
+**fix(ux): UX-A10 (v1.58.58) — protección contra perder edición no guardada en `#/cv`.** Ahora `beforeunload` (cierre del navegador) y `hashchange` (navegación SPA) muestran confirmación localizada antes de abandonar la página con buffer sucio. (UX-A10)
+
+---
+
+
+
 ## [1.58.57] — 2026-05-20
 
 **test(ui): UX-A7 (v1.58.57) — bloqueo de regresión sobre el contrato de refresco automático del cost-line.** Nueva prueba estática asegura que el evento `providers-changed` se despacha, se suscribe y que todas las vistas de asesor llaman a `UI.providerCostHint`. (UX-A7)

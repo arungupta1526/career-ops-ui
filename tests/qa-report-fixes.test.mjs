@@ -37,6 +37,22 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-A10 (v1.58.58): #/cv guards against leaving with unsaved buffer (beforeunload + hashchange)', () => {
+  const cv = read('public', 'js', 'views', 'cv.js');
+  assert.match(cv, /let cvDirty = false/,
+    'cv.js must track cvDirty flag in the save-button IIFE closure');
+  assert.match(cv, /window\.addEventListener\('beforeunload', onBeforeUnload\)/,
+    'cv.js must register beforeunload guard (browser-close confirm)');
+  assert.match(cv, /window\.addEventListener\('hashchange', onHashChange\)/,
+    'cv.js must register hashchange guard (SPA-internal nav confirm)');
+  // The hashchange guard must offer a localized confirm copy.
+  assert.match(cv, /t\('cv\.unsavedConfirm'/,
+    'hashchange guard must use the localized cv.unsavedConfirm prompt');
+  // i18n key must exist in 8 locales.
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  assert.ok(dict.includes("'cv.unsavedConfirm'"), 'i18n-dict.js must define cv.unsavedConfirm');
+});
+
 test('UX-A7 (v1.58.57): cost-line auto-refreshes when LLM_PROVIDER changes (providers-changed wiring)', () => {
   // The contract — verified statically because Playwright is not in the
   // node --test suite — is that:
@@ -517,7 +533,10 @@ test('U-13/U-14/U-15 (v1.58.33): toast journal + page-header spacing safety net 
   const cv = read('public', 'js', 'views', 'cv.js');
   assert.match(cv, /let initial = ta\.value/, 'cv.js must capture initial textarea baseline');
   assert.match(cv, /ta\.addEventListener\('input'/, 'cv.js must listen on input to flip dirty');
-  assert.match(cv, /saveBtn\.classList\.toggle\('btn-dirty', dirty\)/,
+  // UX-A10 (v1.58.58) renamed the local from `dirty` to `cvDirty` to
+  // share state with the beforeunload/hashchange guards — the wiring
+  // is unchanged behaviorally, so the assertion accepts either name.
+  assert.match(cv, /saveBtn\.classList\.toggle\('btn-dirty', (?:dirty|cvDirty)\)/,
     'cv.js must toggle .btn-dirty on the Save button');
   assert.match(cv, /t\('cv\.unsaved'/, 'cv.js must use t("cv.unsaved", …) for the tooltip');
   assert.match(cv, /ta\.dispatchEvent\(new Event\('input', \{ bubbles: true \}\)\)/,
