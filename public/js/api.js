@@ -229,6 +229,27 @@ window.UI = (function () {
   // receive the entry just appended.
   const toastSubscribers = new Set();
   function onToast(fn) { toastSubscribers.add(fn); return () => toastSubscribers.delete(fn); }
+  // UX-A12 (v1.58.60) — bulk + per-entry purge for the notifications
+  // drawer. Both mutate `toastHistory` in place and notify subscribers
+  // with a sentinel `{cleared: true}` (Clear all) or `{dismissed: ts}`
+  // (single) so the drawer can re-render without re-reading the array.
+  // ts is used as the stable identity key — it's set at toast() time
+  // with millisecond precision so collisions in normal usage are nil.
+  function clearToastHistory() {
+    toastHistory.length = 0;
+    for (const fn of toastSubscribers) {
+      try { fn({ cleared: true }); } catch { /* drawer must never break */ }
+    }
+  }
+  function dismissToastHistory(ts) {
+    const idx = toastHistory.findIndex((e) => e && e.ts === ts);
+    if (idx === -1) return false;
+    toastHistory.splice(idx, 1);
+    for (const fn of toastSubscribers) {
+      try { fn({ dismissed: ts }); } catch { /* drawer must never break */ }
+    }
+    return true;
+  }
   // U-4 (v1.58.24) — strip the technical "(METHOD /path · HTTP NNN)"
   // postfix from the toast's headline text and stash it in a collapsed
   // `<details>` element so the human sentence reads cleanly by default.
@@ -745,5 +766,5 @@ window.UI = (function () {
     return node;
   }
 
-  return { toast, dismissToast, modal, closeModal, confirm, el, escapeHtml, md, withSpinner, paginate, providerCostHint, getToastHistory, onToast };
+  return { toast, dismissToast, modal, closeModal, confirm, el, escapeHtml, md, withSpinner, paginate, providerCostHint, getToastHistory, onToast, clearToastHistory, dismissToastHistory };
 })();

@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.60] — 2026-05-20
+
+**feat(ui): UX-A12 (v1.58.60) — Notifications drawer Clear all + per-entry dismiss.** The v1.58.34 notifications journal capped at 50 entries but offered no manual purge. New `UI.clearToastHistory()` and `UI.dismissToastHistory(ts)` in [public/js/api.js](public/js/api.js) mutate `toastHistory` in place and notify subscribers with sentinel events (`{cleared: true}` / `{dismissed: ts}`); the drawer subscriber in [public/js/app.js](public/js/app.js) detects them, re-renders, and — critically — does NOT bump the unread counter on purges. Drawer head now carries a `Clear all` button (auto-hidden when the journal is empty); every `.notif-item` carries a `×` dismiss button. Three new i18n keys (`notif.clearAll`, `notif.clearAllAria`, `notif.dismiss`) × 8 locales; CSS for both controls; lock-test in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs). 955 → **956** unit. (UX-A12)
+
+---
+
+
+
 ## [1.58.59] — 2026-05-20
 
 **feat(ui): UX-A13 (v1.58.59) — actionable "Fix →" CTA on failing #/health rows.** Pre-fix the 21 health rows showed status only; a user with `Profile customized: FAIL` had to guess where to go. [public/js/views/health.js](public/js/views/health.js) now renders a small ghost-button `Fix →` next to the badge on failing/optional rows. Mapped targets: `Profile customized` → `#/config?tab=profile`, `cv.md non-empty` → `#/cv`, `portals.yml present` → `#/config?tab=portals`, `data/applications.md` → `#/tracker`. Any `*_API_KEY` or `LLM_PROVIDER*` row routes to `#/config?tab=api-keys` via regex fallback. Unmapped failures stay action-less (no dead-end CTAs). Two new i18n keys (`health.fix`, `health.fixAria`) × 8 locales. 954 → **955** unit. (UX-A13)

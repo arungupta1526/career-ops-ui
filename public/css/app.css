@@ -1329,6 +1329,30 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
   padding: 0; width: 32px; height: 32px; line-height: 1;
 }
 .notif-drawer__close:focus-visible { outline: 2px solid var(--rausch, #ff385c); outline-offset: 2px; border-radius: 4px; }
+
+/* UX-A12 (v1.58.60) — Clear all button (drawer head) + per-item ×
+   dismiss button. Clear-all sits between the title and the close ×.
+   Per-item × floats top-right inside each .notif-item without
+   disturbing the existing flex-column layout (absolute positioning). */
+.notif-drawer__clear-all {
+  background: transparent; border: 1px solid var(--slate, #ddd);
+  font-size: 12px; padding: 4px 10px; border-radius: 6px;
+  cursor: pointer; color: var(--foggy, #666);
+  margin-left: auto; margin-right: 8px;
+}
+.notif-drawer__clear-all:hover { background: var(--beach, #fafafa); color: var(--hof, #000); }
+.notif-drawer__clear-all[hidden] { display: none; }
+.notif-item { position: relative; }
+.notif-item__dismiss {
+  position: absolute; top: 6px; right: 8px;
+  background: transparent; border: none;
+  font-size: 14px; line-height: 1;
+  width: 20px; height: 20px; padding: 0;
+  cursor: pointer; color: var(--foggy, #999);
+  opacity: 0.6;
+}
+.notif-item__dismiss:hover { opacity: 1; color: var(--hof, #000); }
+.notif-item__dismiss:focus-visible { outline: 2px solid var(--rausch, #ff385c); outline-offset: 1px; border-radius: 4px; opacity: 1; }
 .notif-drawer__list { list-style: none; margin: 0; padding: 8px; overflow-y: auto; flex: 1; }
 .notif-drawer__empty { margin: 24px; color: var(--foggy, #999); font-size: 13px; text-align: center; }
 .notif-item {

@@ -378,6 +378,11 @@ window.__I18N_DICT = {
   'health.fix':    { en: 'Fix →', es: 'Arreglar →', 'pt-BR': 'Corrigir →', ko: '수정 →', ja: '修正 →', ru: 'Исправить →', 'zh-CN': '修复 →', 'zh-TW': '修復 →' },
   'health.fixAria':{ en: 'Fix this', es: 'Arreglar esto', 'pt-BR': 'Corrigir isto', ko: '이 항목 수정', ja: 'これを修正', ru: 'Исправить это', 'zh-CN': '修复此项', 'zh-TW': '修復此項' },
 
+  // UX-A12 (v1.58.60) — Notifications drawer purge controls.
+  'notif.clearAll':     { en: 'Clear all', es: 'Borrar todo', 'pt-BR': 'Limpar tudo', ko: '모두 지우기', ja: 'すべてクリア', ru: 'Очистить все', 'zh-CN': '全部清除', 'zh-TW': '全部清除' },
+  'notif.clearAllAria': { en: 'Clear all notifications', es: 'Borrar todas las notificaciones', 'pt-BR': 'Limpar todas as notificações', ko: '모든 알림 지우기', ja: 'すべての通知をクリア', ru: 'Очистить все уведомления', 'zh-CN': '清除所有通知', 'zh-TW': '清除所有通知' },
+  'notif.dismiss':      { en: 'Dismiss', es: 'Descartar', 'pt-BR': 'Dispensar', ko: '닫기', ja: '閉じる', ru: 'Закрыть', 'zh-CN': '关闭', 'zh-TW': '關閉' },
+
   // Scan
   'scan.title':     { en: 'Vacancy search', es: 'Búsqueda de vacantes', 'pt-BR': 'Busca de vagas', ko: '채용 공고 검색', ja: '求人検索', ru: 'Поиск вакансий', 'zh-CN': '职位搜索', 'zh-TW': '職位搜尋' },
   // v1.20.1 (H-3) — Active Companies badge labels referenced from scan.js.

@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.60] — 2026-05-20
+
+**feat(ui): UX-A12 (v1.58.60) — Cajón de notificaciones con Borrar todo + descartar por entrada.** Nuevo botón global y × por entrada en el panel de notificaciones. (UX-A12)
+
+---
+
+
+
 ## [1.58.59] — 2026-05-20
 
 **feat(ui): UX-A13 (v1.58.59) — CTA accionable «Fix →» en filas de salud que fallan.** Las filas con FAIL/OPTIONAL ahora muestran un botón ghost que enlaza directamente con la pestaña de configuración correspondiente. (UX-A13)

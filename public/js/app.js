@@ -229,6 +229,8 @@ I18n.onChange(() => {
     const empty = document.getElementById('notif-empty');
     const badge = document.getElementById('notif-badge');
     const closeBtn = document.getElementById('notif-close');
+    // UX-A12 (v1.58.60) — Clear all button in the drawer head.
+    const clearAllBtn = document.getElementById('notif-clear-all');
     if (!bell || !drawer || !list || !badge || !closeBtn) return;
     let unread = 0;
     // v1.58.36 (M-1) — scope the Esc keydown listener to the open
@@ -278,6 +280,8 @@ I18n.onChange(() => {
       const items = UI.getToastHistory().slice().reverse(); // newest first
       list.innerHTML = '';
       empty.hidden = items.length > 0;
+      // UX-A12 (v1.58.60) — Clear all hidden when list is empty.
+      if (clearAllBtn) clearAllBtn.hidden = items.length === 0;
       // v1.58.36 (L-5) — defensive locale fallback. If I18n hasn't
       // booted (test harness or very early render), `getLang()`
       // would throw inside the render loop and break the drawer.
@@ -301,19 +305,58 @@ I18n.onChange(() => {
           code.textContent = it.detail;
           li.appendChild(code);
         }
+        // UX-A12 (v1.58.60) — per-entry dismiss button. Uses the entry's
+        // `ts` (set by api.js toast() with millisecond resolution) as
+        // the stable identity key. UI.dismissToastHistory() splices the
+        // history array and dispatches a sentinel that triggers the
+        // subscriber → re-render path; we don't need to manage the
+        // DOM mutation here.
+        const dismiss = document.createElement('button');
+        dismiss.type = 'button';
+        dismiss.className = 'notif-item__dismiss';
+        const dismissLabel = (window.I18n && I18n.t && I18n.t('notif.dismiss', 'Dismiss')) || 'Dismiss';
+        dismiss.setAttribute('aria-label', dismissLabel);
+        dismiss.textContent = '×';
+        dismiss.dataset.ts = String(it.ts);
+        dismiss.addEventListener('click', (e) => {
+          e.stopPropagation();
+          UI.dismissToastHistory(it.ts);
+        });
+        li.appendChild(dismiss);
         list.appendChild(li);
       }
     }
     bell.addEventListener('click', () => (drawer.hidden ? open() : close()));
     closeBtn.addEventListener('click', close);
+    // UX-A12 (v1.58.60) — Clear all wiring. Subscriber re-renders the
+    // empty list automatically; we also reset the unread counter so
+    // the bell stops pulsing after the user has explicitly purged.
+    if (clearAllBtn) {
+      clearAllBtn.addEventListener('click', () => {
+        UI.clearToastHistory();
+        unread = 0; updateBadge();
+      });
+    }
     // v1.58.36 (M-1) — global Esc listener moved into open()/close()
     // above so the handler is only live while the drawer is open
     // (no longer fires on every keystroke worldwide).
     // New toasts arrive via UI.onToast — re-render if open, otherwise
     // bump the unread badge so the bell signals there's something new.
-    UI.onToast(() => {
-      if (!drawer.hidden) render();
-      else { unread = Math.min(99, unread + 1); updateBadge(); }
+    // UX-A12 (v1.58.60) — the subscriber also fires for the Clear-all
+    // (`{cleared: true}`) and per-entry dismiss (`{dismissed: ts}`)
+    // sentinels; those are user-initiated purges, not new toasts, so
+    // they must NOT bump the unread counter — just re-render when open.
+    UI.onToast((entry) => {
+      const isPurge = entry && (entry.cleared || entry.dismissed != null);
+      if (!drawer.hidden) {
+        render();
+      } else if (!isPurge) {
+        unread = Math.min(99, unread + 1); updateBadge();
+      } else if (entry && entry.cleared) {
+        // Bell badge must reflect the post-purge empty journal even
+        // while the drawer is closed.
+        unread = 0; updateBadge();
+      }
     });
   })();
 

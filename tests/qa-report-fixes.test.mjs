@@ -37,6 +37,40 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-A12 (v1.58.60): notifications drawer supports Clear all + per-entry dismiss', () => {
+  const api = read('public', 'js', 'api.js');
+  // UI surface must expose the new helpers.
+  assert.match(api, /function clearToastHistory\(\)/, 'api.js must define clearToastHistory()');
+  assert.match(api, /function dismissToastHistory\(ts\)/, 'api.js must define dismissToastHistory(ts)');
+  assert.match(api, /clearToastHistory,\s*dismissToastHistory/,
+    'UI return object must export both helpers');
+
+  // HTML must include the Clear all button + i18n hooks.
+  const html = read('public', 'index.html');
+  assert.match(html, /id="notif-clear-all"/, 'drawer must have Clear all button');
+  assert.match(html, /data-i18n="notif\.clearAll"/, 'Clear all must use i18n key');
+
+  // App.js drawer must wire the new buttons.
+  const app = read('public', 'js', 'app.js');
+  assert.match(app, /UI\.clearToastHistory\(\)/,
+    'Clear all click handler must call UI.clearToastHistory()');
+  assert.match(app, /UI\.dismissToastHistory\(it\.ts\)/,
+    'per-entry dismiss must call UI.dismissToastHistory(it.ts)');
+  // Purge sentinels must NOT bump the unread counter.
+  assert.match(app, /entry\.cleared \|\| entry\.dismissed != null/,
+    'onToast subscriber must detect purge sentinels and skip unread bump');
+
+  // i18n keys present in 8 locales.
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  for (const key of ['notif.clearAll', 'notif.clearAllAria', 'notif.dismiss']) {
+    assert.ok(dict.includes(`'${key}'`), `i18n-dict.js must define '${key}'`);
+  }
+  // CSS rules present.
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /\.notif-drawer__clear-all\s*\{/, 'CSS must style .notif-drawer__clear-all');
+  assert.match(css, /\.notif-item__dismiss\s*\{/, 'CSS must style .notif-item__dismiss');
+});
+
 test('UX-A13 (v1.58.59): #/health failing rows render an actionable "Fix →" CTA mapped to the right config tab', () => {
   const health = read('public', 'js', 'views', 'health.js');
   assert.match(health, /const FIX_TARGETS = \{/,
