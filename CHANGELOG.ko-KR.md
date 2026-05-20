@@ -10,6 +10,12 @@
 
 
 
+## [1.58.52] — 2026-05-20
+
+**fix(ux): UX-A5 — `#/help` TOC 스크롤 스파이가 정상 동작.** v1.58.45 의 setTimeout(0) 이 라우터 마운트 전에 실행되었음. fix: `headings` 직접 참조 + 이중 `requestAnimationFrame`. 947 → **948** 유닛. (UX-A5)
+
+---
+
 ## [1.58.51] — 2026-05-20
 
 **chore(docs): v1.58.51 — v1.58.37 → v1.58.50 사이클(14 releases) 최종 하우스키핑.** 코드 변경 없음. qa/ 재정리(모든 버전 고정 문서 `archive/v158-cycle/` 로 이동);6 개 perennial 이 루트에 남음. `REGRESSION-FINAL §13` 가 v1.58.37→.50 모든 불변 문서화. 베이스라인 불변(947/947). (housekeeping)

@@ -10,6 +10,12 @@
 
 
 
+## [1.58.52] — 2026-05-20
+
+**fix(ux): UX-A5 (NEW-K1) — scroll-spy для TOC на `#/help` снова работает (регресс из v1.58.45).** Верификационный регресс v1.58.51 показал: 18 H2-элементов с id, 18 TOC `<a>` ссылок, но **0** ссылок получают `.toc-current` при скролле. Причина: в v1.58.45 observer был обернут в `setTimeout(0)`, который срабатывал ДО того, как роутер монтировал view в `#content`; `document.querySelectorAll(".help-article h2[id]")` не находил ничего. Правка в [public/js/views/help.js](public/js/views/help.js#L155-L200): новый `mountTocSpy()` наблюдает за **синхронно построенными refs `headings`** (без re-query документа); deferred через **двойной `requestAnimationFrame`** — наблюдатель привязывается после первого paint, который включает смонтированный view. 947 → **948** модульных. (UX-A5)
+
+---
+
 ## [1.58.51] — 2026-05-20
 
 **chore(docs): v1.58.51 — финальный housekeeping цикла v1.58.37 → v1.58.50 (14 single-fix релизов).** Без изменений кода; консолидация qa/, валюты документов, и две lessons captured из этого цикла. **(1) Реорганизация qa/:** все version-locked документы — `FIX-PROMPT-CONSOLIDATED.md`, `FIX-PROMPT-FINAL-EXHAUSTIVE.md`, `FIX-PROMPT-v1.58.37_and_beyond.md`, плюс 6 session-снимков из корня — перемещены в `qa/archive/v158-cycle/`. В `qa/` корне теперь ровно **6 канонических perennial** документов. **(2) `qa/REGRESSION-FINAL.md` §13** документирует каждый инвариант v1.58.37→.50 с его lock-тестом, организованный по классам + 2 новые «lessons captured» (markdown-bold regex pitfall; Publish-runs-tests-against-tagged-ref pitfall). **(3) `qa/UX-AUDIT-PROMPT.md`** baseline таблица расширена 14 новыми closed-in строками. **(4-7)** Currency `CLAUDE.md` / `.claude/PROJECT-CONTEXT.md` / `docs/ROADMAP.md` / `README ×8`. Test baseline на v1.58.51: **947** unit (структурно без изменений) · 62 Playwright · 20 smoke · 23 comprehensive E2E. Закрывает pattern v1.58.48 / v1.58.50 Publish-failure — тегируем на коммите, где ВСЕ тесты проходят, а не на коммите с follow-up патчами только на `main`. (housekeeping)

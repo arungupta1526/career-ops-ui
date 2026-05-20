@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.52] — 2026-05-20
+
+**fix(ux): UX-A5 — scroll-spy del TOC en `#/help` ahora dispara correctamente.** Regresión de v1.58.45 (setTimeout(0) era demasiado temprano). Fix: refs directas a `headings` + doble `requestAnimationFrame`. 947 → **948** unitarios. (UX-A5)
+
+---
+
 ## [1.58.51] — 2026-05-20
 
 **chore(docs): v1.58.51 — limpieza final del ciclo v1.58.37 → v1.58.50 (14 releases).** Sin cambios de código. qa/ reorganizado (todo lo version-locked en `archive/v158-cycle/`); 6 perennials en raíz. `REGRESSION-FINAL §13` documenta cada invariante v1.58.37→.50. `UX-AUDIT-PROMPT.md` extendido. Baseline sin cambios (947/947). (housekeeping)

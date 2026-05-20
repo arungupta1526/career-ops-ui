@@ -37,6 +37,25 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('UX-A5 (v1.58.52): help.js TOC scroll-spy uses double-rAF + direct heading refs (not setTimeout/querySelector)', () => {
+  const help = read('public', 'js', 'views', 'help.js');
+  // The buggy v1.58.45 pattern was setTimeout(0) + querySelectorAll
+  // against the document — fired before the router mounted the view.
+  // The v1.58.52 fix observes the `headings` refs we already hold and
+  // defers via double rAF.
+  assert.match(help, /function mountTocSpy\(\)/,
+    'help.js must define mountTocSpy() to host the observer wiring');
+  assert.match(help, /requestAnimationFrame\(\(\)\s*=>\s*requestAnimationFrame\(mountTocSpy\)\)/,
+    'help.js must defer the observer mount via double requestAnimationFrame');
+  assert.match(help, /headings\.forEach\(\(h\)\s*=>\s*tocObserver\.observe\(h\)\)/,
+    'observer must observe the direct heading refs (not a fresh querySelectorAll)');
+  // The buggy setTimeout(0) wrapper around the observer init must be
+  // gone (we kept setTimeout for other purposes in this file, so we
+  // negative-match the specific shape).
+  assert.ok(!/setTimeout\(\(\)\s*=>\s*\{\s*const articleHeadings = document\.querySelectorAll/.test(help),
+    "pre-fix setTimeout(0) + document.querySelectorAll('.help-article h2') wrapper must be gone");
+});
+
 test('DOC-1 (v1.58.50): qa/REGRESSION-FINAL.md has §5a documenting English-by-policy server error bodies', () => {
   const final = read('qa', 'REGRESSION-FINAL.md');
   assert.match(final, /^## §5a — Server error bodies are English-by-policy/m,

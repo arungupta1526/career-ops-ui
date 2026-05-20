@@ -10,6 +10,12 @@
 
 
 
+## [1.58.52] — 2026-05-20
+
+**fix(ux): UX-A5 — `#/help` TOC スクロールスパイが正しく発火するように。** v1.58.45 の setTimeout(0) は router マウント前に発火していた。fix: `headings` の直接参照 + 二重 `requestAnimationFrame`。947 → **948** ユニット。(UX-A5)
+
+---
+
 ## [1.58.51] — 2026-05-20
 
 **chore(docs): v1.58.51 — v1.58.37 → v1.58.50 サイクル(14 releases)の最終ハウスキーピング。** コード変更なし。qa/ を整理し、すべてのバージョン固定ドキュメントを `archive/v158-cycle/` へ移動;6 つの perennial がルートに残る。`REGRESSION-FINAL §13` が v1.58.37→.50 のすべての不変条件を文書化。ベースライン不変(947/947)。(housekeeping)

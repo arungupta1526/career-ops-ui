@@ -152,22 +152,33 @@ Router.register('help', async () => {
   const onScroll = () => { backTop.style.display = window.scrollY > 600 ? 'block' : 'none'; };
   window.addEventListener('scroll', onScroll, { passive: true });
 
-  // UX-D-K (v1.58.45) — scroll-spy on the TOC. As the user scrolls
-  // the help body, the TOC link for the currently-visible H2 gets
-  // the `.toc-current` class so the user always knows which section
-  // they're reading. IntersectionObserver fires when an <h2>
-  // intersects the upper-third reading band of the viewport; the
-  // observer is created lazily (after DOM mount) and torn down with
-  // the rest of the help-page listeners on hashchange.
+  // UX-D-K (v1.58.45) + UX-A5 (v1.58.52) — scroll-spy on the TOC.
+  // v1.58.45 wired `IntersectionObserver`, but the 2026-05-19
+  // verification regression caught **0** links ever receiving
+  // `.toc-current` on scroll. Root cause: `setTimeout(0)` fired
+  // BEFORE the router mounted the returned root into `#content`, so
+  // `document.querySelectorAll('.help-article h2[id]')` matched nothing
+  // and the observer never bound. UX-A5 fix:
+  //   1. Observe the actual `<h2>` element refs we already hold from
+  //      the synchronous `headings` array above — they're stable
+  //      DOM nodes that travel with the `article` div the router
+  //      appends. No re-query against `document` needed.
+  //   2. Defer the IntersectionObserver creation via a double
+  //      `requestAnimationFrame` so the observer attaches on the
+  //      first frame AFTER mount (more reliable than setTimeout(0)
+  //      against the SPA's render order).
+  //   3. Also wire a same-document-DOM-mounted fallback: if `headings`
+  //      somehow has no ids (regressed renderer), the observer is a
+  //      no-op rather than throwing.
   let tocObserver = null;
-  setTimeout(() => {
-    const articleHeadings = document.querySelectorAll('.help-article h2[id]');
-    if (!articleHeadings.length) return;
-    const linkByTarget = new Map();
-    for (const a of tocLinks) {
-      const id = a.dataset.targetId;
-      if (id) linkByTarget.set(id, a);
-    }
+  const linkByTarget = new Map();
+  for (const a of tocLinks) {
+    const id = a.dataset.targetId;
+    if (id) linkByTarget.set(id, a);
+  }
+  function mountTocSpy() {
+    if (tocObserver) return; // idempotent
+    if (!headings.length || !linkByTarget.size) return;
     tocObserver = new IntersectionObserver((entries) => {
       // Pick the entry closest to the top of the viewport — multiple
       // headings can intersect at once on tall sections.
@@ -179,8 +190,12 @@ Router.register('help', async () => {
       const link = linkByTarget.get(active.target.id);
       if (link) link.classList.add('toc-current');
     }, { rootMargin: '-30% 0% -60% 0%', threshold: 0 });
-    articleHeadings.forEach((h) => tocObserver.observe(h));
-  }, 0);
+    headings.forEach((h) => tocObserver.observe(h));
+  }
+  // Two rAFs = "after the next paint that includes the mounted view".
+  // Single rAF can fire before the router appends, so we always wait
+  // for two — cheap and reliable.
+  requestAnimationFrame(() => requestAnimationFrame(mountTocSpy));
 
   // Detach the listener when the SPA leaves #/help (hashchange).
   const cleanup = () => {

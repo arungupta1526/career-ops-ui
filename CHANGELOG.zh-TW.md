@@ -10,6 +10,12 @@
 
 
 
+## [1.58.52] — 2026-05-20
+
+**fix(ux): UX-A5 — `#/help` TOC 捲動追蹤現在能正確觸發。** v1.58.45 的 setTimeout(0) 在路由掛載前就執行了。修正:直接參照 `headings` + 雙重 `requestAnimationFrame`。947 → **948** 單元。(UX-A5)
+
+---
+
 ## [1.58.51] — 2026-05-20
 
 **chore(docs): v1.58.51 — v1.58.37 → v1.58.50 週期(14 個版本)的最終清理。** 不改程式碼。qa/ 重新整理(所有版本固定文件移到 `archive/v158-cycle/`);6 個 perennial 留在根目錄。`REGRESSION-FINAL §13` 記錄 v1.58.37→.50 的全部不變量。基線不變(947/947)。(housekeeping)

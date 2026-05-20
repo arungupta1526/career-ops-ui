@@ -10,6 +10,12 @@
 
 
 
+## [1.58.52] — 2026-05-20
+
+**fix(ux): UX-A5 — `#/help` TOC 滚动追踪现在能正确触发。** v1.58.45 的 setTimeout(0) 在路由挂载前就执行了。修复:直接引用 `headings` + 双重 `requestAnimationFrame`。947 → **948** 单元。(UX-A5)
+
+---
+
 ## [1.58.51] — 2026-05-20
 
 **chore(docs): v1.58.51 — v1.58.37 → v1.58.50 周期(14 个版本)的最终清理。** 不改代码。qa/ 重新整理(所有版本固定文档移到 `archive/v158-cycle/`);6 个 perennial 留在根目录。`REGRESSION-FINAL §13` 记录 v1.58.37→.50 的全部不变量。基线不变(947/947)。(housekeeping)
