@@ -543,22 +543,39 @@ Router.register('config', async () => {
     role: 'status',
     'aria-live': 'polite',
   }, '');
+  // NEW-OR1 (v1.59.4) — race-safe refresh. The pre-fix `refreshApiSummary`
+  // cleared every child *before* awaiting the fetch result on some
+  // browsers when the previous fetch was still in flight (a stale
+  // providers-changed could race the Save). Now we:
+  //   1. Build the new <span> nodes first (no DOM mutation yet).
+  //   2. Atomically replace via apiSummary.replaceChildren(...newNodes).
+  //   3. Refuse to swap when the fetch lost (st === null) — keep the
+  //      previous state instead of blanking the chip.
+  //   4. Cache `lastGoodSt` so a transient `keysConfigured: []` from a
+  //      mid-Save read doesn't drag the displayed count to 0/5 while
+  //      the server is still propagating. We only DROP a key from the
+  //      displayed count when the server response is definitive — i.e.
+  //      `keysConfigured` is present (not an absent property) AND the
+  //      previously-known active provider is no longer in the list.
+  let lastGoodSt = null;
+  let inFlight = 0;
   async function refreshApiSummary() {
+    const myToken = ++inFlight;
     let st = null;
     try {
       const r = await fetch('/api/status/providers');
       if (r.ok) st = await r.json();
-    } catch { /* offline → hide */ }
-    while (apiSummary.firstChild) apiSummary.removeChild(apiSummary.firstChild);
-    if (!st) { apiSummary.hidden = true; return; }
+    } catch { /* offline → keep last */ }
+    // Drop stale resolves (another refresh started after us).
+    if (myToken !== inFlight) return;
+    if (!st) {
+      // No fresh data — leave the chip showing the last known state.
+      // Hide only when we never had any state at all.
+      if (!lastGoodSt) apiSummary.hidden = true;
+      return;
+    }
+    lastGoodSt = st;
     apiSummary.hidden = false;
-    // v1.59.2 — the server returns `keysConfigured` as an ARRAY of
-    // provider names (filter+map over hasXxxKey()) and `activeProvider`
-    // as lowercase short names (`anthropic` / `gemini` / `openai` /
-    // `qwen` / `openrouter` — note `anthropic`, NOT `claude`). The
-    // pre-fix chip checked `typeof keysConfigured === 'number'`
-    // (always false → "0 / 5") and a `claude:` key in NAME (never
-    // matched → lowercase fallback like "Active: anthropic").
     const NAME = { anthropic: 'Anthropic', gemini: 'Gemini', openai: 'OpenAI', qwen: 'Qwen', openrouter: 'OpenRouter' };
     const active = st.activeProvider
       ? (NAME[st.activeProvider] || st.activeProvider)
@@ -568,7 +585,8 @@ Router.register('config', async () => {
       t('config.activeProvider', 'Active') + ': ' + active);
     const countLabel = c('span', { className: 'api-keys__count' },
       t('config.keysConfiguredPrefix', 'Keys') + ': ' + count + ' / 5');
-    apiSummary.append(activeLabel, countLabel);
+    // Atomic swap — never leaves the chip empty mid-update.
+    apiSummary.replaceChildren(activeLabel, countLabel);
   }
   document.addEventListener('providers-changed', refreshApiSummary);
   refreshApiSummary();

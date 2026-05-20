@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.59.4] — 2026-05-20
+
+**fix(ui): NEW-OR1 (v1.59.4) — `#/config` API-keys summary chip is race-safe.** User-reported transient `Keys: 0 / 5` flash during Save flows. The previous `refreshApiSummary()` cleared `<span>` children before awaiting the network fetch; a concurrent `providers-changed` event could observe the empty state. New implementation in [public/js/views/config.js](public/js/views/config.js):\n\n1. Build new `<span>` nodes **before** any DOM mutation.\n2. Atomic swap via `apiSummary.replaceChildren(newActive, newCount)` — chip never blanks mid-update.\n3. `inFlight` token counter drops stale resolves when a newer refresh starts.\n4. `lastGoodSt` cache preserves the last known state when fetch returns null (network blip, server reload), so the chip never collapses to `0 / 5` on a transient empty response.\n\nLock-test in [tests/qa-report-fixes.test.mjs](tests/qa-report-fixes.test.mjs) asserts all four invariants. 963 → **964** unit. (NEW-OR1)
+
+---
+
+
+
 ## [1.59.3] — 2026-05-20
 
 **fix(ux): UX-A5-r2 (v1.59.3) — Help TOC scroll-spy harden (third-pass fix).** Two real issues persisted after v1.58.52: (1) `rootMargin: "-30% 0% -60% 0%"` left only a 10% visible band so fast scroll could skip the trigger zone entirely and no IntersectionObserver entry ever fired; (2) no initial-state computation, so a freshly-loaded `#/help` with zero scroll showed zero highlights even though section 1 was visibly active. [public/js/views/help.js](public/js/views/help.js): widened `rootMargin` to `-20% 0% -55% 0%` (25% band), made `root: null` explicit, extracted `applyCurrent(id)` so the same code path serves both observer callbacks and the initial-state pass, and on mount picks the heading closest to 20% from top of viewport. 962 → **963** unit. (UX-A5-r2)

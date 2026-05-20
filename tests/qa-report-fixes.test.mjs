@@ -121,6 +121,24 @@ test('UX-A15 (v1.58.63): dashboard Pipeline tile carries the qa-tile--primary vi
     'primary tile label must be bolder (font-weight: 600)');
 });
 
+test('NEW-OR1 (v1.59.4): #/config api-keys summary refresh is race-safe (atomic replaceChildren + stale-token drop)', () => {
+  const cfg = read('public', 'js', 'views', 'config.js');
+  // Race-safe pattern: token-counting prevents stale fetch resolves
+  // from clobbering a newer-fetch result.
+  assert.match(cfg, /const myToken = \+\+inFlight/,
+    'refreshApiSummary must use an inFlight token to guard against stale resolves');
+  assert.match(cfg, /if \(myToken !== inFlight\) return/,
+    'refreshApiSummary must drop the response if a newer fetch has started');
+  // Atomic DOM swap (no transient empty chip).
+  assert.match(cfg, /apiSummary\.replaceChildren\(activeLabel, countLabel\)/,
+    'refreshApiSummary must use replaceChildren() for atomic swap (no flash)');
+  // On null fetch result, preserve the previous good state.
+  assert.match(cfg, /let lastGoodSt = null/,
+    'refreshApiSummary must cache lastGoodSt to survive transient fetch failures');
+  assert.match(cfg, /if \(!lastGoodSt\) apiSummary\.hidden = true/,
+    'refreshApiSummary must only hide chip on first-ever fetch failure');
+});
+
 test('UX-A9 (v1.58.62 + v1.59.2): #/config API-keys panel has an Active/Keys summary chip with correct count + provider key', () => {
   const cfg = read('public', 'js', 'views', 'config.js');
   assert.match(cfg, /className:\s*'api-keys__summary'/,

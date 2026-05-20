@@ -10,6 +10,14 @@
 
 
 
+## [1.59.4] — 2026-05-20
+
+**fix(ui): NEW-OR1 (v1.59.4) — `#/config` Active/Keys チップのレース解消。** atomic replaceChildren + in-flight トークン + last-good キャッシュ。(NEW-OR1)
+
+---
+
+
+
 ## [1.59.3] — 2026-05-20
 
 **fix(ux): UX-A5-r2 (v1.59.3) — `#/help` スクロールスパイ強化。** rootMargin の可視帯を 10 % から 25 % に拡大 + マウント時の初期状態計算を追加。(UX-A5-r2)

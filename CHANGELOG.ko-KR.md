@@ -10,6 +10,14 @@
 
 
 
+## [1.59.4] — 2026-05-20
+
+**fix(ui): NEW-OR1 (v1.59.4) — `#/config` Active/Keys 칩 경쟁 조건 제거.** atomic replaceChildren + 인-플라이트 토큰 + last-good 캐시. (NEW-OR1)
+
+---
+
+
+
 ## [1.59.3] — 2026-05-20
 
 **fix(ux): UX-A5-r2 (v1.59.3) — `#/help` 스크롤 스파이 강화.** rootMargin 가시 영역을 10 %에서 25 %로 확대 + 마운트 시 초기 상태 계산 추가. (UX-A5-r2)
