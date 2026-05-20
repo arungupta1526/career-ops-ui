@@ -10,6 +10,12 @@
 
 
 
+## [1.58.32] — 2026-05-20
+
+**fix(ux): U-12 — поле фильтра TOC справки получает `min-width: 16ch` чтобы KO/JA плейсхолдеры не обрезались.** Корейский `섹션 필터` и японский `セクションをフィルター` шире EN `Filter sections` на 5-10%. Поле уже было `width: 100%` внутри `.help-toc`, но при сжатии карточки placeholder клиппинговался. Новый класс `.help-toc__filter` с `min-width: 16ch` гарантирует, что плейсхолдер вмещается во всех 8 локалях. 924 → **925** модульных. (U-12)
+
+---
+
 ## [1.58.31] — 2026-05-20
 
 **fix(ux): U-11 — заголовок столбца `Legitimacy` в трекере получил локализованный info-чип ⓘ с tooltip про шкалу High/Caution/Suspicious.** До правки бейдж в строке читался как `High` / `Caution` / `Suspicious` без подсказки в шапке, что они значат. В [public/js/views/tracker.js](public/js/views/tracker.js#L228-L246) `<th>` теперь рендерит лейбл + `<span class="th-info" tabindex="0" role="img">ⓘ</span>`; `title` + `aria-label` берутся из нового ключа `track.col.legitimacy.help` × 8 локалей: «Достоверность вакансии (высокая / осторожно / подозрительная).» CSS `.th-info:focus-visible` даёт фокусное кольцо — чип доступен с клавиатуры (WCAG 2.4.7). Параллельно поправлен lock-тест `#25 destructive buttons have a title hint`, который после U-10 проверял только `track.fixHint`, но теперь tooltip ветвится между `track.fixHint` и `track.fixEmpty`. 923 → **924** модульных. (U-11 + U-10 follow-up)

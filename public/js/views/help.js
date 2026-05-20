@@ -77,7 +77,11 @@ Router.register('help', async () => {
   // WS2 #12 — in-page filter over the TOC (92-heading doc).
   let tocScrollTimer = 0; // v1.56.0 — UX-11 debounce handle
   const tocSearch = c('input', {
-    className: 'input', type: 'search',
+    // U-12 (v1.58.32) — `.help-toc__filter` class lets CSS pin a
+    // min-width: 16ch so the KO `섹션 필터` / JA `セクションをフィルター`
+    // placeholders (5–10% wider than EN) never get clipped if the
+    // surrounding card squeezes the input.
+    className: 'input help-toc__filter', type: 'search',
     'aria-label': t('help.tocFilter', 'Filter sections'),
     placeholder: t('help.tocFilter', 'Filter sections'),
     style: { width: '100%', marginBottom: '10px', fontSize: '13px' },

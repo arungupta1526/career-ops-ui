@@ -10,6 +10,12 @@
 
 
 
+## [1.58.32] — 2026-05-20
+
+**fix(ux): U-12 — `#/help` TOC 필터 입력에 `min-width: 16ch` 적용.** KO/JA 플레이스홀더가 잘리지 않도록 `.help-toc__filter` 클래스 추가. 924 → **925** 유닛. (U-12)
+
+---
+
 ## [1.58.31] — 2026-05-20
 
 **fix(ux): U-11 — Tracker 의 `Legitimacy` 컬럼 헤더에 현지화 정보 칩 ⓘ + 툴팁으로 High/Caution/Suspicious 척도 설명.** 새 i18n 키 `track.col.legitimacy.help` × 8 언어. 923 → **924** 유닛. (U-11)

@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.32] — 2026-05-20
+
+**fix(ux): U-12 — `#/help` TOC filter input gets a 16ch `min-width` so KO/JA placeholders never clip.** Korean `섹션 필터` and Japanese `セクションをフィルター` are 5-10% wider than the EN `Filter sections`. The input already used `width: 100%` of its `.help-toc` card; we add a `.help-toc__filter` class with `min-width: 16ch` so even if the card narrows, the placeholder still fits in any of the 8 locales. 924 → **925** unit. (U-12)
+
+---
+
 ## [1.58.31] — 2026-05-20
 
 **fix(ux): U-11 — Tracker `Legitimacy` column header now carries a localized info chip + tooltip explaining the High/Caution/Suspicious scale.** v1.58.3 QA: the badge in each row read `High` / `Caution` / `Suspicious` with no header affordance to learn what they meant. [public/js/views/tracker.js](public/js/views/tracker.js#L228-L246) `<th>` now renders the column label + `<span class="th-info" tabindex="0" role="img">ⓘ</span>` whose `title` + `aria-label` come from a new `track.col.legitimacy.help` i18n key × 8 locales: *"Confidence that the posting is real (High / Caution / Suspicious)."* CSS `.th-info:focus-visible` adds the brand ring so the chip is keyboard-reachable per WCAG 2.4.7. Also repairs the v1.58.30 (U-10) regression where the existing `#25 destructive buttons have a title hint` lock test only checked for `track.fixHint` but the U-10 branch now uses both `track.fixHint` and `track.fixEmpty`. 923 → **924** unit. (U-11 + U-10 follow-up)

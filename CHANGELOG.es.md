@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.32] — 2026-05-20
+
+**fix(ux): U-12 — la barra de filtro del TOC de ayuda gana `min-width: 16ch` para que los placeholders KO/JA no se recorten.** Clase `.help-toc__filter` añadida. 924 → **925** unitarios. (U-12)
+
+---
+
 ## [1.58.31] — 2026-05-20
 
 **fix(ux): U-11 — el encabezado `Legitimacy` del Tracker ahora muestra un chip de info ⓘ con tooltip explicando la escala (Alta/Precaución/Sospechosa).** Nueva clave i18n `track.col.legitimacy.help` × 8 idiomas. 923 → **924** unitarios. (U-11)

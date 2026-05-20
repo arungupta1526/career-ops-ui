@@ -10,6 +10,12 @@
 
 
 
+## [1.58.32] — 2026-05-20
+
+**fix(ux): U-12 — `#/help` TOC のフィルタ入力に `min-width: 16ch` を設定。** KO/JA のプレースホルダが切れないよう `.help-toc__filter` クラスを追加。924 → **925** ユニット。(U-12)
+
+---
+
 ## [1.58.31] — 2026-05-20
 
 **fix(ux): U-11 — Tracker の `Legitimacy` 列ヘッダにローカライズされた情報チップ ⓘ + ツールチップで High/Caution/Suspicious スケールを説明。** 新規 i18n キー `track.col.legitimacy.help` × 8 言語。923 → **924** ユニット。(U-11)

@@ -37,6 +37,15 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('U-12 (v1.58.32): help TOC filter input carries `.help-toc__filter` class + CSS min-width', () => {
+  const help = read('public', 'js', 'views', 'help.js');
+  assert.match(help, /className:\s*'input help-toc__filter'/,
+    'tocSearch must carry className "input help-toc__filter"');
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /\.help-toc__filter\s*\{[^}]*min-width:\s*16ch/,
+    '.help-toc__filter must declare min-width: 16ch (fits all 8 locale placeholders)');
+});
+
 test('U-11 (v1.58.31): tracker Legitimacy column header has localized info chip with tooltip', () => {
   const tr = read('public', 'js', 'views', 'tracker.js');
   assert.match(tr, /className:\s*'th-info'/, '<span class="th-info"> must exist in the legitimacy header');

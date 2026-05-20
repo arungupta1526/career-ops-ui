@@ -10,6 +10,12 @@
 
 
 
+## [1.58.32] — 2026-05-20
+
+**fix(ux): U-12 — `#/help` TOC 过滤输入框获得 `min-width: 16ch` 以避免 KO/JA 占位符被截断。** 新增 `.help-toc__filter` 类。924 → **925** 单元。(U-12)
+
+---
+
 ## [1.58.31] — 2026-05-20
 
 **fix(ux): U-11 — Tracker `Legitimacy` 列表头新增本地化信息 ⓘ + tooltip 解释 High/Caution/Suspicious 级别。** 新增 i18n 键 `track.col.legitimacy.help` × 8 语言。923 → **924** 单元。(U-11)

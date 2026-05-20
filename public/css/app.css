@@ -1161,6 +1161,12 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
 .th-info { display: inline-block; margin-left: 2px; cursor: help; font-size: .85em; color: var(--foggy, #999); }
 .th-info:focus-visible { outline: 2px solid var(--rausch, #ff385c); outline-offset: 2px; border-radius: 2px; }
 
+/* U-12 (v1.58.32) — Help TOC filter input. The KO/JA placeholders
+   are 5-10% wider than EN; pin a min-width so they never get clipped
+   if the .help-toc card squeezes the input. 16ch sits comfortably
+   above all 8 locale placeholders. */
+.help-toc__filter { min-width: 16ch; }
+
 /* U-9 (v1.58.29) — Pipeline counter ↔ filter row. Above 720 px the
    flex gap-3 layout already works; at narrower widths the filter
    input is cramped, so stack vertically and stretch it full-width. */
