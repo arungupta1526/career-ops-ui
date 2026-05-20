@@ -238,8 +238,15 @@ Router.register('auto', async () => {
   urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') run(); });
 
   const root = c('div', null, [
-    c('header', { className: 'page-header' }, [
-      c('h1', { className: 'page-title' }, t('auto.title', 'Auto-pipeline')),
+    // U-2 (v1.58.21) — split the `✨` decoration out of the H1 text. At
+    // 1280-1600 px widths the leading emoji + 'Auto-pipeline a URL' /
+    // its translations wrapped to a second line. Move the emoji to a
+    // sibling `<span class="page-icon" aria-hidden="true">` so the H1
+    // can flow on its own grid column and the emoji never participates
+    // in line-wrap. The i18n value drops the leading emoji + space.
+    c('header', { className: 'page-header page-header--icon' }, [
+      c('span', { className: 'page-icon', 'aria-hidden': 'true' }, '✨'),
+      c('h1', { className: 'page-title' }, t('auto.title', 'Auto-pipeline a URL')),
       c('p', { className: 'page-subtitle' },
         t('auto.subtitle', 'Paste one job URL. One click runs the whole flow — validate, fetch, evaluate against your CV, save the report, add it to the tracker.')),
     ]),

@@ -10,6 +10,12 @@
 
 
 
+## [1.58.22] — 2026-05-20
+
+**fix(ux): U-2 — `#/auto` H1 이 선행 `✨` 때문에 두 줄로 줄바꿈되던 문제 해결.** `auto.title` 에서 `✨` 분리하여 `<span class="page-icon" aria-hidden="true">` 로 이동. `.page-header--icon` 은 grid 레이아웃으로 이모지 전용 열 확보. 914 → **915** 유닛. (U-2)
+
+---
+
 ## [1.58.21] — 2026-05-20
 
 **fix(ux): U-1 — `#/cv` H1 + 부제목이 다른 페이지와 통일(v1.56.0 UX-9 칩을 설계상 철회).** `.cv-breadcrumb` 칩 제거, `<h1 class="page-title">` + `<p class="page-subtitle">` 복원. 단일 `<h1>` 불변 유지. 913 → **914** 유닛. (U-1)

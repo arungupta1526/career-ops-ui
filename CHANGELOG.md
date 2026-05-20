@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.22] — 2026-05-20
+
+**fix(ux): U-2 — `#/auto` H1 no longer wraps to 2 lines because of the leading `✨`.** Pre-fix the `auto.title` i18n value was `✨ Auto-pipeline a URL`; the emoji participated in line-wrap and pushed the title to a second row at 1280-1600 px widths. Split into separate elements in [public/js/views/auto.js](public/js/views/auto.js#L240-L252): `.page-header.page-header--icon` (CSS grid, `auto 1fr` columns) + `<span class="page-icon" aria-hidden="true">✨</span>` + `<h1 class="page-title">{t(auto.title)}</h1>` + `<p class="page-subtitle">`. The emoji now sits on its own column and never participates in line wrap; the H1 wraps freely if needed. `auto.title` i18n value stripped of its leading `✨` in all 8 locales. 914 → **915** unit. (U-2)
+
+---
+
 ## [1.58.21] — 2026-05-20
 
 **fix(ux): U-1 — `#/cv` H1 + subtitle now match every other page (supersedes v1.56.0 UX-9 chip by design).** v1.56.0 UX-9 demoted the page title to a `.cv-breadcrumb` chip (lowercase grey `cv`) so the user's name in the preview "owned" visual space. v1.58.3 QA confirmed it just reads as a layout bug — the page header looks broken next to `#/dashboard`/`#/help`/etc. U-1 promotes [public/js/views/cv.js](public/js/views/cv.js) back to `<h1 class="page-title">` + visible `<p class="page-subtitle">` like every other page; `.cv-breadcrumb` CSS rule removed. **Single-`<h1>` invariant unchanged** (F-V54-A still shifts user `# Name` h1→h2 in the preview, so this stays the page's only H1). Lock test `tests/cv-breadcrumb.test.mjs` (which encoded the now-reversed UX-9 contract) is removed; `tests/cv-single-h1.test.mjs` updated to assert the new `.page-title`-only shape. 913 → **914** unit. (U-1)

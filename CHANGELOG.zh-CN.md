@@ -10,6 +10,12 @@
 
 
 
+## [1.58.22] — 2026-05-20
+
+**fix(ux): U-2 — `#/auto` 的 H1 不再因前导 `✨` 而换行至两行。** 把 `✨` 从 `auto.title` 拆出到独立 `<span class="page-icon" aria-hidden="true">`;`.page-header--icon` 用 CSS grid 为图标设单独列。914 → **915** 单元。(U-2)
+
+---
+
 ## [1.58.21] — 2026-05-20
 
 **fix(ux): U-1 — `#/cv` 的 H1 + 副标题与其它页面统一(按设计撤回 v1.56.0 UX-9 chip)。** 移除 `.cv-breadcrumb` chip,改用 `<h1 class="page-title">` + `<p class="page-subtitle">`。单 `<h1>` 不变量保留。913 → **914** 单元。(U-1)

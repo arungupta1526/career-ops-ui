@@ -30,6 +30,32 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('U-2 (v1.58.22): #/auto separates ✨ from the H1 via a .page-icon span', () => {
+  const auto = read('public', 'js', 'views', 'auto.js');
+  // Header must use the icon variant + emoji as a sibling span:
+  assert.match(auto, /className:\s*'page-header page-header--icon'/,
+    "auto.js header must use 'page-header page-header--icon'");
+  assert.match(auto, /c\('span',\s*\{\s*className:\s*'page-icon',\s*'aria-hidden':\s*'true'\s*\},\s*'✨'\)/,
+    'auto.js must emit ✨ as a separate <span class="page-icon" aria-hidden="true">');
+  // The H1 i18n value must NOT include the leading ✨ anymore:
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  const row = dict.match(/'auto\.title':\s*\{([^}]+)\}/);
+  assert.ok(row, 'auto.title row must exist');
+  for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+    const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+    const m = row[1].match(new RegExp(`${keyPat}\\s*:\\s*'([^']+)'`));
+    assert.ok(m, `auto.title row missing ${lang}`);
+    assert.ok(!/^✨/.test(m[1]),
+      `auto.title[${lang}] must not start with ✨ (moved to .page-icon span): '${m[1]}'`);
+  }
+  // CSS must define the grid header + icon class:
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /\.page-header--icon\s*\{[^}]*display:\s*grid/,
+    '.page-header--icon must declare display: grid');
+  assert.match(css, /\.page-icon\s*\{[^}]*line-height:\s*1/,
+    '.page-icon rule must exist');
+});
+
 test('U-1 (v1.58.21): #/cv has a proper page-header H1 + subtitle (no `.cv-breadcrumb` chip)', () => {
   const cv = read('public', 'js', 'views', 'cv.js');
   // Pre-fix chip class is gone:

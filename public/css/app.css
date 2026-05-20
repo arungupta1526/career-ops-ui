@@ -577,6 +577,24 @@ body.sidebar-open .sidebar-backdrop { display: block; }
   margin-bottom: var(--space-6);
   gap: var(--space-4);
 }
+/* U-2 (v1.58.22) — header with a decorative leading emoji (e.g. ✨ on
+   #/auto). Switch to grid so the icon sits on its own column and the
+   <h1>/<p> pair flows in the remaining track without the emoji
+   participating in line-wrap. At narrow widths the H1 still wraps;
+   the icon never breaks to a new line ahead of the title. */
+.page-header--icon {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--space-3, .75rem);
+  align-items: baseline;
+}
+.page-header--icon > .page-subtitle { grid-column: 2 / -1; }
+.page-icon {
+  font-size: 1.5em;
+  line-height: 1;
+  -webkit-user-select: none;
+  user-select: none;
+}
 .page-title {
   font-size: 32px;
   font-weight: 700;
