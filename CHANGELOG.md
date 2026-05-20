@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.59.11] — 2026-05-21
+
+**fix(test): v1.59.11 — e2e-comprehensive 12-case CI failure root-caused and closed.** Twelve cases (Pipeline · Activity · Health · 7 Mode pages · 404 · Profile) had been failing on every CI run going back to v1.58.x because `page.goto(baseUrl + '/#/X')` is a no-op for hash-only URL changes in Playwright. Once the CV-save step set the hash to `#/cv`, every subsequent `goto` to a hash route silently kept the page on `#/cv` — Activity/Health/Mode/Profile selectors never matched, and the 4 'pass' results in between were vacuous (their assertions found CV's elements). Fix in [tests/e2e-comprehensive.mjs](tests/e2e-comprehensive.mjs): new `goRoute(hash)` helper that bounces through `about:blank` before each `goto`, forcing a real navigation and SPA re-bootstrap. All 17 `page.goto(`${baseUrl}/#/...`)` call sites replaced. Diagnostic instrumentation (`E2E_DUMP_ON_FAIL=1` env var) added for future investigations. Result: **23 / 23 cases green** locally · 988 / 988 unit · 20 / 20 smoke e2e. (e2e-harness-r1)
+
+---
+
+
+
 ## [1.59.10] — 2026-05-21
 
 **fix(api): NEW-F1-sub-r1 (v1.59.10) — un-encoded `../` traversal guard hoisted above all /api route registrations.** v1.59.8 added a `req.originalUrl.includes('..')` middleware, but it was placed AFTER `app.all('/api/*', JSON-404)` AND AFTER all route handlers — by which time Express had already normalised the URL (collapsing `..` segments). `/api/jds/../../../etc/passwd` was rewritten to `/etc/passwd` and fell through to the SPA static handler (200 OK on `index.html`). v1.59.10 hoists the guard to the TOP of [server/index.mjs](server/index.mjs) `createApp()` (above every `register*Routes(app)` call) so it inspects the verbatim request URL before any normalisation. Pattern: `/^\/api(\/|$)/.test(req.originalUrl) && /\.\.\//.test(req.originalUrl)`. New [tests/api-path-traversal.test.mjs](tests/api-path-traversal.test.mjs) — 6 cases driving the real http module (Node's fetch normalises `..` client-side, so we drop to `http.request` with a verbatim path). Unknown `/api/*` paths still return `{error: 'unknown api'}` from the existing `app.all` fallback. 982 → **988** unit. (NEW-F1-sub-r1)

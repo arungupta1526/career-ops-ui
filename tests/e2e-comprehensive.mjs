@@ -68,6 +68,23 @@ async function step(name, fn) {
     console.log(`✗ ${err.message.split('\n')[0]}`);
     failures.push({ name, message: err.message });
     ran.push({ name, ok: false });
+    // v1.59.11 DEBUG — dump first 800 chars of body innerHTML so the
+    // CI log shows what the page actually looked like at failure time.
+    if (process.env.E2E_DUMP_ON_FAIL && globalThis.__e2e_page) {
+      try {
+        const snap = await globalThis.__e2e_page.evaluate(() => {
+          const c = document.getElementById('content');
+          return {
+            url: location.href,
+            contentOuterStart: c ? c.outerHTML.replace(/\s+/g, ' ').slice(0, 600) : null,
+            h1text: document.querySelector('h1.page-title')?.textContent || null,
+          };
+        });
+        console.log(`    [snap] url=${snap.url}`);
+        console.log(`    [snap] h1=${snap.h1text}`);
+        console.log(`    [snap] #content=${snap.contentOuterStart}`);
+      } catch { /* page may be torn down */ }
+    }
   }
 }
 
@@ -79,6 +96,27 @@ async function run() {
     locale: 'en-US',
   });
   const page = await context.newPage();
+  globalThis.__e2e_page = page;
+
+  // v1.59.11 — hash-route navigation helper. Playwright's `page.goto()`
+  // is a no-op when only the URL fragment changes, so calling
+  // `page.goto(baseUrl + '/#/foo')` after the page was already loaded
+  // doesn't fire the SPA's `hashchange` handler. Setting `location.hash`
+  // via evaluate() IS observed by the SPA's router. All tests that need
+  // to change route must use `goRoute(hash)` instead of `page.goto`
+  // (initial load via `page.goto(baseUrl)` still required once).
+  async function goRoute(hash) {
+    if (!hash.startsWith('#/')) hash = '#/' + hash.replace(/^#?\/?/, '');
+    // v1.59.11 — page.goto() with only a hash change is a no-op in
+    // Playwright; setting location.hash via evaluate() sometimes
+    // doesn't propagate either. The bullet-proof approach is to
+    // bounce through about:blank, forcing a real full-page navigation
+    // on the next goto so the SPA re-bootstraps and renders the new
+    // route from scratch.
+    await page.goto('about:blank');
+    await page.goto(`${baseUrl}/${hash}`, { waitUntil: 'networkidle' });
+  }
+  globalThis.__e2e_goRoute = goRoute;
   const consoleErrors = [];
   const pageErrors = [];
   page.on('console', (msg) => {
@@ -88,7 +126,7 @@ async function run() {
 
   // ─── CV save round-trip ─────────────────────────
   await step('CV: load → edit textarea → click Save → toast appears', async () => {
-    await page.goto(`${baseUrl}/#/cv`, { waitUntil: 'networkidle' });
+    await goRoute(`#/cv`);
     await page.waitForSelector('h1.page-title', { timeout: 5000 });
     const ta = page.locator('textarea.textarea').first();
     const original = await ta.inputValue();
@@ -102,7 +140,7 @@ async function run() {
   });
 
   await step('CV: preview pane mirrors textarea on input', async () => {
-    await page.goto(`${baseUrl}/#/cv`, { waitUntil: 'networkidle' });
+    await goRoute(`#/cv`);
     await page.waitForSelector('#cv-preview');
     const ta = page.locator('textarea.textarea').first();
     await ta.fill('# Live\n\nThis text should mirror.');
@@ -110,7 +148,7 @@ async function run() {
   });
 
   await step('CV: Generate PDF button visible and clickable', async () => {
-    await page.goto(`${baseUrl}/#/cv`, { waitUntil: 'networkidle' });
+    await goRoute(`#/cv`);
     const btn = page.locator('button:has-text("Generate PDF")');
     await btn.waitFor({ timeout: 5000 });
     if (!(await btn.isEnabled())) throw new Error('button disabled');
@@ -118,15 +156,21 @@ async function run() {
 
   // ─── Pipeline ─────────────────────────
   await step('Pipeline: search → URL added → ✕ removes', async () => {
-    await page.goto(`${baseUrl}/#/pipeline`, { waitUntil: 'networkidle' });
+    await goRoute(`#/pipeline`);
     await page.waitForSelector('h1.page-title');
     const url = `https://e2e-comp-${Date.now()}.example.com/job/1`;
     await page.locator('#global-search').fill(url);
     // v1.16.0+: plain Enter opens AutoPipeline modal; Shift+Enter is the
     // legacy quick-add path that this test exercises.
     await page.locator('#global-search').press('Shift+Enter');
-    await page.waitForTimeout(800);
-    if (!(await page.content()).includes(url)) throw new Error('not visible after add');
+    // v1.59.11 — was `waitForTimeout(800)` which races the SPA's
+    // POST /api/pipeline + re-fetch + re-render. Poll the DOM until
+    // the URL actually appears (or time out cleanly).
+    await page.waitForFunction(
+      (u) => document.body.textContent.includes(u),
+      url,
+      { timeout: 8000 },
+    ).catch(() => { throw new Error('not visible after add'); });
     // v1.48.0 (WS2 #8) — native confirm() → focus-trapped UI.confirm()
     // modal; page.on('dialog') no longer fires. Tear the row down via
     // the API (robust; avoids leaving a modal backdrop that would block
@@ -148,7 +192,7 @@ async function run() {
 
   // ─── Tracker ─────────────────────────
   await step('Tracker: filters narrow rows', async () => {
-    await page.goto(`${baseUrl}/#/tracker`, { waitUntil: 'networkidle' });
+    await goRoute(`#/tracker`);
     await page.waitForSelector('h1.page-title');
     await page.waitForTimeout(400);
     const search = page.locator('input[placeholder*="company" i], input[placeholder*="компания" i], input[placeholder*="empresa" i]').first();
@@ -161,14 +205,18 @@ async function run() {
 
   // ─── Reports ─────────────────────────
   await step('Reports: page loads without console errors', async () => {
-    await page.goto(`${baseUrl}/#/reports`, { waitUntil: 'networkidle' });
+    await goRoute(`#/reports`);
     await page.waitForSelector('h1.page-title');
   });
 
   // ─── Activity log ─────────────────────────
   await step('Activity: page loads, chip filter changes URL list', async () => {
-    await page.goto(`${baseUrl}/#/activity`, { waitUntil: 'networkidle' });
-    await page.waitForSelector('h1.page-title');
+    await goRoute(`#/activity`);
+    // v1.59.11 — wait for the SPECIFIC element we're going to query,
+    // not the generic h1 (which appears before the async /api/activity
+    // fetch resolves and the filter chips render). Same pattern applied
+    // to Health, Profile and 404 below.
+    await page.waitForSelector('.card button[data-filter]', { timeout: 10000 });
     const chips = page.locator('.card button[data-filter]');
     if ((await chips.count()) < 2) throw new Error('expected ≥2 filter chips');
     await chips.nth(1).click(); // pick first non-"all" filter
@@ -177,8 +225,14 @@ async function run() {
 
   // ─── Health unified ─────────────────────────
   await step('Health: ≥13 checks rendered (FIX-C6 unify)', async () => {
-    await page.goto(`${baseUrl}/#/health`, { waitUntil: 'networkidle' });
-    await page.waitForSelector('h1.page-title');
+    await goRoute(`#/health`);
+    // v1.59.11 — health.js renders the cards AFTER an async
+    // `await API.get('/api/health')`; waiting for h1 alone is racy
+    // because the h1 belongs to the same DOM fragment as the cards
+    // but Playwright's auto-wait can return before .count() reads
+    // the freshly-appended subtree on fast machines. Explicit wait
+    // for the cards themselves is the deterministic fix.
+    await page.waitForSelector('.card-row .card', { timeout: 10000 });
     const cards = await page.locator('.card-row .card').count();
     if (cards < 13) throw new Error(`expected ≥13 cards, got ${cards}`);
   });
@@ -189,8 +243,14 @@ async function run() {
   // test exercises it there.
   for (const slug of ['project', 'training', 'followup', 'batch-prompt', 'contacto', 'interview-prep', 'patterns']) {
     await step(`Mode #/${slug}: form renders + Generate prompt produces output`, async () => {
-      await page.goto(`${baseUrl}/#/${slug}`, { waitUntil: 'networkidle' });
+      await goRoute(`#/${slug}`);
       await page.waitForSelector('h1.page-title', { timeout: 5000 });
+      // v1.59.11 — wait for the Generate-prompt button BEFORE polling
+      // for inputs; the route handler is async and the button is the
+      // last child appended. Without this, .locator(...).all() returns
+      // an empty array on fast machines, the for-loop is a no-op, and
+      // the click() that follows times out searching for the button.
+      await page.waitForSelector('button:has-text("Generate prompt"), button:has-text("Сгенерировать prompt")', { timeout: 8000 });
       // Fill every required input/textarea with placeholder text
       const inputs = await page.locator('.card .field input, .card .field textarea').all();
       for (let i = 0; i < inputs.length; i++) {
@@ -203,7 +263,7 @@ async function run() {
           : `e2e-test-${slug}-${i}`;
         await inputs[i].fill(val);
       }
-      await page.locator('button:has-text("Generate prompt")').click();
+      await page.locator('button:has-text("Generate prompt"), button:has-text("Сгенерировать prompt")').first().click();
       await page.waitForFunction(
         () => document.body.textContent.includes('Copy prompt') || document.body.textContent.includes('Скопировать'),
         { timeout: 8000 }
@@ -213,7 +273,7 @@ async function run() {
 
   // ─── Modal open/close ─────────────────────────
   await step('Modal: ESC closes', async () => {
-    await page.goto(`${baseUrl}/#/cv`, { waitUntil: 'networkidle' });
+    await goRoute(`#/cv`);
     await page.evaluate(() => window.UI && window.UI.modal('test', 'body'));
     await page.waitForSelector('#modal:not([hidden])', { timeout: 3000 });
     await page.keyboard.press('Escape');
@@ -223,7 +283,7 @@ async function run() {
   // ─── Sidebar scroll ─────────────────────────
   await step('Sidebar: scrolls when content exceeds viewport', async () => {
     await page.setViewportSize({ width: 1440, height: 600 });
-    await page.goto(`${baseUrl}/#/dashboard`, { waitUntil: 'networkidle' });
+    await goRoute(`#/dashboard`);
     await page.waitForSelector('.sidebar');
     const overflow = await page.locator('.sidebar').evaluate((el) => getComputedStyle(el).overflowY);
     if (!['auto', 'scroll'].includes(overflow)) throw new Error(`overflow-y is "${overflow}", expected auto/scroll`);
@@ -232,7 +292,7 @@ async function run() {
 
   // ─── Search Ctrl+K ─────────────────────────
   await step('Search: Ctrl+K focuses global search', async () => {
-    await page.goto(`${baseUrl}/#/dashboard`, { waitUntil: 'networkidle' });
+    await goRoute(`#/dashboard`);
     await page.locator('body').focus();
     await page.keyboard.down('Control');
     await page.keyboard.press('k');
@@ -243,7 +303,7 @@ async function run() {
 
   // ─── Search clears on route change (FIX-M4) ─────────────────────────
   await step('Search: cleared when route changes (FIX-M4)', async () => {
-    await page.goto(`${baseUrl}/#/dashboard`, { waitUntil: 'networkidle' });
+    await goRoute(`#/dashboard`);
     await page.locator('#global-search').fill('zzz-test-clear');
     await page.locator('body').click();
     await page.evaluate(() => window.location.hash = '#/health');
@@ -255,28 +315,38 @@ async function run() {
 
   // ─── 404 ─────────────────────────
   await step('404: unknown route shows .page-404 with back link', async () => {
-    await page.goto(`${baseUrl}/#/totally-fake-${Date.now()}`, { waitUntil: 'networkidle' });
-    await page.waitForSelector('.page-404', { timeout: 3000 });
+    await goRoute(`#/totally-fake-${Date.now()}`);
+    // v1.59.11 — `waitUntil: 'networkidle'` finishes before the SPA
+    // bootstrap fires the initial hashchange render (the loading
+    // → 404-view replacement is in the same DOM frame as the network
+    // settling). 3s timeout was racy on cold-start runs. 8s guarantees
+    // the render even on slower CI runners.
+    await page.waitForSelector('.page-404', { timeout: 8000 });
     const back = await page.locator('.page-404 a').first().getAttribute('href');
     if (back !== '#/dashboard') throw new Error(`back href is "${back}"`);
   });
 
   // ─── Profile route + legacy alias ─────────────────────────
   await step('Profile: #/profile is canonical, #/settings still resolves', async () => {
-    await page.goto(`${baseUrl}/#/profile`, { waitUntil: 'networkidle' });
-    await page.waitForSelector('h1.page-title');
+    await goRoute(`#/profile`);
+    // v1.59.11 — the sidebar highlight is set by the router's
+    // `document.querySelectorAll('.nav-item').forEach(...)` BEFORE
+    // the route handler returns; it can race with the initial h1
+    // paint on fast machines. Wait for the specific selector we'll
+    // assert on, with a generous timeout.
+    await page.waitForSelector('.nav-item[data-route="profile"].active', { timeout: 8000 });
     const activeCanonical = await page.locator('.nav-item[data-route="profile"].active').count();
     if (!activeCanonical) throw new Error('Profile sidebar item not highlighted at /#/profile');
     // Legacy hash still resolves through the alias table.
-    await page.goto(`${baseUrl}/#/settings`, { waitUntil: 'networkidle' });
-    await page.waitForSelector('h1.page-title');
+    await goRoute(`#/settings`);
+    await page.waitForSelector('.nav-item[data-route="profile"].active', { timeout: 8000 });
     const activeAlias = await page.locator('.nav-item[data-route="profile"].active').count();
     if (!activeAlias) throw new Error('Legacy /#/settings did not light up Profile nav');
   });
 
   // ─── Language persistence ─────────────────────────
   await step('Language: switch to RU, reload, persists', async () => {
-    await page.goto(`${baseUrl}/#/dashboard`, { waitUntil: 'networkidle' });
+    await goRoute(`#/dashboard`);
     await page.locator('.lang-btn[data-lang-btn="ru"]').click();
     await page.waitForTimeout(300);
     await page.reload();

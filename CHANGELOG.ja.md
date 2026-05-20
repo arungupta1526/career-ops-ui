@@ -10,6 +10,14 @@
 
 
 
+## [1.59.11] — 2026-05-21
+
+**fix(test): v1.59.11 — e2e-comprehensive スイートが 23/23 パス(以前 11/23)。** Playwright の `page.goto` がハッシュのみ変更で no-op になる問題が根本原因。新しい `goRoute(hash)` ヘルパーが `about:blank` を経由して実ナビゲーションを強制。(e2e-harness-r1)
+
+---
+
+
+
 ## [1.59.10] — 2026-05-21
 
 **fix(api): NEW-F1-sub-r1 (v1.59.10) — 生 `..` ガードをすべての `/api` ルート登録の上に移動。** v1.59.8 のものは `app.all` の後で発火しませんでした。Express 正規化前に実行されます。(NEW-F1-sub-r1)

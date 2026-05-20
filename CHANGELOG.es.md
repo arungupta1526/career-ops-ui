@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.59.11] — 2026-05-21
+
+**fix(test): v1.59.11 — la suite e2e-comprehensive ahora pasa 23/23 (era 11/23).** Causa raíz: `page.goto(baseUrl + '/#/X')` es un no-op para cambios solo de hash en Playwright. El nuevo helper `goRoute(hash)` rebota por `about:blank` antes de cada `goto` y fuerza una navegación real. (e2e-harness-r1)
+
+---
+
+
+
 ## [1.59.10] — 2026-05-21
 
 **fix(api): NEW-F1-sub-r1 (v1.59.10) — middleware de `..` crudo movido arriba de todas las rutas `/api`.** El de v1.59.8 estaba después de `app.all` y nunca disparaba. Ahora corre antes de la normalización de Express. (NEW-F1-sub-r1)

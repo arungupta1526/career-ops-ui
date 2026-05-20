@@ -10,6 +10,14 @@
 
 
 
+## [1.59.11] — 2026-05-21
+
+**fix(test): v1.59.11 — e2e-comprehensive 套件現在 23/23 通過(之前 11/23)。** Playwright 的 `page.goto` 對僅改變 hash 的 URL 是 no-op,這是根因。新的 `goRoute(hash)` 輔助函式透過 `about:blank` 反彈以強制真實導航。(e2e-harness-r1)
+
+---
+
+
+
 ## [1.59.10] — 2026-05-21
 
 **fix(api): NEW-F1-sub-r1 (v1.59.10) — 原始 `..` 守衛上移到所有 `/api` 路由註冊之前。** v1.59.8 的位置在 `app.all` 之後,從未觸發。現在它在 Express 規範化之前執行。(NEW-F1-sub-r1)

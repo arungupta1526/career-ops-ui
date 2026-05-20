@@ -10,6 +10,14 @@
 
 
 
+## [1.59.11] — 2026-05-21
+
+**fix(test): v1.59.11 — e2e-comprehensive 12 падений в CI разобраны и закрыты.** Двенадцать кейсов (Pipeline · Activity · Health · 7 mode-страниц · 404 · Profile) падали в каждом CI run начиная с v1.58.x, потому что `page.goto(baseUrl + '/#/X')` в Playwright — no-op для изменения только хэша. После того как CV-step ставил хэш `#/cv`, все следующие `goto` молча оставляли страницу на `#/cv`. Фикс: новый helper `goRoute(hash)` в [tests/e2e-comprehensive.mjs](tests/e2e-comprehensive.mjs) делает bounce через `about:blank` перед каждым `goto`, форсируя реальную навигацию и ребутстрап SPA. Все 17 вызовов `page.goto(`${baseUrl}/#/...`)` заменены. Результат: **23 / 23 кейса зелёные** · 988 / 988 unit · 20 / 20 smoke e2e. (e2e-harness-r1)
+
+---
+
+
+
 ## [1.59.10] — 2026-05-21
 
 **fix(api): NEW-F1-sub-r1 (v1.59.10) — middleware для сырого `../` поднят над всеми регистрациями `/api`-роутов.** В v1.59.8 он стоял ПОСЛЕ `app.all('/api/*')` И после регистрации хендлеров, поэтому Express успевал нормализовать URL и middleware никогда не срабатывал. v1.59.10 поднимает guard в начало `createApp()` (выше любого `register*Routes`) — он смотрит на `req.originalUrl` до нормализации. Регекс: `/^\/api(\/|$)/.test && /\.\.\//.test`. Новый [tests/api-path-traversal.test.mjs](tests/api-path-traversal.test.mjs) — 6 кейсов через сырой `http.request` (fetch нормализует `..` на клиенте). 982 → **988** юнит-тестов. (NEW-F1-sub-r1)

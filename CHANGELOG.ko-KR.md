@@ -10,6 +10,14 @@
 
 
 
+## [1.59.11] — 2026-05-21
+
+**fix(test): v1.59.11 — e2e-comprehensive 스위트가 23/23 통과 (이전 11/23).** Playwright 의 `page.goto` 가 해시만 바뀌는 경우 no-op 이라서 발생한 문제. 새 `goRoute(hash)` 헬퍼가 `about:blank` 를 거쳐 실제 내비게이션을 강제합니다. (e2e-harness-r1)
+
+---
+
+
+
 ## [1.59.10] — 2026-05-21
 
 **fix(api): NEW-F1-sub-r1 (v1.59.10) — 원시 `..` 가드를 모든 `/api` 라우트 등록 위로 끌어올렸습니다.** v1.59.8 버전은 `app.all` 뒤에 있어 발화되지 않았습니다. Express 정규화 이전에 실행됩니다. (NEW-F1-sub-r1)
