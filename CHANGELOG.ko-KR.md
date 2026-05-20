@@ -10,6 +10,12 @@
 
 
 
+## [1.58.21] — 2026-05-20
+
+**fix(ux): U-1 — `#/cv` H1 + 부제목이 다른 페이지와 통일(v1.56.0 UX-9 칩을 설계상 철회).** `.cv-breadcrumb` 칩 제거, `<h1 class="page-title">` + `<p class="page-subtitle">` 복원. 단일 `<h1>` 불변 유지. 913 → **914** 유닛. (U-1)
+
+---
+
 ## [1.58.20] — 2026-05-20
 
 **fix(i18n/platform): I-6 — 사이드바 풋터 단축키 힌트가 Mac 에서 `⌘K`, 그 외 환경에서 `Ctrl+K` 로 표시되고 동사는 로컬라이즈.** 수정 전엔 모든 플랫폼/언어에서 `CTRL+K — search` 리터럴이 노출되었다. `top.langhint` 가 `{hotkey} — 검색` 형식을 사용하고, `applyFooterHotkey()` 가 `navigator.platform` 에 따라 `{hotkey}` 를 치환. 915 → **916** 유닛. (I-6)

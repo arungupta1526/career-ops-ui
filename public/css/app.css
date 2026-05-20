@@ -688,18 +688,9 @@ body.sidebar-open .sidebar-backdrop { display: block; }
   font-weight: 600;
 }
 
-/* v1.56.0 — UX-9: #/cv page title demoted to a quiet breadcrumb chip
-   so the user's CV (their name, rendered in the preview) owns the
-   visual hierarchy. Still a semantic <h1> for a11y. */
-.cv-breadcrumb {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  color: var(--foggy);
-  margin: 0;
-  padding: 0;
-}
+/* v1.58.21 (U-1) — removed `.cv-breadcrumb` (was v1.56.0 UX-9 chip).
+   #/cv now uses the standard `.page-title` + `.page-subtitle` pair
+   like every other page; H1 stays as the single semantic heading. */
 
 /* v1.56.0 — UX-10: quiet, honest cost ballpark next to ⚡ Run live. */
 .cost-hint {

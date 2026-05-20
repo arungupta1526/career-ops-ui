@@ -168,16 +168,17 @@ Router.register('cv', async () => {
   const root = c('div', null, [
     c('header', { className: 'page-header' }, [
       c('div', null, [
-        // v1.56.0 — UX-9: the page chrome shouldn't shout "CV" louder
-        // than the CV itself. Keep exactly ONE <h1> (F-V54-A: cvMd
-        // shifts the user's own `# Name` to <h2>, so this stays the
-        // page's only <h1>) but render it as a quiet breadcrumb chip
-        // so the user's name in the preview owns the visual space.
-        // The subtitle moves to a `title` tooltip to cut the noise.
-        c('h1', {
-          className: 'page-title cv-breadcrumb',
-          title: t('cv.subtitle'),
-        }, t('cv.title')),
+        // U-1 (v1.58.21) — promote #/cv H1 to match every other page:
+        // single <h1 class="page-title">CV</h1> + <p class="page-subtitle">.
+        // v1.56.0 UX-9 demoted this to a `.cv-breadcrumb` chip so the
+        // user's name in the preview "owned the visual space"; v1.58.3
+        // QA confirmed the chip reads as a layout bug — the page-header
+        // looks broken next to #/dashboard, #/help, etc. Single-<h1>
+        // invariant still holds (F-V54-A: cvMd shifts the user's own
+        // `# Name` heading to <h2>, so this stays the page's only H1).
+        // We just stop styling it as a chip.
+        c('h1', { className: 'page-title' }, t('cv.title')),
+        c('p', { className: 'page-subtitle' }, t('cv.subtitle')),
       ]),
       c('div', { className: 'flex gap-3' }, [
         fileInput,

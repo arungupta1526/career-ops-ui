@@ -10,6 +10,12 @@
 
 
 
+## [1.58.21] — 2026-05-20
+
+**fix(ux): U-1 — `#/cv` 的 H1 + 副標題與其它頁面統一(按設計撤回 v1.56.0 UX-9 chip)。** 移除 `.cv-breadcrumb` chip,改用 `<h1 class="page-title">` + `<p class="page-subtitle">`。單 `<h1>` 不變量保留。913 → **914** 單元。(U-1)
+
+---
+
 ## [1.58.20] — 2026-05-20
 
 **fix(i18n/platform): I-6 — 側欄底部快捷鍵提示在 Mac 上顯示 ⌘K、其它系統顯示 Ctrl+K,動詞在地化。** 之前在任何平台和語言下都顯示英文字面 `CTRL+K — search`。`top.langhint` 現採 `{hotkey} — 搜尋` 形式;`applyFooterHotkey()` 依 `navigator.platform` 取代 `{hotkey}`。915 → **916** 單元。(I-6)

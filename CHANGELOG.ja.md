@@ -10,6 +10,12 @@
 
 
 
+## [1.58.21] — 2026-05-20
+
+**fix(ux): U-1 — `#/cv` の H1 + サブタイトルが他ページと統一(v1.56.0 UX-9 のチップを設計上撤回)。** `.cv-breadcrumb` チップを削除し、`<h1 class="page-title">` + `<p class="page-subtitle">` を復活。シングル `<h1>` 不変条件は維持。913 → **914** ユニット。(U-1)
+
+---
+
 ## [1.58.20] — 2026-05-20
 
 **fix(i18n/platform): I-6 — フッターのショートカットは Mac で `⌘K`、それ以外で `Ctrl+K`、動詞はローカライズ。** 修正前はプラットフォーム/言語に関わらず `CTRL+K — search` のリテラルが表示されていた。`top.langhint` に `{hotkey} — 検索` 形式を導入し、`applyFooterHotkey()` が `navigator.platform` に応じて `{hotkey}` を置換。915 → **916** ユニット。(I-6)

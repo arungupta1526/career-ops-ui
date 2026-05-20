@@ -30,6 +30,21 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('U-1 (v1.58.21): #/cv has a proper page-header H1 + subtitle (no `.cv-breadcrumb` chip)', () => {
+  const cv = read('public', 'js', 'views', 'cv.js');
+  // Pre-fix chip class is gone:
+  assert.ok(!/className:\s*'page-title cv-breadcrumb'/.test(cv),
+    "'.cv-breadcrumb' chip class must be removed");
+  // New H1 + subtitle pair:
+  assert.match(cv, /c\('h1',\s*\{\s*className:\s*'page-title'\s*\},\s*t\('cv\.title'\)\)/,
+    "cv.js must render <h1 class=\"page-title\">{t('cv.title')}</h1>");
+  assert.match(cv, /c\('p',\s*\{\s*className:\s*'page-subtitle'\s*\},\s*t\('cv\.subtitle'\)\)/,
+    "cv.js must render <p class=\"page-subtitle\">{t('cv.subtitle')}</p>");
+  // Single-H1 invariant still holds — cv.js has exactly one h1 occurrence in the header.
+  const h1Count = (cv.match(/c\('h1'/g) || []).length;
+  assert.equal(h1Count, 1, `cv.js must declare exactly one <h1>, got ${h1Count}`);
+});
+
 test('I-6 (v1.58.20): footer hotkey uses {hotkey} placeholder + per-platform substitution', () => {
   // v1.58.3 footer showed 'CTRL+K — search' literally on every platform
   // and locale. The i18n value now embeds {hotkey} so app.js can swap

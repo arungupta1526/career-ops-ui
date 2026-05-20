@@ -10,6 +10,12 @@ Traduções: [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [한국�
 
 
 
+## [1.58.21] — 2026-05-20
+
+**fix(ux): U-1 — H1 + subtítulo do `#/cv` agora batem com as demais páginas (supersede UX-9 v1.56.0 by design).** Chip `.cv-breadcrumb` removido; header usa `<h1 class="page-title">` + `<p class="page-subtitle">`. Invariante de único `<h1>` preservado. 913 → **914** unitários. (U-1)
+
+---
+
 ## [1.58.20] — 2026-05-20
 
 **fix(i18n/platform): I-6 — o atalho do rodapé mostra ⌘K no Mac e Ctrl+K nos demais sistemas, com o verbo localizado.** Antes era o literal `CTRL+K — search` em todas as plataformas/idiomas. `top.langhint` agora usa `{hotkey} — buscar`; `applyFooterHotkey()` substitui `{hotkey}` pela combinação nativa via `navigator.platform`. 915 → **916** unitários. (I-6)
