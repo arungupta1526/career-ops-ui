@@ -41,7 +41,7 @@ test('UX-D-B (v1.58.48): #/dashboard renders a fixture-profile warning banner wh
   const dash = read('public', 'js', 'views', 'dashboard.js');
   assert.match(dash, /function profileFixtureBanner\(\)/,
     'dashboard.js must define profileFixtureBanner()');
-  assert.match(dash, /health\.checks\.find\([^)]+'Profile customized'/,
+  assert.match(dash, /health\.checks\.find\([\s\S]{0,200}?'Profile customized'/,
     "banner must look for the 'Profile customized' check from /api/health");
   assert.match(dash, /'hero-banner hero-banner--warning'/,
     'banner must use .hero-banner.hero-banner--warning classes');
