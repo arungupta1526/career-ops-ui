@@ -55,7 +55,11 @@ test('#11: sortable headers — button-in-th, aria-sort, dir toggle', () => {
 });
 
 test('#25: destructive buttons have a title hint; labels localized', () => {
-  assert.match(TRK, /title:\s*t\('track\.fixHint'/);
+  // v1.58.30 (U-10) — the destructive title now branches on `empty`:
+  // when populated, the tooltip is t('track.fixHint'); when empty, it
+  // becomes t('track.fixEmpty'). Both must be present in tracker.js.
+  assert.match(TRK, /t\('track\.fixHint'/);
+  assert.match(TRK, /t\('track\.fixEmpty'/);
   for (const k of ['track.normalize', 'track.dedup', 'track.merge']) {
     const line = DICT.split('\n').find((l) => l.includes(`'${k}'`));
     assert.ok(line, `${k} missing`);

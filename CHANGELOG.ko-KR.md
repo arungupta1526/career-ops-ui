@@ -10,6 +10,12 @@
 
 
 
+## [1.58.31] — 2026-05-20
+
+**fix(ux): U-11 — Tracker 의 `Legitimacy` 컬럼 헤더에 현지화 정보 칩 ⓘ + 툴팁으로 High/Caution/Suspicious 척도 설명.** 새 i18n 키 `track.col.legitimacy.help` × 8 언어. 923 → **924** 유닛. (U-11)
+
+---
+
 ## [1.58.30] — 2026-05-20
 
 **fix(ux): U-10 — Tracker 의 Normalize / Dedup / Merge 버튼이 `data/applications.md` 가 비었을 때 비활성화.** 현지화 툴팁(`track.fixEmpty` × 8 언어)이 이유를 설명. 922 → **923** 유닛. (U-10)

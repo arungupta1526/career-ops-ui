@@ -595,6 +595,8 @@ window.__I18N_DICT = {
   // parsed from data/applications.md — this just exposes it on the
   // table view too.
   'track.col.legitimacy': { en: 'Legitimacy', es: 'Legitimidad', 'pt-BR': 'Legitimidade', ko: '신뢰도', ja: '信頼性', ru: 'Достоверность', 'zh-CN': '可信度', 'zh-TW': '可信度' },
+  // U-11 (v1.58.31) — header info chip tooltip explaining the scale.
+  'track.col.legitimacy.help': { en: 'Confidence that the posting is real (High / Caution / Suspicious).', es: 'Confianza en que la oferta es real (Alta / Precaución / Sospechosa).', 'pt-BR': 'Confiança de que a vaga é real (Alta / Atenção / Suspeita).', ko: '공고가 진짜일 가능성 (높음 / 주의 / 의심).', ja: '求人が本物である信頼度 (高 / 注意 / 疑い).', ru: 'Достоверность вакансии (высокая / осторожно / подозрительная).', 'zh-CN': '该招聘真实性的信心(高 / 注意 / 可疑)。', 'zh-TW': '該招聘真實性的信心(高 / 注意 / 可疑)。' },
 
   'rep.allReports': { en: '← All reports', es: '← Todos los reportes', 'pt-BR': '← Todos relatórios', ko: '← 모든 보고서', ja: '← すべてのレポート', ru: '← Все отчёты', 'zh-CN': '← 所有报告', 'zh-TW': '← 所有報告' },
   'rep.openJd':     { en: 'Open JD ↗', es: 'Abrir JD ↗', 'pt-BR': 'Abrir JD ↗', ko: 'JD 열기 ↗', ja: 'JD を開く ↗', ru: 'Открыть JD ↗', 'zh-CN': '打开 JD ↗', 'zh-TW': '開啟 JD ↗' },

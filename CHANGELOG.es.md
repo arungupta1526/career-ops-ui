@@ -12,6 +12,12 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.58.31] — 2026-05-20
+
+**fix(ux): U-11 — el encabezado `Legitimacy` del Tracker ahora muestra un chip de info ⓘ con tooltip explicando la escala (Alta/Precaución/Sospechosa).** Nueva clave i18n `track.col.legitimacy.help` × 8 idiomas. 923 → **924** unitarios. (U-11)
+
+---
+
 ## [1.58.30] — 2026-05-20
 
 **fix(ux): U-10 — los botones Normalizar / Dedup / Merge del Tracker se desactivan cuando `data/applications.md` está vacío.** Tooltip localizado (`track.fixEmpty` × 8 idiomas) explica que hay que añadir filas primero. 922 → **923** unitarios. (U-10)

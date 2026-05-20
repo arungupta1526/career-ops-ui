@@ -8,6 +8,12 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.58.31] — 2026-05-20
+
+**fix(ux): U-11 — Tracker `Legitimacy` column header now carries a localized info chip + tooltip explaining the High/Caution/Suspicious scale.** v1.58.3 QA: the badge in each row read `High` / `Caution` / `Suspicious` with no header affordance to learn what they meant. [public/js/views/tracker.js](public/js/views/tracker.js#L228-L246) `<th>` now renders the column label + `<span class="th-info" tabindex="0" role="img">ⓘ</span>` whose `title` + `aria-label` come from a new `track.col.legitimacy.help` i18n key × 8 locales: *"Confidence that the posting is real (High / Caution / Suspicious)."* CSS `.th-info:focus-visible` adds the brand ring so the chip is keyboard-reachable per WCAG 2.4.7. Also repairs the v1.58.30 (U-10) regression where the existing `#25 destructive buttons have a title hint` lock test only checked for `track.fixHint` but the U-10 branch now uses both `track.fixHint` and `track.fixEmpty`. 923 → **924** unit. (U-11 + U-10 follow-up)
+
+---
+
 ## [1.58.30] — 2026-05-20
 
 **fix(ux): U-10 — Tracker Normalize / Dedup / Merge buttons disabled when `data/applications.md` is empty.** v1.58.3 QA: clicking these buttons on an empty tracker still hit the parent project rewrite endpoints — a no-op the user could not tell was futile. Now [public/js/views/tracker.js](public/js/views/tracker.js#L187-L210) sets `disabled` + `aria-disabled` + a localized tooltip (`track.fixEmpty` × 8 locales) explaining why ("Add a row to the tracker first — this rewrites data/applications.md and there is nothing to rewrite yet."). When rows exist, the buttons re-enable and show the existing `track.fixHint` tooltip. 922 → **923** unit. (U-10)

@@ -10,6 +10,12 @@
 
 
 
+## [1.58.31] — 2026-05-20
+
+**fix(ux): U-11 — Tracker `Legitimacy` 列表头新增本地化信息 ⓘ + tooltip 解释 High/Caution/Suspicious 级别。** 新增 i18n 键 `track.col.legitimacy.help` × 8 语言。923 → **924** 单元。(U-11)
+
+---
+
 ## [1.58.30] — 2026-05-20
 
 **fix(ux): U-10 — `data/applications.md` 为空时,Tracker 的 Normalize / Dedup / Merge 按钮禁用。** 本地化提示 (`track.fixEmpty` × 8 语言) 说明原因。922 → **923** 单元。(U-10)

@@ -1155,6 +1155,12 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
 .prompt-block > summary:hover { filter: brightness(0.97); }
 .prompt-block[open] > summary { margin-bottom: 8px; }
 
+/* U-11 (v1.58.31) — header info chip used in the Tracker Legitimacy
+   column. Keyboard-reachable via tabIndex=0 + focus-visible ring;
+   role=img + aria-label carry the explanation text to screen readers. */
+.th-info { display: inline-block; margin-left: 2px; cursor: help; font-size: .85em; color: var(--foggy, #999); }
+.th-info:focus-visible { outline: 2px solid var(--rausch, #ff385c); outline-offset: 2px; border-radius: 2px; }
+
 /* U-9 (v1.58.29) — Pipeline counter ↔ filter row. Above 720 px the
    flex gap-3 layout already works; at narrower widths the filter
    input is cramped, so stack vertically and stretch it full-width. */

@@ -225,7 +225,21 @@ Router.register('tracker', async () => {
           c('th', { scope: 'col' }, t('scan.col.role')),
           sortableTh(t('track.col.score', 'Score'), 'score'),
           sortableTh(t('track.col.status'), 'status'),
-          c('th', { scope: 'col' }, t('track.col.legitimacy', 'Legitimacy')),
+          c('th', { scope: 'col' }, [
+            t('track.col.legitimacy', 'Legitimacy'),
+            ' ',
+            // U-11 (v1.58.31) — header gets a localized info chip
+            // explaining the "High / Caution / Suspicious" scale that
+            // sets each row's badge. tabindex=0 + role=img + aria-label
+            // so the help text is reachable by keyboard + screen reader.
+            c('span', {
+              className: 'th-info',
+              tabIndex: 0,
+              role: 'img',
+              title: t('track.col.legitimacy.help', 'Confidence that the posting is real (High / Caution / Suspicious).'),
+              'aria-label': t('track.col.legitimacy.help', 'Confidence that the posting is real (High / Caution / Suspicious).'),
+            }, 'ⓘ'),
+          ]),
           c('th', { scope: 'col' }, t('track.col.pdf', 'PDF')),
           c('th', { scope: 'col' }, t('track.col.actions', 'Actions')),
         ])),

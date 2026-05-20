@@ -10,6 +10,12 @@
 
 
 
+## [1.58.31] — 2026-05-20
+
+**fix(ux): U-11 — заголовок столбца `Legitimacy` в трекере получил локализованный info-чип ⓘ с tooltip про шкалу High/Caution/Suspicious.** До правки бейдж в строке читался как `High` / `Caution` / `Suspicious` без подсказки в шапке, что они значат. В [public/js/views/tracker.js](public/js/views/tracker.js#L228-L246) `<th>` теперь рендерит лейбл + `<span class="th-info" tabindex="0" role="img">ⓘ</span>`; `title` + `aria-label` берутся из нового ключа `track.col.legitimacy.help` × 8 локалей: «Достоверность вакансии (высокая / осторожно / подозрительная).» CSS `.th-info:focus-visible` даёт фокусное кольцо — чип доступен с клавиатуры (WCAG 2.4.7). Параллельно поправлен lock-тест `#25 destructive buttons have a title hint`, который после U-10 проверял только `track.fixHint`, но теперь tooltip ветвится между `track.fixHint` и `track.fixEmpty`. 923 → **924** модульных. (U-11 + U-10 follow-up)
+
+---
+
 ## [1.58.30] — 2026-05-20
 
 **fix(ux): U-10 — кнопки Normalize / Dedup / Merge на трекере отключаются, когда `data/applications.md` пуст.** v1.58.3 QA: до правки клик по ним на пустом трекере всё равно дёргал эндпоинты переписывания parent-проекта — холостая операция, о которой пользователь не знал. Теперь в [public/js/views/tracker.js](public/js/views/tracker.js#L187-L210) каждая кнопка получает `disabled` + `aria-disabled` + локализованный tooltip (`track.fixEmpty` × 8 локалей): «Сначала добавьте строку в трекер — это переписывает data/applications.md, а переписывать пока нечего.» При появлении строк кнопки возвращаются к привычному `track.fixHint`. 922 → **923** модульных. (U-10)

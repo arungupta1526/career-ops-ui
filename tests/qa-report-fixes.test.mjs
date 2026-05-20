@@ -37,6 +37,27 @@ test('BUG-007/008: UI exposes dismissToast; health view dismisses + reuses butto
   assert.ok(!/UI\.modal\('doctor'/.test(health), "modal title must not be the hardcoded lowercase 'doctor'");
 });
 
+test('U-11 (v1.58.31): tracker Legitimacy column header has localized info chip with tooltip', () => {
+  const tr = read('public', 'js', 'views', 'tracker.js');
+  assert.match(tr, /className:\s*'th-info'/, '<span class="th-info"> must exist in the legitimacy header');
+  assert.match(tr, /tabIndex:\s*0/, 'info chip must be keyboard-reachable (tabIndex: 0)');
+  assert.match(tr, /title:\s*t\('track\.col\.legitimacy\.help'/,
+    "info chip must declare title: t('track.col.legitimacy.help', …)");
+  assert.match(tr, /'aria-label':\s*t\('track\.col\.legitimacy\.help'/,
+    "info chip must declare aria-label: t('track.col.legitimacy.help', …)");
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  const row = dict.match(/'track\.col\.legitimacy\.help':\s*\{([^}]+)\}/);
+  assert.ok(row, "i18n-dict.js missing 'track.col.legitimacy.help'");
+  for (const lang of ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+    const keyPat = /-/.test(lang) ? `['"]${lang}['"]` : `(?:['"]${lang}['"]|${lang})`;
+    assert.ok(new RegExp(`${keyPat}\\s*:\\s*['"][^'"]+['"]`).test(row[1]),
+      `'track.col.legitimacy.help' must have a non-empty ${lang} value`);
+  }
+  const css = read('public', 'css', 'app.css');
+  assert.match(css, /\.th-info\s*\{/, '.th-info CSS rule must exist');
+  assert.match(css, /\.th-info:focus-visible\s*\{/, '.th-info:focus-visible rule must exist (keyboard ring)');
+});
+
 test('U-10 (v1.58.30): tracker Normalize/Dedup/Merge buttons disabled when rows is empty', () => {
   const tr = read('public', 'js', 'views', 'tracker.js');
   assert.match(tr, /const empty = rows\.length === 0;/,
