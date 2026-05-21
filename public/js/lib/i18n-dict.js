@@ -12,18 +12,36 @@
  * Loaded before i18n.js via <script src> in public/index.html.
  * window.I18n._defineDict(window.__I18N_DICT) wires it into the IIFE.
  *
- * I18N-CL3 decision (v1.59.12): the contributor audit flagged ~50
- * "duplicate-value" key groups (e.g. `nav.scan` / `scan.btnRun` /
- * `scan.col.company` all = "Scan" in EN). These are NOT deduped on
- * purpose. They are semantically distinct UI roles — a sidebar label,
- * a button, a table-column header — that merely collapse to the same
- * English word. Non-English locales routinely need DIFFERENT
- * translations per role (a verb in a button vs a noun in a column),
- * so a single canonical key would REMOVE that flexibility and risk the
- * very drift the dedup was meant to prevent. `tools/i18n-audit.mjs`
- * reports these as informational warnings, never hard failures.
- * What IS enforced: no personal data, full 8-locale parity, no empty
- * values, no bare-calendar-date placeholders.
+ * I18N-CL3 decision (v1.59.12 → v1.59.13): the contributor audit
+ * flagged ~50 "duplicate-value" key groups. Verdict after checking the
+ * FULL 8-locale signature of each group (not just EN):
+ *
+ *   • TRUE duplicates — identical in ALL 8 locales — are collapsed via
+ *     the `@alias` mechanism: the key's value is `{ '@alias': 'x.y' }`
+ *     and `i18n.t()` resolves it to the canonical key. The translator
+ *     fills the canonical key ONCE; alias keys need no translation.
+ *     Aliased in v1.59.13: nav.help / dash.quick.helpCta → help.title;
+ *     nav.cv → cv.title; nav.health / dash.quick.healthCta →
+ *     health.title; nav.reports / dash.reports / dash.quick.reportsCta
+ *     → rep.title; nav.apply → apply.title; nav.interviewPrep →
+ *     interviewPrep.title.
+ *
+ *   • FALSE duplicates — collapse only in EN but DIVERGE in another
+ *     locale — are kept separate. The contributor's own example
+ *     `nav.config` / `config.title` is one of these: both "App
+ *     settings" in EN, but Spanish uses the short "Configuración" in
+ *     the sidebar vs the full "Configuración de la aplicación" as the
+ *     page title. Same for nav.patterns ("Patterns") vs patterns.title
+ *     ("Rejection patterns") — different even in EN. Aliasing these
+ *     would CHANGE a rendered label in some locale. Placeholders /
+ *     labels / column-headers that merely share an English word
+ *     (`Company`, `Role`, `Stripe`) likewise stay independent.
+ *
+ * `tools/i18n-audit.mjs` resolves aliases before counting dupes and
+ * reports the residual (intentional) ones as informational warnings,
+ * never hard failures. What IS enforced (hard fail): no personal data,
+ * full 8-locale parity for every NON-alias key, no empty values, no
+ * bare-calendar-date placeholders, and every `@alias` target must exist.
  */
 window.__I18N_DICT = {
   // Navigation labels
@@ -33,13 +51,13 @@ window.__I18N_DICT = {
   'nav.evaluate':   { en: 'Evaluate',  es: 'Evaluar', 'pt-BR': 'Avaliar', ko: '평가', ja: '評価', ru: 'Оценить', 'zh-CN': '评估', 'zh-TW': '評估' },
   'nav.batch':      { en: 'Batch evaluate', es: 'Eval. en lote', 'pt-BR': 'Aval. em lote', ko: '일괄 평가', ja: '一括評価', ru: 'Пакетная оценка', 'zh-CN': '批量评估', 'zh-TW': '批次評估' },
   'nav.deep':       { en: 'Deep research', es: 'Investigación', 'pt-BR': 'Pesquisa', ko: '심층 조사', ja: 'ディープ調査', ru: 'Глубокий рисёрч', 'zh-CN': '深度研究', 'zh-TW': '深度研究' },
-  'nav.apply':      { en: 'Apply checklist', es: 'Checklist de aplicación', 'pt-BR': 'Checklist de aplicação', ko: '지원 체크리스트', ja: '応募チェックリスト', ru: 'Чек-лист отклика', 'zh-CN': '申请清单', 'zh-TW': '申請清單' },
+  'nav.apply':      { '@alias': 'apply.title' },
   'nav.tracker':    { en: 'Tracker', es: 'Tracker', 'pt-BR': 'Tracker', ko: '트래커', ja: 'トラッカー', ru: 'Трекер', 'zh-CN': '跟踪器', 'zh-TW': '追蹤器' },
-  'nav.reports':    { en: 'Reports', es: 'Reportes', 'pt-BR': 'Relatórios', ko: '보고서', ja: 'レポート', ru: 'Отчёты', 'zh-CN': '报告', 'zh-TW': '報告' },
-  'nav.cv':         { en: 'CV', es: 'CV', 'pt-BR': 'CV', ko: '이력서', ja: '履歴書', ru: 'CV', 'zh-CN': '简历', 'zh-TW': '履歷' },
+  'nav.reports':    { '@alias': 'rep.title' },
+  'nav.cv':         { '@alias': 'cv.title' },
   'nav.profile':    { en: 'Profile', es: 'Perfil', 'pt-BR': 'Perfil', ko: '프로필', ja: 'プロフィール', ru: 'Профиль', 'zh-CN': '个人资料', 'zh-TW': '個人資料' },
   'nav.settings':   { en: 'Profile', es: 'Perfil', 'pt-BR': 'Perfil', ko: '프로필', ja: 'プロフィール', ru: 'Профиль', 'zh-CN': '个人资料', 'zh-TW': '個人資料' },
-  'nav.health':     { en: 'Health', es: 'Estado', 'pt-BR': 'Saúde', ko: '상태', ja: 'ヘルス', ru: 'Состояние', 'zh-CN': '健康', 'zh-TW': '健康' },
+  'nav.health':     { '@alias': 'health.title' },
   // Sidebar groups
   'nav.group.sourcing':    { en: 'Sourcing', es: 'Búsqueda', 'pt-BR': 'Busca', ko: '소싱', ja: 'ソーシング', ru: 'Поиск', 'zh-CN': '寻源', 'zh-TW': '尋源' },
   'nav.group.decision':    { en: 'Decision', es: 'Decisión', 'pt-BR': 'Decisão', ko: '결정', ja: '判断', ru: 'Решение', 'zh-CN': '决策', 'zh-TW': '決策' },
@@ -53,7 +71,7 @@ window.__I18N_DICT = {
   'nav.followup':      { en: 'Follow-up', es: 'Seguimiento', 'pt-BR': 'Acompanhamento', ko: '팔로업', ja: 'フォローアップ', ru: 'Напоминания', 'zh-CN': '跟进', 'zh-TW': '跟進' },
   'nav.batch':         { en: 'Batch', es: 'Lote', 'pt-BR': 'Lote', ko: '배치', ja: 'バッチ', ru: 'Пакетная обработка', 'zh-CN': '批处理', 'zh-TW': '批次處理' },
   'nav.contacto':      { en: 'Outreach', es: 'Contacto', 'pt-BR': 'Contato', ko: '연락', ja: '連絡', ru: 'Связь', 'zh-CN': '外联', 'zh-TW': '外聯' },
-  'nav.interviewPrep': { en: 'Interview prep', es: 'Preparación de entrevistas', 'pt-BR': 'Preparação para entrevistas', ko: '인터뷰 준비', ja: '面接準備', ru: 'Подготовка к интервью', 'zh-CN': '面试准备', 'zh-TW': '面試準備' },
+  'nav.interviewPrep': { '@alias': 'interviewPrep.title' },
   'nav.patterns':      { en: 'Patterns', es: 'Patrones', 'pt-BR': 'Padrões', ko: '패턴', ja: 'パターン', ru: 'Паттерны', 'zh-CN': '模式', 'zh-TW': '模式' },
   // Generic mode-page strings (shared by all 7)
   'mode.required':   { en: 'Please fill the required fields', es: 'Completa los campos obligatorios', 'pt-BR': 'Preencha os campos obrigatórios', ko: '필수 필드를 채워주세요', ja: '必須項目を入力してください', ru: 'Заполните обязательные поля', 'zh-CN': '请填写必填字段', 'zh-TW': '請填寫必填欄位' },
@@ -147,7 +165,7 @@ window.__I18N_DICT = {
   'patterns.windowHint': { en: 'How many days of history to scan: 30 / 60 / 90 / 180 / all. Defaults to 90.', es: 'Cuántos días de historia escanear: 30 / 60 / 90 / 180 / todo. Default 90.', 'pt-BR': 'Quantos dias de histórico escanear: 30 / 60 / 90 / 180 / tudo. Padrão 90.', ko: '스캔할 이력 기간 (일): 30 / 60 / 90 / 180 / 전체. 기본값 90.', ja: 'スキャンする履歴の日数: 30 / 60 / 90 / 180 / 全期間。デフォルト 90。', ru: 'Сколько дней истории сканировать: 30 / 60 / 90 / 180 / всё. По умолч. 90.', 'zh-CN': '扫描多少天的历史:30 / 60 / 90 / 180 / 全部。默认 90。', 'zh-TW': '掃描多少天的歷史:30 / 60 / 90 / 180 / 全部。預設 90。' },
   'patterns.focusHint':  { en: 'Optional — narrow the report to a specific failure mode you suspect.', es: 'Opcional — limita el reporte a un modo de fallo específico.', 'pt-BR': 'Opcional — limita o relatório a um modo de falha específico.', ko: '선택 — 의심되는 특정 실패 모드로 리포트를 좁힙니다.', ja: '任意 — 疑われる特定の失敗モードにレポートを絞ります。', ru: 'Опционально — сузить отчёт до конкретного режима провала.', 'zh-CN': '可选 — 将报告聚焦于你怀疑的特定失败模式。', 'zh-TW': '可選 — 將報告聚焦於你懷疑的特定失敗模式。' },
   'nav.activity':   { en: 'Activity', es: 'Actividad', 'pt-BR': 'Atividade', ko: '활동', ja: 'アクティビティ', ru: 'История', 'zh-CN': '活动', 'zh-TW': '活動' },
-  'nav.help':       { en: 'Help', es: 'Ayuda', 'pt-BR': 'Ajuda', ko: '도움말', ja: 'ヘルプ', ru: 'Справка', 'zh-CN': '帮助', 'zh-TW': '說明' },
+  'nav.help':       { '@alias': 'help.title' },
   'help.title':     { en: 'Help', es: 'Ayuda', 'pt-BR': 'Ajuda', ko: '도움말', ja: 'ヘルプ', ru: 'Справка', 'zh-CN': '帮助', 'zh-TW': '說明' },
   'help.subtitle':  { en: 'Step-by-step walkthrough of every page.', es: 'Guía paso a paso de cada página.', 'pt-BR': 'Guia passo-a-passo de cada página.', ko: '각 페이지에 대한 단계별 가이드.', ja: '各ページのステップバイステップガイド。', ru: 'Пошаговое руководство по каждой странице.', 'zh-CN': '每个页面的逐步指南。', 'zh-TW': '每個頁面的逐步指南。' },
   'help.toc':       { en: 'On this page', es: 'En esta página', 'pt-BR': 'Nesta página', ko: '이 페이지에서', ja: 'このページの内容', ru: 'На этой странице', 'zh-CN': '本页内容', 'zh-TW': '本頁內容' },
@@ -269,7 +287,7 @@ window.__I18N_DICT = {
   'dash.subtitle':  { en: 'Every job, report, and active process — in one place.', es: 'Cada trabajo, reporte y proceso activo — en un solo lugar.', 'pt-BR': 'Cada vaga, relatório e processo ativo — em um só lugar.', ko: '모든 채용, 보고서, 활성 프로세스 — 한 곳에서.', ja: 'すべての求人、レポート、アクティブなプロセス — 一か所に。', ru: 'Все вакансии, отчёты и активные процессы — в одном месте.', 'zh-CN': '所有职位、报告和活动流程 — 集中一处。', 'zh-TW': '所有職位、報告和活動流程 — 集中一處。' },
   'dash.apps':      { en: 'Applications', es: 'Aplicaciones', 'pt-BR': 'Aplicações', ko: '지원', ja: '応募', ru: 'Заявки', 'zh-CN': '申请', 'zh-TW': '申請' },
   'dash.pipeline':  { en: 'Pipeline', es: 'Pipeline', 'pt-BR': 'Pipeline', ko: '파이프라인', ja: 'パイプライン', ru: 'Pipeline', 'zh-CN': '流水线', 'zh-TW': '流水線' },
-  'dash.reports':   { en: 'Reports', es: 'Reportes', 'pt-BR': 'Relatórios', ko: '보고서', ja: 'レポート', ru: 'Отчёты', 'zh-CN': '报告', 'zh-TW': '報告' },
+  'dash.reports':   { '@alias': 'rep.title' },
   'dash.avgScore':  { en: 'Avg score', es: 'Score medio', 'pt-BR': 'Score médio', ko: '평균 점수', ja: '平均スコア', ru: 'Средний score', 'zh-CN': '平均分数', 'zh-TW': '平均分數' },
   'dash.tracker':   { en: 'tracker', es: 'tracker', 'pt-BR': 'tracker', ko: '트래커', ja: 'トラッカー', ru: 'трекер', 'zh-CN': '跟踪器', 'zh-TW': '追蹤器' },
   'dash.pending':   { en: 'pending', es: 'pendientes', 'pt-BR': 'pendentes', ko: '대기 중', ja: '保留中', ru: 'ожидают обработки', 'zh-CN': '待处理', 'zh-TW': '待處理' },
@@ -364,15 +382,15 @@ window.__I18N_DICT = {
   'dash.quick.profileSub': { en: 'config/profile.yml', es: 'config/profile.yml', 'pt-BR': 'config/profile.yml', ko: 'config/profile.yml', ja: 'config/profile.yml', ru: 'config/profile.yml', 'zh-CN': 'config/profile.yml', 'zh-TW': 'config/profile.yml' },
   'dash.quick.configCta': { en: 'App settings', es: 'Ajustes', 'pt-BR': 'Configurações', ko: '앱 설정', ja: 'アプリ設定', ru: 'Настройки', 'zh-CN': '应用设置', 'zh-TW': '應用設定' },
   'dash.quick.configSub': { en: 'API keys, host, port', es: 'Keys API, host, puerto', 'pt-BR': 'Chaves, host, porta', ko: 'API 키, 호스트, 포트', ja: 'API キー、ホスト、ポート', ru: 'Ключи, host, port', 'zh-CN': 'API 密钥、host、port', 'zh-TW': 'API 金鑰、host、port' },
-  'dash.quick.reportsCta': { en: 'Reports', es: 'Reportes', 'pt-BR': 'Relatórios', ko: '보고서', ja: 'レポート', ru: 'Отчёты', 'zh-CN': '报告', 'zh-TW': '報告' },
+  'dash.quick.reportsCta': { '@alias': 'rep.title' },
   'dash.quick.reportsSub': { en: 'Past evaluations', es: 'Evaluaciones pasadas', 'pt-BR': 'Avaliações passadas', ko: '과거 평가', ja: '過去の評価', ru: 'Прошлые оценки', 'zh-CN': '历史评估', 'zh-TW': '歷史評估' },
   'dash.quick.applyCta': { en: 'Apply helper', es: 'Helper de aplicación', 'pt-BR': 'Helper de aplicação', ko: '지원 헬퍼', ja: '応募ヘルパー', ru: 'Чек-лист отклика', 'zh-CN': '申请助手', 'zh-TW': '申請助手' },
   'dash.quick.applySub': { en: 'Submission checklist', es: 'Checklist de envío', 'pt-BR': 'Checklist de envio', ko: '제출 체크리스트', ja: '提出チェックリスト', ru: 'Чек-лист подачи', 'zh-CN': '提交清单', 'zh-TW': '提交清單' },
   'dash.quick.activityCta': { en: 'Activity log', es: 'Registro de actividad', 'pt-BR': 'Log de atividade', ko: '활동 로그', ja: 'アクティビティログ', ru: 'История активности', 'zh-CN': '活动日志', 'zh-TW': '活動日誌' },
   'dash.quick.activitySub': { en: 'Audit trail', es: 'Pista de auditoría', 'pt-BR': 'Trilha de auditoria', ko: '감사 추적', ja: '監査ログ', ru: 'Аудит-лог', 'zh-CN': '审计追踪', 'zh-TW': '稽核追蹤' },
-  'dash.quick.healthCta': { en: 'Health', es: 'Estado', 'pt-BR': 'Saúde', ko: '상태', ja: 'ヘルス', ru: 'Состояние', 'zh-CN': '健康', 'zh-TW': '健康' },
+  'dash.quick.healthCta': { '@alias': 'health.title' },
   'dash.quick.healthSub': { en: 'System checks', es: 'Chequeos del sistema', 'pt-BR': 'Verificações do sistema', ko: '시스템 체크', ja: 'システムチェック', ru: 'Проверки системы', 'zh-CN': '系统检查', 'zh-TW': '系統檢查' },
-  'dash.quick.helpCta': { en: 'Help', es: 'Ayuda', 'pt-BR': 'Ajuda', ko: '도움말', ja: 'ヘルプ', ru: 'Справка', 'zh-CN': '帮助', 'zh-TW': '說明' },
+  'dash.quick.helpCta': { '@alias': 'help.title' },
   'dash.quick.helpSub': { en: 'In-app guide', es: 'Guía dentro de la app', 'pt-BR': 'Guia no app', ko: '인앱 가이드', ja: 'アプリ内ガイド', ru: 'Гайд в приложении', 'zh-CN': '应用内指南', 'zh-TW': '應用內指南' },
   'dash.system.title': { en: 'System status', es: 'Estado del sistema', 'pt-BR': 'Status do sistema', ko: '시스템 상태', ja: 'システム状態', ru: 'Статус системы', 'zh-CN': '系统状态', 'zh-TW': '系統狀態' },
   'dash.system.required': { en: 'Required', es: 'Requerido', 'pt-BR': 'Obrigatório', ko: '필수', ja: '必須', ru: 'Обязательные', 'zh-CN': '必需', 'zh-TW': '必需' },

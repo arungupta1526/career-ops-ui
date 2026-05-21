@@ -35,7 +35,7 @@
 ### BUG-002. Заглушка/тест-фикстура в продовом профиле
 - **Где:** `#/profile`, `#/health` («PROFILE CUSTOMIZED → Acceptance Test»)
 - **Шаги:** открыть Profile.
-- **Факт:** NAME = `Acceptance Test`, EMAIL = `q@example.com`, LOCATION / LINKEDIN = `— not set`. При этом на `#/cv` грузится РЕАЛЬНЫЕ персональные данные (Sergey Emelyanov, телефон, GitHub Fighter90 и т.д.).
+- **Факт:** NAME = `Acceptance Test`, EMAIL = `q@example.com`, LOCATION / LINKEDIN = `— not set`. При этом на `#/cv` грузится РЕАЛЬНЫЕ персональные данные ([имя], [телефон], [GitHub-хэндл] и т.д.).
 - **Риск:** все промпты на Evaluate/Deep research/Outreach/Follow-up передают «Acceptance Test / q@example.com» как идентичность пользователя, ломая релевантность ответа. Это означает: всё, что юзер запускает на любом языке, возвращает результат под имя acceptance-теста, а не под его собственное.
 - **Severity:** Critical (логика продукта).
 

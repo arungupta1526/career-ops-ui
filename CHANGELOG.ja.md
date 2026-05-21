@@ -10,6 +10,14 @@
 
 
 
+## [1.59.13] — 2026-05-21
+
+**fix(i18n): @alias で真の重複キーを統合 + 個人データの最終一掃.** メンテナの実名をテストフィクスチャと QA レポートから除去(→ `Jane Doe`)、`LICENSE`/`package.json` を `Fighter90` ハンドルへ。`@alias` 機構で全 8 ロケール一致の 10 キーを統合。`nav.config`/`config.title` はスペイン語で異なるため統合しない。991 → **994** テスト。(I18N-CL3)
+
+---
+
+
+
 ## [1.59.12] — 2026-05-21
 
 **fix(i18n): i18n-dict.js のクリーンアップ — fr 前 (I18N-CL1, I18N-CL2, I18N-CL4).** `training.coursePh` の個人データを汎用プレースホルダに置換、`followup.lastPh` を固定日付から書式ヒントへ、`npm run audit:i18n` を追加。重複値グループは意図的(UI ロールが異なる)— 辞書ヘッダ参照。(I18N-CL1, I18N-CL2, I18N-CL4)

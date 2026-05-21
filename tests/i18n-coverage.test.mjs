@@ -62,6 +62,11 @@ test('i18n: every key covers all 8 languages', () => {
   const missingByLocale = Object.fromEntries(REQUIRED_LANGS.map((c) => [c, []]));
   let totalMissing = 0;
   for (const [key, langs] of Object.entries(DICT)) {
+    // v1.59.13 — alias keys ({ '@alias': 'x.y' }) intentionally carry no
+    // per-locale strings; t() resolves them to the canonical key. Skip
+    // them here (the canonical target is parity-checked on its own row)
+    // — alias integrity is locked in tests/i18n-alias.test.mjs.
+    if (langs['@alias']) continue;
     for (const code of REQUIRED_LANGS) {
       if (!langs[code] || !langs[code].trim()) {
         missingByLocale[code].push(key);

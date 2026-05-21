@@ -86,11 +86,11 @@ test('FIX-H6: placeholder "Jane Smith" profile flagged but does NOT flip ok', as
 });
 
 test('FIX-H6: real name flips Profile customized to ok=true', async () => {
-  writeFileSync(resolve(projectRoot, 'config', 'profile.yml'), 'candidate:\n  full_name: "Sergey Emelyanov"\n');
+  writeFileSync(resolve(projectRoot, 'config', 'profile.yml'), 'candidate:\n  full_name: "Jane Doe"\n');
   const h = await getHealth();
   const c = h.checks.find((x) => x.name === 'Profile customized');
   assert.equal(c.ok, true);
-  assert.equal(c.value, 'Sergey Emelyanov');
+  assert.equal(c.value, 'Jane Doe');
 });
 
 test('FIX-H6: empty / missing full_name → ok:false with explicit hint', async () => {

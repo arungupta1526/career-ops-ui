@@ -10,6 +10,14 @@
 
 
 
+## [1.59.13] — 2026-05-21
+
+**fix(i18n): 用 @alias 合并真正重复的键 + 个人数据最终清理.** 从测试夹具/QA 报告中移除维护者真实姓名(→ `Jane Doe`),`LICENSE`/`package.json` 改为 `Fighter90` 句柄。`@alias` 机制合并 8 个语言完全相同的 10 个键。`nav.config`/`config.title` 因西班牙语不同而不合并。991 → **994** 测试。(I18N-CL3)
+
+---
+
+
+
 ## [1.59.12] — 2026-05-21
 
 **fix(i18n): i18n-dict.js 清理 — fr 语言前 (I18N-CL1, I18N-CL2, I18N-CL4).** 将 `training.coursePh` 中的个人数据替换为通用占位符,`followup.lastPh` 由固定日期改为格式提示,新增 `npm run audit:i18n`。重复值分组是有意为之(不同 UI 角色)—— 见字典头部。(I18N-CL1, I18N-CL2, I18N-CL4)

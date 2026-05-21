@@ -15,7 +15,7 @@ test('removes paired <tool_call>/<tool_response> blocks, keeps prose + markdown'
     '{"name": "read_file", "parameters": {"path": "cv.md"}}',
     '</tool_call>',
     '<tool_response>',
-    'Sergey Emelyanov, Senior Engineer',
+    'Jane Doe, Senior Engineer',
     '</tool_response>',
     '',
     '# Deep Research',

@@ -10,6 +10,14 @@
 
 
 
+## [1.59.13] — 2026-05-21
+
+**fix(i18n): @alias 로 진짜 중복 키 통합 + 개인정보 최종 정리.** 메인테이너 실명을 테스트 픽스처/QA 리포트에서 제거(→ `Jane Doe`), `LICENSE`/`package.json` 을 `Fighter90` 핸들로 변경. `@alias` 로 8개 로케일 동일한 10개 키 통합. `nav.config`/`config.title` 은 스페인어에서 달라 통합 안 함. 991 → **994** 테스트. (I18N-CL3)
+
+---
+
+
+
 ## [1.59.12] — 2026-05-21
 
 **fix(i18n): i18n-dict.js 정리 — fr 로케일 이전 (I18N-CL1, I18N-CL2, I18N-CL4).** `training.coursePh` 의 개인 데이터를 일반 플레이스홀더로 교체, `followup.lastPh` 를 고정 날짜에서 형식 힌트로 변경, `npm run audit:i18n` 추가. 중복 값 그룹은 의도적(서로 다른 UI 역할) — 사전 헤더 참고. (I18N-CL1, I18N-CL2, I18N-CL4)

@@ -60,8 +60,19 @@ window.I18n = (function () {
   if (!LANGS.find((l) => l.code === current)) current = 'en';
 
   function t(key, fallback) {
-    const entry = DICT[key];
+    let entry = DICT[key];
     if (!entry) return fallback || key;
+    // v1.59.13 — alias support. A key whose entry is { '@alias': 'x.y' }
+    // resolves to the canonical key's translation. Lets duplicate-CONCEPT
+    // keys (nav.help ↔ help.title ↔ dash.quick.helpCta — the sidebar
+    // label, page title, and dashboard tile that must always read the
+    // same) share ONE translated string. Translators fill the canonical
+    // key once; alias keys need no translation. Call-sites are untouched
+    // (zero breakage risk) and an alias can diverge later by replacing
+    // the @alias with real per-locale strings. Genuinely-distinct keys
+    // that merely collapse in English (a table column vs a form label)
+    // are NOT aliased — see the i18n-dict.js header for the policy.
+    if (entry['@alias']) entry = DICT[entry['@alias']] || entry;
     return entry[current] || entry.en || fallback || key;
   }
 

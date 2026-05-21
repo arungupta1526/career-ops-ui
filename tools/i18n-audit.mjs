@@ -76,9 +76,10 @@ function main() {
     }
   }
 
-  // 2. Parity + 3. empty values
+  // 2. Parity + 3. empty values (alias keys are exempt — see below)
   for (const key of keys) {
     const row = dict[key] || {};
+    if (row['@alias']) continue; // checked in the alias-integrity pass
     for (const loc of LOCALES) {
       if (!(loc in row)) {
         hardFailures.push(`[parity] ${key} missing locale "${loc}"`);
@@ -88,30 +89,53 @@ function main() {
     }
   }
 
-  // 4. Hardcoded calendar dates
+  // 2b. Alias integrity — every @alias target must exist and must NOT
+  // itself be an alias (no alias chains, keeps t() resolution O(1)).
+  for (const key of keys) {
+    const target = dict[key]?.['@alias'];
+    if (!target) continue;
+    if (!dict[target]) {
+      hardFailures.push(`[alias] ${key} → "${target}" but target does not exist`);
+    } else if (dict[target]['@alias']) {
+      hardFailures.push(`[alias] ${key} → "${target}" which is itself an alias (no chains allowed)`);
+    }
+  }
+
+  // Resolve a key's value for a locale, following one @alias hop.
+  const resolve = (key, loc) => {
+    const row = dict[key];
+    if (!row) return undefined;
+    if (row['@alias']) return dict[row['@alias']]?.[loc];
+    return row[loc];
+  };
+
+  // 4. Hardcoded calendar dates (resolve aliases first)
   for (const key of keys) {
     for (const loc of LOCALES) {
-      const v = dict[key]?.[loc];
+      const v = resolve(key, loc);
       if (typeof v === 'string' && BARE_CALENDAR_DATE.test(v)) {
         hardFailures.push(`[hardcoded-date] ${key}[${loc}] = "${v}" — a bare date placeholder rots; use a format hint`);
       }
     }
   }
 
-  // 5. Duplicate values per locale (WARNING only)
+  // 5. Duplicate values per locale (WARNING only). Aliases are resolved
+  // first so an alias key never double-counts against its canonical.
   for (const loc of LOCALES) {
     const v2k = {};
     for (const key of keys) {
-      const v = dict[key]?.[loc];
+      if (dict[key]?.['@alias']) continue; // alias resolves to canonical — don't count twice
+      const v = resolve(key, loc);
       if (typeof v !== 'string' || v.length < 3) continue;
       (v2k[v] ??= []).push(key);
     }
     const dupes = Object.entries(v2k).filter(([, ks]) => ks.length > 1);
-    if (dupes.length) warnings.push(`[dupes] ${loc}: ${dupes.length} duplicate-value groups (intentional — distinct UI roles; see I18N-CL3)`);
+    if (dupes.length) warnings.push(`[dupes] ${loc}: ${dupes.length} duplicate-value groups (intentional — distinct UI roles or per-locale divergence; see I18N-CL3)`);
   }
 
   // 6. Whitespace (WARNING only — some keys end with ": " by design)
   for (const key of keys) {
+    if (dict[key]?.['@alias']) continue;
     for (const loc of LOCALES) {
       const v = dict[key]?.[loc];
       if (typeof v === 'string' && v !== v.trim() && !v.endsWith(': ') && !v.endsWith('— ')) {

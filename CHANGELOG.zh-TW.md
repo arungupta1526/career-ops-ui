@@ -10,6 +10,14 @@
 
 
 
+## [1.59.13] — 2026-05-21
+
+**fix(i18n): 用 @alias 合併真正重複的鍵 + 個人資料最終清理.** 從測試夾具/QA 報告中移除維護者真實姓名(→ `Jane Doe`),`LICENSE`/`package.json` 改為 `Fighter90` 帳號。`@alias` 機制合併 8 個語言完全相同的 10 個鍵。`nav.config`/`config.title` 因西班牙語不同而不合併。991 → **994** 測試。(I18N-CL3)
+
+---
+
+
+
 ## [1.59.12] — 2026-05-21
 
 **fix(i18n): i18n-dict.js 清理 — fr 語言前 (I18N-CL1, I18N-CL2, I18N-CL4).** 將 `training.coursePh` 中的個人資料替換為通用佔位符,`followup.lastPh` 由固定日期改為格式提示,新增 `npm run audit:i18n`。重複值分組是有意為之(不同 UI 角色)—— 見字典標頭。(I18N-CL1, I18N-CL2, I18N-CL4)

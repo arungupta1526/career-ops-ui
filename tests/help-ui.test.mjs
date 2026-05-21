@@ -74,8 +74,12 @@ test('i18n: nav.help / help.* keys present in every supported locale', () => {
   const D = ctx.window.I18n._DICT;
   for (const k of REQUIRED_KEYS) {
     assert.ok(D[k], `missing key: ${k}`);
+    // v1.59.13 — nav.help is now an @alias to help.title. Resolve one
+    // alias hop before asserting the per-locale strings exist.
+    const entry = D[k]['@alias'] ? D[D[k]['@alias']] : D[k];
+    assert.ok(entry, `${k} aliases a missing target`);
     for (const lang of REQUIRED_LANGS) {
-      assert.ok(D[k][lang] && D[k][lang].trim(),
+      assert.ok(entry[lang] && entry[lang].trim(),
         `${k}.${lang} is empty or missing`);
     }
   }
