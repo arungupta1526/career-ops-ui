@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.59.12] — 2026-05-21
+
+**fix(i18n): i18n-dict.js cleanup — pre-fr ship (I18N-CL1, I18N-CL2, I18N-CL4).** External French-locale contributor audit. **I18N-CL1 (privacy):** `training.coursePh` carried a vendor-specific cert name across all 8 locales — replaced with a neutral generic placeholder (`Cloud architecture certification` + native equivalents). **I18N-CL2 (hygiene):** the `followup.lastPh` dict fallback was a frozen `2026-04-21` literal — replaced with a localized format hint (`YYYY-MM-DD` / `AAAA-MM-DD` / `ГГГГ-ММ-ДД`); the live dynamic `today − 14d` placeholder (U-3, v1.58.23) in `mode-page.js` was already working and is now lock-tested. **I18N-CL4 (audit):** new `tools/i18n-audit.mjs` + `npm run audit:i18n`, wired into CI — hard-fails on personal data, locale-parity gaps, empty values, and bare-calendar-date placeholders. **I18N-CL3 (decision):** the ~50 duplicate-value key groups (e.g. `nav.scan` / `scan.btnRun` / `scan.col.company`) are intentional — distinct UI roles that non-English locales translate differently; deduping them would remove i18n flexibility, so they are reported as informational warnings, not failures (documented in the dict header). 3 new tests (988 → **991** unit). Unblocks the upcoming French locale PR. (I18N-CL1, I18N-CL2, I18N-CL4)
+
+---
+
+
+
 ## [1.59.11] — 2026-05-21
 
 **fix(test): v1.59.11 — e2e-comprehensive 12-case CI failure root-caused and closed.** Twelve cases (Pipeline · Activity · Health · 7 Mode pages · 404 · Profile) had been failing on every CI run going back to v1.58.x because `page.goto(baseUrl + '/#/X')` is a no-op for hash-only URL changes in Playwright. Once the CV-save step set the hash to `#/cv`, every subsequent `goto` to a hash route silently kept the page on `#/cv` — Activity/Health/Mode/Profile selectors never matched, and the 4 'pass' results in between were vacuous (their assertions found CV's elements). Fix in [tests/e2e-comprehensive.mjs](tests/e2e-comprehensive.mjs): new `goRoute(hash)` helper that bounces through `about:blank` before each `goto`, forcing a real navigation and SPA re-bootstrap. All 17 `page.goto(`${baseUrl}/#/...`)` call sites replaced. Diagnostic instrumentation (`E2E_DUMP_ON_FAIL=1` env var) added for future investigations. Result: **23 / 23 cases green** locally · 988 / 988 unit · 20 / 20 smoke e2e. (e2e-harness-r1)

@@ -1009,6 +1009,21 @@ test('U-3 (v1.58.23): #/followup lastContact placeholder is computed as today �
   );
 });
 
+test('I18N-CL2 (v1.59.12): followup.lastPh dict value is a format hint, not a rotting calendar date', () => {
+  // The dynamic placeholder lives in mode-page.js (locked above). The
+  // dict fallback regressed to a frozen `2026-04-21` literal — harmless
+  // (the view always overrides it) but it rots and would trip the
+  // i18n-audit bare-date guard. v1.59.12 replaced it with a localized
+  // format hint (YYYY-MM-DD / AAAA-MM-DD / ГГГГ-ММ-ДД).
+  const dict = read('public', 'js', 'lib', 'i18n-dict.js');
+  const m = dict.match(/'followup\.lastPh':\s*\{[^}]*\}/);
+  assert.ok(m, 'followup.lastPh must exist');
+  assert.equal(/\b20\d{2}-\d{2}-\d{2}\b/.test(m[0]), false,
+    `followup.lastPh must not be a hardcoded YYYY-MM-DD calendar date — got: ${m[0]}`);
+  assert.match(m[0], /en:\s*'YYYY-MM-DD'/,
+    'followup.lastPh[en] must be the format hint "YYYY-MM-DD"');
+});
+
 test('U-2 (v1.58.22): #/auto separates ✨ from the H1 via a .page-icon span', () => {
   const auto = read('public', 'js', 'views', 'auto.js');
   // Header must use the icon variant + emoji as a sibling span:

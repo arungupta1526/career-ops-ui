@@ -10,6 +10,14 @@
 
 
 
+## [1.59.12] — 2026-05-21
+
+**fix(i18n): i18n-dict.js 清理 — fr 語言前 (I18N-CL1, I18N-CL2, I18N-CL4).** 將 `training.coursePh` 中的個人資料替換為通用佔位符,`followup.lastPh` 由固定日期改為格式提示,新增 `npm run audit:i18n`。重複值分組是有意為之(不同 UI 角色)—— 見字典標頭。(I18N-CL1, I18N-CL2, I18N-CL4)
+
+---
+
+
+
 ## [1.59.11] — 2026-05-21
 
 **fix(test): v1.59.11 — e2e-comprehensive 套件現在 23/23 通過(之前 11/23)。** Playwright 的 `page.goto` 對僅改變 hash 的 URL 是 no-op,這是根因。新的 `goRoute(hash)` 輔助函式透過 `about:blank` 反彈以強制真實導航。(e2e-harness-r1)

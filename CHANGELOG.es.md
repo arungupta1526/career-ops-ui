@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.59.12] — 2026-05-21
+
+**fix(i18n): limpieza de i18n-dict.js — pre-fr (I18N-CL1, I18N-CL2, I18N-CL4).** Eliminado dato personal en `training.coursePh` (→ placeholder genérico), restaurado `followup.lastPh` como pista de formato (no fecha fija), añadido `npm run audit:i18n`. Los grupos de valores duplicados son intencionales (roles de UI distintos) — ver cabecera del diccionario. (I18N-CL1, I18N-CL2, I18N-CL4)
+
+---
+
+
+
 ## [1.59.11] — 2026-05-21
 
 **fix(test): v1.59.11 — la suite e2e-comprehensive ahora pasa 23/23 (era 11/23).** Causa raíz: `page.goto(baseUrl + '/#/X')` es un no-op para cambios solo de hash en Playwright. El nuevo helper `goRoute(hash)` rebota por `about:blank` antes de cada `goto` y fuerza una navegación real. (e2e-harness-r1)

@@ -10,6 +10,14 @@
 
 
 
+## [1.59.12] — 2026-05-21
+
+**fix(i18n): i18n-dict.js のクリーンアップ — fr 前 (I18N-CL1, I18N-CL2, I18N-CL4).** `training.coursePh` の個人データを汎用プレースホルダに置換、`followup.lastPh` を固定日付から書式ヒントへ、`npm run audit:i18n` を追加。重複値グループは意図的(UI ロールが異なる)— 辞書ヘッダ参照。(I18N-CL1, I18N-CL2, I18N-CL4)
+
+---
+
+
+
 ## [1.59.11] — 2026-05-21
 
 **fix(test): v1.59.11 — e2e-comprehensive スイートが 23/23 パス(以前 11/23)。** Playwright の `page.goto` がハッシュのみ変更で no-op になる問題が根本原因。新しい `goRoute(hash)` ヘルパーが `about:blank` を経由して実ナビゲーションを強制。(e2e-harness-r1)

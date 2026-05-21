@@ -11,6 +11,19 @@
  *
  * Loaded before i18n.js via <script src> in public/index.html.
  * window.I18n._defineDict(window.__I18N_DICT) wires it into the IIFE.
+ *
+ * I18N-CL3 decision (v1.59.12): the contributor audit flagged ~50
+ * "duplicate-value" key groups (e.g. `nav.scan` / `scan.btnRun` /
+ * `scan.col.company` all = "Scan" in EN). These are NOT deduped on
+ * purpose. They are semantically distinct UI roles — a sidebar label,
+ * a button, a table-column header — that merely collapse to the same
+ * English word. Non-English locales routinely need DIFFERENT
+ * translations per role (a verb in a button vs a noun in a column),
+ * so a single canonical key would REMOVE that flexibility and risk the
+ * very drift the dedup was meant to prevent. `tools/i18n-audit.mjs`
+ * reports these as informational warnings, never hard failures.
+ * What IS enforced: no personal data, full 8-locale parity, no empty
+ * values, no bare-calendar-date placeholders.
  */
 window.__I18N_DICT = {
   // Navigation labels
@@ -63,7 +76,7 @@ window.__I18N_DICT = {
   'training.title':     { en: 'Course / certification advisor', es: 'Asesor de cursos / certificaciones', 'pt-BR': 'Consultor de cursos / certificações', ko: '코스 / 인증 자문', ja: 'コース / 資格相談', ru: 'Советник по курсам / сертификациям', 'zh-CN': '课程 / 认证顾问', 'zh-TW': '課程 / 認證顧問' },
   'training.subtitle':  { en: 'Decide if a course or cert is worth your time given your goals.', es: 'Decide si un curso o certificación vale la pena dado tu objetivo.', 'pt-BR': 'Decida se um curso ou certificação vale o tempo dado seu objetivo.', ko: '목표를 고려해 코스/인증이 시간을 들일 가치가 있는지 판단.', ja: '目標を踏まえてコース/資格が投資に値するか判定。', ru: 'Решите, стоит ли курс или сертификация ваших усилий.', 'zh-CN': '根据目标判断课程或认证是否值得投入时间。', 'zh-TW': '根據目標判斷課程或認證是否值得投入時間。' },
   'training.courseLbl': { en: 'Course / cert', es: 'Curso / cert', 'pt-BR': 'Curso / cert', ko: '코스 / 인증', ja: 'コース / 資格', ru: 'Курс / сертификация', 'zh-CN': '课程 / 认证', 'zh-TW': '課程 / 認證' },
-  'training.coursePh':  { en: 'AWS Solutions Architect Associate', es: 'AWS Solutions Architect Associate', 'pt-BR': 'AWS Solutions Architect Associate', ko: 'AWS Solutions Architect Associate', ja: 'AWS Solutions Architect Associate', ru: 'AWS Solutions Architect Associate', 'zh-CN': 'AWS Solutions Architect Associate', 'zh-TW': 'AWS Solutions Architect Associate' },
+  'training.coursePh':  { en: 'Cloud architecture certification', es: 'Certificación en arquitectura cloud', 'pt-BR': 'Certificação em arquitetura de nuvem', ko: '클라우드 아키텍처 자격증', ja: 'クラウドアーキテクチャ認定資格', ru: 'Сертификация по облачной архитектуре', 'zh-CN': '云架构认证', 'zh-TW': '雲端架構認證' },
   'training.goalsLbl':  { en: 'Career goals', es: 'Objetivos de carrera', 'pt-BR': 'Objetivos de carreira', ko: '커리어 목표', ja: 'キャリア目標', ru: 'Карьерные цели', 'zh-CN': '职业目标', 'zh-TW': '職涯目標' },
   'training.goalsPh':   { en: 'What are you optimizing for over the next 12 months?', es: '¿Qué estás optimizando en los próximos 12 meses?', 'pt-BR': 'O que você está otimizando nos próximos 12 meses?', ko: '향후 12 개월 동안 무엇을 최적화하고 있습니까?', ja: '今後 12 ヶ月で何を最適化していますか?', ru: 'Что вы оптимизируете на горизонте 12 месяцев?', 'zh-CN': '未来 12 个月你在优化什么?', 'zh-TW': '未來 12 個月你在最佳化什麼?' },
   'training.courseHint': { en: 'Exact name as the issuing body uses it — improves the comparison signal.', es: 'Nombre exacto como lo usa la entidad emisora — mejora la señal comparativa.', 'pt-BR': 'Nome exato como o emissor usa — melhora o sinal comparativo.', ko: '발급기관이 사용하는 정확한 명칭 — 비교 신호가 정확해집니다.', ja: '発行元が使用する正確な名称 — 比較シグナルが正確になります。', ru: 'Точное название от провайдера — улучшает signal сравнения.', 'zh-CN': '使用发证机构的官方名称 — 提升比较信号准确度。', 'zh-TW': '使用發證機構的官方名稱 — 提升比較訊號準確度。' },
@@ -77,7 +90,7 @@ window.__I18N_DICT = {
   'followup.rolePh':    { en: 'Senior Backend Engineer', es: 'Senior Backend Engineer', 'pt-BR': 'Senior Backend Engineer', ko: 'Senior Backend Engineer', ja: 'Senior Backend Engineer', ru: 'Senior Backend Engineer', 'zh-CN': 'Senior Backend Engineer', 'zh-TW': 'Senior Backend Engineer' },
   'followup.lastLbl':   { en: 'Last contact (date)', es: 'Último contacto (fecha)', 'pt-BR': 'Último contato (data)', ko: '마지막 연락 (날짜)', ja: '最後の連絡 (日付)', ru: 'Последний контакт (дата)', 'zh-CN': '最后联系(日期)', 'zh-TW': '最後聯絡(日期)' },
   'followup.lastErr':   { en: 'Last contact must be an ISO date: YYYY-MM-DD (e.g. 2026-05-19).', es: 'El último contacto debe ser una fecha ISO: AAAA-MM-DD (p. ej. 2026-05-19).', 'pt-BR': 'O último contato deve ser uma data ISO: AAAA-MM-DD (ex. 2026-05-19).', ko: '마지막 연락은 ISO 날짜여야 합니다: YYYY-MM-DD (예: 2026-05-19).', ja: '最後の連絡は ISO 日付 YYYY-MM-DD で入力してください（例: 2026-05-19）。', ru: 'Последний контакт должен быть датой ISO: ГГГГ-ММ-ДД (например, 2026-05-19).', 'zh-CN': '最后联系必须是 ISO 日期：YYYY-MM-DD（例如 2026-05-19）。', 'zh-TW': '最後聯絡必須是 ISO 日期：YYYY-MM-DD（例如 2026-05-19）。' },
-  'followup.lastPh':    { en: '2026-04-21', es: '2026-04-21', 'pt-BR': '2026-04-21', ko: '2026-04-21', ja: '2026-04-21', ru: '2026-04-21', 'zh-CN': '2026-04-21', 'zh-TW': '2026-04-21' },
+  'followup.lastPh':    { en: 'YYYY-MM-DD', es: 'AAAA-MM-DD', 'pt-BR': 'AAAA-MM-DD', ko: 'YYYY-MM-DD', ja: 'YYYY-MM-DD', ru: 'ГГГГ-ММ-ДД', 'zh-CN': 'YYYY-MM-DD', 'zh-TW': 'YYYY-MM-DD' },
   'followup.notesLbl':  { en: 'Notes', es: 'Notas', 'pt-BR': 'Notas', ko: '메모', ja: 'メモ', ru: 'Заметки', 'zh-CN': '备注', 'zh-TW': '備註' },
   'followup.notesPh':   { en: 'They said 1-2 weeks. Recruiter is on PTO.', es: 'Dijeron 1-2 semanas. La recruiter está de vacaciones.', 'pt-BR': 'Disseram 1-2 semanas. A recruiter está de férias.', ko: '1-2 주 걸린다고 했음. 리크루터 휴가 중.', ja: '1-2 週間と言われた。リクルーターは休暇中。', ru: 'Сказали 1-2 недели. Рекрутер в отпуске.', 'zh-CN': '他们说 1-2 周。招聘官休假中。', 'zh-TW': '他們說 1-2 週。招募官休假中。' },
   'followup.companyHint': { en: 'Company name from your tracker — used to scope the cadence advice.', es: 'Nombre desde tu tracker — usado para acotar el consejo de cadencia.', 'pt-BR': 'Nome do seu tracker — usado para limitar o conselho de cadência.', ko: 'Tracker 의 회사명 — 주기 조언의 범위를 한정합니다.', ja: 'Tracker の会社名 — 頻度アドバイスの範囲を絞ります。', ru: 'Из вашего трекера — задаёт область совета по ритму касаний.', 'zh-CN': 'Tracker 中的公司名 — 用于限定节奏建议范围。', 'zh-TW': 'Tracker 中的公司名 — 用於限定節奏建議範圍。' },

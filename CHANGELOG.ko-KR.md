@@ -10,6 +10,14 @@
 
 
 
+## [1.59.12] — 2026-05-21
+
+**fix(i18n): i18n-dict.js 정리 — fr 로케일 이전 (I18N-CL1, I18N-CL2, I18N-CL4).** `training.coursePh` 의 개인 데이터를 일반 플레이스홀더로 교체, `followup.lastPh` 를 고정 날짜에서 형식 힌트로 변경, `npm run audit:i18n` 추가. 중복 값 그룹은 의도적(서로 다른 UI 역할) — 사전 헤더 참고. (I18N-CL1, I18N-CL2, I18N-CL4)
+
+---
+
+
+
 ## [1.59.11] — 2026-05-21
 
 **fix(test): v1.59.11 — e2e-comprehensive 스위트가 23/23 통과 (이전 11/23).** Playwright 의 `page.goto` 가 해시만 바뀌는 경우 no-op 이라서 발생한 문제. 새 `goRoute(hash)` 헬퍼가 `about:blank` 를 거쳐 실제 내비게이션을 강제합니다. (e2e-harness-r1)
