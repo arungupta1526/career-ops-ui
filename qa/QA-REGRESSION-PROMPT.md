@@ -1,11 +1,65 @@
-# QA REGRESSION PROMPT — career-ops-ui v1.59.10 (FINAL)
+# QA REGRESSION PROMPT — career-ops-ui v1.59.11 (DEFINITIVE FINAL)
 
-Single hand-off for a QA tester (human or agent) to verify the v1.59.10 build end-to-end. Standalone — a tester walking top-to-bottom can sign off without needing the rest of the `qa/` tree.
+Single hand-off for a QA tester (human or agent) to verify v1.59.11 end-to-end. Standalone — walking top-to-bottom signs off the build without needing the rest of the `qa/` tree.
 
-**Baseline at v1.59.10:** **988** unit · 62 Playwright · 20 smoke E2E · 23 comprehensive E2E.
+**Baseline at v1.59.11:** **988** unit · 62 Playwright · 20 smoke E2E · **23 / 23** comprehensive E2E · CI matrix `success` on Node 18 / 20 / 22 + Playwright e2e.
 **Server:** `http://127.0.0.1:4317` (start with `npm start`).
 **Browser smoke:** Chrome stable + 1 secondary (Firefox or Safari).
-**Cycle closed:** **25 releases** v1.58.52 → v1.59.10 — all CI-green, all AI-review LGTM, zero rollbacks.
+**Cycle closed:** **26 releases** v1.58.52 → v1.59.11 — all CI-green, all AI-review LGTM, zero rollbacks.
+
+---
+
+## §−1 — Probe methodology footguns (READ BEFORE STARTING)
+
+Two methodological errors caused **false-negative sign-offs** earlier in this cycle. Avoid them.
+
+### Footgun 1 — file-path vs inline implementation
+
+The v1.59.9 FIX-PROMPT *suggested* extracting the scroll-spy into a new file `public/js/help-toc.js`. The actual implementation **inlined** it into `public/js/views/help.js` (which is the existing route module). **Do not assert presence of a separate file** — `git grep` for the **behaviour** (debug marker + class application), not for a specific filename:
+
+```bash
+# ✓ Correct
+git grep -n "data-toc-spy" public/js/views/help.js   # → 3 matches in v1.59.11
+git grep -n "computeActiveAndApply" public/js/views/help.js   # → ≥1 match
+
+# ✗ Wrong (the file was never extracted)
+git grep -n "mountHelpToc" public/   # → 0 matches; this is NOT a regression
+ls public/js/help-toc.js              # → no such file; also NOT a regression
+```
+
+**Behavioural check** (the only one that actually tells you the spy works):
+
+```js
+// Open #/help in a real browser, wait ~1500 ms for the SPA to mount, then:
+document.body.dataset.tocSpy                        // → "active"
+document.querySelectorAll('.help-toc a.toc-current').length   // → 1
+```
+
+If either is wrong **after the mount window**, file a regression. If you check too eagerly (before the route handler resolves), you'll see `undefined`/`0` — that's a probe race, not a bug.
+
+### Footgun 2 — URL normalisation on the client side
+
+`fetch('/api/jds/../../../etc/passwd')` and `curl 'http://…/api/jds/../../../etc/passwd'` **normalise the URL before sending**. They send `/etc/passwd` to the server. The server sees a non-`/api` path → SPA fallback → 200 HTML. **That is the CLIENT's behaviour, not a server bug.**
+
+To verify the server's `req.originalUrl` `..` guard fires, you MUST send a verbatim raw URL. Two ways:
+
+```bash
+# ✓ curl with --path-as-is (no client-side normalisation)
+curl -s --path-as-is "http://127.0.0.1:4317/api/jds/../../../etc/passwd"
+# → {"error":"invalid path"}
+
+# ✓ Node http.request with verbatim path (also no normalisation)
+node -e '
+import("node:http").then(({request})=>{
+  const req = request({host:"127.0.0.1",port:4317,path:"/api/jds/../../../etc/passwd"},
+    r => { let b=""; r.on("data",c=>b+=c).on("end",()=>console.log(r.statusCode,b)); });
+  req.end();
+});
+'
+# → 404 {"error":"invalid path"}
+```
+
+The percent-encoded variant (`%2e%2e%2f`) is also a valid probe — it returns `404 {"error":"not found"}` from the `/api/jds/:name` route's own 404 path. Both responses are JSON 404; both confirm the contract.
 
 ---
 
@@ -13,7 +67,7 @@ Single hand-off for a QA tester (human or agent) to verify the v1.59.10 build en
 
 ```bash
 git fetch --tags
-git checkout v1.59.10
+git checkout v1.59.11
 node --version              # >= 18
 npm ci
 make clean-test-fixtures    # purge example.com/qa-fixture-* rows from data/pipeline.md
@@ -23,7 +77,7 @@ npm start                   # server on 127.0.0.1:4317
 open http://127.0.0.1:4317
 ```
 
-Expected: `/api/health` → `{"version":"1.59.10","ok":true, checks: 20+ rows}`.
+Expected: `/api/health` → `{"version":"1.59.11","ok":true, checks: 20+ rows}`.
 
 ---
 
@@ -34,8 +88,8 @@ Expected: `/api/health` → `{"version":"1.59.10","ok":true, checks: 20+ rows}`.
 | 1.1 | `curl -s -o /dev/null -w "%{http_code} %{content_type}\n" http://127.0.0.1:4317/api/no-such-endpoint` | `404 application/json` (NEW-F1, v1.59.5) |
 | 1.2 | `curl -s -o /dev/null -w "%{http_code} %{content_type}\n" -X POST http://127.0.0.1:4317/api/no-such-endpoint` | `404 application/json` (was `text/html` pre-v1.59.5) |
 | 1.3 | `curl -s -o /dev/null -w "%{http_code} %{content_type}\n" -X DELETE http://127.0.0.1:4317/api/no-such-endpoint` | `404 application/json` |
-| 1.4 | `curl -s --path-as-is "http://127.0.0.1:4317/api/jds/../../../etc/passwd"` | **`{"error":"invalid path"}`** (NEW-F1-sub-r1, v1.59.10 — `unknown api` means the guard isn't firing) |
-| 1.5 | `curl -s -X POST "http://127.0.0.1:4317/api/no-such-endpoint"` | **`{"error":"unknown api"}`** (regression lock — guard must NOT swallow plain unknown endpoints) |
+| **1.4** | `curl -s --path-as-is "http://127.0.0.1:4317/api/jds/../../../etc/passwd"` | **`{"error":"invalid path"}`** (NEW-F1-sub-r1, v1.59.10) — **`--path-as-is` is mandatory**; see §−1 Footgun 2 |
+| 1.5 | `curl -s -X POST "http://127.0.0.1:4317/api/no-such-endpoint"` | **`{"error":"unknown api"}`** (regression lock — guard MUST NOT swallow plain unknown endpoints) |
 | 1.6 | `curl -s -i http://127.0.0.1:4317/api/cv \| grep -i cache-control` | `Cache-Control: no-store` (NEW-D3-cache, v1.59.7) |
 | 1.7 | `curl -s http://127.0.0.1:4317/api/status/providers \| grep -o '"keysConfigured":\\[[^]]*\\]'` | array of provider names (NOT a number) |
 
@@ -54,18 +108,19 @@ For each route below, open in browser. Check H1 text, no console errors, no untr
 
 | # | Route | What to verify |
 |---|---|---|
-| 2.1 | `#/dashboard` | Hero with 2 CTAs (`✨ Auto-pipeline a URL`, `🌐 Scan now`) · `.dash-chip--provider` reads `⚡ Live evals: Anthropic <model>` (capital A) OR `📋 Manual prompt mode` · 4 metric cards · Pipeline tile has stronger visual weight (`.qa-tile--primary`) |
+| 2.1 | `#/dashboard` | Hero with 2 CTAs · `.dash-chip--provider` reads `⚡ Live evals: Anthropic <model>` (capital A) OR `📋 Manual prompt mode` · 4 metric cards · Pipeline tile has stronger visual weight (`.qa-tile--primary`) |
 | 2.2 | `#/pipeline` | Counter accurate · filter chips work · `+ Add` toast `Added to pipeline` |
-| 2.3 | `#/config → API keys` | `.api-keys__summary` chip at top reads `Active: <Provider>` + `Keys: N / 5` correctly. **NOT** sticky-overlapping the tablist on scroll. Paste a fake key into any `_API_KEY` field + Save → counter **never** flashes `0 / 5` |
+| 2.3 | `#/config → API keys` | `.api-keys__summary` chip reads `Active: <Provider>` + `Keys: N / 5`. **NOT** sticky-overlapping the tablist on scroll. Save → counter **never** flashes `0 / 5` |
 | 2.4 | `#/cv` | Edit textarea → Save button gains `.btn-dirty` · navigate away → confirm dialog `You have unsaved CV changes. Leave anyway?` |
 | 2.5 | `#/deep` | Saved cards render with `<span.saved-card__title>` + `<time.saved-card__date>` · brief lacking ≥3 of 6 canonical H2 sections shows `.brief-warning` ribbon |
 | 2.6 | `#/help` | **THE HEADLINE TEST** — see §4 |
-| 2.7 | `#/health` | Failing rows show `Fix →` ghost button next to the badge · clicking lands on the right config tab |
+| 2.7 | `#/health` | Failing rows show `Fix →` ghost button · clicking lands on the right config tab |
 | 2.8 | `#/auto` | Stepper pre-renders with 5 steps in `aria-disabled` state · ⚡ submit fires SSE log |
 | 2.9 | `#/scan` | `Open Scan` (NOT `Quick scan`) on top-bar · Advanced filters inside `<details>` |
 | 2.10 | `#/tracker` | Funnel chips · server-side pagination on >50 rows · search box has localized `aria-label` |
-| 2.11 | `#/evaluate` | Empty JD submit → distinct toast `Paste a job description first` (or localized equivalent) |
+| 2.11 | `#/evaluate` | Empty JD submit → distinct toast `Paste a job description first` (or localized) |
 | 2.12 | `#/apply` | Interactive checklist · `[company]-[role]` slug substituted from URL/JD |
+| extra | `#/this-route-does-not-exist` | H1 `404 — page not found` + Back-to-Dashboard link |
 
 **Locale switch:** sidebar footer → `ru`. Verify H1 / nav text flip, `<html lang="ru">` set, per-route `document.title` updates.
 
@@ -79,44 +134,46 @@ For each route below, open in browser. Check H1 text, no console errors, no untr
 
 | # | Action | Expect |
 |---|---|---|
-| 3.1 | Click bell 🔔 in top-bar | drawer slides in · `aria-expanded="true"` on bell |
-| 3.2 | Trigger an error toast | drawer journal records the message + the `(METHOD /path · HTTP NNN)` postfix in a collapsed `<details>` |
+| 3.1 | Click bell 🔔 in top-bar | drawer slides in · `aria-expanded="true"` on bell · `aria-controls="notif-drawer"` |
+| 3.2 | Trigger an error toast (e.g. POST with bad payload) | drawer journal records the message + the `(METHOD /path · HTTP NNN)` postfix in a collapsed `<details>` |
 | 3.3 | Click `× Dismiss` on a single entry | that entry disappears, unread badge does NOT increment |
-| 3.4 | Click `Clear all` in drawer head | journal empties, badge clears, button hides |
+| 3.4 | Click `Clear all` in drawer head | journal empties, badge clears, button hides (correctly auto-hidden when journal is empty) |
 | 3.5 | Close drawer (× or Esc) | `aria-expanded="false"` |
 
 ---
 
-## §4 — Help TOC scroll-spy (UX-A5-r4 lock-test) — THE HEADLINE REGRESSION
+## §4 — Help TOC scroll-spy (UX-A5-r4 lock-test) — THE HEADLINE REGRESSION CLOSE
 
-The Help TOC scroll-spy was the longest-running regression in this cycle — **6 ship cycles** (v1.58.45 → v1.58.52 → v1.59.0 → v1.59.3 → v1.59.8 → v1.59.9). Five previous "closures" all had passing static tests but the user-visible bug stayed open because the tests never drove the actual scenario. v1.59.9 closed it with a behavioural test that proves the algorithm.
+The longest-running regression in this cycle — **6 closure attempts** (v1.58.45 → v1.58.52 → v1.59.0 → v1.59.3 → v1.59.8 → v1.59.9). Each previous closure shipped passing static tests but the user-visible bug stayed open. v1.59.9 finally closed it with a behavioural test that drives synthetic scroll positions through the algorithm.
+
+> **🛑 STOP — RE-READ §−1 BEFORE THIS SECTION**. Earlier sign-offs marked §4 FAIL because the probe (a) looked for a separate file `public/js/help-toc.js` that the implementation chose to inline into `public/js/views/help.js`, and (b) checked `document.body.dataset.tocSpy` before the SPA had finished mounting. Both are probe errors, not bugs. The implementation IS `public/js/views/help.js` (`grep -n "data-toc-spy" public/js/views/help.js` returns 3 matches), and the marker becomes `"active"` only after the route handler resolves (~500–1500 ms on a cold start).
 
 ### 4.1 Debug marker — single-selector "is the spy alive?"
 
-Open `#/help`. In DevTools console:
+Open `#/help`. **Wait 1500 ms after page load.** In DevTools console:
 
 ```js
 document.body.dataset.tocSpy
 // Expect: "active"
 ```
 
-Navigate to `#/dashboard`:
+Navigate to `#/dashboard`. Wait 200 ms:
 ```js
 document.body.dataset.tocSpy
-// Expect: undefined (removed by cleanup)
+// Expect: undefined (removed by hashchange cleanup)
 ```
 
-Return to `#/help`:
+Return to `#/help`. Wait 1500 ms:
 ```js
 document.body.dataset.tocSpy
 // Expect: "active" (re-attached on re-mount)
 ```
 
-**If this marker is wrong at any step → the spy isn't bound. Stop here, file a regression. Don't bother scrolling — it can't work without the binding.**
+**If this marker is wrong AFTER the mount window** → file a regression. **Do not** assert before the mount completes.
 
 ### 4.2 Initial paint
 
-On `#/help` first load:
+On `#/help` first load (after 1500 ms):
 ```js
 document.querySelectorAll('.help-toc a.toc-current').length
 // Expect: 1 (section 0 is highlighted on first paint, before any scroll)
@@ -128,13 +185,12 @@ document.querySelectorAll('.help-toc a.toc-current').length
 document.getElementById('help-h-5').scrollIntoView({ block: 'center' });
 // wait 600ms
 document.querySelector('.help-toc a.toc-current').getAttribute('href');
-// Expect: a #help-h-N matching the heading currently around 30 % from top
-//   (sections 3-7 are all acceptable for h-5 at viewport center)
+// Expect: #help-h-N where N is in [3..7] (the section currently around 30 % from top)
 ```
 
 ### 4.4 TOC click
 
-Click a TOC entry (any). Within 800ms:
+Click a TOC entry (any). Within 800 ms:
 ```js
 document.querySelector('.help-toc a.toc-current').getAttribute('href');
 // Expect: the href of the clicked link
@@ -145,7 +201,7 @@ document.querySelector('.help-toc a.toc-current').getAttribute('href');
 ```js
 const cur = document.querySelector('.help-toc a.toc-current');
 getComputedStyle(cur).borderLeftColor;
-// Expect: an rgb() value matching var(--rausch) — e.g. "rgb(255, 56, 92)" in light theme
+// Expect: rgb() matching var(--rausch) — e.g. "rgb(255, 56, 92)" in light theme
 // (One previous cycle attached the class but a later CSS rule reset border-left:0)
 ```
 
@@ -153,24 +209,24 @@ getComputedStyle(cur).borderLeftColor;
 
 Navigate `#/dashboard` → `#/help`. Repeat steps 4.1–4.5. All must pass.
 
-**If any step fails → file `qa/FIX-PROMPT-v1.59.<N>.md` referencing UX-A5-r4 and `tests/help-toc-spy-behavior.test.mjs`. The behavioural test must reproduce the failure.**
+**If any step fails AFTER the mount window** → file `qa/FIX-PROMPT-v1.59.<N>.md` referencing UX-A5-r4 and `tests/help-toc-spy-behavior.test.mjs`.
 
 ---
 
-## §5 — i18n parity sweep (smoke)
+## §5 — i18n parity sweep
 
-For each of 8 locales (`en`, `es`, `pt-BR`, `ko`, `ja`, `ru`, `zh-CN`, `zh-TW`), confirm the per-route H1 matches the expected native-equivalent translation.
+Help bundle parity: **18 H2 / 73 H3 across all 8 locales.** Run `npm test` — the `canonical-docs-coverage`, `help-ru-config-section`, and `help-ui` tests assert this.
 
-Spot-checks (must be exact):
+Per-route H1 spot-checks (must be exact):
 - `#/pipeline` (es) → **`Pipeline de candidaturas`** (NOT `Pipeline de vacantes`)
 - `#/dashboard` (ru) → **`Командный центр`**
-- `#/help` (ja) → **`ヘルプ`** (no English bleed)
+- `#/help` (ja) → **`ヘルプ`**
 - Footer hotkey hint: macOS → `⌘K`, others → `Ctrl+K`
 
 Static parity gates (run before any tag):
 
 ```bash
-node scripts/check-changelog-parity.mjs   # must report all 8 locales at v1.59.10
+node scripts/check-changelog-parity.mjs   # must report all 8 locales at v1.59.11
 node scripts/check-no-also-leftovers.mjs  # no `.also(` leftovers
 ```
 
@@ -181,29 +237,29 @@ node scripts/check-no-also-leftovers.mjs  # no `.also(` leftovers
 ```bash
 npm test                          # 988 / 988 unit, 0 fail
 npm run test:coverage             # line >= 93%, branch >= 83%
-npm run test:e2e                  # 20 smoke
-npm run test:e2e:full             # 23 comprehensive
+npm run test:e2e                  # 20 / 20 smoke
+npm run test:e2e:full             # 23 / 23 comprehensive (v1.59.11 fixed the 12-case CI failure)
 npm run test:e2e:browser          # 62 Playwright (smoke + full-cycle + forms)
 ```
 
-⚠️ **Pre-commit AI review is advisory; `ci.yml` is the hard gate.** Watch the GitHub Actions CI run after tag push — Node 18 / 20 / 22 matrix must finish `success` on every job.
+⚠️ **Pre-commit AI review is advisory; `ci.yml` is the hard gate.** Watch the GitHub Actions CI run after tag push — Node 18 / 20 / 22 + Playwright e2e must all finish `success`. v1.59.11 was the first commit where ALL 4 jobs (3 unit matrices + Playwright e2e) went green simultaneously.
 
 ---
 
-## §7 — 26 cycle invariants (v1.58.52 → v1.59.10) — quick reference
+## §7 — 27 cycle invariants (v1.58.52 → v1.59.11) — quick reference
 
-Every row below has a static or behavioural lock-test in `tests/qa-report-fixes.test.mjs`, `tests/api-404-json.test.mjs`, `tests/api-path-traversal.test.mjs`, or `tests/help-toc-spy-behavior.test.mjs`.
+Every row below has a static or behavioural lock-test in `tests/qa-report-fixes.test.mjs`, `tests/api-404-json.test.mjs`, `tests/api-path-traversal.test.mjs`, `tests/help-toc-spy-behavior.test.mjs`, or `tests/e2e-comprehensive.mjs`.
 
-### Maturity-10 cycle (v1.58.52 → v1.59.0)
+### Maturity-10 cycle (v1.58.52 → v1.59.0) — 15 invariants
 
 | Release | Invariant |
 |---|---|
-| v1.58.52 UX-A5 | help.js TOC scroll-spy (later replaced — see §4) |
+| v1.58.52 UX-A5 | help.js TOC scroll-spy (re-cycled — see §4 + v1.59.9) |
 | v1.58.53 UX-A6 | every saved-research card flows through `renderSavedCard(f)` |
 | v1.58.54 UX-A1 | `looksLikeStructuredBrief()` checks ≥ 3 of 6 canonical H2 sections |
 | v1.58.55 UX-A3 | dashboard provider chip + hashchange cleanup |
 | v1.58.56 UX-A4 | `.lang-btn` 28×28 px (WCAG 2.5.8) |
-| v1.58.57 UX-A7 | `providers-changed` event dispatch + advisor views call `UI.providerCostHint(t)` |
+| v1.58.57 UX-A7 | `providers-changed` event dispatch + advisor views |
 | v1.58.58 UX-A10 | `#/cv` `beforeunload` + `hashchange` guards |
 | v1.58.59 UX-A13 | health `FIX_TARGETS` map + `.health-fix` ghost button |
 | v1.58.60 UX-A12 | notif-clear-all + per-item × |
@@ -214,21 +270,22 @@ Every row below has a static or behavioural lock-test in `tests/qa-report-fixes.
 | v1.58.65 UX-A2 | `modes-form.js` CANON 5 fields |
 | v1.59.0 UX-A14 | `@media (max-width: 420px)` mobile block |
 
-### Final polish cycle (v1.59.1 → v1.59.10)
+### Final polish cycle (v1.59.1 → v1.59.11) — 12 invariants
 
 | Release | Invariant |
 |---|---|
 | v1.59.1 NEW-D1 patch | `i18n-no-latin-leaks` regex accepts `vacant\|candidatur` (es) |
 | v1.59.2 chip hotfix | chips read `keysConfigured` as array; NAME map keyed `anthropic`; `.api-keys__summary` NOT sticky |
-| v1.59.3 UX-A5-r2 | (superseded by v1.59.9) |
+| v1.59.3 UX-A5-r2 | (superseded by v1.59.8 → v1.59.9) |
 | v1.59.4 NEW-OR1 | `refreshApiSummary` race-safe: `inFlight` token + atomic `replaceChildren()` + `lastGoodSt` cache |
 | v1.59.5 NEW-F1 | `app.all('/api/*', …)` JSON-404 on every verb |
 | v1.59.6 NEW-D2-motion | `@media (prefers-reduced-motion: reduce)` neutralizes animations |
 | v1.59.7 NEW-D3-cache | `GET /api/cv` sends `Cache-Control: no-store` |
 | v1.59.8 UX-A5-r3 | (superseded by v1.59.9) |
-| v1.59.8 NEW-F1-sub | (superseded by v1.59.10 — late-placed middleware never fired) |
+| v1.59.8 NEW-F1-sub | (superseded by v1.59.10) |
 | **v1.59.9 UX-A5-r4** | `<body data-toc-spy="active">` debug marker · synchronous initial paint + double-rAF re-compute + resize listener · linear scan with `else break;` · 7-case behavioural test in `tests/help-toc-spy-behavior.test.mjs` |
-| **v1.59.10 NEW-F1-sub-r1** | server `req.originalUrl` `..` guard hoisted ABOVE all `register*Routes(app)` calls — pattern `/^\/api(\/\|$)/.test && /\.\.\//.test`. 6-case test in `tests/api-path-traversal.test.mjs` via raw `http.request` |
+| **v1.59.10 NEW-F1-sub-r1** | server `req.originalUrl` `..` guard hoisted ABOVE all `register*Routes(app)` calls — pattern `/^\/api(\/\|$)/.test && /\.\.\//.test`. 6-case test in `tests/api-path-traversal.test.mjs` |
+| **v1.59.11 e2e-harness-r1** | `tests/e2e-comprehensive.mjs` uses `goRoute(hash)` helper that bounces via `about:blank` — fixes 12 chronically-failing CI cases (Playwright's `page.goto` is a no-op on hash-only URL changes) |
 
 ---
 
@@ -236,15 +293,16 @@ Every row below has a static or behavioural lock-test in `tests/qa-report-fixes.
 
 | Gate | Pass? |
 |---|---|
+| §−1 — methodology footguns understood (file-path vs inline; client URL normalisation) | ☐ |
 | §0 — `npm test` 988 / 988, 0 fail · `make clean-test-fixtures` idempotent | ☐ |
-| §1 — all 11 curl probes match Expect column (incl. **#1.4: raw `..` → `{"error":"invalid path"}`**) | ☐ |
-| §2 — all 12 routes + 1 non-en locale + mobile + reduced-motion | ☐ |
+| §1 — all 11 curl probes match Expect column (incl. **#1.4 with `--path-as-is`**) | ☐ |
+| §2 — all 13 routes + 1 non-en locale + mobile + reduced-motion | ☐ |
 | §3 — notifications drawer 5 interactions | ☐ |
-| §4 — help TOC scroll-spy 6 steps (THE headline regression close) | ☐ |
+| §4 — help TOC scroll-spy 6 steps (THE headline regression close, with mount-window wait) | ☐ |
 | §5 — i18n parity gates + 4 spot-checks | ☐ |
 | §6 — full test pyramid (`npm test` + 3 e2e suites + coverage floor) | ☐ |
-| §6 — CI matrix (Node 18 / 20 / 22) `success` after tag push | ☐ |
-| §7 — 26 invariants verified by test names (no lock-test failures) | ☐ |
+| §6 — CI matrix (Node 18 / 20 / 22 + **Playwright e2e**) all `success` after tag push | ☐ |
+| §7 — 27 invariants verified by test names (no lock-test failures) | ☐ |
 | Security envelope byte-stable (CSP / XFO / nosniff / Referrer-Policy) | ☐ |
 | Parent-project read-only contract preserved | ☐ |
 
@@ -252,13 +310,14 @@ Every row below has a static or behavioural lock-test in `tests/qa-report-fixes.
 
 ## §9 — On failure
 
-1. Capture **route + exact copy + browser version + locale + screenshot** of the symptom.
-2. Identify the failing lock-test (`node --test tests/qa-report-fixes.test.mjs tests/api-404-json.test.mjs tests/api-path-traversal.test.mjs tests/help-toc-spy-behavior.test.mjs`).
-3. File `qa/FIX-PROMPT-v1.59.<N+1>.md` with the failure evidence, the §7 invariant ID, and the proposed fix shape (HOW + TEST + ACCEPTANCE + CHANGELOG ×8 sketch).
-4. **Doctrine: one fix per release.** Exception: explicit bundled HIGH+LOW like v1.59.8 — only when an audit report authorises it in writing.
-5. Pre-commit AI review is advisory; `ci.yml` is the hard gate. Pass both before tagging.
+1. **First, re-check §−1.** Most "failures" in this cycle were probe-methodology errors.
+2. Capture **route + exact copy + browser version + locale + screenshot** of the symptom.
+3. Identify the failing lock-test (`node --test tests/qa-report-fixes.test.mjs tests/api-404-json.test.mjs tests/api-path-traversal.test.mjs tests/help-toc-spy-behavior.test.mjs`).
+4. File `qa/FIX-PROMPT-v1.59.<N+1>.md` with the failure evidence, the §7 invariant ID, and the proposed fix shape (HOW + TEST + ACCEPTANCE + CHANGELOG ×8 sketch).
+5. **Doctrine: one fix per release.** Exception: explicit bundled HIGH+LOW like v1.59.8 — only when an audit report authorises it in writing.
+6. Pre-commit AI review is advisory; `ci.yml` is the hard gate. Pass both before tagging.
 
-**Open out-of-scope items at v1.59.10** (not regressions — parent-blocked or v1.60+):
+**Open out-of-scope items at v1.59.11** (not regressions — parent-blocked or v1.60+):
 
 | ID | Owner | Status |
 |---|---|---|
@@ -271,7 +330,7 @@ Every row below has a static or behavioural lock-test in `tests/qa-report-fixes.
 
 ---
 
-## §10 — Doctrine lessons (the 21-item knowledge base accumulated across this cycle)
+## §10 — Doctrine lessons (the 23-item knowledge base accumulated across this cycle)
 
 Hard-won, do not re-learn:
 
@@ -296,7 +355,9 @@ Hard-won, do not re-learn:
 19. `req.url` is normalised; `req.originalUrl` is verbatim. Use `originalUrl` for raw-string guards.
 20. **Middleware position matters as much as content.** Express order is strictly imperative — "right code, wrong place" is unreachable code.
 21. **Static lock-tests can pass while user-visible bugs stay open.** A regression-lock test must drive the actual scenario (simulated scroll → algorithm output), not `git grep` for a symbol.
+22. **Playwright `page.goto(url)` is a no-op when only the URL fragment changes** (v1.59.11 e2e-harness-r1). Bounce through `about:blank` to force a real navigation when probing hash-routed SPAs.
+23. **Probe methodology can produce false-negative sign-offs.** Two examples from this cycle: (a) asserting presence of a *suggested* extracted file when the impl was inlined into an existing one — assert behaviour, not file paths; (b) using `fetch` / curl-without-`--path-as-is` to probe path-traversal — both client-side normalise the URL before sending. See §−1.
 
 ---
 
-*Standalone final QA hand-off for v1.59.10. Hand to a human tester or an agent — copy-paste top-to-bottom, fill the §8 matrix, file FIX-PROMPT on any failure. Generated 2026-05-21 after the 25-release v1.58.52 → v1.59.10 cycle closed at 988 / 988 unit-tests green.*
+*Definitive final QA hand-off for v1.59.11. Hand to a human tester or an agent — copy-paste top-to-bottom, fill the §8 matrix, file FIX-PROMPT on any failure. Generated 2026-05-21 after the 26-release v1.58.52 → v1.59.11 cycle closed at 988 / 988 unit + 23 / 23 comprehensive e2e + CI matrix all-green.*

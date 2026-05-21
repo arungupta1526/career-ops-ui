@@ -6,7 +6,8 @@
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | **简体中文** | [繁體中文](README.zh-TW.md)
 
 [![tests](https://img.shields.io/badge/tests-988%20passed-brightgreen)](#tests)
-[![playwright](https://img.shields.io/badge/playwright-e2e%20green-brightgreen)](#tests)
+[![e2e](https://img.shields.io/badge/e2e-23%2F23%20%2B%2020%2F20-brightgreen)](#tests)
+[![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![release](https://img.shields.io/badge/release-v1.59.11-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.59.11)
