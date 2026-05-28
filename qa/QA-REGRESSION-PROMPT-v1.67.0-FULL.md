@@ -69,8 +69,9 @@ npm run test:coverage         # ≥ 80% line / ≥ 80% branch on non-trivial log
 - `GET /api/health` returns `{ version: "1.67.0", parentVersion: <string|null>, … }`.
   `version` and `parentVersion` are independent — `parentVersion` reflects the parent
   `VERSION` file (or null if no parent present). Footer in the SPA reads `version`.
-- All 9 README badges read `tests-1060` and `release-v1.67.0`; the v1.67.0 highlight
-  blockquote (line 15) describes the `#/scan` salary range filter.
+- All 9 README badges read `tests-1060` and `release-v1.67.0`; the top-of-README
+  **"🆕 Latest release — v1.67.0"** blockquote (line 15, all 9 locales) details both
+  shipped changes — the `#/scan` salary range filter and the 15s→30s fetch-timeout raise.
 - `CHANGELOG.{md,es,fr,ja,ko-KR,pt-BR,ru,zh-CN,zh-TW}.md` all carry a `[1.67.0]`
   entry (parity gated by `check-changelog-parity.mjs`).
 

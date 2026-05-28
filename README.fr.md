@@ -12,7 +12,13 @@
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![release](https://img.shields.io/badge/release-v1.67.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.67.0)
 
-> **v1.67.0 — filtre de fourchette salariale sur `#/scan`.** Le tableau de résultats gagne deux champs numériques — **salaire de / à** — à côté des filtres texte et remote. Le salaire en texte libre de chaque ligne (`от 100 000 до 200 000 ₽`, `120000-150000 USD`, `$120K–$150K`, …) est analysé en une fourchette numérique et comparé avec une sémantique de chevauchement ; les lignes sans salaire publié restent visibles, donc le filtre affine au lieu de vider la liste (indépendant de la devise — sans conversion). Relève aussi le timeout de fetch par source **15s → 30s** pour que les tableaux Ashby lents cessent d'expirer. Suite complète **1060/1060** au vert.
+> **🆕 Dernière version — v1.67.0**
+>
+> **1. Filtre de fourchette salariale sur `#/scan`.** Le tableau de résultats gagne deux champs numériques — **salaire de / à** — à côté des filtres texte et remote. Le salaire en texte libre de chaque ligne (`от 100 000 до 200 000 ₽`, `120000-150000 USD`, `$120K–$150K`, …) est analysé en une fourchette numérique et comparé avec une sémantique de chevauchement — une ligne est conservée si sa fourchette salariale chevauche votre fenêtre `[de, à]`. Les lignes **sans salaire publié restent visibles**, donc le filtre affine au lieu de vider la liste. La comparaison est **indépendante de la devise** (sans conversion de change).
+>
+> **2. Timeout de fetch par source relevé de 15s → 30s** (override via `SCAN_FETCH_TIMEOUT_MS`). Les payloads `includeCompensation` d'Ashby dépassaient régulièrement 15s sous une concurrence ×8, donc ~30 tableaux Ashby expiraient à chaque scan ; 30s laisse les sources lentes mais vivantes terminer.
+>
+> _13 nouveaux tests · suite complète **1060/1060** au vert · i18n + docs synchronisés dans les 9 langues._
 
 ![career-ops-ui — Centre de commande](./images/dashboard-fr.png)
 
