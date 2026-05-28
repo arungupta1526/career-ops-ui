@@ -4234,6 +4234,28 @@
     "zh-TW": "搬遷",
     "fr": "rélocalisation"
   },
+  "scan.salaryFrom": {
+    "en": "Salary from",
+    "es": "Salario desde",
+    "pt-BR": "Salário de",
+    "ko": "급여 최소",
+    "ja": "給与 下限",
+    "ru": "Зарплата от",
+    "zh-CN": "薪资下限",
+    "zh-TW": "薪資下限",
+    "fr": "Salaire dès"
+  },
+  "scan.salaryTo": {
+    "en": "Salary to",
+    "es": "Salario hasta",
+    "pt-BR": "Salário até",
+    "ko": "급여 최대",
+    "ja": "給与 上限",
+    "ru": "Зарплата до",
+    "zh-CN": "薪资上限",
+    "zh-TW": "薪資上限",
+    "fr": "Salaire jusqu'à"
+  },
   "scan.allSources": {
     "en": "all sources",
     "es": "todas las fuentes",

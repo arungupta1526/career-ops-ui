@@ -394,6 +394,8 @@ window.__I18N_DICT_JA = {
   'scan.remoteOnly': "リモートのみ",
   'scan.hybrid': "ハイブリッド",
   'scan.reloc': "転居",
+  'scan.salaryFrom': "給与 下限",
+  'scan.salaryTo': "給与 上限",
   'scan.allSources': "すべてのソース",
   'scan.chip.stack': "スタック",
   'scan.chip.level': "レベル",

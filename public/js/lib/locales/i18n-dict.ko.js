@@ -394,6 +394,8 @@ window.__I18N_DICT_KO = {
   'scan.remoteOnly': "원격만",
   'scan.hybrid': "하이브리드",
   'scan.reloc': "재배치",
+  'scan.salaryFrom': "급여 최소",
+  'scan.salaryTo': "급여 최대",
   'scan.allSources': "모든 소스",
   'scan.chip.stack': "스택",
   'scan.chip.level': "레벨",

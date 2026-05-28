@@ -394,6 +394,8 @@ window.__I18N_DICT_ZH_TW = {
   'scan.remoteOnly': "僅遠端",
   'scan.hybrid': "混合",
   'scan.reloc': "搬遷",
+  'scan.salaryFrom': "薪資下限",
+  'scan.salaryTo': "薪資上限",
   'scan.allSources': "所有來源",
   'scan.chip.stack': "技術棧",
   'scan.chip.level': "級別",

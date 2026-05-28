@@ -394,6 +394,8 @@ window.__I18N_DICT_ZH_CN = {
   'scan.remoteOnly': "仅远程",
   'scan.hybrid': "混合",
   'scan.reloc': "搬迁",
+  'scan.salaryFrom': "薪资下限",
+  'scan.salaryTo': "薪资上限",
   'scan.allSources': "所有来源",
   'scan.chip.stack': "技术栈",
   'scan.chip.level': "级别",

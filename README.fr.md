@@ -5,14 +5,14 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | **Français**
 
-[![tests](https://img.shields.io/badge/tests-1045%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-1060%20passed-brightgreen)](#tests)
 [![e2e](https://img.shields.io/badge/e2e-23%2F23%20%2B%2020%2F20-brightgreen)](#tests)
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.66.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.66.0)
+[![release](https://img.shields.io/badge/release-v1.67.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.67.0)
 
-> **v1.66.0 — les sources RU parcourent désormais toutes les pages de résultats.** hh.ru, Habr Career et Trudvsem ne paginaient que les ~50 premiers résultats par requête ; ils suivent maintenant la pagination jusqu'au bout — `&page=N` pour hh.ru/Habr, `offset`/`meta.total` pour Trudvsem — en dédupliquant entre les pages et en s'arrêtant quand une page n'apporte rien de neuf (ou à un plafond de sécurité de 50 pages). Une requête comme « Backend разработчик » renvoie désormais l'ensemble complet au lieu d'une seule page (p. ex. hh.ru PHP **17 → 55+** sur 3 pages ; Trudvsem renvoie les 72). Chaque page conserve le timeout + `AbortSignal` existants. Suite complète **1045/1045** au vert.
+> **v1.67.0 — filtre de fourchette salariale sur `#/scan`.** Le tableau de résultats gagne deux champs numériques — **salaire de / à** — à côté des filtres texte et remote. Le salaire en texte libre de chaque ligne (`от 100 000 до 200 000 ₽`, `120000-150000 USD`, `$120K–$150K`, …) est analysé en une fourchette numérique et comparé avec une sémantique de chevauchement ; les lignes sans salaire publié restent visibles, donc le filtre affine au lieu de vider la liste (indépendant de la devise — sans conversion). Relève aussi le timeout de fetch par source **15s → 30s** pour que les tableaux Ashby lents cessent d'expirer. Suite complète **1060/1060** au vert.
 
 ![career-ops-ui — Centre de commande](./images/dashboard-fr.png)
 

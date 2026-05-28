@@ -394,6 +394,8 @@ window.__I18N_DICT_PT_BR = {
   'scan.remoteOnly': "apenas remoto",
   'scan.hybrid': "híbrido",
   'scan.reloc': "realocação",
+  'scan.salaryFrom': "Salário de",
+  'scan.salaryTo': "Salário até",
   'scan.allSources': "todas fontes",
   'scan.chip.stack': "Stack",
   'scan.chip.level': "Nível",

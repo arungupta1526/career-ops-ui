@@ -12,7 +12,12 @@
  * Node-18 safe: builds a combined AbortSignal by hand (no `AbortSignal.any`).
  */
 
-export const DEFAULT_SCAN_TIMEOUT_MS = Number(process.env.SCAN_FETCH_TIMEOUT_MS) || 15000;
+// v1.67.0 — raised 15000 → 30000. Ashby's posting-api with
+// `includeCompensation=true` returns large payloads that routinely take
+// >15s under burst (8-way concurrency), so ~30 Ashby boards were timing out
+// every scan. 30s lets slow-but-alive sources finish while still capping a
+// truly-dead upstream. Override with SCAN_FETCH_TIMEOUT_MS.
+export const DEFAULT_SCAN_TIMEOUT_MS = Number(process.env.SCAN_FETCH_TIMEOUT_MS) || 30000;
 
 /**
  * Combine an upstream abort signal with a timeout. Returns the combined

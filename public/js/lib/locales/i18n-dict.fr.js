@@ -394,6 +394,8 @@ window.__I18N_DICT_FR = {
   'scan.remoteOnly': "à distance uniquement", // remote only
   'scan.hybrid': "hybride", // hybrid
   'scan.reloc': "rélocalisation", // relocation
+  'scan.salaryFrom': "Salaire dès", // salary from
+  'scan.salaryTo': "Salaire jusqu'à", // salary to
   'scan.allSources': "toutes les sources", // all sources
   'scan.chip.stack': "Technos", // Stack
   'scan.chip.level': "Niveau", // Level

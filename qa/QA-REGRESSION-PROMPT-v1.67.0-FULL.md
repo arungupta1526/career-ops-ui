@@ -1,20 +1,21 @@
-# QA REGRESSION PROMPT — career-ops-ui v1.66.0 · FULL / EXHAUSTIVE
+# QA REGRESSION PROMPT — career-ops-ui v1.67.0 · FULL / EXHAUSTIVE
 
-> **Scope:** the *entire* project, *all* functionality, as of `package.json` **1.66.0**.
+> **Scope:** the *entire* project, *all* functionality, as of `package.json` **1.67.0**.
 > **Role:** you are a strict release-gate QA engineer. Prove the whole app works,
 > correctly and clearly, and that nothing on the regression-locked list has drifted.
 > **Output:** save your run report to
-> `qa/v54-regression/<YYYY-MM-DD>-REGRESSION-v1.66.0.md` with a PASS/FAIL per item
+> `qa/v54-regression/<YYYY-MM-DD>-REGRESSION-v1.67.0.md` with a PASS/FAIL per item
 > and evidence (command output, screenshots, HTTP traces). One finding = one fix-ship.
 >
 > **Sibling perennials (run alongside, do not duplicate):**
 > `REGRESSION-FINAL.md` (§0→§15 invariant ledger + §A exhaustive matrix),
 > `UX-AUDIT-PROMPT.md` (Senior-UX heuristic audit vs career-ops.org/docs),
 > `FUNCTIONALITY-CHECK.md` (functional-correctness walkthrough). This FULL prompt is
-> the **single-pass driver** for the v1.66.0 surface; it folds in the v1.59→v1.66
+> the **single-pass driver** for the v1.67.0 surface; it folds in the v1.59→v1.67
 > features the perennial ledger predates (RSS adapter, per-request fetch-timeout,
 > determinate SSE progress bar, French locale, OpenRouter catalogue, multer upload,
-> hh.ru HTML scrape, RU multi-page pagination).
+> hh.ru HTML scrape, RU multi-page pagination, **scan salary range filter**,
+> **30s per-source fetch timeout**).
 
 ---
 
@@ -44,7 +45,7 @@
 
 ```bash
 node -v                       # ≥ 18
-node -p "require('./package.json').version"   # → 1.66.0
+node -p "require('./package.json').version"   # → 1.67.0
 npm ci                        # clean install; prod deps = express, js-yaml, multer
 npm run test:ci               # = npm test + check-no-also-leftovers + changelog-parity + i18n-audit
 echo "unit exit: $?"          # MUST be 0
@@ -54,9 +55,9 @@ npm run test:e2e:browser      # 5 Playwright suites             → ≥ 70 green
 npm run test:coverage         # ≥ 80% line / ≥ 80% branch on non-trivial logic
 ```
 
-**Baselines (floors, may only go up):** **≥1045** `node --test` · **≥70** Playwright ·
-**≥20** smoke E2E · **≥23** comprehensive E2E · 128 unit test files. If any number is
-*below* the README badge (1045), the badge or the suite drifted — STOP and reconcile.
+**Baselines (floors, may only go up):** **≥1060** `node --test` · **≥70** Playwright ·
+**≥20** smoke E2E · **≥23** comprehensive E2E · 129 unit test files. If any number is
+*below* the README badge (1060), the badge or the suite drifted — STOP and reconcile.
 
 **Gate fails ⇒ abort the cycle.** Do not proceed to manual checks on a red suite.
 
@@ -65,12 +66,12 @@ npm run test:coverage         # ≥ 80% line / ≥ 80% branch on non-trivial log
 ## §1 — Boot & version honesty
 
 - `npm start` → server on `127.0.0.1:4317`, no unhandled rejection in the log.
-- `GET /api/health` returns `{ version: "1.66.0", parentVersion: <string|null>, … }`.
+- `GET /api/health` returns `{ version: "1.67.0", parentVersion: <string|null>, … }`.
   `version` and `parentVersion` are independent — `parentVersion` reflects the parent
   `VERSION` file (or null if no parent present). Footer in the SPA reads `version`.
-- All 9 README badges read `tests-1045` and `release-v1.66.0`; the v1.66.0 highlight
-  blockquote (line 15) describes RU multi-page pagination, not hh.ru scraping.
-- `CHANGELOG.{md,es,fr,ja,ko-KR,pt-BR,ru,zh-CN,zh-TW}.md` all carry a `[1.66.0]`
+- All 9 README badges read `tests-1060` and `release-v1.67.0`; the v1.67.0 highlight
+  blockquote (line 15) describes the `#/scan` salary range filter.
+- `CHANGELOG.{md,es,fr,ja,ko-KR,pt-BR,ru,zh-CN,zh-TW}.md` all carry a `[1.67.0]`
   entry (parity gated by `check-changelog-parity.mjs`).
 
 ---
@@ -93,7 +94,7 @@ Unknown hash → router error template renders (styled, localized), never a blan
 
 ---
 
-## §3 — Scanner surface (the v1.66.0 headline area)
+## §3 — Scanner surface (the v1.66.0 / v1.67.0 headline area)
 
 **Sources (12 + registry):** EN ATS — `greenhouse, ashby, lever, workable,
 smartrecruiters, workday`; RU — `hh, habr, trudvsem, getmatch, geekjob`; generic —
@@ -110,6 +111,20 @@ smartrecruiters, workday`; RU — `hh, habr, trudvsem, getmatch, geekjob`; gener
   fetches — no orphan requests (`AbortSignal` honored end-to-end).
 - **Per-request fetch timeout** (`fetch-timeout.mjs`) wraps every source fetch; a slow
   source times out without hanging the whole scan.
+
+**v1.67.0 salary range filter (regression-lock):**
+- `#/scan` results bar has two numeric inputs — **salary from / to** (`scan.salaryFrom`
+  / `scan.salaryTo`, present in all 9 locales) — beside the text + remote filters.
+- `window.Skills.parseSalaryRange(str)` extracts numeric bound(s) from the free-text
+  salary (`от 100 000 до 200 000 ₽`, `120000-150000 USD`, `$120K–$150K`; K/к ×1000;
+  NBSP/comma thousands); `salaryInRange(row, min, max)` keeps a row when its salary
+  range overlaps `[min, max]` (`salaryMax ≥ min` AND `salaryMin ≤ max`). **Rows with no
+  parseable salary are KEPT** so the filter narrows, never guts, the list. Comparison
+  is **currency-agnostic** (no FX). Lock test: `tests/salary-filter.test.mjs`.
+
+**v1.67.0 timeout (regression-lock):** `DEFAULT_SCAN_TIMEOUT_MS` defaults to **30000**
+(was 15000), overridable via `SCAN_FETCH_TIMEOUT_MS` — slow Ashby `includeCompensation`
+boards stopped timing out. Lock test: `tests/fetch-timeout.test.mjs` (`≥ 30000`).
 
 **v1.66.0 pagination invariant (regression-lock):**
 - `hh.mjs` walks `&page=0,1,2…`; `habr.mjs` walks `&page=1,2,3…` (1-indexed);
@@ -205,13 +220,15 @@ Reads are always safe. **Writes happen only on explicit user actions:**
 - Locales: `en, es, fr, ja, ko, pt-BR, ru, zh-CN, zh-TW`. One-file-per-locale under
   `public/js/lib/locales/i18n-dict.<lang>.js` + `i18n-dict.aliases.js`; assembler
   `i18n-dict.js` merges into `window.__I18N_DICT`; `t()` unchanged. **Every key must
-  exist in all 9 files** — gated by `npm run audit:i18n` (in `test:ci`).
+  exist in all 9 files** — gated by `npm run audit:i18n` (in `test:ci`). v1.67.0 added
+  `scan.salaryFrom` / `scan.salaryTo` (×9); the byte-for-byte assembled-dict snapshot
+  (`tests/fixtures/i18n-dict.snapshot.json`) was regenerated for exactly those 2 keys.
 - Per-locale render sweep: switch language, walk every `#/` route, assert no English
   bleed (except server error JSON, which is English-by-policy).
 - **Help bundles** (`GET /api/help/:lang`): **19 H2 / 73 H3** parity across locales
   (locks: `canonical-docs-coverage`, `help-ru-config-section`, `help-ui` tests).
   In-app `#/help` full-text search filters sections.
-- README: all 9 link Français + state 9 languages; CHANGELOG parity at 1.66.0;
+- README: all 9 link Français + state 9 languages; CHANGELOG parity at 1.67.0;
   `LOCALIZATION.md` lists fr and the 19 H2 count.
 
 ---
@@ -264,9 +281,9 @@ registerTrackerRoutes`. `server/index.mjs` is a ~130-LOC orchestrator only.
 | # | Area | Gate | PASS/FAIL | Evidence |
 |---|---|---|---|---|
 | 0 | Pre-flight | test:ci + e2e + e2e:full + e2e:browser + coverage all green | | |
-| 1 | Boot & version | /api/health = 1.66.0; badges; CHANGELOG ×9 | | |
+| 1 | Boot & version | /api/health = 1.67.0; badges (1060); CHANGELOG ×9 | | |
 | 2 | SPA routes | all 19 hash routes render clean, no console error | | |
-| 3 | Scanner | 12 sources; SSE both; **RU pagination lock**; hh.ru scrape lock | | |
+| 3 | Scanner | 12 sources; SSE both; **RU pagination lock**; hh.ru scrape lock; **salary от/до filter**; **30s timeout** | | |
 | 4 | LLM | 4-provider matrix; live-`.env` key; OR catalogue; status | | |
 | 5 | Pipeline/tracker | write-through only on user action; no dup; temp-root isolation | | |
 | 6 | Config/Modes | merge-not-replace; field-forms intact | | |

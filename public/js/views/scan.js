@@ -102,6 +102,21 @@ Router.register('scan', async () => {
     c('option', { value: 'hybrid' }, t('scan.hybrid')),
     c('option', { value: 'reloc' }, t('scan.reloc')),
   ]);
+  // v1.67.0 — salary от/до range. Numbers only; bounds are currency-agnostic
+  // (see window.Skills.parseSalaryRange). Rows with no published salary are
+  // kept so the filter narrows, never guts, the result set.
+  const filterSalaryMin = c('input', {
+    type: 'number', inputmode: 'numeric', min: '0', step: '1000',
+    className: 'input', style: { maxWidth: '120px' },
+    placeholder: t('scan.salaryFrom', 'Salary from'),
+    'aria-label': t('scan.salaryFrom', 'Salary from'),
+  });
+  const filterSalaryMax = c('input', {
+    type: 'number', inputmode: 'numeric', min: '0', step: '1000',
+    className: 'input', style: { maxWidth: '120px' },
+    placeholder: t('scan.salaryTo', 'Salary to'),
+    'aria-label': t('scan.salaryTo', 'Salary to'),
+  });
   // v1.29.0 — source dropdown is now dynamic. We fetch the canonical
   // list from `GET /api/scan/sources` (backed by
   // `server/lib/sources/registry.mjs`) so adding a new adapter = one
@@ -437,12 +452,15 @@ Router.register('scan', async () => {
     const q = (filterText.value || '').toLowerCase().trim();
     const fr = filterRemote.value;
     const fs = filterSource.value;
+    const salMin = parseInt(filterSalaryMin.value, 10);
+    const salMax = parseInt(filterSalaryMax.value, 10);
     const rows = allRows.filter((r) => {
       if (q && !((r.company + ' ' + r.title + ' ' + (r.location || '')).toLowerCase().includes(q))) return false;
       if (fr === 'remote' && !r.isRemote) return false;
       if (fr === 'hybrid' && !/hybrid/i.test(r.workplaceType || '')) return false;
       if (fr === 'reloc' && !r.relocates) return false;
       if (fs && r.source !== fs) return false;
+      if (!window.Skills.salaryInRange(r, salMin, salMax)) return false;
       if (!window.Skills.rowMatches(r, activeTech, activeLevel)) return false;
       if (activeDynamic.size) {
         let any = false;
@@ -509,7 +527,7 @@ Router.register('scan', async () => {
 
   // Resetting the pager when filter inputs change keeps page-1 sticky
   // (matches the tracker / reports pattern).
-  ;[filterText, filterRemote, filterSource, filterScope].forEach((el) => el.addEventListener('input', () => { pager.reset(); renderResults(); }));
+  ;[filterText, filterRemote, filterSalaryMin, filterSalaryMax, filterSource, filterScope].forEach((el) => el.addEventListener('input', () => { pager.reset(); renderResults(); }));
 
   // Build a chip row for one facet category. Active selections survive across re-renders
   // because activeTech / activeLevel are scoped above.
@@ -592,6 +610,8 @@ Router.register('scan', async () => {
         c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap', alignItems: 'center' } }, [
           filterText,
           filterRemote,
+          filterSalaryMin,
+          filterSalaryMax,
           c('details', { className: 'scan-advanced' }, [
             c('summary', null, t('scan.advancedFilters', 'Advanced filters')),
             c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap', marginTop: '8px' } },

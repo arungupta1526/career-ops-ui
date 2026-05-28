@@ -168,9 +168,58 @@ window.Skills = (function () {
     return true;
   }
 
+  // ───────────────────────── salary range ─────────────────────────
+  // Salary arrives as a free-text string that differs per source
+  // (trudvsem "от N до M RUB", hh/habr "100 000 – 200 000 ₽", lever
+  // "120000-150000 USD", ashby "$120K – $150K", most ATS ""). Extract the
+  // numeric bound(s) so #/scan can filter by a от/до range.
+  //
+  // NB: the comparison is currency-agnostic — a number is a number, so a
+  // ₽ salary and a $ salary with the same digits compare equal. There is no
+  // FX conversion (no rates available offline). In practice the user scans
+  // RU sources in ₽ and most ATS rows carry no salary at all, so the raw
+  // numeric compare is useful despite the caveat.
+  function parseSalaryRange(str) {
+    if (!str || typeof str !== 'string') return null;
+    // Normalise the space zoo (NBSP, narrow NBSP, thin space) to ASCII space.
+    const s = str.replace(/[   ]/g, ' ');
+    const nums = [];
+    // A number token: a digit run that may carry space/comma/dot thousand
+    // separators, optionally followed by a K/к (×1000) suffix.
+    const re = /(\d[\d.,  ]*\d|\d)\s*([kKкК])?/g;
+    let m;
+    while ((m = re.exec(s))) {
+      const digits = m[1].replace(/[^\d]/g, '');
+      if (!digits) continue;
+      let n = Number(digits);
+      if (!Number.isFinite(n)) continue;
+      if (m[2]) n *= 1000;
+      nums.push(n);
+    }
+    if (!nums.length) return null;
+    return { min: Math.min(...nums), max: Math.max(...nums) };
+  }
+
+  // Does a row's salary overlap the [min, max] filter window? Unset bounds
+  // open that side. Rows with NO parseable salary are KEPT (the filter is
+  // additive — it must not gut greenhouse/workable rows that never publish
+  // pay). Overlapping-range semantics: keep if salaryMax ≥ min AND
+  // salaryMin ≤ max.
+  function salaryInRange(row, min, max) {
+    const lo = Number.isFinite(min) ? min : null;
+    const hi = Number.isFinite(max) ? max : null;
+    if (lo === null && hi === null) return true;
+    const r = parseSalaryRange(row && row.salary);
+    if (!r) return true;
+    if (lo !== null && r.max < lo) return false;
+    if (hi !== null && r.min > hi) return false;
+    return true;
+  }
+
   return {
     detectTech, detectLevel, computeFacets, rowMatches,
     extractDynamicKeywords, rowHasKeyword,
+    parseSalaryRange, salaryInRange,
     TECH_GROUPS, LEVEL_GROUPS,
   };
 })();

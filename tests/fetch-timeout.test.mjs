@@ -13,6 +13,14 @@ test('DEFAULT_SCAN_TIMEOUT_MS is a positive number', () => {
   assert.ok(Number.isFinite(DEFAULT_SCAN_TIMEOUT_MS) && DEFAULT_SCAN_TIMEOUT_MS > 0);
 });
 
+// v1.67.0 — default raised 15000 → 30000 so slow Ashby boards stop timing
+// out. Locked at ≥ 30000 (env-overridable); the floor may only go up.
+test('DEFAULT_SCAN_TIMEOUT_MS defaults to at least 30s', () => {
+  if (!process.env.SCAN_FETCH_TIMEOUT_MS) {
+    assert.ok(DEFAULT_SCAN_TIMEOUT_MS >= 30000, `expected ≥30000, got ${DEFAULT_SCAN_TIMEOUT_MS}`);
+  }
+});
+
 test('withTimeout: aborts after ms with a TimeoutError', async () => {
   const { signal, clear } = withTimeout(undefined, 20);
   assert.equal(signal.aborted, false);

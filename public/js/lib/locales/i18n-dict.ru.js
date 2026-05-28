@@ -394,6 +394,8 @@ window.__I18N_DICT_RU = {
   'scan.remoteOnly': "только remote",
   'scan.hybrid': "hybrid",
   'scan.reloc': "релокация",
+  'scan.salaryFrom': "Зарплата от",
+  'scan.salaryTo': "Зарплата до",
   'scan.allSources': "все источники",
   'scan.chip.stack': "Стек",
   'scan.chip.level': "Уровень",
