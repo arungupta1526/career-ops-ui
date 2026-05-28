@@ -12,7 +12,7 @@
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![release](https://img.shields.io/badge/release-v1.66.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.66.0)
 
-> **v1.65.0 — hh.ru est désormais scanné depuis son site public.** L'adaptateur hh.ru scrape `hh.ru/search/vacancy` (HTML rendu côté serveur) au lieu de l'API JSON `api.hh.ru`, qui renvoie maintenant un `403 forbidden` à tout client programmatique quels que soient l'IP ou le User-Agent. **hh.ru fonctionne depuis n'importe quelle IP — sans proxy, clé ni configuration.** Remplace l'éphémère approche `HH_PROXY` (v1.64.0) et supprime la dépendance `undici`. Zéro dépendance runtime au-delà de `express` + `js-yaml` + `multer` ; docs + CHANGELOG dans les 9 langues ; suite complète **1041/1041** au vert.
+> **v1.66.0 — les sources RU parcourent désormais toutes les pages de résultats.** hh.ru, Habr Career et Trudvsem ne paginaient que les ~50 premiers résultats par requête ; ils suivent maintenant la pagination jusqu'au bout — `&page=N` pour hh.ru/Habr, `offset`/`meta.total` pour Trudvsem — en dédupliquant entre les pages et en s'arrêtant quand une page n'apporte rien de neuf (ou à un plafond de sécurité de 50 pages). Une requête comme « Backend разработчик » renvoie désormais l'ensemble complet au lieu d'une seule page (p. ex. hh.ru PHP **17 → 55+** sur 3 pages ; Trudvsem renvoie les 72). Chaque page conserve le timeout + `AbortSignal` existants. Suite complète **1045/1045** au vert.
 
 ![career-ops-ui — Centre de commande](./images/dashboard-fr.png)
 
