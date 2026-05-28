@@ -12,12 +12,13 @@
  * Node-18 safe: builds a combined AbortSignal by hand (no `AbortSignal.any`).
  */
 
-// v1.67.0 — raised 15000 → 30000. Ashby's posting-api with
-// `includeCompensation=true` returns large payloads that routinely take
-// >15s under burst (8-way concurrency), so ~30 Ashby boards were timing out
-// every scan. 30s lets slow-but-alive sources finish while still capping a
-// truly-dead upstream. Override with SCAN_FETCH_TIMEOUT_MS.
-export const DEFAULT_SCAN_TIMEOUT_MS = Number(process.env.SCAN_FETCH_TIMEOUT_MS) || 30000;
+// v1.67.1 — dropped 30000 → 10000 (fail-fast). The v1.67.0 bump to 30s only
+// recovered ~half the slow Ashby boards; the rest (Perplexity, Supabase,
+// Resend, DeepL, Ramp, …) hang regardless of the deadline — Ashby appears to
+// stall under 8-way concurrency — so a longer timeout just stalled the whole
+// scan waiting on dead slots. 10s fails fast on the chronic hangers and keeps
+// the scan responsive. Override with SCAN_FETCH_TIMEOUT_MS.
+export const DEFAULT_SCAN_TIMEOUT_MS = Number(process.env.SCAN_FETCH_TIMEOUT_MS) || 10000;
 
 /**
  * Combine an upstream abort signal with a timeout. Returns the combined

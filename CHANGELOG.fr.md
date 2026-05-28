@@ -12,6 +12,14 @@ Traductions : [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [Portugu
 
 
 
+## [1.67.1] — 2026-05-29
+
+**fix(scan) : timeout de fetch par source 30s → 10s (fail-fast).** La hausse à 30s de v1.67.0 n'a récupéré qu'~la moitié des tableaux Ashby lents ; les autres (Perplexity, Supabase, Resend, DeepL, Ramp, …) se bloquent quel que soit le délai, donc un timeout plus long ne faisait que ralentir chaque scan en attendant des créneaux morts. 10s échoue vite sur les bloqueurs chroniques et garde les scans réactifs. Override via `SCAN_FETCH_TIMEOUT_MS`. Suite 1060/1060.
+
+---
+
+
+
 ## [1.67.0] — 2026-05-29
 
 **feat(scan) : filtre de fourchette salariale (de / à) sur `#/scan`, et un timeout de fetch par source allongé.** Le tableau de résultats gagne deux champs numériques — salaire **de** / **à** — à côté des filtres texte et remote. Le salaire en texte libre de chaque ligne (`от 100 000 до 200 000 ₽`, `120000-150000 USD`, `$120K–$150K`, …) est analysé en une fourchette numérique et comparé avec une sémantique de chevauchement ; les lignes sans salaire publié sont conservées, donc le filtre affine la liste au lieu de la vider (comparaison indépendante de la devise — sans conversion de change). Relève aussi **le timeout de fetch par source de 15s → 30s** (override : `SCAN_FETCH_TIMEOUT_MS`) : les payloads `includeCompensation` d'Ashby dépassaient régulièrement 15s sous une concurrence ×8, donc ~30 tableaux Ashby expiraient à chaque scan. Nouveaux `window.Skills.parseSalaryRange`/`salaryInRange` + i18n ×9 ; 13 nouveaux tests ; suite 1060/1060.

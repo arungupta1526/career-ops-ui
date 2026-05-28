@@ -13,11 +13,13 @@ test('DEFAULT_SCAN_TIMEOUT_MS is a positive number', () => {
   assert.ok(Number.isFinite(DEFAULT_SCAN_TIMEOUT_MS) && DEFAULT_SCAN_TIMEOUT_MS > 0);
 });
 
-// v1.67.0 — default raised 15000 → 30000 so slow Ashby boards stop timing
-// out. Locked at ≥ 30000 (env-overridable); the floor may only go up.
-test('DEFAULT_SCAN_TIMEOUT_MS defaults to at least 30s', () => {
+// v1.67.1 — default dropped to 10000 (fail-fast). The v1.67.0 30s bump only
+// recovered ~half the slow Ashby boards; the rest hang regardless, so a longer
+// deadline just stalled every scan. 10s fails fast on chronic hangers.
+// Env-overridable via SCAN_FETCH_TIMEOUT_MS.
+test('DEFAULT_SCAN_TIMEOUT_MS defaults to 10s (fail-fast)', () => {
   if (!process.env.SCAN_FETCH_TIMEOUT_MS) {
-    assert.ok(DEFAULT_SCAN_TIMEOUT_MS >= 30000, `expected ≥30000, got ${DEFAULT_SCAN_TIMEOUT_MS}`);
+    assert.equal(DEFAULT_SCAN_TIMEOUT_MS, 10000);
   }
 });
 

@@ -10,15 +10,15 @@
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.67.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.67.0)
+[![release](https://img.shields.io/badge/release-v1.67.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.67.1)
 
-> **🆕 Dernière version — v1.67.0**
+> **🆕 Dernière version — v1.67.1**
 >
 > **1. Filtre de fourchette salariale sur `#/scan`.** Le tableau de résultats gagne deux champs numériques — **salaire de / à** — à côté des filtres texte et remote. Le salaire en texte libre de chaque ligne (`от 100 000 до 200 000 ₽`, `120000-150000 USD`, `$120K–$150K`, …) est analysé en une fourchette numérique et comparé avec une sémantique de chevauchement — une ligne est conservée si sa fourchette salariale chevauche votre fenêtre `[de, à]`. Les lignes **sans salaire publié restent visibles**, donc le filtre affine au lieu de vider la liste. La comparaison est **indépendante de la devise** (sans conversion de change).
 >
-> **2. Timeout de fetch par source relevé de 15s → 30s** (override via `SCAN_FETCH_TIMEOUT_MS`). Les payloads `includeCompensation` d'Ashby dépassaient régulièrement 15s sous une concurrence ×8, donc ~30 tableaux Ashby expiraient à chaque scan ; 30s laisse les sources lentes mais vivantes terminer.
+> **2. Timeout de fetch par source fixé à 10s (fail-fast).** Le porter à 30s en v1.67.0 n'a récupéré qu'~la moitié des tableaux Ashby lents — les autres (Perplexity, Supabase, Resend, DeepL, Ramp, …) se bloquent quel que soit le délai, donc un timeout plus long ne faisait que ralentir chaque scan en attendant des créneaux morts. 10s échoue vite sur les bloqueurs chroniques et garde le scan réactif ; override via `SCAN_FETCH_TIMEOUT_MS`.
 >
-> _13 nouveaux tests · suite complète **1060/1060** au vert · i18n + docs synchronisés dans les 9 langues._
+> _Suite complète **1060/1060** au vert · i18n + docs synchronisés dans les 9 langues._
 
 ![career-ops-ui — Centre de commande](./images/dashboard-fr.png)
 

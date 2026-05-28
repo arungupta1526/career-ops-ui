@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.67.1] — 2026-05-29
+
+**fix(scan): per-source fetch timeout 30s → 10s (fail-fast).** v1.67.0's 30s raise recovered only ~half the slow Ashby boards; the rest (Perplexity, Supabase, Resend, DeepL, Ramp, …) hang regardless of the deadline, so a longer timeout just stalled every scan waiting on dead slots. 10s fails fast on the chronic hangers and keeps scans responsive. Override with `SCAN_FETCH_TIMEOUT_MS`. Suite 1060/1060.
+
+---
+
+
+
 ## [1.67.0] — 2026-05-29
 
 **feat(scan): salary range filter (from / to) on `#/scan`, plus a longer per-source fetch timeout.** The results table gains two numeric inputs — salary **from** / **to** — beside the text and remote filters. Each row's free-text salary (`от 100 000 до 200 000 ₽`, `120000-150000 USD`, `$120K–$150K`, …) is parsed to a numeric range and matched with overlapping-range semantics; rows with no published salary are kept, so the filter narrows the list instead of gutting it (comparison is currency-agnostic — no FX conversion). Also **raises the per-source scan fetch timeout 15s → 30s** (override: `SCAN_FETCH_TIMEOUT_MS`) — Ashby's `includeCompensation` payloads routinely took >15s under 8-way concurrency, so ~30 Ashby boards were timing out every scan. New `window.Skills.parseSalaryRange`/`salaryInRange` + i18n ×9; 13 new tests; suite 1060/1060.
