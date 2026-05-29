@@ -1,21 +1,21 @@
-# QA REGRESSION PROMPT — career-ops-ui v1.67.1 · FULL / EXHAUSTIVE
+# QA REGRESSION PROMPT — career-ops-ui v1.68.0 · FULL / EXHAUSTIVE
 
-> **Scope:** the *entire* project, *all* functionality, as of `package.json` **1.67.1**.
+> **Scope:** the *entire* project, *all* functionality, as of `package.json` **1.68.0**.
 > **Role:** you are a strict release-gate QA engineer. Prove the whole app works,
 > correctly and clearly, and that nothing on the regression-locked list has drifted.
 > **Output:** save your run report to
-> `qa/v54-regression/<YYYY-MM-DD>-REGRESSION-v1.67.1.md` with a PASS/FAIL per item
+> `qa/v54-regression/<YYYY-MM-DD>-REGRESSION-v1.68.0.md` with a PASS/FAIL per item
 > and evidence (command output, screenshots, HTTP traces). One finding = one fix-ship.
 >
 > **Sibling perennials (run alongside, do not duplicate):**
 > `REGRESSION-FINAL.md` (§0→§15 invariant ledger + §A exhaustive matrix),
 > `UX-AUDIT-PROMPT.md` (Senior-UX heuristic audit vs career-ops.org/docs),
 > `FUNCTIONALITY-CHECK.md` (functional-correctness walkthrough). This FULL prompt is
-> the **single-pass driver** for the v1.67.1 surface; it folds in the v1.59→v1.67
+> the **single-pass driver** for the v1.68.0 surface; it folds in the v1.59→v1.68
 > features the perennial ledger predates (RSS adapter, per-request fetch-timeout,
 > determinate SSE progress bar, French locale, OpenRouter catalogue, multer upload,
 > hh.ru HTML scrape, RU multi-page pagination, **scan salary range filter**,
-> **10s fail-fast per-source fetch timeout**).
+> **10s fail-fast per-source fetch timeout**, **scan filter-panel rework**).
 
 ---
 
@@ -45,7 +45,7 @@
 
 ```bash
 node -v                       # ≥ 18
-node -p "require('./package.json').version"   # → 1.67.1
+node -p "require('./package.json').version"   # → 1.68.0
 npm ci                        # clean install; prod deps = express, js-yaml, multer
 npm run test:ci               # = npm test + check-no-also-leftovers + changelog-parity + i18n-audit
 echo "unit exit: $?"          # MUST be 0
@@ -55,9 +55,9 @@ npm run test:e2e:browser      # 5 Playwright suites             → ≥ 70 green
 npm run test:coverage         # ≥ 80% line / ≥ 80% branch on non-trivial logic
 ```
 
-**Baselines (floors, may only go up):** **≥1060** `node --test` · **≥70** Playwright ·
+**Baselines (floors, may only go up):** **≥1063** `node --test` · **≥70** Playwright ·
 **≥20** smoke E2E · **≥23** comprehensive E2E · 129 unit test files. If any number is
-*below* the README badge (1060), the badge or the suite drifted — STOP and reconcile.
+*below* the README badge (1063), the badge or the suite drifted — STOP and reconcile.
 
 **Gate fails ⇒ abort the cycle.** Do not proceed to manual checks on a red suite.
 
@@ -66,13 +66,13 @@ npm run test:coverage         # ≥ 80% line / ≥ 80% branch on non-trivial log
 ## §1 — Boot & version honesty
 
 - `npm start` → server on `127.0.0.1:4317`, no unhandled rejection in the log.
-- `GET /api/health` returns `{ version: "1.67.1", parentVersion: <string|null>, … }`.
+- `GET /api/health` returns `{ version: "1.68.0", parentVersion: <string|null>, … }`.
   `version` and `parentVersion` are independent — `parentVersion` reflects the parent
   `VERSION` file (or null if no parent present). Footer in the SPA reads `version`.
-- All 9 README badges read `tests-1060` and `release-v1.67.1`; the top-of-README
-  **"🆕 Latest release — v1.67.1"** blockquote (line 15, all 9 locales) details both
-  shipped changes — the `#/scan` salary range filter and the **10s fail-fast** fetch timeout.
-- `CHANGELOG.{md,es,fr,ja,ko-KR,pt-BR,ru,zh-CN,zh-TW}.md` all carry `[1.67.0]` + `[1.67.1]`
+- All 9 README badges read `tests-1063` and `release-v1.68.0`; the top-of-README
+  **"🆕 Latest release — v1.68.0"** blockquote (line 15, all 9 locales) details the
+  reworked `#/scan` filter panel + the now-working salary filter.
+- `CHANGELOG.{md,es,fr,ja,ko-KR,pt-BR,ru,zh-CN,zh-TW}.md` all carry `[1.67.0]` + `[1.67.1]` + `[1.68.0]`
   entries (parity gated by `check-changelog-parity.mjs`).
 
 ---
@@ -113,15 +113,21 @@ smartrecruiters, workday`; RU — `hh, habr, trudvsem, getmatch, geekjob`; gener
 - **Per-request fetch timeout** (`fetch-timeout.mjs`) wraps every source fetch; a slow
   source times out without hanging the whole scan.
 
-**v1.67.0 salary range filter (regression-lock):**
-- `#/scan` results bar has two numeric inputs — **salary from / to** (`scan.salaryFrom`
-  / `scan.salaryTo`, present in all 9 locales) — beside the text + remote filters.
+**v1.68.0 filter panel + salary filter (regression-lock):**
+- `#/scan` results have a labelled `.scan-filters` panel: every filter is a `.field`
+  with its **label ABOVE** the control (Search · Work type · Salary from / to · Source
+  · Scope). Explicit **Apply** (`scan.applyFilters`) + **Reset** (`scan.resetFilters`)
+  buttons drive it (Enter in any text/number field applies); selects apply on change;
+  an on-page hint (`scan.filtersHint`) explains it. NOT the old live-on-input wiring.
+- Work type filter has an **On-site** option (`scan.onsite`) — Remote / Hybrid /
+  On-site / Relocation. All new keys present in 9 locales.
 - `window.Skills.parseSalaryRange(str)` extracts numeric bound(s) from the free-text
   salary (`от 100 000 до 200 000 ₽`, `120000-150000 USD`, `$120K–$150K`; K/к ×1000;
-  NBSP/comma thousands); `salaryInRange(row, min, max)` keeps a row when its salary
-  range overlaps `[min, max]` (`salaryMax ≥ min` AND `salaryMin ≤ max`). **Rows with no
-  parseable salary are KEPT** so the filter narrows, never guts, the list. Comparison
-  is **currency-agnostic** (no FX). Lock test: `tests/salary-filter.test.mjs`.
+  NBSP/comma thousands); `salaryInRange(row, min, max)` keeps a row when its range
+  overlaps `[min, max]`. **STRICT (v1.68.0): once a bound is set, rows with NO listed
+  salary are HIDDEN** (the previous additive keep-all was the reported "filter does
+  nothing" bug). Currency-agnostic (no FX). Lock test: `tests/salary-filter.test.mjs`
+  + `tests/scan-advanced-disclosure.test.mjs` (panel structure).
 
 **v1.67.1 timeout (regression-lock):** `DEFAULT_SCAN_TIMEOUT_MS` defaults to **10000**
 (15000 in v1.63.0 → 30000 in v1.67.0 → **10000 fail-fast** in v1.67.1), overridable via
@@ -231,7 +237,7 @@ Reads are always safe. **Writes happen only on explicit user actions:**
 - **Help bundles** (`GET /api/help/:lang`): **19 H2 / 73 H3** parity across locales
   (locks: `canonical-docs-coverage`, `help-ru-config-section`, `help-ui` tests).
   In-app `#/help` full-text search filters sections.
-- README: all 9 link Français + state 9 languages; CHANGELOG parity at 1.67.1;
+- README: all 9 link Français + state 9 languages; CHANGELOG parity at 1.68.0;
   `LOCALIZATION.md` lists fr and the 19 H2 count.
 
 ---
@@ -284,9 +290,9 @@ registerTrackerRoutes`. `server/index.mjs` is a ~130-LOC orchestrator only.
 | # | Area | Gate | PASS/FAIL | Evidence |
 |---|---|---|---|---|
 | 0 | Pre-flight | test:ci + e2e + e2e:full + e2e:browser + coverage all green | | |
-| 1 | Boot & version | /api/health = 1.67.1; badges (1060); CHANGELOG ×9 | | |
+| 1 | Boot & version | /api/health = 1.68.0; badges (1063); CHANGELOG ×9 | | |
 | 2 | SPA routes | all 19 hash routes render clean, no console error | | |
-| 3 | Scanner | 12 sources; SSE both; **RU pagination lock**; hh.ru scrape lock; **salary от/до filter**; **10s fail-fast timeout** | | |
+| 3 | Scanner | 12 sources; SSE both; **RU pagination lock**; hh.ru scrape lock; **salary от/до filter (strict)**; **labelled panel + Apply**; **On-site**; **10s timeout** | | |
 | 4 | LLM | 4-provider matrix; live-`.env` key; OR catalogue; status | | |
 | 5 | Pipeline/tracker | write-through only on user action; no dup; temp-root isolation | | |
 | 6 | Config/Modes | merge-not-replace; field-forms intact | | |

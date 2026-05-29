@@ -95,27 +95,25 @@ Router.register('scan', async () => {
   const resultsEl = c('div', { id: 'scan-results' });
 
   const dryRun = c('input', { type: 'checkbox', id: 'dry-run' });
-  const filterText = c('input', { className: 'input', placeholder: t('scan.filterText'), style: { maxWidth: '320px' } });
-  const filterRemote = c('select', { className: 'select', style: { maxWidth: '160px' } }, [
+  const filterText = c('input', { className: 'input', placeholder: t('scan.filterText') });
+  const filterRemote = c('select', { className: 'select' }, [
     c('option', { value: '' }, t('scan.allTypes')),
     c('option', { value: 'remote' }, t('scan.remoteOnly')),
     c('option', { value: 'hybrid' }, t('scan.hybrid')),
+    c('option', { value: 'onsite' }, t('scan.onsite', 'on-site')),
     c('option', { value: 'reloc' }, t('scan.reloc')),
   ]);
   // v1.67.0 — salary от/до range. Numbers only; bounds are currency-agnostic
-  // (see window.Skills.parseSalaryRange). Rows with no published salary are
-  // kept so the filter narrows, never guts, the result set.
+  // (see window.Skills.parseSalaryRange). v1.68.0 — when a bound is set, jobs
+  // with no listed salary are dropped (window.Skills.salaryInRange). Labels
+  // render ABOVE each input (the .field wrapper), so no in-field placeholder.
   const filterSalaryMin = c('input', {
     type: 'number', inputmode: 'numeric', min: '0', step: '1000',
-    className: 'input', style: { maxWidth: '120px' },
-    placeholder: t('scan.salaryFrom', 'Salary from'),
-    'aria-label': t('scan.salaryFrom', 'Salary from'),
+    className: 'input', 'aria-label': t('scan.salaryFrom', 'Salary from'),
   });
   const filterSalaryMax = c('input', {
     type: 'number', inputmode: 'numeric', min: '0', step: '1000',
-    className: 'input', style: { maxWidth: '120px' },
-    placeholder: t('scan.salaryTo', 'Salary to'),
-    'aria-label': t('scan.salaryTo', 'Salary to'),
+    className: 'input', 'aria-label': t('scan.salaryTo', 'Salary to'),
   });
   // v1.29.0 — source dropdown is now dynamic. We fetch the canonical
   // list from `GET /api/scan/sources` (backed by
@@ -138,7 +136,7 @@ Router.register('scan', async () => {
     { value: 'hh.ru',           label: 'hh.ru' },
     { value: 'trudvsem',        label: 'Trudvsem' },
   ];
-  const filterSource = c('select', { className: 'select', style: { maxWidth: '160px' } }, [
+  const filterSource = c('select', { className: 'select' }, [
     c('option', { value: '' }, t('scan.allSources')),
   ]);
   function paintSourceOptions(list) {
@@ -159,7 +157,7 @@ Router.register('scan', async () => {
       if (r && Array.isArray(r.sources) && r.sources.length) paintSourceOptions(r.sources);
     } catch {}
   })();
-  const filterScope = c('select', { className: 'select', style: { maxWidth: '160px' } }, [
+  const filterScope = c('select', { className: 'select' }, [
     c('option', { value: 'all' }, t('scan.scopeAll')),
     c('option', { value: 'fresh' }, t('scan.scopeFresh')),
   ]);
@@ -458,6 +456,7 @@ Router.register('scan', async () => {
       if (q && !((r.company + ' ' + r.title + ' ' + (r.location || '')).toLowerCase().includes(q))) return false;
       if (fr === 'remote' && !r.isRemote) return false;
       if (fr === 'hybrid' && !/hybrid/i.test(r.workplaceType || '')) return false;
+      if (fr === 'onsite' && (r.isRemote || /hybrid/i.test(r.workplaceType || ''))) return false;
       if (fr === 'reloc' && !r.relocates) return false;
       if (fs && r.source !== fs) return false;
       if (!window.Skills.salaryInRange(r, salMin, salMax)) return false;
@@ -525,9 +524,28 @@ Router.register('scan', async () => {
     resultsEl.appendChild(pager.controls(sorted.length, rows.length));
   }
 
-  // Resetting the pager when filter inputs change keeps page-1 sticky
-  // (matches the tracker / reports pattern).
-  ;[filterText, filterRemote, filterSalaryMin, filterSalaryMax, filterSource, filterScope].forEach((el) => el.addEventListener('input', () => { pager.reset(); renderResults(); }));
+  // v1.68.0 — filters are now Apply-driven (was live-on-input). The user asked
+  // for an explicit "Apply" so the salary range visibly re-filters the results.
+  function applyFilters() { pager.reset(); renderResults(); }
+  function resetFilters() {
+    filterText.value = '';
+    filterRemote.value = '';
+    filterSalaryMin.value = '';
+    filterSalaryMax.value = '';
+    filterSource.value = '';
+    filterScope.value = 'all';
+    applyFilters();
+  }
+  // Enter in any text/number field applies (keyboard parity with the button).
+  ;[filterText, filterSalaryMin, filterSalaryMax].forEach((el) =>
+    el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); applyFilters(); } }));
+  // Selects feel broken if they need a second click, so they apply on change.
+  ;[filterRemote, filterSource, filterScope].forEach((el) =>
+    el.addEventListener('change', applyFilters));
+  const applyBtn = c('button', { className: 'btn btn-primary', type: 'button', onClick: applyFilters }, t('scan.applyFilters', 'Apply'));
+  const resetBtn = c('button', { className: 'btn btn-ghost', type: 'button', onClick: resetFilters }, t('scan.resetFilters', 'Reset'));
+  // Labelled field: <label> sits ABOVE the control (.field is a flex column).
+  const field = (labelText, el) => c('div', { className: 'field scan-field' }, [c('label', null, labelText), el]);
 
   // Build a chip row for one facet category. Active selections survive across re-renders
   // because activeTech / activeLevel are scoped above.
@@ -601,24 +619,24 @@ Router.register('scan', async () => {
     c('div', null, [errBanner, scanProgressWrap, statusRegion, consoleEl]),
 
     c('section', { className: 'section' }, [
-      c('div', { className: 'flex-between mb-3', style: { flexWrap: 'wrap', gap: '12px' } }, [
-        c('h2', { className: 'section-title', style: { margin: 0 } }, t('scan.results')),
-        // v1.55.6 — UX-4: everyday filters (free-text + remote /
-        // hybrid / onsite) stay visible; the secondary scope + source
-        // selects move behind an "Advanced filters" disclosure so the
-        // results view isn't a wall of equal-weight controls.
-        c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap', alignItems: 'center' } }, [
-          filterText,
-          filterRemote,
-          filterSalaryMin,
-          filterSalaryMax,
-          c('details', { className: 'scan-advanced' }, [
-            c('summary', null, t('scan.advancedFilters', 'Advanced filters')),
-            c('div', { className: 'flex gap-3', style: { flexWrap: 'wrap', marginTop: '8px' } },
-              [filterScope, filterSource]),
-          ]),
+      c('h2', { className: 'section-title', style: { marginTop: 0 } }, t('scan.results')),
+      // v1.68.0 — every filter is a labelled .field (label ABOVE the control),
+      // laid out in one panel so it's obvious what each box does. An explicit
+      // Apply button re-runs the filter (esp. the salary range); Reset clears.
+      c('div', { className: 'scan-filters', role: 'group', 'aria-label': t('scan.filtersGroup', 'Result filters') }, [
+        field(t('scan.lblSearch', 'Search'), filterText),
+        field(t('scan.lblType', 'Work type'), filterRemote),
+        field(t('scan.salaryFrom', 'Salary from'), filterSalaryMin),
+        field(t('scan.salaryTo', 'Salary to'), filterSalaryMax),
+        field(t('scan.lblSource', 'Source'), filterSource),
+        field(t('scan.lblScope', 'Scope'), filterScope),
+        c('div', { className: 'scan-filters__actions field' }, [
+          c('label', { 'aria-hidden': 'true', style: { visibility: 'hidden' } }, '·'),
+          c('div', { className: 'flex', style: { gap: '8px' } }, [applyBtn, resetBtn]),
         ]),
       ]),
+      c('p', { className: 'field-hint scan-filters__hint' }, t('scan.filtersHint',
+        'Fill any boxes and press Apply. Salary from/to keeps only jobs whose pay overlaps your range — jobs with no listed salary are hidden once you set a salary. Amounts are compared as plain numbers (currency is ignored).')),
       resultsEl,
     ]),
 
@@ -682,7 +700,7 @@ Router.register('scan', async () => {
             },
             onClick: () => {
               filterText.value = name;
-              filterText.dispatchEvent(new Event('input', { bubbles: true }));
+              applyFilters();
               filterText.scrollIntoView({ behavior: 'smooth', block: 'center' });
             },
           }, (hasApi ? '✓ ' : '○ ') + name);

@@ -201,16 +201,18 @@ window.Skills = (function () {
   }
 
   // Does a row's salary overlap the [min, max] filter window? Unset bounds
-  // open that side. Rows with NO parseable salary are KEPT (the filter is
-  // additive — it must not gut greenhouse/workable rows that never publish
-  // pay). Overlapping-range semantics: keep if salaryMax ≥ min AND
+  // (both NaN/null) open the filter — every row passes. Once EITHER bound is
+  // set, a row with NO parseable salary is HIDDEN (v1.68.0): the user
+  // explicitly asked that setting "salary from" drop jobs that don't list a
+  // salary, so the filter actually narrows the list. Overlapping-range
+  // semantics for rows that DO list pay: keep if salaryMax ≥ min AND
   // salaryMin ≤ max.
   function salaryInRange(row, min, max) {
     const lo = Number.isFinite(min) ? min : null;
     const hi = Number.isFinite(max) ? max : null;
     if (lo === null && hi === null) return true;
     const r = parseSalaryRange(row && row.salary);
-    if (!r) return true;
+    if (!r) return false;
     if (lo !== null && r.max < lo) return false;
     if (hi !== null && r.min > hi) return false;
     return true;

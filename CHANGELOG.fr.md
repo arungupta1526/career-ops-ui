@@ -12,6 +12,14 @@ Traductions : [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [Portugu
 
 
 
+## [1.68.0] — 2026-05-29
+
+**feat(scan) : panneau de filtres de résultats repensé — champs étiquetés, bouton Appliquer, option Sur site et un filtre salaire qui fonctionne.** Chaque filtre de `#/scan` est désormais un champ étiqueté (libellé **au-dessus** du contrôle, pas un placeholder) : Recherche · Type · Salaire de · Salaire à · Source · Portée. Un bouton **Appliquer** explicite (plus **Réinitialiser**, et Entrée dans n'importe quel champ) relance le filtre ; une aide sur la page explique son fonctionnement. **La fourchette salariale filtre vraiment maintenant** — dès qu'une valeur *de*/*à* est définie, les offres dont la rémunération est hors fourchette **et les offres sans salaire indiqué** sont retirées (chevauchement de fourchettes ; devise ignorée). Le filtre Type gagne une option **Sur site** à côté de Distanciel / Hybride / Relocalisation. Nouvelles clés i18n ×9 ; `salaryInRange` rendu strict ; suite 1063/1063.
+
+---
+
+
+
 ## [1.67.1] — 2026-05-29
 
 **fix(scan) : timeout de fetch par source 30s → 10s (fail-fast).** La hausse à 30s de v1.67.0 n'a récupéré qu'~la moitié des tableaux Ashby lents ; les autres (Perplexity, Supabase, Resend, DeepL, Ramp, …) se bloquent quel que soit le délai, donc un timeout plus long ne faisait que ralentir chaque scan en attendant des créneaux morts. 10s échoue vite sur les bloqueurs chroniques et garde les scans réactifs. Override via `SCAN_FETCH_TIMEOUT_MS`. Suite 1060/1060.

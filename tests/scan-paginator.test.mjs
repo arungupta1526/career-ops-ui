@@ -41,15 +41,14 @@ test('scan.js wires UI.paginate with PAGE_SIZE=200', () => {
     'paginator must re-render results on page change');
 });
 
-test('scan.js resets paginator to page 1 when filters change', () => {
-  // Matches the tracker / reports / activity pattern. Without this,
-  // typing in the search filter on a deep page leaves the user
-  // looking at an empty page (paginator clamp does the cleanup but
-  // the UX is jarring).
+test('scan.js resets paginator to page 1 when filters apply', () => {
+  // v1.68.0 — filters are Apply-driven. applyFilters() must reset the pager
+  // (page 1) before re-rendering, so applying on a deep page doesn't leave
+  // the user staring at an empty slice. resetFilters() routes through it too.
   const src = readSrc('public', 'js', 'views', 'scan.js');
   assert.match(src,
-    /forEach\s*\(\s*\(\s*el\s*\)\s*=>\s*el\.addEventListener\s*\(\s*['"]input['"]\s*,\s*\(\s*\)\s*=>\s*\{\s*pager\.reset\(\)\s*;\s*renderResults\(\)\s*;?\s*\}\s*\)\s*\)/,
-    'scan.js must reset pager + renderResults on filter input');
+    /function\s+applyFilters\s*\(\s*\)\s*\{\s*pager\.reset\(\)\s*;\s*renderResults\(\)\s*;?\s*\}/,
+    'applyFilters() must reset pager + renderResults');
 });
 
 test('scan.js uses pager.slice(sortedAll) — pages over the FULL sorted set', () => {

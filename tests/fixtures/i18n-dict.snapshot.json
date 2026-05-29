@@ -4234,6 +4234,17 @@
     "zh-TW": "搬遷",
     "fr": "rélocalisation"
   },
+  "scan.onsite": {
+    "en": "on-site",
+    "es": "presencial",
+    "pt-BR": "presencial",
+    "ko": "사무실 근무",
+    "ja": "オフィス勤務",
+    "ru": "в офисе",
+    "zh-CN": "现场办公",
+    "zh-TW": "現場辦公",
+    "fr": "sur site"
+  },
   "scan.salaryFrom": {
     "en": "Salary from",
     "es": "Salario desde",
@@ -4255,6 +4266,94 @@
     "zh-CN": "薪资上限",
     "zh-TW": "薪資上限",
     "fr": "Salaire jusqu'à"
+  },
+  "scan.lblSearch": {
+    "en": "Search",
+    "es": "Buscar",
+    "pt-BR": "Buscar",
+    "ko": "검색",
+    "ja": "検索",
+    "ru": "Поиск",
+    "zh-CN": "搜索",
+    "zh-TW": "搜尋",
+    "fr": "Recherche"
+  },
+  "scan.lblType": {
+    "en": "Work type",
+    "es": "Tipo",
+    "pt-BR": "Tipo",
+    "ko": "근무 형태",
+    "ja": "勤務形態",
+    "ru": "Формат",
+    "zh-CN": "工作类型",
+    "zh-TW": "工作類型",
+    "fr": "Type"
+  },
+  "scan.lblSource": {
+    "en": "Source",
+    "es": "Fuente",
+    "pt-BR": "Fonte",
+    "ko": "소스",
+    "ja": "ソース",
+    "ru": "Источник",
+    "zh-CN": "来源",
+    "zh-TW": "來源",
+    "fr": "Source"
+  },
+  "scan.lblScope": {
+    "en": "Scope",
+    "es": "Alcance",
+    "pt-BR": "Escopo",
+    "ko": "범위",
+    "ja": "範囲",
+    "ru": "Объём",
+    "zh-CN": "范围",
+    "zh-TW": "範圍",
+    "fr": "Portée"
+  },
+  "scan.applyFilters": {
+    "en": "Apply",
+    "es": "Aplicar",
+    "pt-BR": "Aplicar",
+    "ko": "적용",
+    "ja": "適用",
+    "ru": "Применить",
+    "zh-CN": "应用",
+    "zh-TW": "套用",
+    "fr": "Appliquer"
+  },
+  "scan.resetFilters": {
+    "en": "Reset",
+    "es": "Restablecer",
+    "pt-BR": "Limpar",
+    "ko": "초기화",
+    "ja": "リセット",
+    "ru": "Сбросить",
+    "zh-CN": "重置",
+    "zh-TW": "重設",
+    "fr": "Réinitialiser"
+  },
+  "scan.filtersGroup": {
+    "en": "Result filters",
+    "es": "Filtros de resultados",
+    "pt-BR": "Filtros de resultados",
+    "ko": "결과 필터",
+    "ja": "結果フィルタ",
+    "ru": "Фильтры результатов",
+    "zh-CN": "结果筛选",
+    "zh-TW": "結果篩選",
+    "fr": "Filtres de résultats"
+  },
+  "scan.filtersHint": {
+    "en": "Fill any boxes and press Apply. Salary from/to keeps only jobs whose pay overlaps your range — jobs with no listed salary are hidden once you set a salary. Amounts are compared as plain numbers (currency is ignored).",
+    "es": "Rellena las casillas y pulsa Aplicar. Salario desde/hasta deja solo empleos cuya remuneración se solapa con tu rango — los empleos sin salario indicado se ocultan al fijar un salario. Los importes se comparan como números simples (se ignora la divisa).",
+    "pt-BR": "Preencha os campos e clique em Aplicar. Salário de/até mantém só vagas cuja remuneração se sobrepõe à sua faixa — vagas sem salário informado são ocultadas ao definir um salário. Os valores são comparados como números simples (a moeda é ignorada).",
+    "ko": "원하는 칸을 채우고 적용을 누르세요. 급여 최소/최대는 급여가 범위와 겹치는 공고만 남깁니다 — 급여가 없는 공고는 급여를 설정하면 숨겨집니다. 금액은 단순 숫자로 비교됩니다(통화 무시).",
+    "ja": "任意の項目を入力して「適用」を押してください。給与 下限/上限 は、給与があなたのレンジと重なる求人だけを残します — 給与未掲載の求人は、給与を設定すると非表示になります。金額は単純な数値として比較されます（通貨は無視）。",
+    "ru": "Заполните нужные поля и нажмите «Применить». Зарплата от/до оставляет только вакансии, чья оплата пересекается с вашим диапазоном — вакансии без указанной зарплаты скрываются, как только задана зарплата. Суммы сравниваются как обычные числа (валюта не учитывается).",
+    "zh-CN": "填写任意输入框后点击「应用」。薪资下限/上限只保留薪酬与你的区间重叠的职位——一旦设置薪资，未标注薪资的职位将被隐藏。金额按普通数字比较（忽略币种）。",
+    "zh-TW": "填寫任意欄位後點擊「套用」。薪資下限/上限只保留薪酬與你的區間重疊的職缺——一旦設定薪資，未標註薪資的職缺將被隱藏。金額以普通數字比較（忽略幣別）。",
+    "fr": "Remplissez des champs puis cliquez sur Appliquer. Salaire de/à ne garde que les offres dont la rémunération chevauche votre fourchette — les offres sans salaire indiqué sont masquées dès qu'un salaire est défini. Les montants sont comparés comme de simples nombres (la devise est ignorée)."
   },
   "scan.allSources": {
     "en": "all sources",

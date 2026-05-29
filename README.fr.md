@@ -5,20 +5,20 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | **Français**
 
-[![tests](https://img.shields.io/badge/tests-1060%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-1063%20passed-brightgreen)](#tests)
 [![e2e](https://img.shields.io/badge/e2e-23%2F23%20%2B%2020%2F20-brightgreen)](#tests)
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.67.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.67.1)
+[![release](https://img.shields.io/badge/release-v1.68.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.68.0)
 
-> **🆕 Dernière version — v1.67.1**
+> **🆕 Dernière version — v1.68.0**
 >
-> **1. Filtre de fourchette salariale sur `#/scan`.** Le tableau de résultats gagne deux champs numériques — **salaire de / à** — à côté des filtres texte et remote. Le salaire en texte libre de chaque ligne (`от 100 000 до 200 000 ₽`, `120000-150000 USD`, `$120K–$150K`, …) est analysé en une fourchette numérique et comparé avec une sémantique de chevauchement — une ligne est conservée si sa fourchette salariale chevauche votre fenêtre `[de, à]`. Les lignes **sans salaire publié restent visibles**, donc le filtre affine au lieu de vider la liste. La comparaison est **indépendante de la devise** (sans conversion de change).
+> **1. Panneau de filtres de `#/scan` repensé.** Chaque filtre a maintenant un libellé **au-dessus** (Recherche · Type · Salaire de / à · Source · Portée), des boutons **Appliquer** + **Réinitialiser** explicites et une aide sur la page. Type ajoute une option **Sur site** (Distanciel / Hybride / Sur site / Relocalisation).
 >
-> **2. Timeout de fetch par source fixé à 10s (fail-fast).** Le porter à 30s en v1.67.0 n'a récupéré qu'~la moitié des tableaux Ashby lents — les autres (Perplexity, Supabase, Resend, DeepL, Ramp, …) se bloquent quel que soit le délai, donc un timeout plus long ne faisait que ralentir chaque scan en attendant des créneaux morts. 10s échoue vite sur les bloqueurs chroniques et garde le scan réactif ; override via `SCAN_FETCH_TIMEOUT_MS`.
+> **2. Le filtre salaire fonctionne enfin.** Définissez un *de* / *à* et la liste ne garde que les offres dont la rémunération chevauche votre fourchette — celles hors fourchette **et les offres sans salaire indiqué** sont retirées (devise ignorée).
 >
-> _Suite complète **1060/1060** au vert · i18n + docs synchronisés dans les 9 langues._
+> _Suite complète **1063/1063** au vert · i18n + docs synchronisés dans les 9 langues._
 
 ![career-ops-ui — Centre de commande](./images/dashboard-fr.png)
 

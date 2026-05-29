@@ -71,9 +71,15 @@ test('salaryInRange: no bounds set → always true', () => {
   assert.equal(Skills.salaryInRange(row(''), NaN, NaN), true);
 });
 
-test('salaryInRange: rows without parseable salary are kept (filter is additive)', () => {
-  assert.equal(Skills.salaryInRange(row(''), 150000, null), true);
-  assert.equal(Skills.salaryInRange(row('Competitive'), null, 300000), true);
+test('salaryInRange: no bounds set keeps rows that have no salary too', () => {
+  assert.equal(Skills.salaryInRange(row(''), null, null), true);
+  assert.equal(Skills.salaryInRange(row('Competitive'), NaN, NaN), true);
+});
+
+test('salaryInRange: rows without a listed salary are HIDDEN once a bound is set (v1.68.0)', () => {
+  assert.equal(Skills.salaryInRange(row(''), 150000, null), false);
+  assert.equal(Skills.salaryInRange(row('Competitive'), null, 300000), false);
+  assert.equal(Skills.salaryInRange(row(''), 100000, 300000), false);
 });
 
 test('salaryInRange: min bound matches against the upper end', () => {

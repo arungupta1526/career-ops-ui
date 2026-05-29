@@ -1,19 +1,18 @@
 /**
- * v1.55.6 — UX-4 (cognitive load): #/scan stacked every filter
- * (free-text, remote/hybrid/onsite, scope, source, stack/level/
- * dynamic facet chips) at equal weight. Keep the everyday filters
- * — free-text + Remote/Hybrid/Onsite — and the 🌐 Scan button
- * visible by default; tuck the secondary ones (Scope, Source, and
- * the post-scan facet chips) behind an "Advanced filters"
- * <details> disclosure so the results view isn't a wall of controls.
+ * v1.68.0 — #/scan filter panel rework. The v1.55.6 "Advanced filters"
+ * <details> disclosure that hid Scope/Source was reversed by user request:
+ * every result filter is now a labelled `.field` (label ABOVE the control),
+ * laid out in one `.scan-filters` panel with an explicit **Apply** + **Reset**
+ * and an on-page usage hint. The salary range is strict — once a bound is set,
+ * jobs with no listed salary are hidden (window.Skills.salaryInRange).
  *
- * scan.js is browser-only → asserted statically (router.test.mjs /
- * dashboard-hero.test.mjs style); the i18n contract is re-derived
- * from i18n-dict.js so it stays locked.
+ * The post-scan facet-chip cluster (stack/level/keyword) stays a collapsible
+ * <details> (scan-advanced) — that's a separate refinement, not a filter box.
+ *
+ * scan.js is browser-only → asserted statically.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { legacyDictText } from './helpers/i18n-vm.mjs';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
@@ -21,51 +20,55 @@ import { dirname, resolve } from 'node:path';
 const __d = dirname(fileURLToPath(import.meta.url));
 const SCAN = readFileSync(resolve(__d, '..', 'public', 'js', 'views', 'scan.js'), 'utf8');
 const CSS = readFileSync(resolve(__d, '..', 'public', 'css', 'app.css'), 'utf8');
-const DICT = legacyDictText();
-const LOCALES = ['en', 'es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW', 'fr'];
 
-test('an Advanced-filters <details> disclosure exists', () => {
-  assert.match(SCAN, /c\('details'/, 'scan.js must build a <details> element');
-  assert.match(SCAN, /c\('summary'/, '<details> needs a <summary>');
-  assert.match(SCAN, /scan-advanced/, 'the disclosure carries the .scan-advanced hook');
-  assert.match(SCAN, /t\('scan\.advancedFilters'/,
-    'summary label via scan.advancedFilters');
+test('a labelled .scan-filters panel exists (label-above-field)', () => {
+  assert.match(SCAN, /className: 'scan-filters'/, 'scan.js must build a .scan-filters panel');
+  // The field() helper wraps each control in a .field with a <label> above it.
+  assert.match(SCAN, /const field = \([^)]*\) => c\('div', \{ className: 'field scan-field' \}, \[c\('label'/,
+    'field() must render a <label> above the control inside a .field');
 });
 
-test('everyday filters stay OUT of the disclosure (visible by default)', () => {
-  // filterText (free-text) and filterRemote (remote/hybrid/onsite)
-  // must still be placed directly in the results filter row, not
-  // inside the <details>. We assert they appear in an array next to
-  // each other (the always-visible group).
-  assert.match(SCAN, /\[filterText, filterRemote\]|filterText,\s*filterRemote/,
-    'free-text + remote stay in the always-visible filter group');
-});
-
-test('secondary filters (scope, source) live inside the disclosure', () => {
-  // The details body must reference filterScope and filterSource.
-  const det = SCAN.match(/c\('details',[\s\S]*?filterScope[\s\S]*?filterSource[\s\S]*?\)/) ||
-              SCAN.match(/scan-advanced[\s\S]*?filterScope[\s\S]*?filterSource/);
-  assert.ok(det, 'filterScope + filterSource must be inside the Advanced disclosure');
-});
-
-test('post-scan facet chips are wrapped in a disclosure too', () => {
-  // chipsContainer (stack/level/dynamic) is a <details>, not a bare div.
-  assert.match(SCAN,
-    /chipsContainer = c\('details'/,
-    'the facet chip cluster must be a collapsible <details>');
-});
-
-test('.scan-advanced has a styled summary', () => {
-  assert.match(CSS, /\.scan-advanced\b/, '.scan-advanced CSS must exist');
-  assert.match(CSS, /\.scan-advanced\s*(>\s*)?summary|\.scan-advanced summary/,
-    '.scan-advanced summary must be styled');
-});
-
-test('scan.advancedFilters present in all 8 locales', () => {
-  const line = DICT.split('\n').find((l) => l.includes("'scan.advancedFilters'"));
-  assert.ok(line, 'i18n key scan.advancedFilters missing');
-  for (const loc of LOCALES) {
-    const tok = /-/.test(loc) ? `'${loc}':` : `${loc}:`;
-    assert.ok(line.includes(tok), `scan.advancedFilters missing locale ${loc}`);
+test('every result filter is rendered through the labelled field() helper', () => {
+  for (const ctrl of ['filterText', 'filterRemote', 'filterSalaryMin', 'filterSalaryMax', 'filterSource', 'filterScope']) {
+    assert.match(SCAN, new RegExp(`field\\(t\\('scan\\.[A-Za-z]+'[^)]*\\),\\s*${ctrl}\\)`),
+      `${ctrl} must be wrapped in a labelled field()`);
   }
+});
+
+test('salary inputs carry no in-field placeholder (label is above)', () => {
+  // The salaryFrom/To strings must not be used as input placeholders anymore.
+  assert.doesNotMatch(SCAN, /placeholder: t\('scan\.salary(From|To)'/,
+    'salary labels must be above the field, not a placeholder');
+});
+
+test('Apply + Reset buttons drive the filters (not live-on-input)', () => {
+  assert.match(SCAN, /function applyFilters\(\)/, 'applyFilters() must exist');
+  assert.match(SCAN, /function resetFilters\(\)/, 'resetFilters() must exist');
+  assert.match(SCAN, /t\('scan\.applyFilters'/, 'Apply button label via scan.applyFilters');
+  assert.match(SCAN, /t\('scan\.resetFilters'/, 'Reset button label via scan.resetFilters');
+  // The old live render-on-every-input wiring must be gone.
+  assert.doesNotMatch(SCAN, /\[filterText, filterRemote, filterSalaryMin, filterSalaryMax, filterSource, filterScope\]\.forEach\(\(el\) => el\.addEventListener\('input'/,
+    'filters must no longer re-render live on every input');
+});
+
+test('an on-page usage hint explains the filters', () => {
+  assert.match(SCAN, /scan-filters__hint/, '.scan-filters__hint paragraph must exist');
+  assert.match(SCAN, /t\('scan\.filtersHint'/, 'hint text via scan.filtersHint');
+});
+
+test('salary range is applied strictly via window.Skills.salaryInRange', () => {
+  assert.match(SCAN, /window\.Skills\.salaryInRange\(r, /,
+    'the result predicate must gate rows through salaryInRange');
+});
+
+test('post-scan facet chips remain a collapsible <details> (scan-advanced)', () => {
+  assert.match(SCAN, /chipsContainer = c\('details'/, 'the facet chip cluster stays a <details>');
+  assert.match(SCAN, /scan-advanced/, 'facet disclosure keeps the .scan-advanced hook');
+  assert.match(SCAN, /t\('scan\.advancedFilters'/, 'facet summary via scan.advancedFilters');
+});
+
+test('.scan-filters + .scan-advanced CSS exist', () => {
+  assert.match(CSS, /\.scan-filters\b/, '.scan-filters layout CSS must exist');
+  assert.match(CSS, /\.scan-filters__hint\b/, '.scan-filters__hint CSS must exist');
+  assert.match(CSS, /\.scan-advanced\b/, '.scan-advanced CSS must still exist');
 });

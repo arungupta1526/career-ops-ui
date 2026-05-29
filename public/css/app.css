@@ -996,6 +996,22 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
   color: var(--hof);
 }
 .field-hint { color: var(--foggy); font-size: 13px; }
+
+/* v1.68.0 — #/scan result-filter panel: every filter is a labelled .field
+   (label above its control), laid out in one wrapping row with an Apply/Reset
+   action group, plus a usage hint below. */
+.scan-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-end;
+  margin-bottom: var(--space-3);
+}
+.scan-filters .scan-field { margin-bottom: 0; flex: 1 1 160px; min-width: 140px; max-width: 240px; }
+.scan-filters .scan-field .input,
+.scan-filters .scan-field .select { width: 100%; }
+.scan-filters__actions { flex: 0 0 auto; }
+.scan-filters__hint { margin: 0 0 var(--space-4); max-width: 72ch; }
 .input, .textarea, .select {
   width: 100%;
   padding: 12px 14px;

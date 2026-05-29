@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.68.0] — 2026-05-29
+
+**feat(scan): reworked the result-filter panel — labelled fields, an Apply button, an On-site option, and a working salary filter.** Every filter on `#/scan` is now a labelled field (label **above** the control, not a placeholder): Search · Work type · Salary from · Salary to · Source · Scope. An explicit **Apply** button (plus **Reset**, and Enter in any field) re-runs the filter; an on-page hint explains how it works. **The salary range now actually filters** — once you set a *from*/*to* value, jobs whose listed pay falls outside the range **and jobs with no listed salary at all** are dropped (overlapping-range match; currency ignored). The Work type filter gains an **On-site** option alongside Remote / Hybrid / Relocation. New i18n keys ×9; `salaryInRange` made strict; suite 1063/1063.
+
+---
+
+
+
 ## [1.67.1] — 2026-05-29
 
 **fix(scan): per-source fetch timeout 30s → 10s (fail-fast).** v1.67.0's 30s raise recovered only ~half the slow Ashby boards; the rest (Perplexity, Supabase, Resend, DeepL, Ramp, …) hang regardless of the deadline, so a longer timeout just stalled every scan waiting on dead slots. 10s fails fast on the chronic hangers and keeps scans responsive. Override with `SCAN_FETCH_TIMEOUT_MS`. Suite 1060/1060.
