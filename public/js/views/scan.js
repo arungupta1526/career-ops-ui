@@ -456,7 +456,7 @@ Router.register('scan', async () => {
       if (q && !((r.company + ' ' + r.title + ' ' + (r.location || '')).toLowerCase().includes(q))) return false;
       if (fr === 'remote' && !r.isRemote) return false;
       if (fr === 'hybrid' && !/hybrid/i.test(r.workplaceType || '')) return false;
-      if (fr === 'onsite' && (r.isRemote || /hybrid/i.test(r.workplaceType || ''))) return false;
+      if (fr === 'onsite' && (r.isRemote || /remote|hybrid/i.test(r.workplaceType || ''))) return false;
       if (fr === 'reloc' && !r.relocates) return false;
       if (fs && r.source !== fs) return false;
       if (!window.Skills.salaryInRange(r, salMin, salMax)) return false;
@@ -544,8 +544,10 @@ Router.register('scan', async () => {
     el.addEventListener('change', applyFilters));
   const applyBtn = c('button', { className: 'btn btn-primary', type: 'button', onClick: applyFilters }, t('scan.applyFilters', 'Apply'));
   const resetBtn = c('button', { className: 'btn btn-ghost', type: 'button', onClick: resetFilters }, t('scan.resetFilters', 'Reset'));
-  // Labelled field: <label> sits ABOVE the control (.field is a flex column).
-  const field = (labelText, el) => c('div', { className: 'field scan-field' }, [c('label', null, labelText), el]);
+  // Labelled field: the control is WRAPPED in a <label> (implicit association
+  // → accessible name for SR users, no id wiring needed). .field is a flex
+  // column so the caption text sits ABOVE the control.
+  const field = (labelText, el) => c('label', { className: 'field scan-field' }, [c('span', { className: 'scan-field__label' }, labelText), el]);
 
   // Build a chip row for one facet category. Active selections survive across re-renders
   // because activeTech / activeLevel are scoped above.

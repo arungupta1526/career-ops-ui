@@ -21,11 +21,13 @@ const __d = dirname(fileURLToPath(import.meta.url));
 const SCAN = readFileSync(resolve(__d, '..', 'public', 'js', 'views', 'scan.js'), 'utf8');
 const CSS = readFileSync(resolve(__d, '..', 'public', 'css', 'app.css'), 'utf8');
 
-test('a labelled .scan-filters panel exists (label-above-field)', () => {
+test('a labelled .scan-filters panel exists (label-above-field, a11y-associated)', () => {
   assert.match(SCAN, /className: 'scan-filters'/, 'scan.js must build a .scan-filters panel');
-  // The field() helper wraps each control in a .field with a <label> above it.
-  assert.match(SCAN, /const field = \([^)]*\) => c\('div', \{ className: 'field scan-field' \}, \[c\('label'/,
-    'field() must render a <label> above the control inside a .field');
+  assert.match(SCAN, /const field =/, 'a field() helper must exist');
+  // field() WRAPS the control in a <label> (implicit association → the control
+  // gets an accessible name without id wiring). The caption text sits above it.
+  assert.match(SCAN, /c\('label', \{ className: 'field scan-field' \}/,
+    'field() must wrap the control in a <label class="field scan-field">');
 });
 
 test('every result filter is rendered through the labelled field() helper', () => {

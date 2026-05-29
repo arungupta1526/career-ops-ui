@@ -1008,6 +1008,7 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
   margin-bottom: var(--space-3);
 }
 .scan-filters .scan-field { margin-bottom: 0; flex: 1 1 160px; min-width: 140px; max-width: 240px; }
+.scan-field__label { font-weight: 600; font-size: 13px; color: var(--hof); }
 .scan-filters .scan-field .input,
 .scan-filters .scan-field .select { width: 100%; }
 .scan-filters__actions { flex: 0 0 auto; }
