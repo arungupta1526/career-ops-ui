@@ -10,13 +10,15 @@
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.68.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.68.0)
+[![release](https://img.shields.io/badge/release-v1.68.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.68.1)
 
-> **🆕 最新リリース — v1.68.0**
+> **🆕 最新リリース — v1.68.1**
 >
 > **1. `#/scan` の結果フィルタ・パネルを刷新。** 各フィルタにラベルが**上**に付きました（検索 · 勤務形態 · 給与 下限 / 上限 · ソース · 範囲）。明示的な**適用** + **リセット**ボタンと、使い方を説明するページ上のヒント付き。勤務形態に**オフィス勤務**を追加（リモート / ハイブリッド / オフィス勤務 / 転居）。
 >
 > **2. 給与フィルタがついに機能します。** 下限 / 上限 を設定すると、給与があなたのレンジと重なる求人だけが残り、範囲外の求人**および給与未掲載の求人**は除外されます（レンジの重なり判定、通貨は無視）。
+>
+> **3. ソース別フェッチのタイムアウトを 60s に延長**（`SCAN_FETCH_TIMEOUT_MS` で上書き可）。10s は即座に失敗するが、遅いが生きているボードも切ってしまっていました。1 分あれば返ります。トレードオフ: 死んだソースは 1 分間枠を占有し、慢性的なハングは依然タイムアウトし得ます。
 >
 > _フルスイート **1063/1063** グリーン · i18n + ドキュメントを全9ロケールで同期。_
 

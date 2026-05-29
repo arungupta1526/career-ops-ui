@@ -10,13 +10,15 @@
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.68.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.68.0)
+[![release](https://img.shields.io/badge/release-v1.68.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.68.1)
 
-> **🆕 최신 릴리스 — v1.68.0**
+> **🆕 최신 릴리스 — v1.68.1**
 >
 > **1. `#/scan` 결과 필터 패널 개편.** 이제 각 필터에 라벨이 **위**에 붙습니다(검색 · 근무 형태 · 급여 최소 / 최대 · 소스 · 범위). 명시적 **적용** + **초기화** 버튼과 사용법을 설명하는 페이지 힌트 포함. 근무 형태에 **사무실 근무** 추가(원격 / 하이브리드 / 사무실 근무 / 재배치).
 >
 > **2. 급여 필터가 드디어 동작합니다.** 최소 / 최대를 설정하면 급여가 범위와 겹치는 공고만 남고, 범위 밖 공고 **및 급여가 없는 공고**는 제거됩니다(범위 겹침, 통화 무시).
+>
+> **3. 소스별 fetch 타임아웃을 60s로 상향**(`SCAN_FETCH_TIMEOUT_MS`로 재정의 가능). 10s는 빠르게 실패했지만 느리지만 살아있는 보드까지 끊었습니다. 1분이면 응답합니다. 트레이드오프: 죽은 소스는 1분 내내 슬롯을 점유하고, 만성 행은 여전히 타임아웃될 수 있습니다.
 >
 > _전체 스위트 **1063/1063** 통과 · i18n + 문서를 9개 로케일에 동기화._
 

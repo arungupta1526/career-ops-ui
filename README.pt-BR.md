@@ -10,13 +10,15 @@
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#testes)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requisitos)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.68.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.68.0)
+[![release](https://img.shields.io/badge/release-v1.68.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.68.1)
 
-> **🆕 Última versão — v1.68.0**
+> **🆕 Última versão — v1.68.1**
 >
 > **1. Painel de filtros do `#/scan` redesenhado.** Cada filtro agora tem rótulo **acima** (Buscar · Tipo · Salário de / até · Fonte · Escopo), botões **Aplicar** + **Limpar** explícitos e uma dica na página. Tipo ganha a opção **Presencial** (Remoto / Híbrido / Presencial / Realocação).
 >
 > **2. O filtro de salário agora filtra de verdade.** Defina um *de* / *até* e a lista mantém só vagas cuja remuneração se sobrepõe à sua faixa — as fora dela **e as vagas sem salário informado** são descartadas (moeda ignorada).
+>
+> **3. Timeout de fetch por fonte elevado a 60s** (override com `SCAN_FETCH_TIMEOUT_MS`). 10s falhava rápido mas cortava quadros lentos mas vivos; um minuto deixa que respondam. Trade-off: uma fonte morta ocupa um slot o minuto inteiro e os que travam cronicamente podem ainda expirar.
 >
 > _Suíte completa **1063/1063** verde · i18n + docs sincronizados nos 9 idiomas._
 

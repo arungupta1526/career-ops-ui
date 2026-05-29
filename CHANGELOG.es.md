@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.68.1] — 2026-05-29
+
+**fix(scan): timeout de fetch por fuente 10s → 60s.** El fail-fast de 10s de v1.67.1 también cortaba tableros Ashby lentos pero vivos que solo necesitaban más tiempo. Sube el valor por defecto a un minuto para que esos respondan. Compensación: una fuente realmente muerta/colgada ahora ocupa una ranura de concurrencia durante los 60s completos (escaneo peor-caso más lento), y los que se cuelgan crónicamente (Perplexity, Supabase, Resend, …) probablemente sigan caducando — un arreglo por fuente / menor concurrencia de Ashby los resolvería bien. Override con `SCAN_FETCH_TIMEOUT_MS`. Suite 1063/1063.
+
+---
+
+
+
 ## [1.68.0] — 2026-05-29
 
 **feat(scan): panel de filtros de resultados rediseñado — campos con etiqueta, botón Aplicar, opción Presencial y un filtro de salario que funciona.** Cada filtro de `#/scan` es ahora un campo con etiqueta (etiqueta **encima** del control, no un placeholder): Buscar · Tipo · Salario desde · Salario hasta · Fuente · Alcance. Un botón **Aplicar** explícito (más **Restablecer**, y Enter en cualquier campo) reejecuta el filtro; una pista en la página explica cómo funciona. **El rango salarial ahora filtra de verdad** — al fijar un valor *desde*/*hasta*, los empleos cuya remuneración queda fuera del rango **y los empleos sin salario indicado** se descartan (solape de rangos; se ignora la divisa). El filtro de Tipo gana una opción **Presencial** junto a Remoto / Híbrido / Reubicación. Nuevas claves i18n ×9; `salaryInRange` ahora estricto; suite 1063/1063.

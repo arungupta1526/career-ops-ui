@@ -1,21 +1,21 @@
-# QA REGRESSION PROMPT — career-ops-ui v1.68.0 · FULL / EXHAUSTIVE
+# QA REGRESSION PROMPT — career-ops-ui v1.68.1 · FULL / EXHAUSTIVE
 
-> **Scope:** the *entire* project, *all* functionality, as of `package.json` **1.68.0**.
+> **Scope:** the *entire* project, *all* functionality, as of `package.json` **1.68.1**.
 > **Role:** you are a strict release-gate QA engineer. Prove the whole app works,
 > correctly and clearly, and that nothing on the regression-locked list has drifted.
 > **Output:** save your run report to
-> `qa/v54-regression/<YYYY-MM-DD>-REGRESSION-v1.68.0.md` with a PASS/FAIL per item
+> `qa/v54-regression/<YYYY-MM-DD>-REGRESSION-v1.68.1.md` with a PASS/FAIL per item
 > and evidence (command output, screenshots, HTTP traces). One finding = one fix-ship.
 >
 > **Sibling perennials (run alongside, do not duplicate):**
 > `REGRESSION-FINAL.md` (§0→§15 invariant ledger + §A exhaustive matrix),
 > `UX-AUDIT-PROMPT.md` (Senior-UX heuristic audit vs career-ops.org/docs),
 > `FUNCTIONALITY-CHECK.md` (functional-correctness walkthrough). This FULL prompt is
-> the **single-pass driver** for the v1.68.0 surface; it folds in the v1.59→v1.68
+> the **single-pass driver** for the v1.68.1 surface; it folds in the v1.59→v1.68
 > features the perennial ledger predates (RSS adapter, per-request fetch-timeout,
 > determinate SSE progress bar, French locale, OpenRouter catalogue, multer upload,
 > hh.ru HTML scrape, RU multi-page pagination, **scan salary range filter**,
-> **10s fail-fast per-source fetch timeout**, **scan filter-panel rework**).
+> **60s per-source fetch timeout**, **scan filter-panel rework**).
 
 ---
 
@@ -45,7 +45,7 @@
 
 ```bash
 node -v                       # ≥ 18
-node -p "require('./package.json').version"   # → 1.68.0
+node -p "require('./package.json').version"   # → 1.68.1
 npm ci                        # clean install; prod deps = express, js-yaml, multer
 npm run test:ci               # = npm test + check-no-also-leftovers + changelog-parity + i18n-audit
 echo "unit exit: $?"          # MUST be 0
@@ -66,13 +66,13 @@ npm run test:coverage         # ≥ 80% line / ≥ 80% branch on non-trivial log
 ## §1 — Boot & version honesty
 
 - `npm start` → server on `127.0.0.1:4317`, no unhandled rejection in the log.
-- `GET /api/health` returns `{ version: "1.68.0", parentVersion: <string|null>, … }`.
+- `GET /api/health` returns `{ version: "1.68.1", parentVersion: <string|null>, … }`.
   `version` and `parentVersion` are independent — `parentVersion` reflects the parent
   `VERSION` file (or null if no parent present). Footer in the SPA reads `version`.
-- All 9 README badges read `tests-1063` and `release-v1.68.0`; the top-of-README
-  **"🆕 Latest release — v1.68.0"** blockquote (line 15, all 9 locales) details the
+- All 9 README badges read `tests-1063` and `release-v1.68.1`; the top-of-README
+  **"🆕 Latest release — v1.68.1"** blockquote (line 15, all 9 locales) details the
   reworked `#/scan` filter panel + the now-working salary filter.
-- `CHANGELOG.{md,es,fr,ja,ko-KR,pt-BR,ru,zh-CN,zh-TW}.md` all carry `[1.67.0]` + `[1.67.1]` + `[1.68.0]`
+- `CHANGELOG.{md,es,fr,ja,ko-KR,pt-BR,ru,zh-CN,zh-TW}.md` all carry `[1.67.0]` + `[1.67.1]` + `[1.68.0]` + `[1.68.1]`
   entries (parity gated by `check-changelog-parity.mjs`).
 
 ---
@@ -129,11 +129,12 @@ smartrecruiters, workday`; RU — `hh, habr, trudvsem, getmatch, geekjob`; gener
   nothing" bug). Currency-agnostic (no FX). Lock test: `tests/salary-filter.test.mjs`
   + `tests/scan-advanced-disclosure.test.mjs` (panel structure).
 
-**v1.67.1 timeout (regression-lock):** `DEFAULT_SCAN_TIMEOUT_MS` defaults to **10000**
-(15000 in v1.63.0 → 30000 in v1.67.0 → **10000 fail-fast** in v1.67.1), overridable via
-`SCAN_FETCH_TIMEOUT_MS`. 30s only recovered ~half the slow Ashby boards; the rest hang
-regardless, so a long deadline just stalled the scan — 10s fails fast on chronic hangers.
-Lock test: `tests/fetch-timeout.test.mjs` (`=== 10000`).
+**v1.68.1 timeout (regression-lock):** `DEFAULT_SCAN_TIMEOUT_MS` defaults to **60000**
+(15000 v1.63.0 → 30000 v1.67.0 → 10000 v1.67.1 → **60000 v1.68.1**), overridable via
+`SCAN_FETCH_TIMEOUT_MS`. 10s fail-fast also cut off slow-but-alive Ashby boards; 60s
+lets them return. Trade-off: a dead source holds a concurrency slot for the full minute
+and chronic hangers may still time out (a per-source / lower-Ashby-concurrency fix would
+address those). Lock test: `tests/fetch-timeout.test.mjs` (`=== 60000`).
 
 **v1.66.0 pagination invariant (regression-lock):**
 - `hh.mjs` walks `&page=0,1,2…`; `habr.mjs` walks `&page=1,2,3…` (1-indexed);
@@ -237,7 +238,7 @@ Reads are always safe. **Writes happen only on explicit user actions:**
 - **Help bundles** (`GET /api/help/:lang`): **19 H2 / 73 H3** parity across locales
   (locks: `canonical-docs-coverage`, `help-ru-config-section`, `help-ui` tests).
   In-app `#/help` full-text search filters sections.
-- README: all 9 link Français + state 9 languages; CHANGELOG parity at 1.68.0;
+- README: all 9 link Français + state 9 languages; CHANGELOG parity at 1.68.1;
   `LOCALIZATION.md` lists fr and the 19 H2 count.
 
 ---
@@ -290,9 +291,9 @@ registerTrackerRoutes`. `server/index.mjs` is a ~130-LOC orchestrator only.
 | # | Area | Gate | PASS/FAIL | Evidence |
 |---|---|---|---|---|
 | 0 | Pre-flight | test:ci + e2e + e2e:full + e2e:browser + coverage all green | | |
-| 1 | Boot & version | /api/health = 1.68.0; badges (1063); CHANGELOG ×9 | | |
+| 1 | Boot & version | /api/health = 1.68.1; badges (1063); CHANGELOG ×9 | | |
 | 2 | SPA routes | all 19 hash routes render clean, no console error | | |
-| 3 | Scanner | 12 sources; SSE both; **RU pagination lock**; hh.ru scrape lock; **salary от/до filter (strict)**; **labelled panel + Apply**; **On-site**; **10s timeout** | | |
+| 3 | Scanner | 12 sources; SSE both; **RU pagination lock**; hh.ru scrape lock; **salary от/до filter (strict)**; **labelled panel + Apply**; **On-site**; **60s timeout** | | |
 | 4 | LLM | 4-provider matrix; live-`.env` key; OR catalogue; status | | |
 | 5 | Pipeline/tracker | write-through only on user action; no dup; temp-root isolation | | |
 | 6 | Config/Modes | merge-not-replace; field-forms intact | | |

@@ -10,13 +10,15 @@
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.68.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.68.0)
+[![release](https://img.shields.io/badge/release-v1.68.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.68.1)
 
-> **🆕 最新版本 — v1.68.0**
+> **🆕 最新版本 — v1.68.1**
 >
 > **1. 重做 `#/scan` 結果篩選面板。** 現在每個篩選的標籤都在**上方**（搜尋 · 工作類型 · 薪資下限 / 上限 · 來源 · 範圍），並有明確的**套用** + **重設**按鈕和頁面提示。工作類型新增**現場辦公**選項（遠端 / 混合 / 現場辦公 / 搬遷）。
 >
 > **2. 薪資篩選現在真正生效。** 設定下限 / 上限後，清單只保留薪酬與你的區間重疊的職缺——區間之外的職缺**以及未標註薪資的職缺**都會被移除（區間重疊比對；忽略幣別）。
+>
+> **3. 各來源抓取逾時提高到 60s**（可用 `SCAN_FETCH_TIMEOUT_MS` 覆寫）。10s 失敗很快，但也切掉了緩慢但存活的看板；一分鐘讓它們有機會回傳。權衡：死掉的來源會占用槽整整一分鐘，長期掛起者可能仍會逾時。
 >
 > _完整套件 **1063/1063** 通過 · i18n 與文件已在全部 9 種語言同步。_
 

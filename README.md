@@ -10,13 +10,15 @@
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.68.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.68.0)
+[![release](https://img.shields.io/badge/release-v1.68.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.68.1)
 
-> **🆕 Latest release — v1.68.0**
+> **🆕 Latest release — v1.68.1**
 >
 > **1. Reworked `#/scan` result-filter panel.** Every filter now has a label **above** it (Search · Work type · Salary from / to · Source · Scope), explicit **Apply** + **Reset** buttons, and an on-page hint explaining how to use it. Work type adds an **On-site** option (Remote / Hybrid / On-site / Relocation).
 >
 > **2. The salary filter now actually filters.** Set a *from* / *to* and the list keeps only jobs whose pay overlaps your range — jobs whose pay falls outside it **and jobs with no listed salary at all** are dropped (overlapping-range match; currency ignored).
+>
+> **3. Per-source scan fetch timeout raised to 60s** (override with `SCAN_FETCH_TIMEOUT_MS`). 10s failed fast but cut off slow-but-alive boards; one minute lets them return. Trade-off: a dead source now holds a slot for the full minute, and chronic hangers may still time out.
 >
 > _Full suite **1063/1063** green · i18n + docs synced across all 9 locales._
 
