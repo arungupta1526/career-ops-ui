@@ -10,6 +10,14 @@
 
 
 
+## [1.68.2] — 2026-06-07
+
+**fix(bin): `npx` / `npm link` 経由の CLI 動詞が壊れていた — bin パスをシンボリックリンク経由で解決するよう修正。** npm と npx は `career-ops-ui` を `node_modules/.bin/` 配下のシンボリックリンクとして公開しますが、従来の `dirname "${BASH_SOURCE[0]}"` はパッケージのルートではなく `.bin` を指していたため、`npx career-ops-ui init` が `node node_modules/scripts/init.mjs` を実行して `MODULE_NOT_FOUND` で落ちていました（ローカルの `npm install` 実行は影響を受けず、バグが隠れていました）。`bin/career-ops-ui.sh` と `bin/start.sh` はシンボリックリンクのチェーンをたどって `SCRIPT_DIR` を正規化するようになり（`readlink` ループ + `cd -P`）、すべての動詞がリポジトリから、`npm link` 経由、`npx` 経由で動作します。`.bin` スタイルのシンボリックリンク経由で動詞を実行する回帰ロックを `tests/sh-files.test.mjs` に追加。スイート 1065/1065。
+
+---
+
+
+
 ## [1.68.1] — 2026-05-29
 
 **fix(scan): ソース別フェッチのタイムアウトを 10s → 60s に延長。** v1.67.1 の 10s fail-fast は、もう少し時間が必要なだけの「遅いが生きている」Ashby ボードも切ってしまっていました。デフォルトを 1 分に上げて、それらが返るようにします。トレードオフ: 本当に死んだ/ハングしたソースは 60s 丸ごと並列枠を占有し（最悪ケースのスキャンが遅くなる）、慢性的なハング（Perplexity・Supabase・Resend など）はおそらく依然としてタイムアウトします — 適切に直すならソース別 / Ashby の並列度を下げる対応が必要です。`SCAN_FETCH_TIMEOUT_MS` で上書き可。スイート 1063/1063。

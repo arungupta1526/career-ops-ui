@@ -5,22 +5,18 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | **Français**
 
-[![tests](https://img.shields.io/badge/tests-1063%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-1065%20passed-brightgreen)](#tests)
 [![e2e](https://img.shields.io/badge/e2e-23%2F23%20%2B%2020%2F20-brightgreen)](#tests)
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.68.1-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.68.1)
+[![release](https://img.shields.io/badge/release-v1.68.2-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.68.2)
 
-> **🆕 Dernière version — v1.68.1**
+> **🆕 Dernière version — v1.68.2**
 >
-> **1. Panneau de filtres de `#/scan` repensé.** Chaque filtre a maintenant un libellé **au-dessus** (Recherche · Type · Salaire de / à · Source · Portée), des boutons **Appliquer** + **Réinitialiser** explicites et une aide sur la page. Type ajoute une option **Sur site** (Distanciel / Hybride / Sur site / Relocalisation).
+> **Les verbes de la CLI via `npx` / `npm link` étaient cassés — désormais corrigé.** npm et npx exposent `career-ops-ui` comme un lien symbolique sous `node_modules/.bin/`, où l'ancienne logique de chemin pointait vers `.bin` au lieu de la racine du paquet — si bien que `npx career-ops-ui init` échouait avec `MODULE_NOT_FOUND`. Désormais `bin/career-ops-ui.sh` et `bin/start.sh` résolvent le chemin du script à travers la chaîne de liens (`readlink` + `cd -P`), de sorte que chaque verbe fonctionne depuis le dépôt, via `npm link` et via `npx`. Verrouillé par un nouveau test de régression qui exécute un verbe à travers un lien de style `.bin`.
 >
-> **2. Le filtre salaire fonctionne enfin.** Définissez un *de* / *à* et la liste ne garde que les offres dont la rémunération chevauche votre fourchette — celles hors fourchette **et les offres sans salaire indiqué** sont retirées (devise ignorée).
->
-> **3. Timeout de fetch par source relevé à 60s** (override via `SCAN_FETCH_TIMEOUT_MS`). 10s échouait vite mais coupait des tableaux lents mais vivants ; une minute leur laisse le temps de répondre. Compromis : une source morte occupe un créneau toute la minute et les bloqueurs chroniques peuvent encore expirer.
->
-> _Suite complète **1063/1063** au vert · i18n + docs synchronisés dans les 9 langues._
+> _Suite complète **1065/1065** au vert · i18n + docs synchronisés dans les 9 langues._
 
 ![career-ops-ui — Centre de commande](./images/dashboard-fr.png)
 

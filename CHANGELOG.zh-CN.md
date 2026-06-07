@@ -10,6 +10,14 @@
 
 
 
+## [1.68.2] — 2026-06-07
+
+**fix(bin)：通过 `npx` / `npm link` 调用的 CLI 动词此前已损坏——现在 bin 路径会沿符号链接解析。** npm 和 npx 会将 `career-ops-ui` 暴露为 `node_modules/.bin/` 下的符号链接，而旧的 `dirname "${BASH_SOURCE[0]}"` 指向的是 `.bin` 而非包根目录，于是 `npx career-ops-ui init` 会执行 `node node_modules/scripts/init.mjs` 并以 `MODULE_NOT_FOUND` 崩溃（本地 `npm install` 运行不受影响，因而掩盖了该缺陷）。现在 `bin/career-ops-ui.sh` 与 `bin/start.sh` 会沿符号链接链规范化 `SCRIPT_DIR`（`readlink` 循环 + `cd -P`），因此每个动词都能从仓库、通过 `npm link` 以及通过 `npx` 正常工作。在 `tests/sh-files.test.mjs` 中新增一个回归锁，通过 `.bin` 风格的符号链接执行动词。套件 1065/1065。
+
+---
+
+
+
 ## [1.68.1] — 2026-05-29
 
 **fix(scan)：各来源抓取超时 10s → 60s。** v1.67.1 的 10s 快速失败也会切掉只是需要更多时间的「缓慢但存活」的 Ashby 看板。把默认值提高到一分钟，让它们有机会返回。权衡：真正死掉/挂起的来源现在会占用并发槽整整 60s（最坏情况扫描更慢），而长期挂起者（Perplexity、Supabase、Resend 等）很可能仍会超时——要真正解决需按来源处理 / 降低 Ashby 并发。可用 `SCAN_FETCH_TIMEOUT_MS` 覆盖。套件 1063/1063。

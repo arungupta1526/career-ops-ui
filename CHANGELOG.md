@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.68.2] — 2026-06-07
+
+**fix(bin): `npx` / `npm link` CLI verbs were broken — resolve the bin path through symlinks.** npm and npx expose `career-ops-ui` as a symlink under `node_modules/.bin/`, where the old `dirname "${BASH_SOURCE[0]}"` resolved to `.bin` instead of the package root — so `npx career-ops-ui init` ran `node node_modules/scripts/init.mjs` and crashed with `MODULE_NOT_FOUND` (local runs after `npm install` were unaffected, which hid the bug). Both `bin/career-ops-ui.sh` and `bin/start.sh` now canonicalize `SCRIPT_DIR` through the symlink chain (`readlink` loop + `cd -P`), so every verb works from the repo, via `npm link`, and via `npx`. Adds a regression lock in `tests/sh-files.test.mjs` that runs a verb through a `.bin`-style symlink. Suite 1065/1065.
+
+---
+
+
+
 ## [1.68.1] — 2026-05-29
 
 **fix(scan): per-source fetch timeout 10s → 60s.** v1.67.1's 10s fail-fast also cut off slow-but-alive Ashby boards that just needed more time. Raise the default to one minute so those return. Trade-off: a genuinely dead/hung source now holds a concurrency slot for the full 60s (slower worst-case scan), and the chronic hangers (Perplexity, Supabase, Resend, …) likely still time out — a per-source / lower-Ashby-concurrency fix would address those properly. Override with `SCAN_FETCH_TIMEOUT_MS`. Suite 1063/1063.

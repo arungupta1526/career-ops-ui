@@ -12,6 +12,14 @@ Traductions : [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [Portugu
 
 
 
+## [1.68.2] — 2026-06-07
+
+**fix(bin) : les verbes de la CLI via `npx` / `npm link` étaient cassés — le chemin du bin est désormais résolu à travers les liens symboliques.** npm et npx exposent `career-ops-ui` comme un lien symbolique sous `node_modules/.bin/`, où l'ancien `dirname "${BASH_SOURCE[0]}"` pointait vers `.bin` au lieu de la racine du paquet — si bien que `npx career-ops-ui init` exécutait `node node_modules/scripts/init.mjs` et échouait avec `MODULE_NOT_FOUND` (les exécutions locales après `npm install` n'étaient pas affectées, ce qui masquait le bug). Désormais `bin/career-ops-ui.sh` et `bin/start.sh` canonisent `SCRIPT_DIR` à travers la chaîne de liens (boucle `readlink` + `cd -P`), de sorte que chaque verbe fonctionne depuis le dépôt, via `npm link` et via `npx`. Ajoute un verrou de régression dans `tests/sh-files.test.mjs` qui exécute un verbe à travers un lien symbolique de style `.bin`. Suite 1065/1065.
+
+---
+
+
+
 ## [1.68.1] — 2026-05-29
 
 **fix(scan) : timeout de fetch par source 10s → 60s.** Le fail-fast de 10s (v1.67.1) coupait aussi des tableaux Ashby lents mais vivants qui avaient juste besoin de plus de temps. Relève la valeur par défaut à une minute pour qu'ils répondent. Compromis : une source vraiment morte/bloquée occupe désormais un créneau de concurrence pendant les 60s complètes (scan pire-cas plus lent), et les bloqueurs chroniques (Perplexity, Supabase, Resend, …) expirent probablement encore — un correctif par source / concurrence Ashby réduite les réglerait proprement. Override via `SCAN_FETCH_TIMEOUT_MS`. Suite 1063/1063.

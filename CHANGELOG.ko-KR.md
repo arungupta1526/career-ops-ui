@@ -10,6 +10,14 @@
 
 
 
+## [1.68.2] — 2026-06-07
+
+**fix(bin): `npx` / `npm link`로 실행하는 CLI 동사가 깨져 있었음 — 이제 bin 경로를 심볼릭 링크를 따라 해석함.** npm과 npx는 `career-ops-ui`를 `node_modules/.bin/` 아래의 심볼릭 링크로 노출하는데, 기존 `dirname "${BASH_SOURCE[0]}"`가 패키지 루트가 아니라 `.bin`을 가리켜서 `npx career-ops-ui init`이 `node node_modules/scripts/init.mjs`를 실행하다 `MODULE_NOT_FOUND`로 죽었습니다(로컬 `npm install` 실행은 영향을 받지 않아 버그가 숨겨졌습니다). 이제 `bin/career-ops-ui.sh`와 `bin/start.sh`는 심볼릭 링크 체인을 따라 `SCRIPT_DIR`를 정규화하므로(`readlink` 루프 + `cd -P`) 모든 동사가 저장소에서, `npm link`로, 그리고 `npx`로 동작합니다. `.bin` 스타일 심볼릭 링크로 동사를 실행하는 회귀 방지 테스트를 `tests/sh-files.test.mjs`에 추가했습니다. 스위트 1065/1065.
+
+---
+
+
+
 ## [1.68.1] — 2026-05-29
 
 **fix(scan): 소스별 fetch 타임아웃 10s → 60s로 상향.** v1.67.1의 10s fail-fast는 시간이 조금 더 필요할 뿐인 "느리지만 살아있는" Ashby 보드까지 끊어냈습니다. 기본값을 1분으로 올려 그런 보드가 응답하도록 합니다. 트레이드오프: 정말로 죽거나 멈춘 소스는 이제 60s 내내 동시성 슬롯을 점유하며(최악의 경우 스캔이 느려짐), 만성적으로 멈추는 곳(Perplexity, Supabase, Resend 등)은 여전히 타임아웃될 가능성이 큽니다 — 제대로 고치려면 소스별 / Ashby 동시성 축소가 필요합니다. `SCAN_FETCH_TIMEOUT_MS`로 재정의 가능. 스위트 1063/1063.

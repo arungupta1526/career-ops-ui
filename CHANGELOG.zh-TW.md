@@ -10,6 +10,14 @@
 
 
 
+## [1.68.2] — 2026-06-07
+
+**fix(bin)：透過 `npx` / `npm link` 呼叫的 CLI 動詞先前已損壞——現在 bin 路徑會沿符號連結解析。** npm 與 npx 會將 `career-ops-ui` 公開為 `node_modules/.bin/` 下的符號連結，而舊的 `dirname "${BASH_SOURCE[0]}"` 指向的是 `.bin` 而非套件根目錄，於是 `npx career-ops-ui init` 會執行 `node node_modules/scripts/init.mjs` 並以 `MODULE_NOT_FOUND` 崩潰（本機 `npm install` 執行不受影響，因而掩蓋了該缺陷）。現在 `bin/career-ops-ui.sh` 與 `bin/start.sh` 會沿符號連結鏈正規化 `SCRIPT_DIR`（`readlink` 迴圈 + `cd -P`），因此每個動詞都能從儲存庫、透過 `npm link` 以及透過 `npx` 正常運作。在 `tests/sh-files.test.mjs` 中新增一個回歸鎖，透過 `.bin` 風格的符號連結執行動詞。套件 1065/1065。
+
+---
+
+
+
 ## [1.68.1] — 2026-05-29
 
 **fix(scan)：各來源抓取逾時 10s → 60s。** v1.67.1 的 10s 快速失敗也會切掉只是需要更多時間的「緩慢但存活」的 Ashby 看板。把預設值提高到一分鐘，讓它們有機會回傳。權衡：真正死掉/掛起的來源現在會占用並行槽整整 60s（最壞情況掃描更慢），而長期掛起者（Perplexity、Supabase、Resend 等）很可能仍會逾時——要真正解決需按來源處理 / 降低 Ashby 並行。可用 `SCAN_FETCH_TIMEOUT_MS` 覆寫。套件 1063/1063。
