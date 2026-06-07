@@ -11,7 +11,19 @@
 # One command does the whole chain: `setup` runs install → doctor →
 # (unless SKIP_START=1) run. Every verb is also usable standalone.
 set -euo pipefail
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# Resolve the real script location, following symlinks. npm/npx expose this
+# bin as a symlink under node_modules/.bin/career-ops-ui — a plain `dirname`
+# of "${BASH_SOURCE[0]}" then points at `.bin`, making WEB_UI=node_modules and
+# breaking `node "$WEB_UI/scripts/init.mjs"` (it looked for the script directly
+# under node_modules/). Canonicalize through the symlink chain so verbs work
+# whether the script is run from the repo, via `npm link`, or via `npx`.
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$( readlink "$SOURCE" )"
+  [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 WEB_UI="$( cd "$SCRIPT_DIR/.." && pwd )"
 VERB="${1:-help}"; shift || true
 

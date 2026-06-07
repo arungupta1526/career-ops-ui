@@ -19,7 +19,17 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# Resolve the real script location, following symlinks. npm/npx expose this
+# bin as a symlink under node_modules/.bin/career-ops-ui-start; a plain
+# `dirname` of "${BASH_SOURCE[0]}" would point at `.bin` and make WEB_UI wrong.
+# Canonicalize through the symlink chain so `npx career-ops-ui-start` works too.
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$( readlink "$SOURCE" )"
+  [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 WEB_UI="$( cd "$SCRIPT_DIR/.." && pwd )"
 
 PORT="${PORT:-4317}"

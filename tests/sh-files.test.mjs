@@ -11,10 +11,11 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, statSync } from 'node:fs';
+import { readFileSync, statSync, mkdtempSync, mkdirSync, symlinkSync, rmSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
+import { dirname, resolve, join } from 'node:path';
+import { tmpdir } from 'node:os';
 
 const __d = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__d, '..');
@@ -67,6 +68,51 @@ test('career-ops-ui.sh: usage is a heredoc (not the fragile sed-scrape)', () => 
   // exact case labels (substring — avoids regex-meta in `open|dash|focus`)
   for (const label of ['setup)', 'run|start)', 'doctor)', 'init)', 'open|dash|focus)', 'help|-h|--help)']) {
     assert.ok(s.includes(label), `dispatcher missing case ${label}`);
+  }
+});
+
+test('career-ops-ui.sh + start.sh canonicalize SCRIPT_DIR through symlinks (npx/.bin)', () => {
+  // Regression lock (v1.68.x): npm/npx expose the bins as symlinks under
+  // node_modules/.bin/. The old `dirname "${BASH_SOURCE[0]}"` pointed at
+  // `.bin`, so WEB_UI became node_modules and verbs ran
+  // `node node_modules/scripts/init.mjs` → MODULE_NOT_FOUND. Both scripts
+  // must follow the symlink chain so WEB_UI lands on the real package root.
+  for (const f of ['bin/career-ops-ui.sh', 'bin/start.sh']) {
+    const s = read(f);
+    assert.match(s, /while \[ -h "\$SOURCE" \]; do/, `${f} missing symlink-resolution loop`);
+    assert.match(s, /readlink "\$SOURCE"/, `${f} must readlink the source`);
+    assert.match(s, /SCRIPT_DIR="\$\( cd -P/, `${f} must canonicalize SCRIPT_DIR with cd -P`);
+  }
+});
+
+test('career-ops-ui.sh: a verb invoked through a .bin-style symlink resolves scripts/ (not node_modules/scripts)', () => {
+  // Mimic the exact npm layout that broke `npx career-ops-ui init`:
+  //   <tmp>/.bin/career-ops-ui -> <repo>/bin/career-ops-ui.sh
+  // and run a read-only verb (doctor) that dereferences "$WEB_UI/scripts/*.mjs".
+  // Pre-fix this threw `Cannot find module .../node_modules/scripts/doctor.mjs`.
+  const dir = mkdtempSync(join(tmpdir(), 'co-ui-bin-'));
+  try {
+    const bin = join(dir, '.bin');
+    mkdirSync(bin, { recursive: true });
+    symlinkSync(R('bin/career-ops-ui.sh'), join(bin, 'career-ops-ui'));
+    let out = '';
+    try {
+      out = execFileSync('bash', [join(bin, 'career-ops-ui'), 'doctor'], {
+        encoding: 'utf8',
+        timeout: 30_000,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env: { ...process.env, CAREER_OPS_ROOT: dir, NO_OPEN: '1' },
+      });
+    } catch (e) {
+      // doctor exits 1 when required checks fail (mktemp parent has no cv.md) —
+      // that's fine. We only assert the script was FOUND, not that it passed.
+      out = `${e.stdout || ''}${e.stderr || ''}`;
+    }
+    assert.ok(!/Cannot find module/.test(out), `path-resolution regressed:\n${out}`);
+    assert.ok(!/node_modules\/scripts\//.test(out), `WEB_UI resolved to node_modules:\n${out}`);
+    assert.match(out, /career-ops-ui doctor/, `doctor.mjs did not run:\n${out}`);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
   }
 });
 
