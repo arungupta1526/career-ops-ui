@@ -4,6 +4,13 @@
  */
 const UA = 'career-ops-web-ui/1.0';
 
+// v1.69.0 (P-14) — self-describing adapter metadata; see ashby.mjs for the rationale.
+export const meta = {
+  value: 'lever',
+  label: 'Lever',
+  region: 'en',
+};
+
 export async function fetchLever(apiUrl, opts = {}) {
   const { fetchImpl = fetch, signal } = opts; // REVIEW-B3
   const res = await fetchImpl(apiUrl, { signal, headers: { 'User-Agent': UA, Accept: 'application/json' } });

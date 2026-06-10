@@ -20,6 +20,14 @@ const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 ' +
   '(KHTML, like Gecko) Version/17.0 Safari/605.1.15';
 
+// v1.69.0 (P-14) — self-describing adapter metadata; see ashby.mjs for the rationale.
+export const meta = {
+  value: 'trudvsem',
+  label: 'Trudvsem',
+  region: 'ru',
+  configKey: 'trudvsem',
+};
+
 /**
  * Search Trudvsem for one query string.
  * Returns array of normalized job objects.

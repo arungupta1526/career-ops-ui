@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.69.0] — 2026-06-09
+
+**feat(scan): P-14 plug-in scanner auto-discovery — drop a `.mjs` in `server/lib/sources/` to register a new source.** Pre-v1.69 the source list in `server/lib/sources/registry.mjs` was a static hand-maintained array — adding a new adapter required editing both `<id>.mjs` AND `registry.mjs`. Closes the `partial` half of the roadmap item P-14 (`docs/ROADMAP.md`). Now every `*.mjs` in `server/lib/sources/` is auto-loaded at module boot; each adapter contributes its identity via a self-describing `export const meta = { value, label, region, configKey? }` block. The 12 shipped adapters (ashby / greenhouse / lever / rss / smartrecruiters / workable / workday + geekjob / getmatch / habr / hh / trudvsem) each grew a `meta` export; `registry.mjs` now uses `readdirSync` + dynamic `import()` resolved at module-eval via top-level await (Node 18+ ESM standard). The public API (`SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources`) is unchanged — every existing import keeps working. Validation rejects malformed `meta` (missing `value`/`label`/`region`, RU without `configKey`, region outside `'en'|'ru'`) and logs a single `console.warn` per offending file so half-migrated branches stay diagnostic-friendly. The bundled `registry.mjs` is excluded from self-import. New `tests/sources-registry-discovery.test.mjs` adds 14 cases covering shipped-adapter coverage, drop-in adapter discovery, helper-module skip, malformed-meta rejection, self-import exclusion, missing-directory tolerance, and deterministic ordering. Suite 1065 → 1079.
+
+---
+
+
+
 ## [1.68.2] — 2026-06-07
 
 **fix(bin): `npx` / `npm link` CLI verbs were broken — resolve the bin path through symlinks.** npm and npx expose `career-ops-ui` as a symlink under `node_modules/.bin/`, where the old `dirname "${BASH_SOURCE[0]}"` resolved to `.bin` instead of the package root — so `npx career-ops-ui init` ran `node node_modules/scripts/init.mjs` and crashed with `MODULE_NOT_FOUND` (local runs after `npm install` were unaffected, which hid the bug). Both `bin/career-ops-ui.sh` and `bin/start.sh` now canonicalize `SCRIPT_DIR` through the symlink chain (`readlink` loop + `cd -P`), so every verb works from the repo, via `npm link`, and via `npx`. Adds a regression lock in `tests/sh-files.test.mjs` that runs a verb through a `.bin`-style symlink. Suite 1065/1065.

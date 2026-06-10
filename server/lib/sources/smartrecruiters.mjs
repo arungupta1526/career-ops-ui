@@ -14,6 +14,13 @@ const PAGE_SIZE = 100;
 const MAX_PAGES = 30;        // 3000 jobs hard ceiling
 const MAX_TOTAL_JOBS = MAX_PAGES * PAGE_SIZE;
 
+// v1.69.0 (P-14) — self-describing adapter metadata; see ashby.mjs for the rationale.
+export const meta = {
+  value: 'smartrecruiters',
+  label: 'SmartRecruiters',
+  region: 'en',
+};
+
 export async function fetchSmartRecruiters(apiUrl, opts = {}) {
   const { fetchImpl = fetch, signal } = opts;
   // Strip any caller-supplied ?limit= / ?offset= so we own the cursor.

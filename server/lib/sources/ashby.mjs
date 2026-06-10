@@ -4,6 +4,16 @@
  */
 const UA = 'career-ops-web-ui/1.0';
 
+// v1.69.0 (P-14) — self-describing adapter metadata. The registry
+// auto-discovers every `*.mjs` in this folder and collects each
+// module's `meta` export, so adding a new source is a pure file
+// drop — no edit to registry.mjs required.
+export const meta = {
+  value: 'ashby',
+  label: 'Ashby',
+  region: 'en',
+};
+
 export async function fetchAshby(apiUrl, opts = {}) {
   const { fetchImpl = fetch, signal } = opts; // REVIEW-B3
   const res = await fetchImpl(apiUrl, { signal, headers: { 'User-Agent': UA, Accept: 'application/json' } });

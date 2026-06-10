@@ -30,6 +30,13 @@
 const UA = 'career-ops-web-ui/1.0';
 const PAGE_LIMIT = 100;
 
+// v1.69.0 (P-14) — self-describing adapter metadata; see ashby.mjs for the rationale.
+export const meta = {
+  value: 'workday',
+  label: 'Workday',
+  region: 'en',
+};
+
 // Module-level snapshot of the last fallback reason. Scanner uses
 // this for status reporting via /#/scan Active Companies card.
 // v1.17.0 — exposed via getLastWorkdayFallback() too so SSE consumers
