@@ -27,6 +27,14 @@ import { resolveAdapter, ALL_ADAPTERS } from './portals/registry.mjs';
 
 const CONCURRENCY = 8;
 
+// v1.69.1 — cap on how many *matching* (post-filter) results are stored in
+// data/last-scan.json and rendered in the #/scan table. Was a hard 500 per
+// region, which silently truncated large regional sweeps (e.g. RU 1352 → 500,
+// hiding 852 relevant jobs). Raised to 2000 and made env-overridable. NOTE:
+// this only caps DISPLAY — adding to pipeline/history uses the full `fresh`
+// set and is never truncated. Shared with ru-scanner.mjs.
+export const MAX_STORED_RESULTS = Math.max(1, Number(process.env.SCAN_MAX_RESULTS) || 2000);
+
 /**
  * Detect which ATS adapter handles a company entry. v1.13.0 delegates
  * to the new registry (`server/lib/portals/registry.mjs`). The return
@@ -194,7 +202,7 @@ export async function runEnScan(opts = {}) {
       kind: 'en',
       when: new Date().toISOString(),
       fresh,
-      filtered: filtered.slice(0, 500), // cap to keep file small
+      filtered: filtered.slice(0, MAX_STORED_RESULTS), // cap display (not pipeline/history)
       errors,
     });
   }

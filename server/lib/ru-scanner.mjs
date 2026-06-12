@@ -28,7 +28,7 @@ import { searchGeekJob } from './sources/geekjob.mjs';
 import { RU_CONFIG_KEYS } from './sources/registry.mjs';
 import { addPipelineUrl } from './parsers.mjs';
 import { makeTimeoutFetch } from './fetch-timeout.mjs';
-import { saveLastScan } from './en-scanner.mjs';
+import { saveLastScan, MAX_STORED_RESULTS } from './en-scanner.mjs';
 import { buildLocationFilter } from './location-filter.mjs';
 
 /**
@@ -262,7 +262,7 @@ export async function runRuScan(opts = {}) {
       kind: 'ru',
       when: new Date().toISOString(),
       fresh,
-      filtered: filtered.slice(0, 500),
+      filtered: filtered.slice(0, MAX_STORED_RESULTS), // cap display (not pipeline/history)
       errors,
     });
   }

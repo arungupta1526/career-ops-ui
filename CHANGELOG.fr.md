@@ -12,6 +12,14 @@ Traductions : [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [Portugu
 
 
 
+## [1.69.1] — 2026-06-12
+
+**fix(scan) : `#/scan` ne tronque plus silencieusement les grands balayages régionaux.** L'ensemble affiché par région était plafonné à 500 (un scan RU réel de 1352 offres correspondantes n'en montrait que 500 ; 852 masquées — le symptôme « 2000 scannées, ~600 affichées »). Les deux scanners utilisent désormais une constante partagée et surchargeable par variable d'environnement `MAX_STORED_RESULTS` (par défaut 2000, surchargée via `SCAN_MAX_RESULTS`). Affichage uniquement : les ajouts à `pipeline.md` / `scan-history.tsv` utilisaient déjà l'ensemble non tronqué. **fix(health/ui) : les cartes de vérification de `#/health` ne débordent plus.** Un nom/valeur long entrait en collision avec le bouton **Fix →** et le badge de statut ; la ligne se rétrécit et passe à la ligne via `.health-check-row`. Nouveaux tests `scan-result-cap` + `health-card-overflow`. Suite 1079 → 1084.
+
+---
+
+
+
 ## [1.69.0] — 2026-06-12
 
 **feat(scan) : auto-découverte des adaptateurs du scanner (P-14) — il suffit de déposer un `.mjs` dans `server/lib/sources/` pour enregistrer une nouvelle source.** Avant la v1.69, la liste des sources dans `server/lib/sources/registry.mjs` était un tableau statique maintenu à la main — ajouter un adaptateur exigeait de modifier à la fois `<id>.mjs` ET `registry.mjs`. Ferme la partie restante de l'item P-14 de la feuille de route (`docs/ROADMAP.md`). Désormais, chaque `*.mjs` du dossier `server/lib/sources/` est chargé dynamiquement au boot du module ; chaque adaptateur déclare son identité via un bloc auto-descriptif `export const meta = { value, label, region, configKey? }`. Les 12 adaptateurs livrés (ashby / greenhouse / lever / rss / smartrecruiters / workable / workday + geekjob / getmatch / habr / hh / trudvsem) ont chacun reçu un export `meta` ; `registry.mjs` utilise désormais `readdirSync` + `import()` dynamique résolu via top-level await (standard ESM Node 18+). L'API publique (`SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources`) est inchangée — tous les imports existants continuent de fonctionner. La validation rejette les `meta` malformés (`value`/`label`/`region` manquants, RU sans `configKey`, region hors `'en'|'ru'`) et logge un seul `console.warn` par fichier fautif, pour rester diagnostiquable sur des branches partiellement migrées. Le `registry.mjs` lui-même est exclu de l'auto-discovery. Nouveau fichier `tests/sources-registry-discovery.test.mjs` : 14 cas couvrant la couverture des adaptateurs livrés, l'ajout d'un adaptateur drop-in, le skip des modules helper, le rejet des `meta` malformés, l'exclusion de l'auto-import, la tolérance aux dossiers manquants, et l'ordre déterministe. Suite 1065 → 1079.

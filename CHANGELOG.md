@@ -8,6 +8,16 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.69.1] — 2026-06-12
+
+**fix(scan): raise the `#/scan` result display cap 500 → 2000 per region so large regional sweeps are no longer silently truncated.** A real RU scan produced **1352** matching jobs, but only the first **500** were stored in `data/last-scan.json` and rendered in the results table — **852 relevant jobs were hidden** (the `2000 scanned → ~600 shown` symptom: 139 EN + 500 RU). Both `server/lib/en-scanner.mjs` and `server/lib/ru-scanner.mjs` now cap the stored `filtered` set at a shared, env-overridable constant `MAX_STORED_RESULTS` (default **2000**, override via `SCAN_MAX_RESULTS`). This is **display-only** — appending to `pipeline.md` and `scan-history.tsv` already used the uncapped `fresh` (new-since-last-scan) set and was never truncated. New `tests/scan-result-cap.test.mjs` (3 cases) locks the default, the env override, and that neither scanner hard-codes `slice(0, 500)`.
+
+**fix(health/ui): `#/health` check cards no longer overflow.** A long check name/value (e.g. `PROFILE CUSTOMIZED · still on template …`, `PLAYWRIGHT (PARENT NODE_MODULES)`) collided with the right-hand **Fix →** button + status badge and spilled out of the card, because the generic `.flex-between` flex children default to `min-width: auto` and never shrink. The row is now tagged `.health-check-row` with scoped CSS: the left text shrinks + wraps (`min-width: 0`), the action group keeps its size (`flex: 0 0 auto`) and wraps below on narrow cards. New `tests/health-card-overflow.test.mjs` (2 cases). Suite 1079 → 1084.
+
+---
+
+
+
 ## [1.69.0] — 2026-06-12
 
 **feat(scan): P-14 plug-in scanner auto-discovery — drop a `.mjs` in `server/lib/sources/` to register a new source.** Pre-v1.69 the source list in `server/lib/sources/registry.mjs` was a static hand-maintained array — adding a new adapter required editing both `<id>.mjs` AND `registry.mjs`. Closes the `partial` half of the roadmap item P-14 (`docs/ROADMAP.md`). Now every `*.mjs` in `server/lib/sources/` is auto-loaded at module boot; each adapter contributes its identity via a self-describing `export const meta = { value, label, region, configKey? }` block. The 12 shipped adapters (ashby / greenhouse / lever / rss / smartrecruiters / workable / workday + geekjob / getmatch / habr / hh / trudvsem) each grew a `meta` export; `registry.mjs` now uses `readdirSync` + dynamic `import()` resolved at module-eval via top-level await (Node 18+ ESM standard). The public API (`SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources`) is unchanged — every existing import keeps working. Validation rejects malformed `meta` (missing `value`/`label`/`region`, RU without `configKey`, region outside `'en'|'ru'`) and logs a single `console.warn` per offending file so half-migrated branches stay diagnostic-friendly. The bundled `registry.mjs` is excluded from self-import. New `tests/sources-registry-discovery.test.mjs` adds 14 cases covering shipped-adapter coverage, drop-in adapter discovery, helper-module skip, malformed-meta rejection, self-import exclusion, missing-directory tolerance, and deterministic ordering. Suite 1065 → 1079.

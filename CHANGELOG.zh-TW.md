@@ -10,6 +10,14 @@
 
 
 
+## [1.69.1] — 2026-06-12
+
+**fix(scan):`#/scan` 不再靜默截斷大型區域掃描。** 每個區域的顯示集被硬限制為 500 筆（真實的 RU 掃描有 1352 筆相符，卻只顯示 500 筆，隱藏 852 筆 —— 即「掃描 2000、僅顯示約 600」的症狀）。兩個掃描器現在使用共用且可經環境變數覆寫的常數 `MAX_STORED_RESULTS`（預設 2000，可透過 `SCAN_MAX_RESULTS` 覆寫）。僅影響顯示 —— 寫入 `pipeline.md` / `scan-history.tsv` 早已使用未截斷的集合。**fix(health/ui):`#/health` 檢查卡片不再溢位。** 過長的名稱/值會與 **Fix →** 按鈕和狀態徽章重疊；該列現在透過 `.health-check-row` 收縮並換行。新增測試 `scan-result-cap` + `health-card-overflow`。測試套件 1079 → 1084。
+
+---
+
+
+
 ## [1.69.0] — 2026-06-12
 
 **feat(scan)：掃描器轉接器自動發現 (P-14)——只需在 `server/lib/sources/` 中放入一個 `.mjs` 檔案即可註冊新資料源。** 在 v1.69 之前，`server/lib/sources/registry.mjs` 中的資料源清單是手動維護的靜態陣列：新增轉接器需要同時修改 `<id>.mjs` 和 `registry.mjs`。完成路線圖項目 P-14（`docs/ROADMAP.md`）的剩餘部分。現在 `server/lib/sources/` 中的每個 `*.mjs` 在模組啟動時動態載入，每個轉接器透過自描述區塊 `export const meta = { value, label, region, configKey? }` 宣告自身。已發布的 12 個轉接器（ashby / greenhouse / lever / rss / smartrecruiters / workable / workday + geekjob / getmatch / habr / hh / trudvsem）各自獲得 `meta`；`registry.mjs` 透過 top-level await 解析 `readdirSync` + 動態 `import()`（Node 18+ ESM 標準）。公開 API（`SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources`）保持不變——所有現有匯入繼續運作。格式錯誤的 `meta` 會被拒絕，每個問題檔案都會輸出一次 `console.warn`。新增 `tests/sources-registry-discovery.test.mjs`，包含 14 個測試案例。套件 1065 → 1079。

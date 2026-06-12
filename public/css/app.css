@@ -1578,6 +1578,18 @@ table.tbl tr.row-boosted td:first-child { box-shadow: inset 3px 0 0 var(--rausch
 
 .flex { display: flex; align-items: center; gap: var(--space-3); }
 .flex-between { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); }
+
+/* v1.69.1 — #/health check cards. A long check name/value (e.g. "PROFILE
+   CUSTOMIZED · still on template …", "PLAYWRIGHT (PARENT NODE_MODULES)")
+   used to collide with the right-hand Fix button + status badge and spill
+   out of the card, because flex children default to min-width:auto and
+   never shrink. Let the left text shrink + wrap, keep the action group
+   intact, and wrap it below on narrow cards. */
+.health-check-row { flex-wrap: wrap; align-items: flex-start; gap: var(--space-2) var(--space-3); }
+.health-check-row > :first-child { min-width: 0; flex: 1 1 140px; }
+.health-check-row > :last-child { flex: 0 0 auto; margin-left: auto; }
+.health-check-row .metric-label { overflow-wrap: anywhere; }
+.health-fix { white-space: nowrap; }
 .gap-1 { gap: var(--space-2); }
 .gap-3 { gap: var(--space-4); }
 .mt-3 { margin-top: var(--space-4); }

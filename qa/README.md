@@ -2,15 +2,15 @@
 
 Tracks regressions, fix-prompts, and live evidence across releases.
 
-## LATEST single-pass FULL driver — v1.69.0
+## LATEST single-pass FULL driver — v1.69.1
 
-> **[`QA-REGRESSION-PROMPT-v1.69.0-FULL.md`](./QA-REGRESSION-PROMPT-v1.69.0-FULL.md)**
+> **[`QA-REGRESSION-PROMPT-v1.69.1-FULL.md`](./QA-REGRESSION-PROMPT-v1.69.1-FULL.md)**
 > is the current whole-project, single-pass regression driver (as of
-> `package.json` **1.69.0**, 2026-06-12). It folds the v1.59→v1.69 surface the
+> `package.json` **1.69.1**, 2026-06-12). It folds the v1.59→v1.69 surface the
 > perennial ledger predates — including **P-14 plug-in scanner auto-discovery**
 > (`registry.mjs` now dynamically discovers `sources/*.mjs` via each adapter's
 > `export const meta` block; lock: `tests/sources-registry-discovery.test.mjs`).
-> Baselines: **≥1079** `node --test` · **≥70** Playwright · **≥20** smoke E2E ·
+> Baselines: **≥1084** `node --test` · **≥70** Playwright · **≥20** smoke E2E ·
 > **≥23** comprehensive E2E · help parity **19 H2 / 75 H3** across 9 locales.
 > Prior FULL drivers (`…-v1.68.1-FULL.md`, `…-v1.61.0-FULL.md`) are diff-only.
 

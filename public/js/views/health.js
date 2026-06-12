@@ -74,7 +74,7 @@ Router.register('health', async () => {
           else if (/^LLM_PROVIDER/.test(ch.name)) fixUrl = '#/config?tab=api-keys';
         }
         return c('li', { className: 'card' }, [
-          c('div', { className: 'flex-between' }, [
+          c('div', { className: 'flex-between health-check-row' }, [
             c('div', null, [
               c('div', { className: 'metric-label' }, ch.name),
               ch.value && c('div', { style: { fontSize: '13px', color: 'var(--foggy)', marginTop: '6px', wordBreak: 'break-all' } }, ch.value),
