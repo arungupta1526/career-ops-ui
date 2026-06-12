@@ -1526,21 +1526,40 @@ evaluate 実行、deep-research 実行、scan 実行、設定変更、モード
 
 ## 17. 新しい求人ポータルソースを追加する方法
 
-career-ops-ui は各求人サイトを **アダプタ** として扱います — [`server/lib/sources/<slug>.mjs`](../../server/lib/sources/) 配下の 1 ファイルが、1 サイトの結果取得と正規化の方法を持ちます。v1.29.0 では 11 個のアダプタ(英語圏 ATS 6 個、ロシア系ボード 5 個)が同梱されています。12 個目を追加するには、本リポジトリ内で短い編集を 3 か所、加えて親プロジェクトの `portals.yml` に 1 行追加すれば完了です。
+career-ops-ui は各求人サイトを **アダプタ** として扱います — [`server/lib/sources/<slug>.mjs`](../../server/lib/sources/) 配下の 1 ファイルが、1 サイトの結果取得と正規化の方法を持ちます。v1.29.0 では 11 個のアダプタ(英語圏 ATS 6 個、ロシア系ボード 5 個)が同梱されています。
+
+> **v1.69.0 (P-14) — ドロップイン自動検出。** 12 個目のソース追加はいまや **ファイルを置くだけ** で完結します。レジストリ
+> ([`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs))
+> は手書きリストを持たなくなりました — 起動時にこのフォルダを
+> スキャン (`readdirSync` + 動的 `import()`) し、全 `*.mjs` から `export const meta`
+> ブロックを収集します。アダプタを書いて `meta` を宣言すれば、スキャナ・`#/scan` フィルタドロップダウン・RU
+> ディスパッチャに即座に認識されます — **`registry.mjs` の編集は不要**。(RU ソースは引き続き親の `portals.yml` に 1 行必要です。ステップ 5 参照。)
 
 ### ステップ 1 — アダプタを書く
 
-`server/lib/sources/<slug>.mjs` を作成します。JSON API があるソース向け:
+`server/lib/sources/<slug>.mjs` を作成します。ソースに JSON API があるかどうかによって 2 つのパターンが使えます:
+
+**API バックエンド付きソース**(最もクリーン — サイトにオープンデータエンドポイントがあれば優先):
 
 ```js
 // server/lib/sources/example.mjs
 const ENDPOINT = 'https://example.com/api/v1/vacancies';
+const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ...';
+
+// v1.69.0 (P-14) — self-describing metadata. The registry auto-discovers
+// this block at boot; THIS is what registers the source (see Step 2).
+export const meta = {
+  value: 'example',          // ← must equal job.source written below
+  label: 'Example.com',      // ← shown in the #/scan filter dropdown
+  region: 'ru',              // ← 'en' (ATS sweep) | 'ru' (regional dispatcher)
+  configKey: 'example',      // ← RU only; the key used in portals.yml
+};
 
 export async function searchExample(query, opts = {}) {
   const { onlyRemote = false, fetchImpl = fetch, signal } = opts;
   const res = await fetchImpl(`${ENDPOINT}?text=${encodeURIComponent(query)}`, {
     signal,
-    headers: { Accept: 'application/json' },
+    headers: { 'User-Agent': UA, Accept: 'application/json' },
   });
   if (!res.ok) {
     const err = new Error(`Example: HTTP ${res.status}`);
@@ -1564,25 +1583,77 @@ function normalizeExample(item) {
     relocates: false,
     date: item.posted_at || '',
     snippet: (item.description || '').slice(0, 240),
-    source: 'example',
+    source: 'example',           // ← must match the registry `value` exactly
   };
 }
 ```
 
-### ステップ 2 — レジストリに 1 行追加
-
-[`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs) を開き、エントリを追加します:
+**HTML スクレイプソース**(API がない場合 —
+[`getmatch.mjs`](../../server/lib/sources/getmatch.mjs) と
+[`geekjob.mjs`](../../server/lib/sources/geekjob.mjs) に完全な例があります):
 
 ```js
-export const SOURCES = [
-  // …existing entries…
-  { value: 'example', label: 'Example.com', region: 'ru', configKey: 'example' },
-];
+const BASE = 'https://example.com';
+
+export async function searchExample(query, opts = {}) {
+  const { fetchImpl = fetch, signal } = opts;
+  const res = await fetchImpl(`${BASE}/vacancies?q=${encodeURIComponent(query)}`, {
+    signal,
+    headers: { 'User-Agent': UA, Accept: 'text/html' },
+  });
+  if (!res.ok) {
+    throw Object.assign(new Error(`Example: HTTP ${res.status}`), { status: res.status });
+  }
+  return parseExampleCards(await res.text());
+}
+
+export function parseExampleCards(html) {
+  // …regex-based card extraction. Return [] on parse failure (DON'T throw):
+  // a healthy 200 with no parseable cards is "no results", not "error",
+  // so the multi-source scanner can keep going.
+}
 ```
+
+アダプタが必ず守るべき 3 つの契約:
+
+- **有効な `meta` ブロックをエクスポートする**(ステップ 2 参照)。ない場合、レジストリはそのファイルを起動時に静かにスキップします(起動時に `console.warn` 1 回)。ソースは一切表示されません。
+- **`opts` に `{ onlyRemote, fetchImpl, signal }` を受け取る。** `fetchImpl`
+  はアダプタをネットワークなしでテスト可能にし、`signal` はクライアント切断の伝播に必要です (REVIEW-B3)。
+- **共通の形のレコードを返す** —
+  `{ id, title, company, url, salary, location, isRemote, workplaceType,
+  relocates, date, snippet, source }` で、`source` は
+  `meta.value` と一致すること。
+
+### ステップ 2 — アダプタの `meta` を宣言する(自動登録)
+
+これが登録ステップのすべてです。**`registry.mjs` は編集しません。**
+アダプタが `meta` ブロックをエクスポートしていれば、レジストリが起動時に自動検出します:
+
+```js
+// at the top of server/lib/sources/example.mjs
+export const meta = {
+  value: 'example',          // job.source value AND #/scan option.value
+  label: 'Example.com',      // display label in the dropdown
+  region: 'ru',              // 'en' | 'ru'
+  configKey: 'example',      // RU only — key in portals.yml::russian_portals.sources
+};
+```
+
+検出時のバリデーションルール(いずれかに違反したファイルはスキップされ、`[sources/registry]` 警告が 1 件出力されます — 移行途中のブランチでも原因が追えます):
+
+- `value` — 空でない文字列。アダプタが書く `job.source` と一致すること。
+- `label` — 空でない文字列。
+- `region` — 正確に `'en'` または `'ru'`。それ以外は拒否。
+- `configKey` — `region: 'ru'` では **必須**、`'en'` では無視。
+
+`region: 'en'` は ATS スイープに加わります(`tracked_companies` の URL パターンから自動検出)。`region: 'ru'` はリージョナルディスパッチャに加わります。公開 API
+(`SOURCES`、`SOURCES_BY_REGION`、`RU_CONFIG_KEYS`、`getRegionalSources`) は検出された全 `meta` から再構築され、`en` 優先・各リージョン内でラベルのアルファベット順に並ぶので、ドロップダウンの順序はユーザに対して安定します。
 
 ### ステップ 3 — ディスパッチャに配線(RU のみ)
 
-EN アダプタは `tracked_companies` から自動検出されます。RU の場合は [`server/lib/ru-scanner.mjs`](../../server/lib/ru-scanner.mjs) を開き、`RU_DISPATCH` に 1 行追加します:
+EN ATS ソースは `tracked_companies` の URL パターンから自動検出されるため、追加の配線は不要です。RU ソースの場合は
+[`server/lib/ru-scanner.mjs`](../../server/lib/ru-scanner.mjs) を開き、
+`RU_DISPATCH` テーブルに 1 行追加します:
 
 ```js
 import { searchExample } from './sources/example.mjs';
@@ -1593,9 +1664,29 @@ const RU_DISPATCH = {
 };
 ```
 
+ディスパッチャループは `cfg.sources` に存在する各キーについて `entry.search(query, opts)` を呼び出します。それ以上のコード変更は不要です。
+
 ### ステップ 4 — テスト(モック、ライブネットワーク禁止)
 
-テストにおける実ネットワークは **禁止** されています(CI-isolation 契約)。アダプタにモックの `fetchImpl` を渡してください — [`tests/sources-trudvsem.test.mjs`](../../tests/sources-trudvsem.test.mjs) を参照。
+テストは `tests/sources-<slug>.test.mjs` に置きます。実ネットワークは
+**禁止** です (CI-isolation 契約):
+
+```js
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { searchExample } from '../server/lib/sources/example.mjs';
+
+test('searchExample normalizes one record', async () => {
+  const fetchImpl = async () =>
+    new Response(
+      JSON.stringify({ items: [{ id: 1, title: 'Backend Engineer' }] }),
+      { status: 200, headers: { 'content-type': 'application/json' } }
+    );
+  const out = await searchExample('q', { fetchImpl });
+  assert.equal(out.length, 1);
+  assert.equal(out[0].source, 'example');
+});
+```
 
 ### ステップ 5 — 自分の `portals.yml` で有効化
 
@@ -1604,11 +1695,18 @@ const RU_DISPATCH = {
 ```yaml
 russian_portals:
   sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob", "example"]
+  area: 113
+  per_page: 50
+  only_remote: false
+  queries:
+    - "Senior PHP"
+    - "Senior Go"
 ```
 
-ブラウザで `#/scan` をリロードしてください。ソースフィルタのドロップダウンは新エントリを自動取得します(`GET /api/scan/sources` → `registry.mjs` が単一情報源)。
-
-**完全なコード例(HTML スクレイプアダプタ、よくある落とし穴、参照アダプタ表)は、本セクションの英語版 [docs/help/en.md §17](https://github.com/Fighter90/career-ops-ui/blob/main/docs/help/en.md#17-how-to-add-a-new-job-portal-source) を参照してください。**
+ブラウザで `#/scan` をリロードしてください。ソースフィルタのドロップダウンは新エントリを自動取得します(単一情報源:
+[`GET /api/scan/sources`](../../server/lib/routes/scan.mjs) →
+[`registry.mjs`](../../server/lib/sources/registry.mjs))。
+🌐 スキャンボタンは以降、全リージョナルスイープに新ソースを含めます。
 
 ### 参照アダプタ(新ソースはこれらをミラーする)
 
@@ -1623,8 +1721,9 @@ russian_portals:
 
 ### よくある落とし穴
 
+- **`meta` エクスポートの忘れ。** v1.69.0 以降、`meta` ブロックがソースを登録する *唯一* の手段です。`meta` がない(または不正な)場合、ファイルは起動時に静かにスキップされ、`[sources/registry] <file> has no valid \`export const meta\` — skipped` という警告が 1 件だけ出ます。新しいアダプタがドロップダウンに現れない場合はサーバーログを確認してください。
 - **`source` フィールドの不一致。** アダプタが書き込む文字列は
-  `registry.mjs` の `value` と完全に一致しなければなりません。ずれると、
+  `meta.value` と完全に一致しなければなりません。ずれると、
   `#/scan` のフィルタドロップダウンにはソースが表示されますが、選択すると
   すべての行が除外されます(等価チェックが `r.source === fs` のため)。
 - **パース失敗時に例外を投げる。** HTML スクレイパは、カードをパースできない

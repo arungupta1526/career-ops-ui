@@ -10,7 +10,7 @@
 
 
 
-## [1.69.0] — 2026-06-09
+## [1.69.0] — 2026-06-12
 
 **feat(scan): 스캐너 어댑터 자동 발견 (P-14) — `server/lib/sources/` 에 `.mjs` 파일을 두기만 하면 새로운 소스가 등록됩니다.** v1.69 이전에는 `server/lib/sources/registry.mjs` 의 소스 목록이 손으로 유지되는 정적 배열이어서, 어댑터를 추가하려면 `<id>.mjs` 와 `registry.mjs` 를 모두 수정해야 했습니다. 로드맵 항목 P-14 (`docs/ROADMAP.md`) 의 남은 절반을 마무리합니다. 이제 `server/lib/sources/` 의 모든 `*.mjs` 가 모듈 부팅 시 동적으로 로드되며, 각 어댑터는 자기 기술적인 블록 `export const meta = { value, label, region, configKey? }` 로 자신의 정체성을 선언합니다. 동봉된 12개의 어댑터(ashby / greenhouse / lever / rss / smartrecruiters / workable / workday + geekjob / getmatch / habr / hh / trudvsem) 에 `meta` 가 추가되었고, `registry.mjs` 는 `readdirSync` + 동적 `import()` 를 top-level await 로 해석합니다 (Node 18+ ESM 표준). 공개 API (`SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources`) 는 변경되지 않습니다 — 기존 임포트는 그대로 동작합니다. 잘못된 `meta` 는 거부되고 파일마다 `console.warn` 가 한 번씩 기록됩니다. `tests/sources-registry-discovery.test.mjs` 에 14개의 케이스를 추가했습니다. 스위트 1065 → 1079.
 

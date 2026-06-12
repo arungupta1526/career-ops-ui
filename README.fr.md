@@ -5,18 +5,18 @@
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | **Français**
 
-[![tests](https://img.shields.io/badge/tests-1065%20passed-brightgreen)](#tests)
+[![tests](https://img.shields.io/badge/tests-1079%20passed-brightgreen)](#tests)
 [![e2e](https://img.shields.io/badge/e2e-23%2F23%20%2B%2020%2F20-brightgreen)](#tests)
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.68.2-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.68.2)
+[![release](https://img.shields.io/badge/release-v1.69.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.69.0)
 
-> **🆕 Dernière version — v1.68.2**
+> **🆕 Dernière version — v1.69.0**
 >
-> **Les verbes de la CLI via `npx` / `npm link` étaient cassés — désormais corrigé.** npm et npx exposent `career-ops-ui` comme un lien symbolique sous `node_modules/.bin/`, où l'ancienne logique de chemin pointait vers `.bin` au lieu de la racine du paquet — si bien que `npx career-ops-ui init` échouait avec `MODULE_NOT_FOUND`. Désormais `bin/career-ops-ui.sh` et `bin/start.sh` résolvent le chemin du script à travers la chaîne de liens (`readlink` + `cd -P`), de sorte que chaque verbe fonctionne depuis le dépôt, via `npm link` et via `npx`. Verrouillé par un nouveau test de régression qui exécute un verbe à travers un lien de style `.bin`.
+> **Auto-découverte du scanner par dépôt de fichier (P-14) — déposez un `.mjs` dans `server/lib/sources/` et il s'enregistre tout seul.** Avant la v1.69, la liste des sources dans `server/lib/sources/registry.mjs` était un tableau géré à la main : ajouter un adaptateur impliquait d'éditer à la fois `<id>.mjs` ET `registry.mjs`. Désormais chaque adaptateur déclare un bloc auto-descriptif `export const meta = { value, label, region, configKey? }`, et le registre l'auto-découvre au démarrage (`readdirSync` + `import()` dynamique). Clôture la moitié partielle de l'élément de roadmap P-14. L'API publique (`SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources`) est inchangée — chaque import existant continue de fonctionner, et un `meta` malformé est ignoré avec un seul avertissement de diagnostic. Le §17 de l'aide (« Comment ajouter une nouvelle source de portail d'emploi ») a été réécrit dans les 9 langues pour le flux de dépôt de fichier.
 >
-> _Suite complète **1065/1065** au vert · i18n + docs synchronisés dans les 9 langues._
+> _Suite complète **1079/1079** au vert · i18n + docs synchronisés dans les 9 langues._
 
 ![career-ops-ui — Centre de commande](./images/dashboard-fr.png)
 
@@ -685,3 +685,9 @@ Rafraîchissez la page Health — chaque vérification requise doit être verte.
 MIT. Voir [LICENSE](LICENSE).
 
 Construit par-dessus [career-ops](https://github.com/santifer/career-ops) de [santifer](https://santifer.io). Merci pour ce pipeline brillant.
+
+## Contributeurs
+
+Merci à toutes les personnes qui aident à construire career-ops-ui. Le projet est maintenu par [Fighter90](https://github.com/Fighter90) et amélioré par les contributions de la communauté — voir la liste complète sur le [graphe des contributeurs](https://github.com/Fighter90/career-ops-ui/graphs/contributors).
+
+[![Contributeurs](https://contrib.rocks/image?repo=Fighter90/career-ops-ui)](https://github.com/Fighter90/career-ops-ui/graphs/contributors)

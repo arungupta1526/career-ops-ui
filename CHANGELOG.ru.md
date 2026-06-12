@@ -10,7 +10,7 @@
 
 
 
-## [1.69.0] — 2026-06-09
+## [1.69.0] — 2026-06-12
 
 **feat(scan): автообнаружение адаптеров сканера (P-14) — достаточно положить `.mjs` в `server/lib/sources/`, чтобы зарегистрировать новый источник.** До v1.69 список источников в `server/lib/sources/registry.mjs` был статическим массивом, поддерживаемым вручную: добавление адаптера требовало правок и в `<id>.mjs`, и в `registry.mjs`. Закрывает оставшуюся половину пункта P-14 дорожной карты (`docs/ROADMAP.md`). Теперь каждый `*.mjs` из `server/lib/sources/` подгружается динамически при загрузке модуля; каждый адаптер заявляет о себе самоописательным блоком `export const meta = { value, label, region, configKey? }`. Все 12 поставляемых адаптеров (ashby / greenhouse / lever / rss / smartrecruiters / workable / workday + geekjob / getmatch / habr / hh / trudvsem) получили `meta`; `registry.mjs` использует `readdirSync` + динамический `import()` с top-level await (стандарт ESM Node 18+). Публичный API (`SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources`) не меняется: все существующие импорты продолжают работать. Валидация отбрасывает некорректные `meta` и пишет `console.warn` на каждый сбойный файл. Новый `tests/sources-registry-discovery.test.mjs` с 14 кейсами. Сьют 1065 → 1079.
 

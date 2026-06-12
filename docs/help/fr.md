@@ -1635,9 +1635,17 @@ career-ops-ui traite chaque site d'emploi comme un **adaptateur** — un
 fichier unique sous
 [`server/lib/sources/<slug>.mjs`](../../server/lib/sources/) qui sait
 récupérer + normaliser les résultats d'un site. La v1.29.0 livre 11
-adaptateurs (6 ATS anglais, 5 sites russes). En ajouter un 12e, ce sont
-trois courtes éditions dans ce repo + une ligne dans le `portals.yml` du
-parent.
+adaptateurs (6 ATS anglais, 5 sites russes).
+
+> **v1.69.0 (P-14) — auto-découverte par dépôt de fichier.** Ajouter une 12e source est désormais
+> un **simple dépôt de fichier**. Le registre
+> ([`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs))
+> ne contient plus de liste gérée à la main — au démarrage il scanne ce dossier
+> (`readdirSync` + `import()` dynamique) et collecte le bloc `export const meta`
+> de chaque `*.mjs`. Écrivez l'adaptateur, déclarez son `meta`, et il est
+> immédiatement visible dans le scanner, dans le menu déroulant de filtre `#/scan` et dans le
+> dispatcher RU — **aucune modification de `registry.mjs` requise**. (Les sources RU nécessitent
+> toujours une ligne dans le `portals.yml` du parent ; voir l'étape 5.)
 
 ### Step 1 — Write the adapter
 
@@ -1651,6 +1659,15 @@ un endpoint de données ouvert) :
 // server/lib/sources/example.mjs
 const ENDPOINT = 'https://example.com/api/v1/vacancies';
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ...';
+
+// v1.69.0 (P-14) — self-describing metadata. The registry auto-discovers
+// this block at boot; THIS is what registers the source (see Step 2).
+export const meta = {
+  value: 'example',          // ← must equal job.source written below
+  label: 'Example.com',      // ← shown in the #/scan filter dropdown
+  region: 'ru',              // ← 'en' (ATS sweep) | 'ru' (regional dispatcher)
+  configKey: 'example',      // ← RU only; the key used in portals.yml
+};
 
 export async function searchExample(query, opts = {}) {
   const { onlyRemote = false, fetchImpl = fetch, signal } = opts;
@@ -1712,34 +1729,49 @@ export function parseExampleCards(html) {
 }
 ```
 
-Deux contrats que chaque adaptateur DOIT honorer :
+Trois contrats que chaque adaptateur DOIT honorer :
 
+- **Exporter un bloc `meta` valide** (voir l'étape 2). Sans lui, le registre
+  ignore silencieusement le fichier (un `console.warn` au démarrage) et la source
+  n'apparaît jamais.
 - **Accepter `{ onlyRemote, fetchImpl, signal }` dans `opts`.** `fetchImpl`
   est ce qui rend les adaptateurs testables sans réseau ; `signal` est requis
   pour la propagation de la déconnexion du client (REVIEW-B3).
 - **Renvoyer des enregistrements à la forme commune** —
   `{ id, title, company, url, salary, location, isRemote, workplaceType,
-  relocates, date, snippet, source }`, où `source` correspond au `value` du
-  registre.
+  relocates, date, snippet, source }`, où `source` correspond à
+  `meta.value`.
 
-### Step 2 — Add a row to the registry
+### Step 2 — Declare the adapter's `meta` (auto-registration)
 
-Ouvrez
-[`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs)
-et ajoutez une entrée :
+C'est toute l'étape d'enregistrement. **Vous ne modifiez pas `registry.mjs`.**
+Assurez-vous simplement que l'adaptateur exporte un bloc `meta` — le registre
+l'auto-découvre au démarrage :
 
 ```js
-export const SOURCES = [
-  // …existing entries…
-  { value: 'example', label: 'Example.com', region: 'ru', configKey: 'example' },
-];
+// at the top of server/lib/sources/example.mjs
+export const meta = {
+  value: 'example',          // job.source value AND #/scan option.value
+  label: 'Example.com',      // display label in the dropdown
+  region: 'ru',              // 'en' | 'ru'
+  configKey: 'example',      // RU only — key in portals.yml::russian_portals.sources
+};
 ```
 
-- `value` DOIT correspondre à `job.source` de votre adaptateur.
-- `region: 'en'` rejoint la passe ATS (auto-découverte depuis les patterns
-  d'URL `tracked_companies`) ; `region: 'ru'` rejoint le dispatcher régional.
-- `configKey` (uniquement pour `region: 'ru'`) — la clé que l'utilisateur
-  liste dans `portals.yml::russian_portals.sources`.
+Comment la découverte le valide (un fichier échouant à une règle est ignoré, avec un
+avertissement `[sources/registry]`, afin qu'une branche à moitié migrée reste diagnosticable) :
+
+- `value` — chaîne non vide. DOIT correspondre à `job.source` de votre adaptateur.
+- `label` — chaîne non vide.
+- `region` — exactement `'en'` ou `'ru'` ; toute autre valeur est rejetée.
+- `configKey` — **requis** pour `region: 'ru'`, ignoré pour `'en'`.
+
+`region: 'en'` rejoint la passe ATS (auto-découverte depuis les patterns d'URL
+`tracked_companies`) ; `region: 'ru'` rejoint le dispatcher régional. L'API publique
+(`SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources`) est
+reconstruite à partir de chaque `meta` découvert, dans l'ordre `en` d'abord puis `ru`,
+par ordre alphabétique du label au sein de chaque région — l'ordre du menu déroulant
+reste ainsi stable pour les utilisateurs.
 
 ### Step 3 — Wire into the dispatcher (RU only)
 
@@ -1817,8 +1849,14 @@ récupère la nouvelle entrée automatiquement (source unique de vérité via
 
 ### Common pitfalls
 
+- **Oublier l'export `meta`.** Depuis la v1.69.0, le bloc `meta` est la
+  *seule* chose qui enregistre une source. Pas de `meta` (ou un `meta` malformé) =
+  le fichier est silencieusement ignoré au démarrage avec un seul avertissement
+  `[sources/registry] <file> has no valid \`export const meta\` — skipped`,
+  et la source n'atteint jamais le menu déroulant. Vérifiez le journal du serveur
+  si un tout nouvel adaptateur n'apparaît pas.
 - **Décalage du champ `source`.** La chaîne écrite par votre adaptateur DOIT
-  correspondre exactement au `value` de `registry.mjs`. Si elles divergent,
+  correspondre exactement à `meta.value`. Si elles divergent,
   le menu de filtre `#/scan` montrera la source mais la sélectionner filtrera
   toutes les lignes (car le test d'égalité est `r.source === fs`).
 - **Lever une exception en cas d'échec de parsing.** Les scrapers HTML

@@ -76,7 +76,7 @@ Spawns Node scripts in the parent project.
 In-process scanner for 5 RU portals (since v1.29.0): hh.ru, Habr Career, Trudvsem, GetMatch, GeekJob.
 
 - `loadConfig()` — reads `russian_portals:` block from `portals.yml`. Default `sources` (when the array is unset) pulls from `registry.mjs::RU_CONFIG_KEYS` → all 5 adapters.
-- `RU_DISPATCH` — table mapping each `russian_portals.sources` key to its adapter (`search` fn + `label` for log lines). Adding a 6th source = one row here + one adapter file + one registry entry.
+- `RU_DISPATCH` — table mapping each `russian_portals.sources` key to its adapter (`search` fn + `label` for log lines). Adding a 6th RU source = one row here + one adapter file (which now self-registers via its `meta` export — see `sources/registry.mjs` below; no manual registry edit since v1.69.0).
 - `runRuScan({ writeFiles, onLog })` — iterates `cfg.sources` and runs each adapter via the dispatch table. Normalizes to the common job shape, dedup-filters via title-filter + scan-history, writes `data/scan-history.tsv` (append) and `data/last-scan.json` (replace) when `writeFiles`. Per-source failures are caught and reported in `errors[]` without aborting the rest of the sweep. Calls `onLog('stdout'|'stderr', line)` per progress event.
 
 ### `en-scanner.mjs` (230 LOC)
@@ -87,9 +87,24 @@ Same shape but for the 6 EN ATS via `lib/sources/*.mjs` (Greenhouse / Ashby / Le
 - Reads `tracked_companies:` from `portals.yml` (career-ops v1.7+) and falls back to legacy `companies:`. Only entries with `enabled !== false` are scanned.
 - `loadLastScan()` — reads `data/last-scan.json`, returns `{ en, ru, ... }` keyed by scan kind (or empty on missing).
 
-### `sources/{greenhouse,ashby,lever,habr,hh}.mjs`
+### `sources/{greenhouse,ashby,lever,habr,hh,…}.mjs`
 
-Per-portal HTTP clients. Each exports `fetchCompanyJobs(slug, opts)` returning a normalized job array. Self-contained — no shared state.
+Per-portal HTTP clients. Each exports a fetch/search function returning a normalized job array. Self-contained — no shared state.
+
+Since **v1.69.0 (P-14)** every adapter also exports a self-describing `meta` block:
+
+```js
+export const meta = { value, label, region: 'en' | 'ru', configKey? };
+```
+
+### `sources/registry.mjs` — dynamic source registry (v1.69.0)
+
+The single source of truth for the scanner, the `GET /api/scan/sources` endpoint, and the `#/scan` filter dropdown. **No longer a hand-maintained array.** At module boot it `readdirSync`-scans the `sources/` folder and dynamically `import()`s every `*.mjs` (except `registry.mjs` itself), collecting each module's `meta` export — resolved via top-level `await` (Node 18+ ESM). Malformed `meta` (missing `value`/`label`, `region` outside `en|ru`, RU without `configKey`) is skipped with a single `[sources/registry]` `console.warn`, keeping half-migrated branches diagnosable.
+
+- Public API (unchanged across v1.69.0): `SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources()`.
+- `discoverSources(dir)` — exposed so tests can validate drop-in behaviour against a temp directory.
+- Discovered order: `en` first then `ru`, alphabetical by label inside each region (matches the pre-v1.69.0 hand-maintained order, so the dropdown stays stable).
+- **To add a source:** drop a `<slug>.mjs` with a `meta` export into `sources/`. RU sources additionally need their `configKey` listed in the parent's `portals.yml::russian_portals.sources` and a `RU_DISPATCH` row in `ru-scanner.mjs`. Full walkthrough: in-app Help §17.
 
 ### `anthropic.mjs` (70 LOC)
 

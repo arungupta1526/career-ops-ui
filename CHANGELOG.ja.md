@@ -10,7 +10,7 @@
 
 
 
-## [1.69.0] — 2026-06-09
+## [1.69.0] — 2026-06-12
 
 **feat(scan): スキャナーアダプターの自動検出（P-14）— `server/lib/sources/` に `.mjs` ファイルを置くだけで新しいソースを登録できます。** v1.69 以前は `server/lib/sources/registry.mjs` のソース一覧が手作業の静的配列で、アダプターを追加するには `<id>.mjs` と `registry.mjs` の両方を編集する必要がありました。これでロードマップ項目 P-14（`docs/ROADMAP.md`）の残作業を解消します。`server/lib/sources/` 内の各 `*.mjs` はモジュール起動時に動的にロードされ、各アダプターは自己記述的なブロック `export const meta = { value, label, region, configKey? }` で自身を宣言します。同梱の 12 個のアダプター（ashby / greenhouse / lever / rss / smartrecruiters / workable / workday + geekjob / getmatch / habr / hh / trudvsem）に `meta` を追加。`registry.mjs` は `readdirSync` + 動的 `import()` を top-level await で解決します（Node 18+ の ESM 標準）。公開 API（`SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources`）は変更なし — 既存のインポートはそのまま動作します。`meta` が不正な場合はスキップし、ファイルごとに `console.warn` を 1 回出力します。`tests/sources-registry-discovery.test.mjs` に 14 ケースを追加。スイート 1065 → 1079。
 

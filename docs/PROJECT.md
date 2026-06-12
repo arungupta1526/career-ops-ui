@@ -32,7 +32,7 @@ The UI is **single-tenant by design** — it binds to loopback by default, has n
 
 - Reading and rendering all career-ops state (cv, profile, portals, applications, reports, pipeline, JDs, scan history, follow-ups, interview-prep, output PDFs).
 - Triggering parent-project scripts (`scan.mjs`, `doctor.mjs`, `verify-pipeline.mjs`, `normalize-statuses.mjs`, `dedup-tracker.mjs`, `merge-tracker.mjs`, `generate-pdf.mjs`, `check-liveness.mjs`, `gemini-eval.mjs`) via buffered or SSE-streaming endpoints.
-- In-process portal scanners — **11 adapters** as of v1.29.0: 6 EN ATS (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday) + 5 RU portals (hh.ru / Habr Career / Trudvsem / GetMatch / GeekJob). All bypass Playwright. Discoverable via `GET /api/scan/sources`. Adding a 12th = one entry in `server/lib/sources/registry.mjs`.
+- In-process portal scanners — **12 adapters**: 7 EN-region (Greenhouse / Ashby / Lever / Workable / SmartRecruiters / Workday + RSS) + 5 RU portals (hh.ru / Habr Career / Trudvsem / GetMatch / GeekJob). All bypass Playwright. Discoverable via `GET /api/scan/sources`. Since v1.69.0 (P-14) adding another = dropping a `<slug>.mjs` with a `meta` export into `server/lib/sources/`; the registry auto-discovers it (no registry edit).
 - A live "Run" pathway via Anthropic / Gemini SDKs when the user provides an API key, or a copy-paste prompt path when no key is present.
 - i18n across 8 locales (en, es, pt-BR, ko-KR, ja, ru, zh-CN, zh-TW).
 

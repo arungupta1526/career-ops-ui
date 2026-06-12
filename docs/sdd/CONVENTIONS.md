@@ -69,7 +69,7 @@ Route reviewers (`web-ui-route-reviewer` agent) flag every miss.
 - **SSE consumers** via `API.stream(path, onEvent)`. Auto-closes the `EventSource` on `done` (single-phase) or on the final `done` with `data.final !== false` (multi-phase, see v1.29.2 invariant M-13 in `qa/REGRESSION-v1.29.2.md`).
 - **Navigation** via `Router.go('/path')`. Never set `window.location.hash` directly outside `router.js`. The router strips `?query` from the route-name lookup (v1.28.1 fix); views parse query params from `window.location.hash.split('?')[1]` themselves via `URLSearchParams`.
 - **Paginator** via `UI.paginate({ pageSize, onChange })`. Used by `#/tracker` / `#/reports` / `#/activity` / `#/scan` (v1.30.0). Filter inputs MUST call `pager.reset()` so a deep-page user lands on page 1 when their search narrows the result set.
-- **Source-list lookups** (`#/scan` filter dropdown, regional scanner dispatch) read from `server/lib/sources/registry.mjs` via `GET /api/scan/sources`. Adding a 12th adapter = one entry in the registry; never hardcode a source list in a view or the dispatcher.
+- **Source-list lookups** (`#/scan` filter dropdown, regional scanner dispatch) read from `server/lib/sources/registry.mjs` via `GET /api/scan/sources`. Since v1.69.0 (P-14) the registry auto-discovers adapters: adding a source = dropping a `<slug>.mjs` with an `export const meta` block into `server/lib/sources/` (no registry edit). Never hardcode a source list in a view or the dispatcher.
 
 ## i18n
 

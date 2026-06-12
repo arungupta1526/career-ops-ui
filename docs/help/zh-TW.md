@@ -1409,21 +1409,40 @@ scan 執行、設定變更、mode 執行。
 
 ## 17. 如何新增職位入口網站來源
 
-career-ops-ui 將每個職位網站視為 **adapter** — [`server/lib/sources/<slug>.mjs`](../../server/lib/sources/) 下的單一檔案,知道如何取得並正規化某個站點的結果。v1.29.0 內建 11 個 adapter(6 個英文 ATS、5 個俄文板塊)。新增第 12 個 = 本儲存庫內的 3 處短編輯 + 父專案 `portals.yml` 的一列。
+career-ops-ui 將每個職位網站視為 **adapter** — [`server/lib/sources/<slug>.mjs`](../../server/lib/sources/) 下的單一檔案,知道如何取得並正規化某個站點的結果。v1.29.0 內建 11 個 adapter(6 個英文 ATS、5 個俄文板塊)。
+
+> **v1.69.0 (P-14) — 直接放入即自動探索。** 新增第 12 個來源現在只需**純粹的檔案放入**。registry
+> ([`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs))
+> 不再維護手動清單 — 啟動時它會掃描此資料夾
+> (`readdirSync` + dynamic `import()`) 並從每個 `*.mjs` 收集 `export const meta`
+> 區塊。寫好 adapter、宣告其 `meta`,它就會立刻出現在掃描器、`#/scan` 篩選下拉框和 RU
+> dispatcher 中 — **無需編輯 `registry.mjs`**。(RU 來源仍需在父專案的 `portals.yml` 中加入一行;參見步驟 5。)
 
 ### 步驟 1 — 編寫 adapter
 
-建立 `server/lib/sources/<slug>.mjs`。對於有公開 JSON API 的來源:
+建立 `server/lib/sources/<slug>.mjs`。依據來源是否提供 JSON API,有兩種模式可用:
+
+**API 型來源**(最簡潔 — 只要網站有開放資料端點就優先選這個):
 
 ```js
 // server/lib/sources/example.mjs
 const ENDPOINT = 'https://example.com/api/v1/vacancies';
+const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ...';
+
+// v1.69.0 (P-14) — self-describing metadata. The registry auto-discovers
+// this block at boot; THIS is what registers the source (see Step 2).
+export const meta = {
+  value: 'example',          // ← must equal job.source written below
+  label: 'Example.com',      // ← shown in the #/scan filter dropdown
+  region: 'ru',              // ← 'en' (ATS sweep) | 'ru' (regional dispatcher)
+  configKey: 'example',      // ← RU only; the key used in portals.yml
+};
 
 export async function searchExample(query, opts = {}) {
   const { onlyRemote = false, fetchImpl = fetch, signal } = opts;
   const res = await fetchImpl(`${ENDPOINT}?text=${encodeURIComponent(query)}`, {
     signal,
-    headers: { Accept: 'application/json' },
+    headers: { 'User-Agent': UA, Accept: 'application/json' },
   });
   if (!res.ok) {
     const err = new Error(`Example: HTTP ${res.status}`);
@@ -1447,25 +1466,80 @@ function normalizeExample(item) {
     relocates: false,
     date: item.posted_at || '',
     snippet: (item.description || '').slice(0, 240),
-    source: 'example',
+    source: 'example',           // ← must match the registry `value` exactly
   };
 }
 ```
 
-### 步驟 2 — 在 registry 中新增一列
-
-開啟 [`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs) 並新增一項:
+**HTML 抓取型來源**(當沒有 API 時 — 完整範例請參閱
+[`getmatch.mjs`](../../server/lib/sources/getmatch.mjs) 和
+[`geekjob.mjs`](../../server/lib/sources/geekjob.mjs)):
 
 ```js
-export const SOURCES = [
-  // …existing entries…
-  { value: 'example', label: 'Example.com', region: 'ru', configKey: 'example' },
-];
+const BASE = 'https://example.com';
+
+export async function searchExample(query, opts = {}) {
+  const { fetchImpl = fetch, signal } = opts;
+  const res = await fetchImpl(`${BASE}/vacancies?q=${encodeURIComponent(query)}`, {
+    signal,
+    headers: { 'User-Agent': UA, Accept: 'text/html' },
+  });
+  if (!res.ok) {
+    throw Object.assign(new Error(`Example: HTTP ${res.status}`), { status: res.status });
+  }
+  return parseExampleCards(await res.text());
+}
+
+export function parseExampleCards(html) {
+  // …regex-based card extraction. Return [] on parse failure (DON'T throw):
+  // a healthy 200 with no parseable cards is "no results", not "error",
+  // so the multi-source scanner can keep going.
+}
 ```
+
+每個 adapter 必須遵守三項契約:
+
+- **匯出有效的 `meta` 區塊**(參見步驟 2)。沒有它,registry
+  會靜默跳過該檔案(啟動時發出一條 `console.warn`),該來源永遠不會出現。
+- **在 `opts` 中接受 `{ onlyRemote, fetchImpl, signal }`。** `fetchImpl`
+  讓 adapter 在無需網路的情況下可測試;`signal` 是用戶端斷線傳播所必需的(REVIEW-B3)。
+- **回傳具有通用形狀的記錄** —
+  `{ id, title, company, url, salary, location, isRemote, workplaceType,
+  relocates, date, snippet, source }`,其中 `source` 必須匹配
+  `meta.value`。
+
+### 步驟 2 — 宣告 adapter 的 `meta`(自動註冊)
+
+這就是完整的註冊步驟。**你不需要編輯 `registry.mjs`。**
+只需確保 adapter 匯出了 `meta` 區塊 — registry 會在啟動時自動探索它:
+
+```js
+// at the top of server/lib/sources/example.mjs
+export const meta = {
+  value: 'example',          // job.source value AND #/scan option.value
+  label: 'Example.com',      // display label in the dropdown
+  region: 'ru',              // 'en' | 'ru'
+  configKey: 'example',      // RU only — key in portals.yml::russian_portals.sources
+};
+```
+
+探索時的驗證規則(任一規則不符的檔案會被跳過,並發出一條
+`[sources/registry]` 警告,讓部分遷移的分支仍可診斷):
+
+- `value` — 非空字串。必須與 adapter 中的 `job.source` 一致。
+- `label` — 非空字串。
+- `region` — 必須是 `'en'` 或 `'ru'`;其他值一律拒絕。
+- `configKey` — `region: 'ru'` 時**必填**;`'en'` 時忽略。
+
+`region: 'en'` 會加入 ATS 掃描(從 `tracked_companies` URL 模式自動探索);`region: 'ru'` 會加入區域 dispatcher。公開 API
+(`SOURCES`、`SOURCES_BY_REGION`、`RU_CONFIG_KEYS`、`getRegionalSources`) 從所有已探索的 `meta` 重新建構,順序為 `en` 優先再 `ru`,各區域內依 label 字母排序 — 確保下拉框順序對使用者保持穩定。
 
 ### 步驟 3 — 接入 dispatcher(僅 RU)
 
-EN adapter 自動從 `tracked_companies` 發現。RU adapter 需開啟 [`server/lib/ru-scanner.mjs`](../../server/lib/ru-scanner.mjs) 並在 `RU_DISPATCH` 中新增一列:
+EN ATS 來源從 `tracked_companies` URL 模式自動探索 —
+無需進一步接線。對於 RU 來源,開啟
+[`server/lib/ru-scanner.mjs`](../../server/lib/ru-scanner.mjs),找到
+`RU_DISPATCH` 表,並新增一列:
 
 ```js
 import { searchExample } from './sources/example.mjs';
@@ -1476,9 +1550,29 @@ const RU_DISPATCH = {
 };
 ```
 
+dispatcher 迴圈會為 `cfg.sources` 中出現的每個鍵呼叫 `entry.search(query, opts)`。不需要其他程式碼變更。
+
 ### 步驟 4 — 測試(mock,嚴禁真實網路)
 
-測試中**禁止**真實網路(CI-isolation 契約)。向 adapter 傳入 mock 化的 `fetchImpl` — 參見 [`tests/sources-trudvsem.test.mjs`](../../tests/sources-trudvsem.test.mjs)。
+在 `tests/sources-<slug>.test.mjs` 下放置一個測試檔案。測試中**禁止**
+真實網路(CI-isolation 契約):
+
+```js
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { searchExample } from '../server/lib/sources/example.mjs';
+
+test('searchExample normalizes one record', async () => {
+  const fetchImpl = async () =>
+    new Response(
+      JSON.stringify({ items: [{ id: 1, title: 'Backend Engineer' }] }),
+      { status: 200, headers: { 'content-type': 'application/json' } }
+    );
+  const out = await searchExample('q', { fetchImpl });
+  assert.equal(out.length, 1);
+  assert.equal(out[0].source, 'example');
+});
+```
 
 ### 步驟 5 — 在你的 `portals.yml` 中啟用
 
@@ -1487,11 +1581,18 @@ const RU_DISPATCH = {
 ```yaml
 russian_portals:
   sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob", "example"]
+  area: 113
+  per_page: 50
+  only_remote: false
+  queries:
+    - "Senior PHP"
+    - "Senior Go"
 ```
 
-在瀏覽器中重新載入 `#/scan`。來源篩選下拉框會自動取得新條目(單一事實來源:`GET /api/scan/sources` → `registry.mjs`)。
-
-**完整程式碼範例(HTML 抓取 adapter、常見陷阱、參考 adapter 表)請參閱本節英文版 [docs/help/en.md §17](https://github.com/Fighter90/career-ops-ui/blob/main/docs/help/en.md#17-how-to-add-a-new-job-portal-source)。**
+在瀏覽器中重新載入 `#/scan`。來源篩選下拉框會自動取得新條目(單一事實來源:
+[`GET /api/scan/sources`](../../server/lib/routes/scan.mjs) →
+[`registry.mjs`](../../server/lib/sources/registry.mjs))。
+🌐 掃描按鈕現在會在每次區域掃描時包含新來源。
 
 ### 參考 adapter(新來源請鏡像這些)
 
@@ -1506,8 +1607,13 @@ russian_portals:
 
 ### 常見陷阱
 
+- **遺漏 `meta` 匯出。** 自 v1.69.0 起,`meta` 區塊是
+  *唯一*能註冊來源的途徑。沒有 `meta`(或格式錯誤)=
+  檔案在啟動時被靜默跳過,並發出一條
+  `[sources/registry] <file> has no valid \`export const meta\` — skipped`
+  警告,該來源永遠不會出現在下拉框中。如果全新的 adapter 沒有顯示,請檢查伺服器日誌。
 - **`source` 欄位不匹配。** 你的 adapter 寫入的字串必須
-  與 `registry.mjs` 中的 `value` 完全一致。一旦漂移,
+  與 `meta.value` 完全一致。一旦漂移,
   `#/scan` 篩選下拉框會顯示該來源,但選取它會
   濾掉每一列(因為相等性檢查是 `r.source === fs`)。
 - **解析失敗時拋出例外。** HTML 抓取器在解析不出卡片的

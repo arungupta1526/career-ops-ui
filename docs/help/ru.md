@@ -1531,21 +1531,42 @@ Health, скопируйте вывод и поищите проблему в is
 
 ## 17. Как добавить новый источник для скана
 
-career-ops-ui рассматривает каждый job-сайт как **adapter** — единый файл в [`server/lib/sources/<slug>.mjs`](../../server/lib/sources/), который умеет fetch'ить и нормализовать результаты одного сайта. v1.29.0 поставляется с 11 адаптерами (6 английских ATS, 5 русских платформ). Чтобы добавить 12-й, потребуется три коротких правки в этом репо + одна строка в `portals.yml` родительского проекта.
+career-ops-ui рассматривает каждый job-сайт как **adapter** — единый файл в [`server/lib/sources/<slug>.mjs`](../../server/lib/sources/), который умеет fetch'ить и нормализовать результаты одного сайта. v1.29.0 поставляется с 11 адаптерами (6 английских ATS, 5 русских платформ).
+
+> **v1.69.0 (P-14) — авторегистрация по принципу drop-in.** Добавление 12-го источника теперь — это **просто одни файл**. Реестр
+> ([`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs))
+> больше не содержит список с ручной поддержкой — при старте он сканирует папку
+> (`readdirSync` + динамический `import()`) и собирает блоки `export const meta`
+> из каждого `*.mjs`. Напиши адаптер, объяви его `meta` — и он немедленно
+> появится в сканере, в dropdown фильтра `#/scan` и в RU-диспетчере
+> **без каких-либо правок в `registry.mjs`**. (RU-источникам по-прежнему нужна
+> одна строка в `portals.yml` родительского проекта; см. Шаг 5.)
 
 ### Шаг 1 — Пишем adapter
 
-Создай `server/lib/sources/<slug>.mjs`. Для источника с публичным JSON API:
+Создай `server/lib/sources/<slug>.mjs`. Два паттерна в зависимости от того, есть ли у сайта JSON API или только HTML:
+
+**Источник с JSON API** (самый чистый — используй его, когда у сайта есть открытый endpoint):
 
 ```js
 // server/lib/sources/example.mjs
 const ENDPOINT = 'https://example.com/api/v1/vacancies';
+const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ...';
+
+// v1.69.0 (P-14) — self-describing metadata. The registry auto-discovers
+// this block at boot; THIS is what registers the source (see Step 2).
+export const meta = {
+  value: 'example',          // ← must equal job.source written below
+  label: 'Example.com',      // ← shown in the #/scan filter dropdown
+  region: 'ru',              // ← 'en' (ATS sweep) | 'ru' (regional dispatcher)
+  configKey: 'example',      // ← RU only; the key used in portals.yml
+};
 
 export async function searchExample(query, opts = {}) {
   const { onlyRemote = false, fetchImpl = fetch, signal } = opts;
   const res = await fetchImpl(`${ENDPOINT}?text=${encodeURIComponent(query)}`, {
     signal,
-    headers: { Accept: 'application/json' },
+    headers: { 'User-Agent': UA, Accept: 'application/json' },
   });
   if (!res.ok) {
     const err = new Error(`Example: HTTP ${res.status}`);
@@ -1569,25 +1590,86 @@ function normalizeExample(item) {
     relocates: false,
     date: item.posted_at || '',
     snippet: (item.description || '').slice(0, 240),
-    source: 'example',
+    source: 'example',           // ← must match the registry `value` exactly
   };
 }
 ```
 
-### Шаг 2 — Добавь запись в registry
-
-Открой [`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs) и добавь одну запись:
+**Источник с HTML-скрейпом** (когда нет API — см.
+[`getmatch.mjs`](../../server/lib/sources/getmatch.mjs) и
+[`geekjob.mjs`](../../server/lib/sources/geekjob.mjs) для полных примеров):
 
 ```js
-export const SOURCES = [
-  // …existing entries…
-  { value: 'example', label: 'Example.com', region: 'ru', configKey: 'example' },
-];
+const BASE = 'https://example.com';
+
+export async function searchExample(query, opts = {}) {
+  const { fetchImpl = fetch, signal } = opts;
+  const res = await fetchImpl(`${BASE}/vacancies?q=${encodeURIComponent(query)}`, {
+    signal,
+    headers: { 'User-Agent': UA, Accept: 'text/html' },
+  });
+  if (!res.ok) {
+    throw Object.assign(new Error(`Example: HTTP ${res.status}`), { status: res.status });
+  }
+  return parseExampleCards(await res.text());
+}
+
+export function parseExampleCards(html) {
+  // …regex-based card extraction. Return [] on parse failure (DON'T throw):
+  // a healthy 200 with no parseable cards is "no results", not "error",
+  // so the multi-source scanner can keep going.
+}
 ```
+
+Три контракта, которые ОБЯЗАН соблюдать каждый адаптер:
+
+- **Экспортировать валидный блок `meta`** (см. Шаг 2). Без него реестр
+  молча пропустит файл при старте (одно `console.warn`) — источник
+  никогда не появится.
+- **Принимать `{ onlyRemote, fetchImpl, signal }` в `opts`.** `fetchImpl`
+  делает адаптеры тестируемыми без сети; `signal` нужен для пробрасывания
+  отключения клиента (REVIEW-B3).
+- **Возвращать записи единой формы** —
+  `{ id, title, company, url, salary, location, isRemote, workplaceType,
+  relocates, date, snippet, source }`, где `source` совпадает с
+  `meta.value`.
+
+### Шаг 2 — Объяви `meta` адаптера (авторегистрация)
+
+Это и есть весь шаг регистрации. **`registry.mjs` редактировать не нужно.**
+Просто убедись, что адаптер экспортирует блок `meta` — реестр
+авто-обнаружит его при старте:
+
+```js
+// at the top of server/lib/sources/example.mjs
+export const meta = {
+  value: 'example',          // job.source value AND #/scan option.value
+  label: 'Example.com',      // display label in the dropdown
+  region: 'ru',              // 'en' | 'ru'
+  configKey: 'example',      // RU only — key in portals.yml::russian_portals.sources
+};
+```
+
+Правила валидации при обнаружении (файл, нарушивший любое правило, пропускается с одним
+предупреждением `[sources/registry]`, поэтому частично мигрированная ветка остаётся диагностируемой):
+
+- `value` — непустая строка. ДОЛЖНА совпадать с `job.source` из адаптера.
+- `label` — непустая строка.
+- `region` — строго `'en'` или `'ru'`; всё остальное отклоняется.
+- `configKey` — **обязателен** для `region: 'ru'`, игнорируется для `'en'`.
+
+`region: 'en'` подключает к ATS-свипу (авто-обнаружение по URL-паттернам `tracked_companies`);
+`region: 'ru'` — к региональному диспетчеру. Публичное API
+(`SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources`) пересобирается
+из каждого обнаруженного `meta`, сначала `en`, затем `ru`,
+в алфавитном порядке по `label` внутри каждого региона — порядок в dropdown стабилен для пользователей.
 
 ### Шаг 3 — Подключи к dispatcher'у (только RU)
 
-EN-адаптеры автоматически подтягиваются из `tracked_companies`. Для RU открой [`server/lib/ru-scanner.mjs`](../../server/lib/ru-scanner.mjs) и добавь строку в таблицу `RU_DISPATCH`:
+EN ATS-источники авто-обнаруживаются по URL-паттернам `tracked_companies` —
+никаких дополнительных настроек не нужно. Для RU-источников открой
+[`server/lib/ru-scanner.mjs`](../../server/lib/ru-scanner.mjs), найди
+таблицу `RU_DISPATCH` и добавь строку:
 
 ```js
 import { searchExample } from './sources/example.mjs';
@@ -1598,22 +1680,51 @@ const RU_DISPATCH = {
 };
 ```
 
+Цикл диспетчера вызывает `entry.search(query, opts)` для каждого ключа,
+присутствующего в `cfg.sources`. Больше никаких правок кода не нужно.
+
 ### Шаг 4 — Тест (моки, никакой живой сети)
 
-Живая сеть в тестах **запрещена** (CI-isolation contract). Передавай мокнутый `fetchImpl` в adapter — пример: [`tests/sources-trudvsem.test.mjs`](../../tests/sources-trudvsem.test.mjs).
+Создай файл `tests/sources-<slug>.test.mjs`. Живая сеть в тестах
+**запрещена** (CI-isolation contract):
+
+```js
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { searchExample } from '../server/lib/sources/example.mjs';
+
+test('searchExample normalizes one record', async () => {
+  const fetchImpl = async () =>
+    new Response(
+      JSON.stringify({ items: [{ id: 1, title: 'Backend Engineer' }] }),
+      { status: 200, headers: { 'content-type': 'application/json' } }
+    );
+  const out = await searchExample('q', { fetchImpl });
+  assert.equal(out.length, 1);
+  assert.equal(out[0].source, 'example');
+});
+```
 
 ### Шаг 5 — Активируй в своём `portals.yml`
 
-`portals.yml` родительского проекта — это пользовательский конфиг. Добавь `configKey` нового источника в массив:
+`portals.yml` родительского проекта — это пользовательский конфиг. Добавь
+`configKey` нового источника в массив:
 
 ```yaml
 russian_portals:
   sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob", "example"]
+  area: 113
+  per_page: 50
+  only_remote: false
+  queries:
+    - "Senior PHP"
+    - "Senior Go"
 ```
 
-Перезагрузи `#/scan` в браузере. Dropdown source-фильтра подхватит новую запись автоматически (единый источник правды: `GET /api/scan/sources` → `registry.mjs`).
-
-**Полный пример кода (adapter для HTML-скрейпа, типичные ошибки, таблица референсных адаптеров) — в английской версии этой секции: [docs/help/en.md §17](https://github.com/Fighter90/career-ops-ui/blob/main/docs/help/en.md#17-how-to-add-a-new-job-portal-source).**
+Перезагрузи `#/scan` в браузере. Dropdown source-фильтра подхватит новую запись
+автоматически (единый источник правды: [`GET /api/scan/sources`](../../server/lib/routes/scan.mjs) →
+[`registry.mjs`](../../server/lib/sources/registry.mjs)). Кнопка
+🌐 Scan теперь включает новый источник в каждый региональный свип.
 
 ### Референсные адаптеры (зеркаль их для новых источников)
 
@@ -1628,8 +1739,14 @@ russian_portals:
 
 ### Типичные ошибки
 
+- **Забыт экспорт `meta`.** Начиная с v1.69.0 именно блок `meta` — это
+  *единственное*, что регистрирует источник. Нет `meta` (или он некорректен) —
+  файл молча пропускается при старте с единственным предупреждением
+  `[sources/registry] <file> has no valid \`export const meta\` — skipped`,
+  и источник никогда не появится в dropdown. Проверь лог сервера,
+  если новый адаптер не отображается.
 - **Рассинхрон поля `source`.** Строка, которую пишет твой адаптер, ДОЛЖНА
-  точно совпадать с `value` в `registry.mjs`. Если они разойдутся,
+  точно совпадать с `meta.value`. Если они разойдутся,
   dropdown фильтра `#/scan` покажет источник, но при его выборе
   отфильтрует все строки (потому что проверка равенства — `r.source === fs`).
 - **Бросок исключения при сбое парсинга.** HTML-скрейперы ДОЛЖНЫ возвращать `[]` при

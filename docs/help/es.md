@@ -1554,21 +1554,48 @@ Health, copia el output, y busca el issue en el tracker en
 
 ## 17. Cómo añadir una nueva fuente de portal de empleo
 
-career-ops-ui trata cada bolsa de empleo como un **adapter** — un único archivo bajo [`server/lib/sources/<slug>.mjs`](../../server/lib/sources/) que sabe cómo obtener y normalizar los resultados de una bolsa concreta. v1.29.0 incluye 11 adapters (6 ATS en inglés, 5 portales rusos). Añadir el 12.º son tres ediciones cortas en este repo más una línea en el `portals.yml` del proyecto padre.
+career-ops-ui trata cada bolsa de empleo como un **adapter** — un único archivo bajo
+[`server/lib/sources/<slug>.mjs`](../../server/lib/sources/) que sabe
+cómo obtener y normalizar los resultados de una bolsa concreta. v1.29.0 incluye 11
+adapters (6 ATS en inglés, 5 portales rusos).
+
+> **v1.69.0 (P-14) — auto-descubrimiento drop-in.** Añadir una 12.ª fuente es ahora
+> una **operación de soltar el archivo**. El registro
+> ([`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs))
+> ya no mantiene una lista a mano — al arrancar escanea esta carpeta
+> (`readdirSync` + `import()` dinámico) y recoge el bloque `export const meta`
+> de cada `*.mjs`. Escribe el adapter, declara su `meta`, y aparece
+> inmediatamente en el escáner, en el desplegable de filtros de `#/scan` y en el
+> dispatcher RU — **sin editar `registry.mjs`**. (Las fuentes RU siguen necesitando
+> una línea en el `portals.yml` del proyecto padre; ver Paso 5.)
 
 ### Paso 1 — Escribe el adapter
 
-Crea `server/lib/sources/<slug>.mjs`. Para una fuente con API JSON pública:
+Crea `server/lib/sources/<slug>.mjs`. Hay dos patrones según si la fuente
+tiene API JSON o solo renderiza HTML:
+
+**Fuente con API** (lo más limpio — úsalo cuando el sitio tenga un
+endpoint de datos abierto):
 
 ```js
 // server/lib/sources/example.mjs
 const ENDPOINT = 'https://example.com/api/v1/vacancies';
+const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ...';
+
+// v1.69.0 (P-14) — self-describing metadata. The registry auto-discovers
+// this block at boot; THIS is what registers the source (see Step 2).
+export const meta = {
+  value: 'example',          // ← must equal job.source written below
+  label: 'Example.com',      // ← shown in the #/scan filter dropdown
+  region: 'ru',              // ← 'en' (ATS sweep) | 'ru' (regional dispatcher)
+  configKey: 'example',      // ← RU only; the key used in portals.yml
+};
 
 export async function searchExample(query, opts = {}) {
   const { onlyRemote = false, fetchImpl = fetch, signal } = opts;
   const res = await fetchImpl(`${ENDPOINT}?text=${encodeURIComponent(query)}`, {
     signal,
-    headers: { Accept: 'application/json' },
+    headers: { 'User-Agent': UA, Accept: 'application/json' },
   });
   if (!res.ok) {
     const err = new Error(`Example: HTTP ${res.status}`);
@@ -1592,25 +1619,87 @@ function normalizeExample(item) {
     relocates: false,
     date: item.posted_at || '',
     snippet: (item.description || '').slice(0, 240),
-    source: 'example',
+    source: 'example',           // ← must match the registry `value` exactly
   };
 }
 ```
 
-### Paso 2 — Añade una fila al registry
-
-Abre [`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs) y añade una entrada:
+**Fuente HTML-scrape** (cuando no hay API — ver
+[`getmatch.mjs`](../../server/lib/sources/getmatch.mjs) y
+[`geekjob.mjs`](../../server/lib/sources/geekjob.mjs) como ejemplos completos):
 
 ```js
-export const SOURCES = [
-  // …existing entries…
-  { value: 'example', label: 'Example.com', region: 'ru', configKey: 'example' },
-];
+const BASE = 'https://example.com';
+
+export async function searchExample(query, opts = {}) {
+  const { fetchImpl = fetch, signal } = opts;
+  const res = await fetchImpl(`${BASE}/vacancies?q=${encodeURIComponent(query)}`, {
+    signal,
+    headers: { 'User-Agent': UA, Accept: 'text/html' },
+  });
+  if (!res.ok) {
+    throw Object.assign(new Error(`Example: HTTP ${res.status}`), { status: res.status });
+  }
+  return parseExampleCards(await res.text());
+}
+
+export function parseExampleCards(html) {
+  // …regex-based card extraction. Return [] on parse failure (DON'T throw):
+  // a healthy 200 with no parseable cards is "no results", not "error",
+  // so the multi-source scanner can keep going.
+}
 ```
+
+Todo adapter DEBE cumplir tres contratos:
+
+- **Exportar un bloque `meta` válido** (ver Paso 2). Sin él, el registro
+  omite el archivo en silencio (un `console.warn` al arrancar) y la fuente
+  nunca aparece.
+- **Aceptar `{ onlyRemote, fetchImpl, signal }` en `opts`.** `fetchImpl`
+  es lo que hace los adapters testeables sin red; `signal` es necesario
+  para propagar la desconexión del cliente (REVIEW-B3).
+- **Devolver registros con la forma común** —
+  `{ id, title, company, url, salary, location, isRemote, workplaceType,
+  relocates, date, snippet, source }`, donde `source` coincide con el
+  `meta.value`.
+
+### Paso 2 — Declara el `meta` del adapter (auto-registro)
+
+Este es el paso de registro completo. **No editas `registry.mjs`.**
+Solo asegúrate de que el adapter exporta un bloque `meta` — el registro
+lo auto-descubre al arrancar:
+
+```js
+// at the top of server/lib/sources/example.mjs
+export const meta = {
+  value: 'example',          // job.source value AND #/scan option.value
+  label: 'Example.com',      // display label in the dropdown
+  region: 'ru',              // 'en' | 'ru'
+  configKey: 'example',      // RU only — key in portals.yml::russian_portals.sources
+};
+```
+
+Cómo valida el descubrimiento (un archivo que incumpla cualquier regla se omite, con un
+aviso `[sources/registry]`, para que una rama a medio migrar siga siendo diagnosticable):
+
+- `value` — cadena no vacía. DEBE coincidir con `job.source` de tu adapter.
+- `label` — cadena no vacía.
+- `region` — exactamente `'en'` o `'ru'`; cualquier otro valor es rechazado.
+- `configKey` — **obligatorio** para `region: 'ru'`, ignorado para `'en'`.
+
+`region: 'en'` se une al barrido ATS (auto-descubre desde los patrones de URL de `tracked_companies`);
+`region: 'ru'` se une al dispatcher regional. La API pública
+(`SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources`) se
+reconstruye desde cada `meta` descubierto, ordenando primero `en` y luego `ru`,
+alfabéticamente por label dentro de cada región — así el orden del desplegable permanece
+estable para los usuarios.
 
 ### Paso 3 — Conecta al dispatcher (sólo RU)
 
-Los adapters EN se auto-descubren desde `tracked_companies`. Para RU, edita [`server/lib/ru-scanner.mjs`](../../server/lib/ru-scanner.mjs) y añade una fila a `RU_DISPATCH`:
+Los adapters ATS EN se auto-descubren desde los patrones de URL de `tracked_companies` —
+no hace falta ninguna conexión adicional. Para fuentes RU, abre
+[`server/lib/ru-scanner.mjs`](../../server/lib/ru-scanner.mjs), localiza
+la tabla `RU_DISPATCH` y añade una fila:
 
 ```js
 import { searchExample } from './sources/example.mjs';
@@ -1621,22 +1710,52 @@ const RU_DISPATCH = {
 };
 ```
 
+El bucle del dispatcher llama a `entry.search(query, opts)` para cada clave
+presente en `cfg.sources`. No se necesita ningún otro cambio de código.
+
 ### Paso 4 — Test (mockeado, jamás en vivo)
 
-La red real está **prohibida** en los tests (contrato CI-isolation). Pasa un `fetchImpl` mockeado al adapter — ver [`tests/sources-trudvsem.test.mjs`](../../tests/sources-trudvsem.test.mjs).
+Crea un archivo bajo `tests/sources-<slug>.test.mjs`. La red real está
+**prohibida** en los tests (contrato CI-isolation):
+
+```js
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { searchExample } from '../server/lib/sources/example.mjs';
+
+test('searchExample normalizes one record', async () => {
+  const fetchImpl = async () =>
+    new Response(
+      JSON.stringify({ items: [{ id: 1, title: 'Backend Engineer' }] }),
+      { status: 200, headers: { 'content-type': 'application/json' } }
+    );
+  const out = await searchExample('q', { fetchImpl });
+  assert.equal(out.length, 1);
+  assert.equal(out[0].source, 'example');
+});
+```
 
 ### Paso 5 — Activa en tu `portals.yml`
 
-El `portals.yml` del proyecto padre es la config del usuario. Añade el `configKey` de la nueva fuente al array:
+El `portals.yml` del proyecto padre es la config del usuario. Añade el
+`configKey` de la nueva fuente al array:
 
 ```yaml
 russian_portals:
   sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob", "example"]
+  area: 113
+  per_page: 50
+  only_remote: false
+  queries:
+    - "Senior PHP"
+    - "Senior Go"
 ```
 
-Recarga `#/scan` en el navegador. El dropdown del filtro de fuente recoge la nueva entrada automáticamente (única fuente de verdad vía `GET /api/scan/sources` → `registry.mjs`).
-
-**Para el ejemplo de código completo (adapter HTML-scrape, pitfalls comunes, tabla de adapters de referencia), consulta la versión inglesa de esta sección en [docs/help/en.md §17](https://github.com/Fighter90/career-ops-ui/blob/main/docs/help/en.md#17-how-to-add-a-new-job-portal-source).**
+Recarga `#/scan` en el navegador. El dropdown del filtro de fuente recoge
+la nueva entrada automáticamente (única fuente de verdad vía
+[`GET /api/scan/sources`](../../server/lib/routes/scan.mjs) →
+[`registry.mjs`](../../server/lib/sources/registry.mjs)). El
+botón 🌐 Scan ahora incluye la nueva fuente en cada barrido regional.
 
 ### Adapters de referencia (úsalos como espejo para nuevas fuentes)
 
@@ -1651,8 +1770,14 @@ Recarga `#/scan` en el navegador. El dropdown del filtro de fuente recoge la nue
 
 ### Pitfalls comunes
 
+- **Olvidar la exportación `meta`.** Desde v1.69.0 el bloque `meta` es lo
+  *único* que registra una fuente. Sin `meta` (o con uno mal formado) =
+  el archivo se omite en silencio al arrancar con un único aviso
+  `[sources/registry] <file> has no valid \`export const meta\` — skipped`,
+  y la fuente nunca llega al desplegable. Revisa el log del servidor
+  si un adapter recién creado no aparece.
 - **Desajuste del campo `source`.** El string que escribe tu adapter DEBE
-  coincidir exactamente con el `value` en `registry.mjs`. Si se desincronizan, el
+  coincidir exactamente con el `meta.value`. Si se desincronizan, el
   dropdown del filtro de `#/scan` mostrará la fuente pero al seleccionarla
   filtrará todas las filas (porque la comprobación de igualdad es `r.source === fs`).
 - **Lanzar excepción al fallar el parseo.** Los scrapers HTML DEBEN devolver `[]` ante un

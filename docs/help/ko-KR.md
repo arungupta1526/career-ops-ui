@@ -1484,21 +1484,44 @@ deep research 실행, scan 실행, 설정 변경, 모드 실행.
 
 ## 17. 새 채용 포털 소스를 추가하는 방법
 
-career-ops-ui는 각 채용 사이트를 **어댑터**로 취급합니다 — [`server/lib/sources/<slug>.mjs`](../../server/lib/sources/) 아래의 단일 파일이 한 사이트의 결과를 가져오고 정규화하는 방법을 알고 있습니다. v1.29.0은 11개의 어댑터(영문 ATS 6개, 러시아 보드 5개)를 포함합니다. 12번째 어댑터를 추가하려면 이 저장소에서 짧은 편집 3건 + 부모 프로젝트의 `portals.yml`에서 한 줄을 추가하면 됩니다.
+career-ops-ui는 각 채용 사이트를 **어댑터**로 취급합니다 — [`server/lib/sources/<slug>.mjs`](../../server/lib/sources/) 아래의 단일 파일이 한 사이트의 결과를 가져오고 정규화하는 방법을 알고 있습니다. v1.29.0은 11개의 어댑터(영문 ATS 6개, 러시아 보드 5개)를 포함합니다.
+
+> **v1.69.0 (P-14) — 드롭인 자동 검색.** 12번째 소스 추가는 이제
+> **순수 파일 드롭**입니다. 레지스트리
+> ([`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs))는
+> 더 이상 직접 관리하는 목록을 유지하지 않습니다 — 부팅 시 이 폴더를
+> 스캔하고(`readdirSync` + 동적 `import()`) 모든 `*.mjs`에서
+> `export const meta` 블록을 수집합니다. 어댑터를 작성하고 `meta`를 선언하면
+> 스캐너, `#/scan` 필터 드롭다운, RU 디스패처에서 즉시 보입니다 —
+> **`registry.mjs` 편집 불필요**. (RU 소스는 여전히 부모의
+> `portals.yml`에 한 줄이 필요합니다; 5단계 참조.)
 
 ### 1단계 — 어댑터 작성
 
-`server/lib/sources/<slug>.mjs`를 생성합니다. JSON API가 있는 소스의 경우:
+`server/lib/sources/<slug>.mjs`를 생성합니다. 소스에 JSON API가 있는지 HTML만
+렌더링하는지에 따라 두 가지 패턴이 동작합니다:
+
+**API 기반 소스** (가장 깔끔 — 사이트에 열린 데이터 엔드포인트가 있을 때 사용):
 
 ```js
 // server/lib/sources/example.mjs
 const ENDPOINT = 'https://example.com/api/v1/vacancies';
+const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ...';
+
+// v1.69.0 (P-14) — self-describing metadata. The registry auto-discovers
+// this block at boot; THIS is what registers the source (see Step 2).
+export const meta = {
+  value: 'example',          // ← must equal job.source written below
+  label: 'Example.com',      // ← shown in the #/scan filter dropdown
+  region: 'ru',              // ← 'en' (ATS sweep) | 'ru' (regional dispatcher)
+  configKey: 'example',      // ← RU only; the key used in portals.yml
+};
 
 export async function searchExample(query, opts = {}) {
   const { onlyRemote = false, fetchImpl = fetch, signal } = opts;
   const res = await fetchImpl(`${ENDPOINT}?text=${encodeURIComponent(query)}`, {
     signal,
-    headers: { Accept: 'application/json' },
+    headers: { 'User-Agent': UA, Accept: 'application/json' },
   });
   if (!res.ok) {
     const err = new Error(`Example: HTTP ${res.status}`);
@@ -1522,25 +1545,86 @@ function normalizeExample(item) {
     relocates: false,
     date: item.posted_at || '',
     snippet: (item.description || '').slice(0, 240),
-    source: 'example',
+    source: 'example',           // ← must match the registry `value` exactly
   };
 }
 ```
 
-### 2단계 — 레지스트리에 행 추가
-
-[`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs)를 열고 한 항목을 추가합니다:
+**HTML 스크레이프 소스** (API가 없을 때 —
+[`getmatch.mjs`](../../server/lib/sources/getmatch.mjs)와
+[`geekjob.mjs`](../../server/lib/sources/geekjob.mjs)에서 전체 예시 확인):
 
 ```js
-export const SOURCES = [
-  // …existing entries…
-  { value: 'example', label: 'Example.com', region: 'ru', configKey: 'example' },
-];
+const BASE = 'https://example.com';
+
+export async function searchExample(query, opts = {}) {
+  const { fetchImpl = fetch, signal } = opts;
+  const res = await fetchImpl(`${BASE}/vacancies?q=${encodeURIComponent(query)}`, {
+    signal,
+    headers: { 'User-Agent': UA, Accept: 'text/html' },
+  });
+  if (!res.ok) {
+    throw Object.assign(new Error(`Example: HTTP ${res.status}`), { status: res.status });
+  }
+  return parseExampleCards(await res.text());
+}
+
+export function parseExampleCards(html) {
+  // …regex-based card extraction. Return [] on parse failure (DON'T throw):
+  // a healthy 200 with no parseable cards is "no results", not "error",
+  // so the multi-source scanner can keep going.
+}
 ```
+
+모든 어댑터가 반드시 지켜야 할 세 가지 계약:
+
+- **유효한 `meta` 블록 내보내기** (2단계 참조). 없으면 레지스트리가
+  파일을 조용히 건너뜁니다(부팅 시 `console.warn` 한 번) — 소스가
+  드롭다운에 절대 나타나지 않습니다.
+- **`opts`에서 `{ onlyRemote, fetchImpl, signal }` 수용.** `fetchImpl`이 있어야
+  네트워크 없이 어댑터를 테스트할 수 있고, `signal`은 클라이언트 연결 해제 전파에
+  필요합니다(REVIEW-B3).
+- **공통 형태로 레코드 반환** —
+  `{ id, title, company, url, salary, location, isRemote, workplaceType,
+  relocates, date, snippet, source }`. 여기서 `source`는
+  `meta.value`와 일치해야 합니다.
+
+### 2단계 — 어댑터의 `meta` 선언 (자동 등록)
+
+이것이 등록 단계의 전부입니다. **`registry.mjs`는 편집하지 않습니다.**
+어댑터가 `meta` 블록을 내보내기만 하면 — 레지스트리가 부팅 시 자동으로
+검색합니다:
+
+```js
+// at the top of server/lib/sources/example.mjs
+export const meta = {
+  value: 'example',          // job.source value AND #/scan option.value
+  label: 'Example.com',      // display label in the dropdown
+  region: 'ru',              // 'en' | 'ru'
+  configKey: 'example',      // RU only — key in portals.yml::russian_portals.sources
+};
+```
+
+검색 유효성 검사 방식(규칙 하나라도 실패하면 파일이 건너뛰어지고
+`[sources/registry]` 경고 하나가 남아 반쯤 마이그레이션된 브랜치도 진단 가능):
+
+- `value` — 비어 있지 않은 문자열. 어댑터의 `job.source`와 일치해야 합니다.
+- `label` — 비어 있지 않은 문자열.
+- `region` — 정확히 `'en'` 또는 `'ru'`; 그 외는 거부됩니다.
+- `configKey` — `region: 'ru'`에는 **필수**, `'en'`에는 무시됩니다.
+
+`region: 'en'`은 ATS 스윕에 합류하고(`tracked_companies` URL 패턴에서 자동 검색),
+`region: 'ru'`는 지역 디스패처에 합류합니다. 공개 API
+(`SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources`)는
+발견된 모든 `meta`에서 재구성되며, `en` 먼저 그다음 `ru`, 각 지역 내에서
+레이블 알파벳 순 — 드롭다운 순서가 사용자에게 안정적으로 유지됩니다.
 
 ### 3단계 — 디스패처에 연결 (RU만)
 
-EN 어댑터는 `tracked_companies`에서 자동 검색됩니다. RU 소스의 경우 [`server/lib/ru-scanner.mjs`](../../server/lib/ru-scanner.mjs)를 열고 `RU_DISPATCH`에 행을 추가합니다:
+EN ATS 소스는 `tracked_companies` URL 패턴에서 자동 검색됩니다 —
+추가 연결 불필요. RU 소스의 경우
+[`server/lib/ru-scanner.mjs`](../../server/lib/ru-scanner.mjs)를 열고
+`RU_DISPATCH` 테이블에 행을 추가합니다:
 
 ```js
 import { searchExample } from './sources/example.mjs';
@@ -1551,22 +1635,52 @@ const RU_DISPATCH = {
 };
 ```
 
+디스패처 루프는 `cfg.sources`에 있는 모든 키에 대해 `entry.search(query, opts)`를
+호출합니다. 추가 코드 변경 불필요.
+
 ### 4단계 — 테스트 (모킹, 실제 네트워크 금지)
 
-실제 네트워크는 테스트에서 **금지**됩니다(CI-isolation 계약). 어댑터에 모킹된 `fetchImpl`을 전달하세요 — [`tests/sources-trudvsem.test.mjs`](../../tests/sources-trudvsem.test.mjs)를 참고하세요.
+`tests/sources-<slug>.test.mjs` 아래에 파일을 두세요. 실제 네트워크는
+테스트에서 **금지**됩니다(CI-isolation 계약):
+
+```js
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { searchExample } from '../server/lib/sources/example.mjs';
+
+test('searchExample normalizes one record', async () => {
+  const fetchImpl = async () =>
+    new Response(
+      JSON.stringify({ items: [{ id: 1, title: 'Backend Engineer' }] }),
+      { status: 200, headers: { 'content-type': 'application/json' } }
+    );
+  const out = await searchExample('q', { fetchImpl });
+  assert.equal(out.length, 1);
+  assert.equal(out[0].source, 'example');
+});
+```
 
 ### 5단계 — 자신의 `portals.yml`에서 활성화
 
-부모 프로젝트의 `portals.yml`은 사용자 소유 설정입니다. 새 소스의 `configKey`를 배열에 추가하세요:
+부모 프로젝트의 `portals.yml`은 사용자 소유 설정입니다. 새 소스의
+`configKey`를 배열에 추가하세요:
 
 ```yaml
 russian_portals:
   sources: ["hh", "habr", "trudvsem", "getmatch", "geekjob", "example"]
+  area: 113
+  per_page: 50
+  only_remote: false
+  queries:
+    - "Senior PHP"
+    - "Senior Go"
 ```
 
-브라우저에서 `#/scan`을 새로 고치세요. 소스 필터 드롭다운이 새 항목을 자동으로 인식합니다(단일 진실 공급원: `GET /api/scan/sources` → `registry.mjs`).
-
-**전체 코드 예시(HTML 스크레이프 어댑터, 일반적인 함정, 참조 어댑터 테이블)는 이 섹션의 영문 버전 [docs/help/en.md §17](https://github.com/Fighter90/career-ops-ui/blob/main/docs/help/en.md#17-how-to-add-a-new-job-portal-source)을 참조하세요.**
+브라우저에서 `#/scan`을 새로 고치세요. 소스 필터 드롭다운이 새 항목을
+자동으로 인식합니다(단일 진실 공급원:
+[`GET /api/scan/sources`](../../server/lib/routes/scan.mjs) →
+[`registry.mjs`](../../server/lib/sources/registry.mjs)). 🌐 스캔 버튼이
+이제 모든 지역 스윕에 새 소스를 포함합니다.
 
 ### 참조 어댑터 (새 소스는 이것들을 미러링하세요)
 
@@ -1581,8 +1695,12 @@ russian_portals:
 
 ### 일반적인 함정
 
+- **`meta` 내보내기 빠뜨리기.** v1.69.0부터 `meta` 블록이 소스를 등록하는
+  *유일한* 수단입니다. `meta`가 없거나 잘못된 경우 = 파일이 부팅 시 조용히
+  건너뛰어지고 `[sources/registry] <file> has no valid \`export const meta\` — skipped`
+  경고 하나만 남습니다. 새 어댑터가 드롭다운에 보이지 않으면 서버 로그를 확인하세요.
 - **`source` 필드 불일치.** 어댑터가 기록하는 문자열은
-  `registry.mjs`의 `value`와 정확히 일치해야 합니다. 둘이 어긋나면,
+  `meta.value`와 정확히 일치해야 합니다. 둘이 어긋나면,
   `#/scan` 필터 드롭다운에는 소스가 표시되지만 선택하면
   모든 행이 걸러집니다(동등성 검사가 `r.source === fs`이기 때문).
 - **파싱 실패 시 예외 던지기.** HTML 스크레이퍼는 파싱 가능한 카드가 없는

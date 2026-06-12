@@ -12,7 +12,7 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
-## [1.69.0] — 2026-06-09
+## [1.69.0] — 2026-06-12
 
 **feat(scan): autodescubrimiento de adaptadores del escáner (P-14) — basta con dejar un `.mjs` en `server/lib/sources/` para registrar una nueva fuente.** Antes de v1.69, la lista de fuentes en `server/lib/sources/registry.mjs` era un arreglo estático mantenido a mano: añadir un adaptador exigía editar tanto `<id>.mjs` como `registry.mjs`. Cierra la mitad pendiente del ítem P-14 de la hoja de ruta (`docs/ROADMAP.md`). Ahora cada `*.mjs` de `server/lib/sources/` se carga dinámicamente al arrancar el módulo; cada adaptador declara su identidad mediante un bloque autodescriptivo `export const meta = { value, label, region, configKey? }`. Los 12 adaptadores incluidos (ashby / greenhouse / lever / rss / smartrecruiters / workable / workday + geekjob / getmatch / habr / hh / trudvsem) reciben un `meta`; `registry.mjs` usa `readdirSync` + `import()` dinámico resuelto vía top-level await (estándar ESM Node 18+). La API pública (`SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources`) no cambia: todos los imports existentes siguen funcionando. La validación rechaza `meta` mal formados y registra un `console.warn` por archivo problemático. Nuevo `tests/sources-registry-discovery.test.mjs` con 14 casos. Suite 1065 → 1079.
 

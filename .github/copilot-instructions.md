@@ -15,8 +15,9 @@ step.
 
 - **Server**: Node ≥ 18, Express 4 + js-yaml + multer. `.mjs` only (ESM). ~130-LOC orchestrator + 15 route modules under `server/lib/routes/`.
 - **SPA**: Vanilla JS, hash-router, no framework, no bundler. Files served as-is from `public/`.
-- **Tests**: `node --test` + Playwright. Baseline at v1.58.35 = 928 unit / 62 Playwright (smoke+full-cycle+forms) + 20 smoke E2E + 23 comprehensive E2E. Don't reduce coverage.
-- **i18n**: 8 locales (`en`, `es`, `pt-BR`, `ko`, `ja`, `ru`, `zh-CN`, `zh-TW`). DICT in `public/js/lib/i18n.js`; CI canary enforces every used key exists in every locale.
+- **Tests**: `node --test` + Playwright. Baseline at v1.69.0 = 1079 unit / 70 Playwright (smoke+full-cycle+forms+locale-sweep) + 20 smoke E2E + 23 comprehensive E2E. Don't reduce coverage.
+- **i18n**: 9 locales (`en`, `es`, `fr`, `pt-BR`, `ko`, `ja`, `ru`, `zh-CN`, `zh-TW`). Per-locale DICTs in `public/js/lib/locales/i18n-dict.<lang>.js`, merged by the `i18n-dict.js` assembler (I18N-SPLIT v1.60.0); CI canary enforces every used key exists in every locale.
+- **Scanner sources**: each job board is a self-registering adapter in `server/lib/sources/<slug>.mjs`. Since v1.69.0 (P-14) `registry.mjs` auto-discovers them at boot via each file's `export const meta` block — drop a file in, no registry edit.
 
 ## Hard rules (Copilot, don't break these)
 

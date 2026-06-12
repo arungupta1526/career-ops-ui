@@ -1554,8 +1554,17 @@ output, and search the issue tracker on
 career-ops-ui treats each job board as an **adapter** — a single file under
 [`server/lib/sources/<slug>.mjs`](../../server/lib/sources/) that knows
 how to fetch + normalize one board's results. v1.29.0 ships with 11
-adapters (6 English ATSes, 5 Russian boards). Adding a 12th is three
-short edits in this repo + one line in the parent's `portals.yml`.
+adapters (6 English ATSes, 5 Russian boards).
+
+> **v1.69.0 (P-14) — drop-in auto-discovery.** Adding a 12th source is now
+> a **pure file drop**. The registry
+> ([`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs))
+> no longer holds a hand-maintained list — at boot it scans this folder
+> (`readdirSync` + dynamic `import()`) and collects the `export const meta`
+> block from every `*.mjs`. Write the adapter, declare its `meta`, and it is
+> instantly visible to the scanner, the `#/scan` filter dropdown, and the RU
+> dispatcher — **no edit to `registry.mjs` required**. (RU sources still need
+> one line in the parent's `portals.yml`; see Step 5.)
 
 ### Step 1 — Write the adapter
 
@@ -1569,6 +1578,15 @@ open data endpoint):
 // server/lib/sources/example.mjs
 const ENDPOINT = 'https://example.com/api/v1/vacancies';
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ...';
+
+// v1.69.0 (P-14) — self-describing metadata. The registry auto-discovers
+// this block at boot; THIS is what registers the source (see Step 2).
+export const meta = {
+  value: 'example',          // ← must equal job.source written below
+  label: 'Example.com',      // ← shown in the #/scan filter dropdown
+  region: 'ru',              // ← 'en' (ATS sweep) | 'ru' (regional dispatcher)
+  configKey: 'example',      // ← RU only; the key used in portals.yml
+};
 
 export async function searchExample(query, opts = {}) {
   const { onlyRemote = false, fetchImpl = fetch, signal } = opts;
@@ -1629,34 +1647,49 @@ export function parseExampleCards(html) {
 }
 ```
 
-Two contracts every adapter MUST honor:
+Three contracts every adapter MUST honor:
 
+- **Export a valid `meta` block** (see Step 2). Without it the registry
+  silently skips the file (one `console.warn` at boot) and the source
+  never appears.
 - **Accept `{ onlyRemote, fetchImpl, signal }` in `opts`.** `fetchImpl`
   is what makes adapters testable without network; `signal` is required
   for client-disconnect propagation (REVIEW-B3).
 - **Return records with the common shape** —
   `{ id, title, company, url, salary, location, isRemote, workplaceType,
   relocates, date, snippet, source }`, where `source` matches the
-  registry `value`.
+  `meta.value`.
 
-### Step 2 — Add a row to the registry
+### Step 2 — Declare the adapter's `meta` (auto-registration)
 
-Open [`server/lib/sources/registry.mjs`](../../server/lib/sources/registry.mjs)
-and add one entry:
+This is the whole registration step. **You do not edit `registry.mjs`.**
+Just make sure the adapter exports a `meta` block — the registry
+auto-discovers it at boot:
 
 ```js
-export const SOURCES = [
-  // …existing entries…
-  { value: 'example', label: 'Example.com', region: 'ru', configKey: 'example' },
-];
+// at the top of server/lib/sources/example.mjs
+export const meta = {
+  value: 'example',          // job.source value AND #/scan option.value
+  label: 'Example.com',      // display label in the dropdown
+  region: 'ru',              // 'en' | 'ru'
+  configKey: 'example',      // RU only — key in portals.yml::russian_portals.sources
+};
 ```
 
-- `value` MUST match `job.source` from your adapter.
-- `region: 'en'` joins the ATS sweep (auto-discovers from
-  `tracked_companies` URL patterns); `region: 'ru'` joins the regional
-  dispatcher.
-- `configKey` (only for `region: 'ru'`) — the key the user lists in
-  `portals.yml::russian_portals.sources`.
+How discovery validates it (a file failing any rule is skipped, with one
+`[sources/registry]` warning, so a half-migrated branch stays diagnosable):
+
+- `value` — non-empty string. MUST match `job.source` from your adapter.
+- `label` — non-empty string.
+- `region` — exactly `'en'` or `'ru'`; anything else is rejected.
+- `configKey` — **required** for `region: 'ru'`, ignored for `'en'`.
+
+`region: 'en'` joins the ATS sweep (auto-discovers from `tracked_companies`
+URL patterns); `region: 'ru'` joins the regional dispatcher. The public API
+(`SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources`) is
+rebuilt from every discovered `meta`, ordered `en` first then `ru`,
+alphabetical by label inside each region — so the dropdown order stays
+stable for users.
 
 ### Step 3 — Wire into the dispatcher (RU only)
 
@@ -1734,8 +1767,14 @@ new entry up automatically (single source of truth via
 
 ### Common pitfalls
 
+- **Forgetting the `meta` export.** Since v1.69.0 the `meta` block is the
+  *only* thing that registers a source. No `meta` (or a malformed one) =
+  the file is silently skipped at boot with a single
+  `[sources/registry] <file> has no valid \`export const meta\` — skipped`
+  warning, and the source never reaches the dropdown. Check the server log
+  if a brand-new adapter doesn't show up.
 - **`source` field mismatch.** The string written by your adapter MUST
-  match the `value` in `registry.mjs` exactly. If they drift, the
+  match the `meta.value` exactly. If they drift, the
   `#/scan` filter dropdown will show the source but selecting it will
   filter out every row (because the equality check is `r.source === fs`).
 - **Throwing on parse failure.** HTML scrapers MUST return `[]` on a

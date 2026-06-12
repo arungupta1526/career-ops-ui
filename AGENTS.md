@@ -4,7 +4,7 @@
 
 ## Quick orientation
 
-- This is `career-ops-ui` v1.9.x — an Express + vanilla-JS SPA that puts a polished web interface on top of [`santifer/career-ops`](https://github.com/santifer/career-ops).
+- This is `career-ops-ui` v1.69.x — an Express + vanilla-JS SPA that puts a polished web interface on top of [`santifer/career-ops`](https://github.com/santifer/career-ops).
 - It runs as a regular Node ≥18 process. It is **CLI-agnostic** at runtime — the choice of agent CLI affects only the *development* workflow inside this repo, not the deployed UI.
 - Hard rules and parent-project boundary live in `CLAUDE.md` (root). Codex's CODEOWNERS-style additions, if any, layer on top.
 
@@ -43,8 +43,8 @@ See `docs/sdd/SDD-GUIDE.md` for the full workflow + which artifacts to produce a
 | Command | Purpose |
 |---|---|
 | `npm start` | Run server on `127.0.0.1:4317` |
-| `npm test` | Full unit suite (283 tests) |
-| `npm run test:e2e:browser` | Playwright browser smoke (5 tests, opt-in) |
+| `npm test` | Full unit suite (1079 tests as of v1.69.0) |
+| `npm run test:e2e:browser` | Playwright browser smoke (opt-in) |
 | `bash bin/start.sh` | One-shot launcher with browser open |
 
 For deeper architecture: `docs/architecture/OVERVIEW.md`.

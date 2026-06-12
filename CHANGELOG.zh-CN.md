@@ -10,7 +10,7 @@
 
 
 
-## [1.69.0] — 2026-06-09
+## [1.69.0] — 2026-06-12
 
 **feat(scan)：扫描器适配器自动发现 (P-14)——只需在 `server/lib/sources/` 中放入一个 `.mjs` 文件即可注册新数据源。** 在 v1.69 之前，`server/lib/sources/registry.mjs` 中的数据源列表是手动维护的静态数组：添加适配器需要同时修改 `<id>.mjs` 和 `registry.mjs`。完成路线图项目 P-14（`docs/ROADMAP.md`）的剩余部分。现在 `server/lib/sources/` 中的每个 `*.mjs` 在模块启动时动态加载，每个适配器通过自描述块 `export const meta = { value, label, region, configKey? }` 声明自身。已发布的 12 个适配器（ashby / greenhouse / lever / rss / smartrecruiters / workable / workday + geekjob / getmatch / habr / hh / trudvsem）各自获得 `meta`；`registry.mjs` 通过 top-level await 解析 `readdirSync` + 动态 `import()`（Node 18+ ESM 标准）。公共 API（`SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources`）保持不变——所有现有导入继续工作。格式错误的 `meta` 会被拒绝，每个问题文件都会输出一次 `console.warn`。新增 `tests/sources-registry-discovery.test.mjs`，包含 14 个测试用例。套件 1065 → 1079。
 

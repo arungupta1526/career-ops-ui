@@ -10,7 +10,7 @@ Since v1.9.1 (the original baseline of this doc) the codebase shipped through th
 
 | Dimension | Status | Notes |
 |---|---|---|
-| Architecture | ✅ ready | Orchestrator-only `index.mjs` (~174 LOC); 14 focused route modules under `lib/routes/`. `server/lib/sources/registry.mjs` is the single source of truth for 11 adapters (6 EN ATS + 5 RU). |
+| Architecture | ✅ ready | Orchestrator-only `index.mjs` (~174 LOC); 14 focused route modules under `lib/routes/`. `server/lib/sources/registry.mjs` is the single source of truth for 12 adapters (7 EN-region incl. RSS + 5 RU), auto-discovered at boot since v1.69.0 (P-14). |
 | Tests | ✅ ready | **717** `node --test` cases (unit + functional + acceptance) + 4 E2E surfaces + the shell-surface tier (`bin/*.sh` + `.githooks`, WS9) as of v1.54.0. ~93 % line / ~83 % branch. `npm run test:ci` gates: tests + `check-no-also-leftovers` + 8-locale CHANGELOG parity; `help-ru-config-section.test.mjs` additionally locks H2+H3 help-bundle parity. |
 | Accessibility | ✅ ready | WS2 UX-audit (40 findings) shipped: SPA route-focus, focus-trapped `UI.confirm`, WAI-ARIA tabs, SSE live-regions, bound form labels, sortable-table `aria-sort` — codified in `docs/sdd/CONVENTIONS.md`. |
 | Security (single-tenant loopback) | ✅ ready | CSP, SSRF guard, XSS strip, secret masking, log redaction. |

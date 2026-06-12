@@ -8,8 +8,10 @@
 > **Audience.** Claude Code subagents, Cursor / Codex / Aider sessions,
 > any IDE assistant that doesn't auto-load CLAUDE.md.
 >
-> **Repo state.** v1.60.0 (2026-05-22). **1000** `node --test` cases,
-> **70** Playwright (smoke + full-cycle + forms + locale-sweep). **v1.60.0 (I18N-SPLIT)** split the 8-language
+> **Repo state.** v1.69.0 (2026-06-12). **1079** `node --test` cases,
+> **70** Playwright (smoke + full-cycle + forms + locale-sweep). **v1.69.0 (P-14)** made `server/lib/sources/registry.mjs`
+> auto-discover scanner adapters at boot (drop a `*.mjs` with an `export const meta` block — no registry edit).
+> **v1.60.0 (I18N-SPLIT)** split the 8-language
 > translation megafile into one file per locale under `public/js/lib/locales/`; `i18n-dict.js` is now an
 > assembler, `t()` and all call-sites unchanged (lossless, 678 keys). v1.55.1→v1.56.4 consolidated UX fix-prompt
 > complete; **v1.57.0** adds OpenRouter as a 5th headless live-eval
@@ -40,14 +42,14 @@ data files (`cv.md`, `data/applications.md`, `reports/`,
 | Layer | Tech | Where |
 |---|---|---|
 | Server | Node ≥ 18, Express 4, js-yaml, multer | `server/index.mjs` (~130-LOC orchestrator) + `server/lib/routes/*.mjs` (15 modules) |
-| Helpers (v1.21+) | ESM, no transpiler | `server/lib/{paths,parsers,runner,security,prompts,store,anthropic,env-config,activity-log,dotenv,safe-fetch,file-lock,rate-limit,en-scanner,ru-scanner}.mjs` + `server/lib/sources/{greenhouse,ashby,lever,workable,smartrecruiters,workday,hh,habr}.mjs` |
+| Helpers (v1.21+) | ESM, no transpiler | `server/lib/{paths,parsers,runner,security,prompts,store,anthropic,env-config,activity-log,dotenv,safe-fetch,file-lock,rate-limit,en-scanner,ru-scanner}.mjs` + `server/lib/sources/{greenhouse,ashby,lever,rss,smartrecruiters,workable,workday,geekjob,getmatch,habr,hh,trudvsem}.mjs` (12 adapters, auto-discovered via `registry.mjs` since v1.69.0/P-14) |
 | SPA | Vanilla JS, hash-router | `public/index.html`, `public/js/{app,router,api}.js`, `public/js/views/*.js`, `public/js/lib/{i18n,i18n-dict,skills,auto-pipeline,pdf-generate}.js`, `public/js/lib/locales/i18n-dict.<lang>.js` (8 + aliases) |
 | Styling | Hand-written CSS + design tokens | `public/css/app.css` |
 | Tests | `node --test` (TAP) + Playwright | `tests/*.test.mjs`, `tests/playwright-smoke.mjs`, `tests/e2e*.mjs` |
 | Build | None | Files served as-is from `public/` |
 | CI | GitHub Actions, Node 18/20/22 | `.github/workflows/{ci,release,publish-package,ai-review,dashboard-screenshots}.yml` |
 
-**Test baseline (v1.60.0):** 1000/1000 unit · 70/70 Playwright (smoke + full-cycle + forms + locale-sweep) · 20/20 smoke E2E · 23/23 comprehensive E2E · coverage 95.68% line / 87.33% branch.
+**Test baseline (v1.69.0):** 1079/1079 unit · 70/70 Playwright (smoke + full-cycle + forms + locale-sweep) · 20/20 smoke E2E · 23/23 comprehensive E2E · coverage ~93% line / ~83% branch.
 
 ---
 
@@ -115,7 +117,7 @@ career-ops-ui/
 │     ├─ prompts.mjs, store.mjs, anthropic.mjs
 │     ├─ env-config.mjs, activity-log.mjs, dotenv.mjs
 │     ├─ en-scanner.mjs, ru-scanner.mjs
-│     ├─ sources/                              # 8 ATS adapter clients
+│     ├─ sources/                              # 12 adapter clients + registry.mjs (auto-discovery, P-14 v1.69.0)
 │     ├─ portals/                              # adapter registry + resolveAdapter()
 │     └─ routes/                               # 15 route modules — one per topic (incl. openrouter)
 ├─ public/
