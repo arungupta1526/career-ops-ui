@@ -10,6 +10,14 @@
 
 
 
+## [1.69.2] — 2026-06-12
+
+**fix(test): `npm test` が実際の `config/profile.yml` と `data/scan-history.tsv` を上書きしてしまうテスト分離リークを修正。** `tests/critical-fixes.test.mjs` がファイル冒頭で `prompts.mjs`（→ `paths.mjs`）を読み込んでいたため、`before()` が `CAREER_OPS_ROOT` を一時ディレクトリに設定する前に `PROJECT_ROOT` が実際の親に解決され、`PUT /api/profile` が毎回「Acceptance Test」フィクスチャを実際のプロフィールに書き込んでいました。修正：`prompts.mjs` を `before()` 内で動的 `import()` により読み込むように変更。新規 `tests/test-root-isolation.test.mjs`（2 ケース）がスイート全体をこのパターンから保護します。本番コードの変更なし。スイート 1084 → 1086。
+
+---
+
+
+
 ## [1.69.1] — 2026-06-12
 
 **fix(scan): `#/scan` が大規模な地域スイープを黙って切り詰めなくなりました。** リージョンごとの表示セットが 500 件に固定されていました（実際の RU スキャンでは一致 1352 件のうち 500 件しか表示されず、852 件が非表示 ＝「2000 件スキャン、約 600 件表示」の症状）。両スキャナーは共有かつ環境変数で上書き可能な定数 `MAX_STORED_RESULTS`（既定 2000、`SCAN_MAX_RESULTS` で上書き）を使用します。表示のみ — `pipeline.md` / `scan-history.tsv` への追加は元から切り詰めなしのセットを使用していました。**fix(health/ui): `#/health` のチェックカードがはみ出さなくなりました。** 長い名前／値が **Fix →** ボタンとステータスバッジに衝突していましたが、`.health-check-row` で縮小・折り返しするようになりました。新規テスト `scan-result-cap` ＋ `health-card-overflow`。スイート 1079 → 1084。

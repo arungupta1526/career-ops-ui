@@ -1,17 +1,17 @@
-# QA REGRESSION PROMPT — career-ops-ui v1.69.1 · FULL / EXHAUSTIVE
+# QA REGRESSION PROMPT — career-ops-ui v1.69.2 · FULL / EXHAUSTIVE
 
-> **Scope:** the *entire* project, *all* functionality, as of `package.json` **1.69.1**.
+> **Scope:** the *entire* project, *all* functionality, as of `package.json` **1.69.2**.
 > **Role:** you are a strict release-gate QA engineer. Prove the whole app works,
 > correctly and clearly, and that nothing on the regression-locked list has drifted.
 > **Output:** save your run report to
-> `qa/v54-regression/<YYYY-MM-DD>-REGRESSION-v1.69.1.md` with a PASS/FAIL per item
+> `qa/v54-regression/<YYYY-MM-DD>-REGRESSION-v1.69.2.md` with a PASS/FAIL per item
 > and evidence (command output, screenshots, HTTP traces). One finding = one fix-ship.
 >
 > **Sibling perennials (run alongside, do not duplicate):**
 > `REGRESSION-FINAL.md` (§0→§15 invariant ledger + §A exhaustive matrix),
 > `UX-AUDIT-PROMPT.md` (Senior-UX heuristic audit vs career-ops.org/docs),
 > `FUNCTIONALITY-CHECK.md` (functional-correctness walkthrough). This FULL prompt is
-> the **single-pass driver** for the v1.69.1 surface; it folds in the v1.59→v1.69
+> the **single-pass driver** for the v1.69.2 surface; it folds in the v1.59→v1.69
 > features the perennial ledger predates (RSS adapter, per-request fetch-timeout,
 > determinate SSE progress bar, French locale, OpenRouter catalogue, multer upload,
 > hh.ru HTML scrape, RU multi-page pagination, scan salary range filter,
@@ -42,6 +42,15 @@
 8. **`registry.mjs` uses top-level `await`.** Importing it resolves the dynamic
    `import()` of every `sources/*.mjs` before `SOURCES` is populated. A new adapter
    that throws *at module load* breaks discovery — keep adapter top-level code pure.
+9. **Test-root isolation (v1.69.2).** `paths.mjs` resolves `PROJECT_ROOT` EAGERLY at
+   import, once per process. Any test needing an isolated `CAREER_OPS_ROOT` MUST set
+   the env var BEFORE the first import of a paths.mjs carrier (`server/index.mjs`,
+   `prompts.mjs`, `store.mjs`, `en-scanner.mjs`, `ru-scanner.mjs`, `paths.mjs`) —
+   i.e. load them via dynamic `import()` inside `before()`. A top-level static import
+   pins the REAL parent and leaks writes (e.g. `PUT /api/profile`) into the user's
+   real `config/profile.yml` / `data/`. Guard: `tests/test-root-isolation.test.mjs`.
+   Manual check: snapshot the real `config/profile.yml` + `data/scan-history.tsv`
+   (md5), run `npm test`, confirm both are byte-identical afterward.
 
 ---
 
@@ -49,7 +58,7 @@
 
 ```bash
 node -v                       # ≥ 18
-node -p "require('./package.json').version"   # → 1.69.1
+node -p "require('./package.json').version"   # → 1.69.2
 npm ci                        # clean install; prod deps = express, js-yaml, multer
 npm run test:ci               # = npm test + check-no-also-leftovers + changelog-parity + i18n-audit
 echo "unit exit: $?"          # MUST be 0
@@ -59,9 +68,9 @@ npm run test:e2e:browser      # Playwright suites               → ≥ 70 green
 npm run test:coverage         # ≥ 80% line / ≥ 80% branch on non-trivial logic
 ```
 
-**Baselines (floors, may only go up):** **≥1084** `node --test` · **≥70** Playwright ·
-**≥20** smoke E2E · **≥23** comprehensive E2E · 132 unit test files. If any number is
-*below* the README badge (1084), the badge or the suite drifted — STOP and reconcile.
+**Baselines (floors, may only go up):** **≥1086** `node --test` · **≥70** Playwright ·
+**≥20** smoke E2E · **≥23** comprehensive E2E · 133 unit test files. If any number is
+*below* the README badge (1086), the badge or the suite drifted — STOP and reconcile.
 
 **Gate fails ⇒ abort the cycle.** Do not proceed to manual checks on a red suite.
 
@@ -72,14 +81,14 @@ npm run test:coverage         # ≥ 80% line / ≥ 80% branch on non-trivial log
 - `npm start` → server on `127.0.0.1:4317`, no unhandled rejection in the log. The
   boot log must NOT carry a `[sources/registry] … has no valid export const meta —
   skipped` warning (every shipped adapter declares a valid `meta`).
-- `GET /api/health` returns `{ version: "1.69.1", parentVersion: <string|null>, … }`.
+- `GET /api/health` returns `{ version: "1.69.2", parentVersion: <string|null>, … }`.
   `version` and `parentVersion` are independent — `parentVersion` reflects the parent
   `VERSION` file (or null if no parent present). Footer in the SPA reads `version`.
-- All 9 README badges read `tests-1084` and `release-v1.69.1`; the top-of-README
-  **"🆕 Latest release — v1.69.1"** blockquote (line 15, all 9 locales) describes the
+- All 9 README badges read `tests-1086` and `release-v1.69.2`; the top-of-README
+  **"🆕 Latest release — v1.69.2"** blockquote (line 15, all 9 locales) describes the
   P-14 plug-in scanner auto-discovery. Each README also ends with a localized
   **Contributors** section (`contrib.rocks` image + graph link).
-- `CHANGELOG.{md,es,fr,ja,ko-KR,pt-BR,ru,zh-CN,zh-TW}.md` all carry a `[1.69.1]` entry
+- `CHANGELOG.{md,es,fr,ja,ko-KR,pt-BR,ru,zh-CN,zh-TW}.md` all carry a `[1.69.2]` entry
   dated `2026-06-12` (parity gated by `check-changelog-parity.mjs`).
 
 ---
@@ -120,7 +129,7 @@ smartrecruiters, workday`; RU — `hh, habr, trudvsem, getmatch, geekjob`; gener
 - **Per-request fetch timeout** wraps every source fetch; a slow source times out
   without hanging the whole scan.
 
-**§3.1 — P-14 plug-in scanner auto-discovery (v1.69.1 regression-lock):**
+**§3.1 — P-14 plug-in scanner auto-discovery (v1.69.2 regression-lock):**
 - `server/lib/sources/registry.mjs` is **dynamic**: at module boot it `readdirSync`-scans
   `server/lib/sources/` and dynamically `import()`s every `*.mjs` (except `registry.mjs`),
   collecting each module's `export const meta = { value, label, region, configKey? }`,
@@ -144,7 +153,7 @@ smartrecruiters, workday`; RU — `hh, habr, trudvsem, getmatch, geekjob`; gener
 - Lock test: `tests/sources-registry-discovery.test.mjs` (14 cases) +
   `tests/scan-sources-endpoint.test.mjs` (backwards-compat catalogue).
 
-**§3.2 — display cap (v1.69.1 regression-lock):**
+**§3.2 — display cap (v1.69.2 regression-lock):**
 - The stored/displayed match set per region is capped at `MAX_STORED_RESULTS`
   (shared constant in `en-scanner.mjs`, imported by `ru-scanner.mjs`; **default
   2000**, override via `SCAN_MAX_RESULTS`). Was a hard `slice(0, 500)` that
@@ -153,7 +162,7 @@ smartrecruiters, workday`; RU — `hh, habr, trudvsem, getmatch, geekjob`; gener
   additions use the uncapped `fresh` set. Neither scanner may hard-code
   `slice(0, 500)`. Lock: `tests/scan-result-cap.test.mjs` (3 cases).
 
-**§3.3 — #/health card overflow (v1.69.1 regression-lock):**
+**§3.3 — #/health card overflow (v1.69.2 regression-lock):**
 - `#/health` check cards must not overflow: a long name/value (e.g. `PROFILE
   CUSTOMIZED · …`, `PLAYWRIGHT (PARENT NODE_MODULES)`) must shrink/wrap and never
   collide with the **Fix →** button + status badge. The row carries
@@ -255,11 +264,11 @@ Reads are always safe. **Writes happen only on explicit user actions:**
   bleed (except server error JSON, which is English-by-policy).
 - **Help bundles** (`GET /api/help/:lang`): **19 H2 / 75 H3** parity across all 9
   locales (locks: `canonical-docs-coverage`, `help-ru-config-section`, `help-ui`).
-  **§17 "How to add a new job-portal source" was rewritten for the v1.69.1 drop-in
+  **§17 "How to add a new job-portal source" was rewritten for the v1.69.2 drop-in
   flow** (Step 2 = "Declare the adapter's `meta`", no registry edit) — H2/H3 counts
   unchanged. In-app `#/help` full-text search filters sections.
 - README: all 9 link Français, state 9 languages, carry the Contributors section;
-  CHANGELOG parity at 1.69.1.
+  CHANGELOG parity at 1.69.2.
 
 ---
 
@@ -305,8 +314,8 @@ orchestrator only.
 
 | # | Area | Gate | PASS/FAIL | Evidence |
 |---|---|---|---|---|
-| 0 | Pre-flight | test:ci + e2e + e2e:full + e2e:browser + coverage all green (≥1084 unit) | | |
-| 1 | Boot & version | /api/health = 1.69.1; badges (1084); CHANGELOG ×9 dated 2026-06-12; no registry boot-warning | | |
+| 0 | Pre-flight | test:ci + e2e + e2e:full + e2e:browser + coverage all green (≥1086 unit) | | |
+| 1 | Boot & version | /api/health = 1.69.2; badges (1086); CHANGELOG ×9 dated 2026-06-12; no registry boot-warning | | |
 | 2 | SPA routes | all 19 hash routes render clean, no console error | | |
 | 3 | Scanner | 12 sources; SSE both; **P-14 auto-discovery (meta-driven, no static array)**; backwards-compat catalogue; RU pagination lock; hh.ru scrape lock; strict salary filter; labelled panel + Apply; On-site; 60s timeout | | |
 | 4 | LLM | 4-provider matrix; live-`.env` key; OR catalogue; status | | |

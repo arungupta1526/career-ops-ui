@@ -11,8 +11,17 @@ import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
-import { buildLocaleDirective, resolveLocale, buildEvaluationPrompt, buildDeepPrompt, buildModePrompt } from '../server/lib/prompts.mjs';
 import { isPrivateOrLoopbackHost } from '../server/lib/security.mjs';
+
+// Test-isolation fix (v1.69.2): `prompts.mjs` transitively imports `paths.mjs`,
+// which resolves PROJECT_ROOT eagerly at module load (PATHS resolves once per
+// process). A TOP-LEVEL import here ran BEFORE before() sets CAREER_OPS_ROOT, so
+// PATHS pinned the REAL parent — and the F-008 `PUT /api/profile` then leaked the
+// "Acceptance Test" fixture into the real config/profile.yml (and similar writes
+// escaped the temp root). Load the prompt builders DYNAMICALLY, inside before(),
+// after the env is set, so paths.mjs resolves to the temp dir. `security.mjs`
+// does not import paths.mjs, so it stays a static import.
+let buildLocaleDirective, resolveLocale, buildEvaluationPrompt, buildDeepPrompt, buildModePrompt;
 
 let server;
 let baseUrl;
@@ -30,6 +39,9 @@ before(async () => {
   writeFileSync(resolve(dir, 'modes', 'oferta.md'), 'oferta\n');
   process.env.CAREER_OPS_ROOT = dir;
 
+  // Import paths.mjs-backed modules ONLY after CAREER_OPS_ROOT is set.
+  ({ buildLocaleDirective, resolveLocale, buildEvaluationPrompt, buildDeepPrompt, buildModePrompt } =
+    await import('../server/lib/prompts.mjs'));
   const { createApp } = await import('../server/index.mjs');
   const app = createApp();
   await new Promise((r) => {

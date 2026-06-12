@@ -10,6 +10,14 @@
 
 
 
+## [1.69.2] — 2026-06-12
+
+**fix(test): `npm test`가 실제 `config/profile.yml`과 `data/scan-history.tsv`를 덮어쓰던 테스트 격리 누수를 수정합니다.** `tests/critical-fixes.test.mjs`가 파일 상단에서 `prompts.mjs`(→ `paths.mjs`)를 가져왔기 때문에, `before()`가 `CAREER_OPS_ROOT`를 임시 디렉터리로 설정하기 전에 `PROJECT_ROOT`가 실제 부모로 해석되어 `PUT /api/profile`가 매 실행마다 "Acceptance Test" 픽스처를 실제 프로필에 기록했습니다. 수정: `prompts.mjs`를 `before()` 안에서 동적 `import()`로 로드. 새 `tests/test-root-isolation.test.mjs`(2개 케이스)가 전체 스위트를 이 패턴으로부터 보호합니다. 프로덕션 코드 변경 없음. 스위트 1084 → 1086.
+
+---
+
+
+
 ## [1.69.1] — 2026-06-12
 
 **fix(scan): `#/scan` 가 대규모 지역 스윕을 조용히 잘라내지 않습니다.** 리전별 표시 집합이 500개로 고정되어 있었습니다(실제 RU 스캔에서 일치 1352개 중 500개만 표시, 852개 숨김 — "2000개 스캔, 약 600개 표시" 증상). 두 스캐너 모두 공유 및 환경 변수로 재정의 가능한 상수 `MAX_STORED_RESULTS`(기본 2000, `SCAN_MAX_RESULTS`로 재정의)를 사용합니다. 표시 전용 — `pipeline.md` / `scan-history.tsv` 추가는 이미 잘리지 않은 집합을 사용했습니다. **fix(health/ui): `#/health` 점검 카드가 더 이상 넘치지 않습니다.** 긴 이름/값이 **Fix →** 버튼 및 상태 배지와 충돌했으나, 이제 `.health-check-row`로 축소·줄바꿈됩니다. 새 테스트 `scan-result-cap` + `health-card-overflow`. 스위트 1079 → 1084.

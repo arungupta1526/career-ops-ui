@@ -12,6 +12,14 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 
 
 
+## [1.69.2] — 2026-06-12
+
+**fix(test): corrige una fuga de aislamiento de tests que permitía que `npm test` sobrescribiera tus `config/profile.yml` y `data/scan-history.tsv` reales.** `tests/critical-fixes.test.mjs` importaba `prompts.mjs` (→ `paths.mjs`) en la parte superior del archivo, así que `PROJECT_ROOT` se resolvía al directorio padre real antes de que `before()` fijara `CAREER_OPS_ROOT` a un directorio temporal — y `PUT /api/profile` filtraba la fixture «Acceptance Test» a tu perfil real en cada ejecución. Solución: cargar `prompts.mjs` mediante `import()` dinámico dentro de `before()`. Nuevo `tests/test-root-isolation.test.mjs` (2 casos) protege toda la suite frente a ese patrón. Sin cambios de código de producción. Suite 1084 → 1086.
+
+---
+
+
+
 ## [1.69.1] — 2026-06-12
 
 **fix(scan): `#/scan` ya no trunca silenciosamente los barridos regionales grandes.** El conjunto mostrado por región estaba limitado a 500 (un escaneo RU real de 1352 ofertas coincidentes mostraba solo 500; 852 ocultas — el síntoma «2000 escaneadas, ~600 mostradas»). Ambos escáneres usan ahora una constante compartida y configurable por entorno `MAX_STORED_RESULTS` (por defecto 2000, anulable con `SCAN_MAX_RESULTS`). Solo afecta a la visualización: las adiciones a `pipeline.md` / `scan-history.tsv` ya usaban el conjunto sin recortar. **fix(health/ui): las tarjetas de comprobación de `#/health` ya no se desbordan.** Un nombre/valor largo chocaba con el botón **Fix →** y la insignia de estado; la fila ahora se encoge y se ajusta mediante `.health-check-row`. Nuevas pruebas `scan-result-cap` + `health-card-overflow`. Suite 1079 → 1084.

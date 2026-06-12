@@ -10,6 +10,14 @@
 
 
 
+## [1.69.2] — 2026-06-12
+
+**fix(test)：修復一處測試隔離洩漏，此前 `npm test` 會覆寫你真實的 `config/profile.yml` 和 `data/scan-history.tsv`。** `tests/critical-fixes.test.mjs` 在檔案頂部匯入了 `prompts.mjs`（→ `paths.mjs`），導致在 `before()` 將 `CAREER_OPS_ROOT` 設為暫存目錄之前，`PROJECT_ROOT` 就解析到了真實的父目錄 —— 於是 `PUT /api/profile` 每次執行都會把「Acceptance Test」夾具寫入你的真實檔案。修復：在 `before()` 內透過動態 `import()` 載入 `prompts.mjs`。新增 `tests/test-root-isolation.test.mjs`（2 個案例）保護整個測試套件免受該模式影響。無正式環境程式碼變更。測試套件 1084 → 1086。
+
+---
+
+
+
 ## [1.69.1] — 2026-06-12
 
 **fix(scan):`#/scan` 不再靜默截斷大型區域掃描。** 每個區域的顯示集被硬限制為 500 筆（真實的 RU 掃描有 1352 筆相符，卻只顯示 500 筆，隱藏 852 筆 —— 即「掃描 2000、僅顯示約 600」的症狀）。兩個掃描器現在使用共用且可經環境變數覆寫的常數 `MAX_STORED_RESULTS`（預設 2000，可透過 `SCAN_MAX_RESULTS` 覆寫）。僅影響顯示 —— 寫入 `pipeline.md` / `scan-history.tsv` 早已使用未截斷的集合。**fix(health/ui):`#/health` 檢查卡片不再溢位。** 過長的名稱/值會與 **Fix →** 按鈕和狀態徽章重疊；該列現在透過 `.health-check-row` 收縮並換行。新增測試 `scan-result-cap` + `health-card-overflow`。測試套件 1079 → 1084。

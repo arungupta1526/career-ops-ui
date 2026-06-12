@@ -8,6 +8,14 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.69.2] — 2026-06-12
+
+**fix(test): close a test-isolation leak that let `npm test` overwrite the user's real `config/profile.yml` and `data/scan-history.tsv`.** `tests/critical-fixes.test.mjs` statically imported `prompts.mjs` at the top of the file; `prompts.mjs` transitively imports `paths.mjs`, which resolves `PROJECT_ROOT` eagerly at module load (PATHS resolves once per process). Because that import ran **before** the `before()` hook set `CAREER_OPS_ROOT` to a temp dir, PATHS pinned the **real** parent — so the F-008 `PUT /api/profile` wrote the "Acceptance Test" fixture into the user's real profile on every run (and similar writes escaped the temp root). Fix: load `prompts.mjs` via **dynamic `import()`** inside `before()`, after the env is set (the server was already loaded that way). New `tests/test-root-isolation.test.mjs` (2 cases) guards every isolation-needing test against statically importing a `paths.mjs` carrier (`server/index.mjs`, `prompts.mjs`, `store.mjs`, `en-scanner.mjs`, `ru-scanner.mjs`, `paths.mjs`). **No production-code change.** Suite 1084 → 1086.
+
+---
+
+
+
 ## [1.69.1] — 2026-06-12
 
 **fix(scan): raise the `#/scan` result display cap 500 → 2000 per region so large regional sweeps are no longer silently truncated.** A real RU scan produced **1352** matching jobs, but only the first **500** were stored in `data/last-scan.json` and rendered in the results table — **852 relevant jobs were hidden** (the `2000 scanned → ~600 shown` symptom: 139 EN + 500 RU). Both `server/lib/en-scanner.mjs` and `server/lib/ru-scanner.mjs` now cap the stored `filtered` set at a shared, env-overridable constant `MAX_STORED_RESULTS` (default **2000**, override via `SCAN_MAX_RESULTS`). This is **display-only** — appending to `pipeline.md` and `scan-history.tsv` already used the uncapped `fresh` (new-since-last-scan) set and was never truncated. New `tests/scan-result-cap.test.mjs` (3 cases) locks the default, the env override, and that neither scanner hard-codes `slice(0, 500)`.
