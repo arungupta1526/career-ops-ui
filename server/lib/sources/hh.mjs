@@ -24,6 +24,14 @@ const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
+// v1.69.0 (P-14) — self-describing adapter metadata; see ashby.mjs for the rationale.
+export const meta = {
+  value: 'hh.ru',
+  label: 'hh.ru',
+  region: 'ru',
+  configKey: 'hh',
+};
+
 const AREA_MOSCOW = 1;
 const AREA_RUSSIA = 113;
 const AREA_REMOTE = 1001;

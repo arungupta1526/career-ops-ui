@@ -12,6 +12,14 @@ Traductions : [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [Portugu
 
 
 
+## [1.69.0] — 2026-06-09
+
+**feat(scan) : auto-découverte des adaptateurs du scanner (P-14) — il suffit de déposer un `.mjs` dans `server/lib/sources/` pour enregistrer une nouvelle source.** Avant la v1.69, la liste des sources dans `server/lib/sources/registry.mjs` était un tableau statique maintenu à la main — ajouter un adaptateur exigeait de modifier à la fois `<id>.mjs` ET `registry.mjs`. Ferme la partie restante de l'item P-14 de la feuille de route (`docs/ROADMAP.md`). Désormais, chaque `*.mjs` du dossier `server/lib/sources/` est chargé dynamiquement au boot du module ; chaque adaptateur déclare son identité via un bloc auto-descriptif `export const meta = { value, label, region, configKey? }`. Les 12 adaptateurs livrés (ashby / greenhouse / lever / rss / smartrecruiters / workable / workday + geekjob / getmatch / habr / hh / trudvsem) ont chacun reçu un export `meta` ; `registry.mjs` utilise désormais `readdirSync` + `import()` dynamique résolu via top-level await (standard ESM Node 18+). L'API publique (`SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources`) est inchangée — tous les imports existants continuent de fonctionner. La validation rejette les `meta` malformés (`value`/`label`/`region` manquants, RU sans `configKey`, region hors `'en'|'ru'`) et logge un seul `console.warn` par fichier fautif, pour rester diagnostiquable sur des branches partiellement migrées. Le `registry.mjs` lui-même est exclu de l'auto-discovery. Nouveau fichier `tests/sources-registry-discovery.test.mjs` : 14 cas couvrant la couverture des adaptateurs livrés, l'ajout d'un adaptateur drop-in, le skip des modules helper, le rejet des `meta` malformés, l'exclusion de l'auto-import, la tolérance aux dossiers manquants, et l'ordre déterministe. Suite 1065 → 1079.
+
+---
+
+
+
 ## [1.68.2] — 2026-06-07
 
 **fix(bin) : les verbes de la CLI via `npx` / `npm link` étaient cassés — le chemin du bin est désormais résolu à travers les liens symboliques.** npm et npx exposent `career-ops-ui` comme un lien symbolique sous `node_modules/.bin/`, où l'ancien `dirname "${BASH_SOURCE[0]}"` pointait vers `.bin` au lieu de la racine du paquet — si bien que `npx career-ops-ui init` exécutait `node node_modules/scripts/init.mjs` et échouait avec `MODULE_NOT_FOUND` (les exécutions locales après `npm install` n'étaient pas affectées, ce qui masquait le bug). Désormais `bin/career-ops-ui.sh` et `bin/start.sh` canonisent `SCRIPT_DIR` à travers la chaîne de liens (boucle `readlink` + `cd -P`), de sorte que chaque verbe fonctionne depuis le dépôt, via `npm link` et via `npx`. Ajoute un verrou de régression dans `tests/sh-files.test.mjs` qui exécute un verbe à travers un lien symbolique de style `.bin`. Suite 1065/1065.

@@ -10,6 +10,14 @@
 
 
 
+## [1.69.0] — 2026-06-09
+
+**feat(scan): スキャナーアダプターの自動検出（P-14）— `server/lib/sources/` に `.mjs` ファイルを置くだけで新しいソースを登録できます。** v1.69 以前は `server/lib/sources/registry.mjs` のソース一覧が手作業の静的配列で、アダプターを追加するには `<id>.mjs` と `registry.mjs` の両方を編集する必要がありました。これでロードマップ項目 P-14（`docs/ROADMAP.md`）の残作業を解消します。`server/lib/sources/` 内の各 `*.mjs` はモジュール起動時に動的にロードされ、各アダプターは自己記述的なブロック `export const meta = { value, label, region, configKey? }` で自身を宣言します。同梱の 12 個のアダプター（ashby / greenhouse / lever / rss / smartrecruiters / workable / workday + geekjob / getmatch / habr / hh / trudvsem）に `meta` を追加。`registry.mjs` は `readdirSync` + 動的 `import()` を top-level await で解決します（Node 18+ の ESM 標準）。公開 API（`SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources`）は変更なし — 既存のインポートはそのまま動作します。`meta` が不正な場合はスキップし、ファイルごとに `console.warn` を 1 回出力します。`tests/sources-registry-discovery.test.mjs` に 14 ケースを追加。スイート 1065 → 1079。
+
+---
+
+
+
 ## [1.68.2] — 2026-06-07
 
 **fix(bin): `npx` / `npm link` 経由の CLI 動詞が壊れていた — bin パスをシンボリックリンク経由で解決するよう修正。** npm と npx は `career-ops-ui` を `node_modules/.bin/` 配下のシンボリックリンクとして公開しますが、従来の `dirname "${BASH_SOURCE[0]}"` はパッケージのルートではなく `.bin` を指していたため、`npx career-ops-ui init` が `node node_modules/scripts/init.mjs` を実行して `MODULE_NOT_FOUND` で落ちていました（ローカルの `npm install` 実行は影響を受けず、バグが隠れていました）。`bin/career-ops-ui.sh` と `bin/start.sh` はシンボリックリンクのチェーンをたどって `SCRIPT_DIR` を正規化するようになり（`readlink` ループ + `cd -P`）、すべての動詞がリポジトリから、`npm link` 経由、`npx` 経由で動作します。`.bin` スタイルのシンボリックリンク経由で動詞を実行する回帰ロックを `tests/sh-files.test.mjs` に追加。スイート 1065/1065。

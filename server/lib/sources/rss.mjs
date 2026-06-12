@@ -10,6 +10,13 @@
 
 const UA = 'career-ops-web-ui/1.0';
 
+// v1.69.0 (P-14) — self-describing adapter metadata; see ashby.mjs for the rationale.
+export const meta = {
+  value: 'rss',
+  label: 'RSS',
+  region: 'en',
+};
+
 // ── tiny stable hash (djb2) ──────────────────────────────────────────
 function djb2(str) {
   let h = 5381;

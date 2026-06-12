@@ -9,6 +9,13 @@
 const UA = 'career-ops-web-ui/1.0';
 const PAGE_LIMIT = 1000;
 
+// v1.69.0 (P-14) — self-describing adapter metadata; see ashby.mjs for the rationale.
+export const meta = {
+  value: 'workable',
+  label: 'Workable',
+  region: 'en',
+};
+
 export async function fetchWorkable(apiUrl, opts = {}) {
   const { fetchImpl = fetch, signal } = opts;
   const sep = apiUrl.includes('?') ? '&' : '?';

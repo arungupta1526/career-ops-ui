@@ -10,6 +10,14 @@
 
 
 
+## [1.69.0] — 2026-06-09
+
+**feat(scan): автообнаружение адаптеров сканера (P-14) — достаточно положить `.mjs` в `server/lib/sources/`, чтобы зарегистрировать новый источник.** До v1.69 список источников в `server/lib/sources/registry.mjs` был статическим массивом, поддерживаемым вручную: добавление адаптера требовало правок и в `<id>.mjs`, и в `registry.mjs`. Закрывает оставшуюся половину пункта P-14 дорожной карты (`docs/ROADMAP.md`). Теперь каждый `*.mjs` из `server/lib/sources/` подгружается динамически при загрузке модуля; каждый адаптер заявляет о себе самоописательным блоком `export const meta = { value, label, region, configKey? }`. Все 12 поставляемых адаптеров (ashby / greenhouse / lever / rss / smartrecruiters / workable / workday + geekjob / getmatch / habr / hh / trudvsem) получили `meta`; `registry.mjs` использует `readdirSync` + динамический `import()` с top-level await (стандарт ESM Node 18+). Публичный API (`SOURCES`, `SOURCES_BY_REGION`, `RU_CONFIG_KEYS`, `getRegionalSources`) не меняется: все существующие импорты продолжают работать. Валидация отбрасывает некорректные `meta` и пишет `console.warn` на каждый сбойный файл. Новый `tests/sources-registry-discovery.test.mjs` с 14 кейсами. Сьют 1065 → 1079.
+
+---
+
+
+
 ## [1.68.2] — 2026-06-07
 
 **fix(bin): команды CLI через `npx` / `npm link` были сломаны — путь к bin теперь резолвится через симлинки.** npm и npx публикуют `career-ops-ui` как симлинк в `node_modules/.bin/`, и старый `dirname "${BASH_SOURCE[0]}"` указывал на `.bin`, а не на корень пакета — поэтому `npx career-ops-ui init` запускал `node node_modules/scripts/init.mjs` и падал с `MODULE_NOT_FOUND` (локальный запуск после `npm install` работал, что и скрывало баг). Теперь `bin/career-ops-ui.sh` и `bin/start.sh` канонизируют `SCRIPT_DIR` по цепочке симлинков (цикл `readlink` + `cd -P`), так что любая команда работает из репозитория, через `npm link` и через `npx`. Добавлен регресс-замок в `tests/sh-files.test.mjs`, прогоняющий команду через симлинк в стиле `.bin`. Сьют 1065/1065.
