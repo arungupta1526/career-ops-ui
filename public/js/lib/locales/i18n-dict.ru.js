@@ -183,7 +183,7 @@ window.__I18N_DICT_RU = {
   'top.doctor': "Диагностика",
   'top.quickscan': "Открыть Scan",
   'top.themeToggle': "Сменить тему",
-  'top.langhint': "{hotkey} — поиск",
+  'top.langhint': "Enter — поиск",
   'top.langLabel': "Язык",
   'common.loading': "Загрузка…",
   'common.error': "Ошибка",

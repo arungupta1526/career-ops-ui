@@ -183,7 +183,7 @@ window.__I18N_DICT_JA = {
   'top.doctor': "診断",
   'top.quickscan': "Scan を開く",
   'top.themeToggle': "テーマを切り替え",
-  'top.langhint': "{hotkey} — 検索",
+  'top.langhint': "Enter — 検索",
   'top.langLabel': "言語",
   'common.loading': "読み込み中…",
   'common.error': "エラー",

@@ -183,7 +183,7 @@ window.__I18N_DICT_EN = {
   'top.doctor': "Doctor",
   'top.quickscan': "Open Scan",
   'top.themeToggle': "Toggle theme",
-  'top.langhint': "{hotkey} — search",
+  'top.langhint': "Enter — search",
   'top.langLabel': "Language",
   'common.loading': "Loading…",
   'common.error': "Error",

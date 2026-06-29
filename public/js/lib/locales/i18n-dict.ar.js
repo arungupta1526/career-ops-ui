@@ -182,7 +182,7 @@ window.__I18N_DICT_AR = {
   'top.doctor': "الفحص",
   'top.quickscan': "فتح المسح",
   'top.themeToggle': "تبديل المظهر",
-  'top.langhint': "{hotkey} — بحث",
+  'top.langhint': "Enter — بحث",
   'top.langLabel': "اللغة",
   'common.loading': "جارٍ التحميل…",
   'common.error': "خطأ",

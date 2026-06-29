@@ -183,7 +183,7 @@ window.__I18N_DICT_ZH_CN = {
   'top.doctor': "诊断",
   'top.quickscan': "打开 Scan",
   'top.themeToggle': "切换主题",
-  'top.langhint': "{hotkey} — 搜索",
+  'top.langhint': "Enter — 搜索",
   'top.langLabel': "语言",
   'common.loading': "加载中…",
   'common.error': "错误",

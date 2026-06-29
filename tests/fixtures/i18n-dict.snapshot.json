@@ -2610,19 +2610,19 @@
     "ar": "تبديل المظهر"
   },
   "top.langhint": {
-    "en": "{hotkey} — search",
-    "es": "{hotkey} — buscar",
-    "pt-BR": "{hotkey} — buscar",
-    "ko": "{hotkey} — 검색",
-    "ja": "{hotkey} — 検索",
-    "ru": "{hotkey} — поиск",
-    "zh-CN": "{hotkey} — 搜索",
-    "zh-TW": "{hotkey} — 搜尋",
-    "fr": "{hotkey} — recherche",
-    "pl": "{hotkey} — wyszukaj",
-    "uk": "{hotkey} — пошук",
-    "da": "{hotkey} — søg",
-    "ar": "{hotkey} — بحث"
+    "en": "Enter — search",
+    "es": "Enter — buscar",
+    "pt-BR": "Enter — buscar",
+    "ko": "Enter — 검색",
+    "ja": "Enter — 検索",
+    "ru": "Enter — поиск",
+    "zh-CN": "Enter — 搜索",
+    "zh-TW": "Enter — 搜尋",
+    "fr": "Enter — recherche",
+    "pl": "Enter — wyszukaj",
+    "uk": "Enter — пошук",
+    "da": "Enter — søg",
+    "ar": "Enter — بحث"
   },
   "top.langLabel": {
     "en": "Language",

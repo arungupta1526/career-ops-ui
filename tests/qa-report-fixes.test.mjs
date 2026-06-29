@@ -1065,27 +1065,30 @@ test('U-1 (v1.58.21): #/cv has a proper page-header H1 + subtitle (no `.cv-bread
   assert.equal(h1Count, 1, `cv.js must declare exactly one <h1>, got ${h1Count}`);
 });
 
-test('I-6 (v1.58.20): footer hotkey uses {hotkey} placeholder + per-platform substitution', () => {
-  // v1.58.3 footer showed 'CTRL+K — search' literally on every platform
-  // and locale. The i18n value now embeds {hotkey} so app.js can swap
-  // it to ⌘K on Mac and Ctrl+K elsewhere; the localized verb stays.
+test('footer hint reads "Enter — <verb>" in every locale (no ⌘K/Ctrl+K)', () => {
+  // The footer hint historically showed the focus hotkey (⌘K/Ctrl+K). It now
+  // reads "Enter — <verb>" everywhere, mirroring the search badge (v1.78.1):
+  // Enter is the action that actually submits the search. The localized verb
+  // stays; only the hotkey token was dropped. No more {hotkey} substitution.
   const dict = legacyDictText();
-  assert.match(dict, /'top\.langhint':\s*\{\s*en:\s*'\{hotkey\} — search'/,
-    "top.langhint EN must use '{hotkey} — search'");
-  for (const lang of ['es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW']) {
+  assert.match(dict, /'top\.langhint':\s*\{\s*en:\s*'Enter — search'/,
+    "top.langhint EN must use 'Enter — search'");
+  for (const lang of ['es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW', 'fr', 'pl', 'uk', 'da', 'ar']) {
     const quotedKey = /-/.test(lang) ? `'${lang}'` : lang;
-    assert.match(dict, new RegExp(`${quotedKey.replace(/[\.]/g, '\\.')}:\\s*'\\{hotkey\\} — [^']+'`),
-      `top.langhint ${lang} must use '{hotkey} — <verb>' shape`);
+    assert.match(dict, new RegExp(`${quotedKey.replace(/[\.]/g, '\\.')}:\\s*'Enter — [^']+'`),
+      `top.langhint ${lang} must use 'Enter — <verb>' shape`);
   }
-  // app.js must apply the platform-specific substitution.
+  // The {hotkey} token and its platform substitution are gone for good.
+  assert.doesNotMatch(dict, /'top\.langhint':[^}]*\{hotkey\}/,
+    'top.langhint must no longer carry the {hotkey} token');
   const app = read('public', 'js', 'app.js');
-  assert.match(app, /applyFooterHotkey/, 'app.js must define applyFooterHotkey()');
-  assert.match(app, /isMac\s*\?\s*'⌘K'\s*:\s*'Ctrl\+K'/,
-    'applyFooterHotkey must branch ⌘K vs Ctrl+K');
-  assert.match(app, /\.replace\(\/\\\{hotkey\\\}\/g,\s*hotkey\)/,
-    "applyFooterHotkey must substitute {hotkey} placeholder");
-  assert.match(app, /I18n\.onChange\(applyFooterHotkey\)/,
-    'applyFooterHotkey must re-run on every language change');
+  assert.doesNotMatch(app, /applyFooterHotkey/,
+    'applyFooterHotkey must be gone — the footer hint comes straight from i18n');
+  assert.doesNotMatch(app, /isMac\s*\?\s*'⌘K'\s*:\s*'Ctrl\+K'/,
+    'no ⌘K/Ctrl+K branch should remain for the footer hint');
+  // The Cmd/Ctrl+K focus keybinding itself is intentionally kept (a bonus).
+  assert.match(app, /\(\s*e\.ctrlKey\s*\|\|\s*e\.metaKey\s*\)\s*&&\s*e\.key === 'k'/,
+    'Cmd/Ctrl+K focus keybinding must remain');
 });
 
 test('I-4 (v1.58.19): RU followup strings contain no Latin `cadence`/`follow-up` leakage', () => {
