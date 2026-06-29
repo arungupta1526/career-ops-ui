@@ -183,7 +183,7 @@ window.__I18N_DICT_KO = {
   'top.doctor': "진단",
   'top.quickscan': "Scan 열기",
   'top.themeToggle': "테마 전환",
-  'top.langhint': "{hotkey} — 검색",
+  'top.langhint': "Enter — 검색",
   'top.langLabel': "언어",
   'common.loading': "로딩 중…",
   'common.error': "오류",

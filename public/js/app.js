@@ -212,28 +212,20 @@ I18n.onChange(() => {
 
   // global search
   const search = document.getElementById('global-search');
-  // v1.56.4 — UX-N2: surface the Cmd/Ctrl+K shortcut visibly so
-  // sighted users discover it. The keybinding itself is wired further
-  // down; the badge is aria-hidden (aria-label already covers AT).
+  // v1.56.4 — UX-N2: surface the submit shortcut visibly so sighted users
+  // discover it. The badge reads "Enter" (v1.78.1); it is aria-hidden
+  // (the input aria-label already conveys the action to AT).
   const kbdHint = document.querySelector('.kbd-shortcut');
-  // I-6 (v1.58.20) — footer hint must show ⌘K on Mac, Ctrl+K elsewhere
-  // (was the EN-only literal "CTRL+K — search" on every locale and
-  // every platform). Same detection used for the top-bar badge.
+  // The visible badge reads "Enter" on every platform (v1.78.1) — Enter is the
+  // action that submits the search (non-URL → #/scan pre-filled; URL →
+  // auto-pipeline). The Cmd/Ctrl+K focus keybinding is kept as a bonus (wired
+  // further down) but is no longer surfaced as the hint.
   const isMac = /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent || '');
   if (kbdHint) {
     kbdHint.textContent = isMac ? kbdHint.dataset.mac : kbdHint.dataset.other;
   }
-  function applyFooterHotkey() {
-    const hint = document.querySelector('.sidebar-footer .hint[data-i18n="top.langhint"]');
-    if (!hint) return;
-    const hotkey = isMac ? '⌘K' : 'Ctrl+K';
-    // After applyI18n() the text is e.g. '{hotkey} — поиск'. Swap the
-    // {hotkey} token with the platform-specific combo so the footer
-    // matches the OS the user is on and the localized verb stays.
-    hint.textContent = hint.textContent.replace(/\{hotkey\}/g, hotkey);
-  }
-  applyFooterHotkey();
-  I18n.onChange(applyFooterHotkey);
+  // The footer hint (top.langhint) now reads "Enter — <verb>" straight from
+  // i18n in every locale — no {hotkey} token to substitute anymore.
 
   // v1.58.34 — Notifications drawer. Builds on top of U-13's
   // UI.getToastHistory() + UI.onToast() (v1.58.33). The drawer slides

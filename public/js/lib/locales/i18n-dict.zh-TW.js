@@ -183,7 +183,7 @@ window.__I18N_DICT_ZH_TW = {
   'top.doctor': "診斷",
   'top.quickscan': "開啟 Scan",
   'top.themeToggle': "切換主題",
-  'top.langhint': "{hotkey} — 搜尋",
+  'top.langhint': "Enter — 搜尋",
   'top.langLabel': "語言",
   'common.loading': "載入中…",
   'common.error': "錯誤",

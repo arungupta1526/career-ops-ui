@@ -182,7 +182,7 @@ window.__I18N_DICT_DA = {
   'top.doctor': "Doctor",
   'top.quickscan': "Åbn Scanning",
   'top.themeToggle': "Skift tema",
-  'top.langhint': "{hotkey} — søg",
+  'top.langhint': "Enter — søg",
   'top.langLabel': "Sprog",
   'common.loading': "Indlæser…",
   'common.error': "Fejl",

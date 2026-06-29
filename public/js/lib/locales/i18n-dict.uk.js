@@ -182,7 +182,7 @@ window.__I18N_DICT_UK = {
   'top.doctor': "Doctor",
   'top.quickscan': "Відкрити сканування",
   'top.themeToggle': "Переключити тему",
-  'top.langhint': "{hotkey} — пошук",
+  'top.langhint': "Enter — пошук",
   'top.langLabel': "Мова",
   'common.loading': "Завантаження…",
   'common.error': "Помилка",
