@@ -9,6 +9,10 @@
 ---
 
 
+## [1.81.0] — 2026-06-29
+
+**親 career-ops パリティ — 13 件の新規求人ボードスキャンソース。** [`Fighter90/career-ops`](https://github.com/Fighter90/career-ops) `main` の最新プロバイダバッチをインプロセススキャナに移植します。**ボード全体の公開 API**（プロバイダ選択）: **Arbeitnow**、**Himalayas**、**Jobicy**、**Landing.jobs**、**4 Day Week**、**The Muse**、**The Hub**、**Jobspresso**（RSS）、**Hacker News "Who is hiring?"**（Algolia 2 ステップ）。**ポーランドのボード**（ホストまたは `provider:` 検出）: **JustJoin.it** および **NoFluffJobs**（POST 検索）。**テナント別 ATS**（`careers_url` から自動検出）: **Pinpoint**（`<slug>.pinpointhq.com/postings.json`）および **Rippling**（`ats.rippling.com/<slug>` → `api.rippling.com` ボード）。すべてのソースは `redirect:'error'` でホスト固定（SSRF 対策）され、`#/scan` の **Source** ドロップダウンで選択できます — レジストリは **40 スキャナアダプタ**（EN 35 + RU 5）を提供します。ソースごとの CI 隔離テストスイート 13 件を追加; フルユニットスイート 1513 件グリーン。
+
 ## [1.80.0] — 2026-06-28
 
 **スキャンの 5 つの強化（job-crawler のアイデアを再実装）。** (1) **Teamtailor** ソース — `<slug>.teamtailor.com` のテナント別キャリアサイトを公開 `/jobs.rss` フィード経由で取得。`careers_url` から自動検出（ホスト固定 + `redirect:'error'`）。レジストリは **27 アダプタ** に。(2) **ソースのクォランティン** — 恒久的な 404/410 を返したソースを `data/scan-quarantine.json` に記録し、以後のスキャンでスキップ（自己修復：14 日後に再試行）。(3) **ソースごとの上限** — `#/scan` の任意フィールドで各ボードの件数を制限（既定は ∞）。(4) **投稿期間** — クライアント側の経過フィルタ（24時間 / 7日 / 30日）。(5) **保存した検索 + ★ お気に入り** — フィルタセットに名前を付けて再利用し、求人にスターを付与。`localStorage` に防御的バリデーション付きで保存（壊れたキャッシュはクリーンにリセット）。結果キャッシュはスキャン前にリセットされ、ライブで再充填されます。

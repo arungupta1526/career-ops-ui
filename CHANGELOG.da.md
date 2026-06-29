@@ -10,6 +10,10 @@ Oversættelser: [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [Portu
 
 
 
+## [1.81.0] — 2026-06-29
+
+**Paritet med forælderens career-ops — 13 nye jobscanningskilder.** Overfører den seneste providerbatch fra Fighter90/career-ops `main` til in-process-scanneren. Boards-dækkende offentlige API'er (provider-valgt): Arbeitnow, Himalayas, Jobicy, Landing.jobs, 4 Day Week, The Muse, The Hub, Jobspresso (RSS) og Hacker News "Who is hiring?" (Algolia to-trins). Polske boards (host- eller `provider:`-detekteret): JustJoin.it og NoFluffJobs (POST-søgning). Per-tenant ATS (auto-detekteret fra `careers_url`): Pinpoint (`<slug>.pinpointhq.com/postings.json`) og Rippling (`ats.rippling.com/<slug>` → `api.rippling.com` board). Alle kilder er host-låste med `redirect:'error'` (SSRF-sikrede) og kan vælges i **Source**-dropdownen på `#/scan` — registret leverer nu **40 scanneradaptere** (35 EN + 5 RU). Tilføjer 13 CI-isolerede testsuiter pr. kilde; den fulde unittest-suite er grøn ved 1513.
+
 ## [1.80.0] — 2026-06-28
 
 **Fem scan-forbedringer (idéer fra job-crawler, genimplementeret).** (1) **Teamtailor**-kilde — per-tenant `<slug>.teamtailor.com` via det offentlige `/jobs.rss`-feed, auto-detekteret fra `careers_url` (host-låst + `redirect:'error'`); registret har nu **27 adaptere**. (2) **Kilde-karantæne** — en kilde med permanent 404/410 gemmes i `data/scan-quarantine.json` og springes over ved senere scanninger (selvhelende: forsøges igen efter 14 dage). (3) **Maks. pr. kilde** — et valgfrit `#/scan`-felt der begrænser antallet af jobs pr. board (∞ som standard). (4) **Slået op inden for** — et klient-side aldersfilter (24t / 7d / 30d). (5) **Gemte søgninger + ★ favoritter** — navngiv og genbrug filtersæt og marker job, gemt i `localStorage` med defensiv validering (en korrupt cache nulstilles rent); resultat-cachen nulstilles før hver scan og fyldes live.
