@@ -1,9 +1,9 @@
-# QA REGRESSION PROMPT — career-ops-ui **v1.80.0** (DEFINITIVE · WHOLE PROJECT · ALL LANGUAGES)
+# QA REGRESSION PROMPT — career-ops-ui **v1.81.0** (DEFINITIVE · WHOLE PROJECT · ALL LANGUAGES)
 
 Single standalone hand-off for a QA tester (human or agent) to verify the **entire** career-ops-ui build end-to-end, in **all 13 languages**. Walking this top-to-bottom signs off the build without needing the rest of the `qa/` tree.
 
-- **Version under test:** `package.json` **1.80.0** · parent career-ops **1.14.0** parity.
-- **Baseline:** **1258** `node --test` cases · Playwright (smoke + full-cycle + forms + **locale-sweep ×13** + theme-toggle) · 20 smoke E2E · 23 comprehensive E2E · CI matrix green on Node 18/20/22 + Playwright + CodeQL.
+- **Version under test:** `package.json` **1.81.0** · parent career-ops parity.
+- **Baseline:** **1513** `node --test` cases · Playwright (smoke + full-cycle + forms + **locale-sweep ×13** + theme-toggle) · 20 smoke E2E · 23 comprehensive E2E · CI matrix green on Node 18/20/22 + Playwright + CodeQL.
 - **Server:** `npm start` → `http://127.0.0.1:4317`.
 - **Sibling docs:** `qa/QA-REGRESSION-PROMPT-v1.76.0-FULL.md` (parent-parity gate driver) · `key/E2E-REGRESSION-EVERY-BUTTON-EVERY-LANGUAGE-v1.78.0.md` (exhaustive UI click-through) · `REGRESSION-FINAL.md` (invariant ledger).
 
@@ -12,10 +12,10 @@ Single standalone hand-off for a QA tester (human or agent) to verify the **enti
 ## §0 — Gates (all must be green before sign-off)
 
 ```bash
-npm test                                    # full suite (≥1258 cases)
+npm test                                    # full suite (≥1513 cases)
 npm run test:ci                             # unit + check-no-also + check-changelog-parity + i18n-audit
 node tools/i18n-audit.mjs                   # "no hard failures — dictionary is clean"
-node scripts/check-changelog-parity.mjs     # "all 12 locales at v1.80.0" (EN + 12 = 13 files)
+node scripts/check-changelog-parity.mjs     # "all 12 locales at v1.81.0" (EN + 12 = 13 files)
 npm run test:coverage                       # ≥80% line / ≥75% branch (baseline ~93/~83)
 npm run test:e2e:browser                    # playwright smoke + full-cycle + forms + locale-sweep(13) + theme-toggle
 npm run test:e2e && npm run test:e2e:full   # smoke (20) + comprehensive (23) E2E
@@ -45,7 +45,7 @@ node scripts/portals-health-check.mjs       # portals.yml reachability (informat
 
 | # | Area (release) | Must-see behaviour |
 |---|---|---|
-| 1 | **6 new ATS sources (v1.76.0 — parent v1.13.0)** | `#/scan` **Source** dropdown lists **27** adapters incl. the per-tenant ATSes BambooHR / Breezy HR / Comeet / Personio / Recruitee / SolidJobs / **Teamtailor** + the board-wide **We Work Remotely**. `GET /api/scan/sources` returns 27 (22 EN + 5 RU). Per-tenant ATS auto-detect from `careers_url` host (Comeet from full `api:`); each pins host with an anchored regex + `redirect:'error'` (SSRF). |
+| 1 | **6 new ATS sources (v1.76.0 — parent v1.13.0)** | `#/scan` **Source** dropdown lists **40** adapters incl. the per-tenant ATSes BambooHR / Breezy HR / Comeet / Personio / Recruitee / SolidJobs / **Teamtailor** + the board-wide **We Work Remotely**. `GET /api/scan/sources` returns 40 (35 EN + 5 RU). Per-tenant ATS auto-detect from `careers_url` host (Comeet from full `api:`); each pins host with an anchored regex + `redirect:'error'` (SSRF). |
 | 2 | **trust_filter (v1.76.0)** | `trust_filter: {enabled:true}` in `portals.yml` → low-trust rows get a **⚠ score** badge (tooltip = flag codes). Annotate-only; NEVER drops a row. Absent → no badge. |
 | 3 | **No result cap (v1.76.0)** | `MAX_STORED_RESULTS` removed. A scan with >2000 matches stores them all; the table pages **200/row** through everything (pager under the table). Nothing truncated. |
 | 4 | **Title-filter robustness (v1.76.0)** | `title_filter.negative:['coo']` does NOT drop "Coordinator" (word-boundary acronyms); malformed `title_filter` entries don't crash a scan. EN + RU scanners. |
@@ -56,13 +56,14 @@ node scripts/portals-health-check.mjs       # portals.yml reachability (informat
 | 9 | **Scan auto-refresh (v1.78.1)** | The `#/scan` results table updates automatically *during* a scan and once more after the terminal `done` — no manual reload. `runScanAll` polls every 2.5s + does a 300ms post-flush refresh. |
 | 10 | **Global search → Scan (v1.78.1)** | Top-bar search badge reads **Enter**. Enter on a URL → auto-pipeline; Enter on any other text → `#/scan` with the search box pre-filled (was `#/tracker`). **Same-route guard:** if already on `#/scan`, it force-re-renders so the prefill is consumed (never leaks to the next visit). |
 | 11 | **Logo → home (v1.78.1)** | Clicking the brand logo (now an `<a href="#/dashboard">` with a localized `data-i18n-aria-label="nav.logoHome"`) navigates to the dashboard. Global-search Enter on `#/scan` force-re-renders (same-route guard) so the prefill never leaks. |
-| 12 | **WeWorkRemotely source (v1.79.0 — parent v1.14.0)** | `#/scan` **Source** dropdown includes **We Work Remotely**; a `provider: weworkremotely` entry scans the board-wide RSS feed (host-pinned to weworkremotely.com + `redirect:'error'`). Titles split on `Company: Role`; all rows remote. Registry now ships **27** adapters (with Teamtailor). |
+| 12 | **WeWorkRemotely source (v1.79.0 — parent v1.14.0)** | `#/scan` **Source** dropdown includes **We Work Remotely**; a `provider: weworkremotely` entry scans the board-wide RSS feed (host-pinned to weworkremotely.com + `redirect:'error'`). Titles split on `Company: Role`; all rows remote. Registry now ships **40** adapters. |
 | 14 | **Teamtailor source (v1.80.0)** | A `careers_url: https://<slug>.teamtailor.com` (or `provider: teamtailor`) is scanned via its public `/jobs.rss`; feed host-pinned + `redirect:'error'`; titles read `<title>`, location `<teamtailor:location>`, dept `<teamtailor:department>`. Off-domain host → "untrusted hostname". |
 | 15 | **Source quarantine (v1.80.0)** | A source returning a permanent **404/410** is written to `data/scan-quarantine.json` and skipped on later scans (self-healing: retried after 14 days). Log shows "Quarantined (skipped): N". `scan_quarantine: false` disables it. Only persists when not dry-run. |
 | 16 | **Max per source (v1.80.0)** | The **Max per source** field by the Scan button caps each board's jobs (empty/0 = ∞). Set 5 → each `✓ company` line reads ≤5 (with "(capped from N)"). Passed as `maxPerSource` query param; EN scanner only. |
 | 17 | **Posted within (v1.80.0)** | Results filter dropdown (Any / 24h / 7d / 30d) drops rows whose `date` is older; dateless rows pass. Client-side, by `job.date`. |
 | 18 | **Saved searches + ★ favorites (v1.80.0)** | `localStorage` via `public/js/lib/scan-prefs.js`. Save/apply/delete named filter sets; ☆/★ per row toggles a favorite (by URL); "★ Favorites" filter shows starred only. Corrupt/edited cache resets to empty (validated). Results cache is reset at scan start + refilled. |
 | 13 | **Title-filter trim (v1.79.0 — parent #1261)** | `title_filter` keywords are trimmed BEFORE the length check — a whitespace-only keyword (`"  "`) is dropped, not compiled into a match-everything substring. Both EN + RU scanners (`compileKeywordList`). |
+| 19 | **13 new scan sources (v1.81.0 — parent parity)** | `#/scan` **Source** dropdown lists **40** adapters; `GET /api/scan/sources` returns **40** (35 EN + 5 RU). New board-wide (provider-selected): **Arbeitnow / Himalayas / Jobicy / Landing.jobs / 4 Day Week / The Muse / The Hub / Jobspresso** (RSS) **/ Hacker News “Who is hiring?”** (Algolia 2-step). Poland (host- or `provider:`): **JustJoin.it / NoFluffJobs** (POST search). Per-tenant ATS (careers_url host): **Pinpoint** (`<slug>.pinpointhq.com/postings.json`) **/ Rippling** (`ats.rippling.com/<slug>` → `api.rippling.com`). All host-pinned + `redirect:'error'` (SSRF). Each ships a `tests/sources-<slug>.test.mjs` suite; `ALL_ADAPTERS` length 35, sorted-id + EN-set assertions updated. |
 
 ---
 
@@ -112,7 +113,7 @@ Allowlist = batch, contacto, cover, followup, interview-prep, patterns, project,
 - `#/health`: OK/OPTIONAL/FAIL cards (no overflow); run `doctor.mjs` / `verify-pipeline.mjs`.
 - `#/activity`: log; redaction.
 - Notifications drawer (🔔): unread badge; journal of last 50 toasts, each `(METHOD /path · HTTP NNN)` postfix in `<details>`; Clear-all + per-entry dismiss.
-- `#/help`: **13 markdown bundles** (en, es, pt-BR, ko-KR, ja, ru, zh-CN, zh-TW, fr, pl, uk, **da**, ar); `GET /api/help/<lang>` serves each. Invariant **19 H2 / 75 H3** per bundle (`canonical-docs-coverage` + `help-ui` + `help-ru-config-section`). §7 documents the Source dropdown (25) + the **Country** filter; §17 says **25 adapters**. TOC scroll-spy.
+- `#/help`: **13 markdown bundles** (en, es, pt-BR, ko-KR, ja, ru, zh-CN, zh-TW, fr, pl, uk, **da**, ar); `GET /api/help/<lang>` serves each. Invariant **19 H2 / 75 H3** per bundle (`canonical-docs-coverage` + `help-ui` + `help-ru-config-section`). §7 documents the Source dropdown (40) + the **Country** filter; §17 says **40 adapters**. TOC scroll-spy.
 
 ### 4.8 Runners / PDF / OpenRouter / output
 Buffered `/api/run/*` (doctor, verify, normalize, dedup, merge, sync-check); streaming `/api/stream/*` (scan, liveness, pdf + /report /deep /inline); `/api/output/pdfs` list + download (Content-Disposition, name sanitized). `/api/openrouter/models` catalogue proxy. PDFs embed fonts.
@@ -154,6 +155,6 @@ Locales: `en, es, pt-BR, ko, ja, ru, zh-CN, zh-TW, fr, pl, uk, da, ar` (dict fil
 
 ## §8 — Exit criteria
 - Every (page × control × 13 languages) PASS or a logged FAIL→fix (one-fix-per-release; HIGH → MEDIUM → LOW).
-- `npm test` ≥ **1258** green; `npm run test:ci` green; coverage ≥ floor; Playwright (locale-sweep ×13) green; CI matrix green.
+- `npm test` ≥ **1513** green; `npm run test:ci` green; coverage ≥ floor; Playwright (locale-sweep ×13) green; CI matrix green.
 - Zero console errors; no RTL leak; no untranslated shipped key; favicon/icon endpoints 200.
 - All §2 deltas verified live.

@@ -11,6 +11,10 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 ---
 
 
+## [1.81.0] — 2026-06-29
+
+**Paridad con el career-ops padre — 13 nuevas fuentes de escaneo de bolsas de empleo.** Incorpora el último lote de proveedores desde el `main` de Fighter90/career-ops al escáner en proceso. **APIs públicas universales** (seleccionadas por proveedor): **Arbeitnow**, **Himalayas**, **Jobicy**, **Landing.jobs**, **4 Day Week**, **The Muse**, **The Hub**, **Jobspresso** (RSS) y **Hacker News "Who is hiring?"** (Algolia en dos pasos). **Bolsas polacas** (detectadas por host o `provider:`): **JustJoin.it** y **NoFluffJobs** (búsqueda POST). **ATS por tenant** (autodetectados desde `careers_url`): **Pinpoint** (`<slug>.pinpointhq.com/postings.json`) y **Rippling** (`ats.rippling.com/<slug>` → `api.rippling.com`). Cada fuente está fijada por host con `redirect:'error'` (anti-SSRF) y es seleccionable en el desplegable **Source** de `#/scan` — el registro incluye ahora **40 adaptadores de escáner** (35 EN + 5 RU). Añade 13 conjuntos de tests CI aislados por fuente; suite de tests unitarios completa en verde con 1513 tests.
+
 ## [1.80.0] — 2026-06-28
 
 **Cinco mejoras de escaneo (ideas de job-crawler, reimplementadas).** (1) Fuente **Teamtailor** — sitios `<slug>.teamtailor.com` vía su feed público `/jobs.rss`, autodetectado desde `careers_url` (host fijado + `redirect:'error'`); el registro trae ahora **27 adaptadores**. (2) **Cuarentena de fuentes** — una fuente con 404/410 permanente se guarda en `data/scan-quarantine.json` y se omite en escaneos posteriores (autorreparable: se reintenta a los 14 días). (3) **Máx. por fuente** — campo opcional en `#/scan` que limita los empleos por board (∞ por defecto). (4) **Publicado en** — filtro de antigüedad del lado del cliente (24h / 7d / 30d). (5) **Búsquedas guardadas + ★ favoritos** — nombra y reutiliza conjuntos de filtros y marca empleos, en `localStorage` con validación defensiva (una caché corrupta se reinicia limpia); la caché de resultados se reinicia antes de cada escaneo y se rellena en vivo.

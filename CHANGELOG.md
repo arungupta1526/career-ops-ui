@@ -8,6 +8,10 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.81.0] — 2026-06-29
+
+**Parent career-ops parity — 13 new job-board scan sources.** Ports the latest provider batch from [`Fighter90/career-ops`](https://github.com/Fighter90/career-ops) `main` into the in-process scanner. **Board-wide public APIs** (provider-selected): **Arbeitnow**, **Himalayas**, **Jobicy**, **Landing.jobs**, **4 Day Week**, **The Muse**, **The Hub**, **Jobspresso** (RSS), and **Hacker News “Who is hiring?”** (Algolia two-step). **Poland boards** (host- or `provider:`-detected): **JustJoin.it** and **NoFluffJobs** (POST search). **Per-tenant ATS** (auto-detected from `careers_url`): **Pinpoint** (`<slug>.pinpointhq.com/postings.json`) and **Rippling** (`ats.rippling.com/<slug>` → `api.rippling.com` board). Every source is host-pinned with `redirect:'error'` (SSRF-safe) and selectable in the `#/scan` **Source** dropdown — the registry now ships **40 scanner adapters** (35 EN + 5 RU). Adds 13 CI-isolated per-source test suites; full unit suite green at 1513.
+
 ## [1.80.0] — 2026-06-28
 
 **Five scan upgrades (ideas from [bracketouverte/job-crawler](https://github.com/bracketouverte/job-crawler), reimplemented).** (1) **Teamtailor** source — per-tenant `<slug>.teamtailor.com` career sites via their public `/jobs.rss` feed, auto-detected from `careers_url` (host-pinned + `redirect:'error'`); the registry now ships **27 adapters**. (2) **Source quarantine** — a source that returns a permanent 404/410 is recorded in `data/scan-quarantine.json` and skipped on later scans (self-healing: retried after 14 days), killing the recurring dead-slug noise. (3) **Max per source** — an optional `#/scan` field caps how many jobs each board contributes (∞ by default). (4) **Posted within** — a client-side age filter (24h / 7d / 30d) on the results table. (5) **Saved searches + ★ favorites** — name & reuse filter sets and star jobs, persisted in `localStorage` with defensive validation (a corrupt cache resets cleanly); the results cache is reset before each scan and refilled live.

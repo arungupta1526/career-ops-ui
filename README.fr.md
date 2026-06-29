@@ -12,13 +12,13 @@ _Interface non officielle — sans affiliation ni approbation de career-ops / sa
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.80.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.80.0)
+[![release](https://img.shields.io/badge/release-v1.81.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.81.0)
 
-> **🆕 Dernière version — v1.80.0**
+> **🆕 Dernière version — v1.81.0**
 >
-> **Cinq améliorations du scan** (idées tirées de [job-crawler](https://github.com/bracketouverte/job-crawler), réimplémentées) : une source **Teamtailor** — les sites `<slug>.teamtailor.com` par tenant via leur flux public `/jobs.rss` (**27 adaptateurs** au total) ; la **mise en quarantaine des sources** — les sources mortes en 404/410 sont enregistrées et ignorées lors des scans suivants (auto-réparation après 14 jours), supprimant le bruit récurrent des slugs morts ; un champ de plafond **Max par source** (∞ par défaut) ; un filtre d'ancienneté **Publié depuis** (24 h / 7 j / 30 j) ; et **recherches enregistrées + ★ favoris** sur `#/scan`, persistés dans `localStorage` avec une validation défensive. S'appuie sur la v1.79.0 (We Work Remotely), la v1.78.x (filtre par pays, auto-rafraîchissement, Enter→Scan, logo cliquable), la v1.77.0 (danois) et la v1.76.0 (sources ATS par tenant, `trust_filter`).
+> **13 nouvelles sources de scan de job boards** (parité avec le career-ops parent) : APIs publiques universelles **Arbeitnow · Himalayas · Jobicy · Landing.jobs · 4 Day Week · The Muse · The Hub · Jobspresso · Hacker News "Who is hiring?"**, les boards polonais **JustJoin.it · NoFluffJobs** (recherche POST) et ATS par tenant **Pinpoint · Rippling** (auto-détectés depuis `careers_url`) — tous verrouillés par hôte avec `redirect:'error'` (anti-SSRF) et sélectionnables dans le menu **Source** de `#/scan` (**40 adaptateurs** au total). S'appuie sur la v1.80.0 (Teamtailor, mise en quarantaine des sources, max par source, filtre d'ancienneté, recherches enregistrées), la v1.79.0 (We Work Remotely), la v1.77.0 (danois) et la v1.76.0 (sources ATS par tenant).
 >
-> _13 locales · 6 fournisseurs LLM · 27 adaptateurs de scanner · recherches enregistrées + favoris · parité avec le career-ops parent v1.14.0._
+> _13 locales · 6 fournisseurs LLM · 40 adaptateurs de scanner · 13 nouvelles sources · parité avec le career-ops parent._
 
 ![career-ops-ui — Centre de commande](./images/dashboard-fr.png)
 

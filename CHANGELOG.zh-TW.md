@@ -9,6 +9,10 @@
 ---
 
 
+## [1.81.0] — 2026-06-29
+
+**與父層 career-ops 對齊 — 13 個全新職缺看板掃描來源。** 將 Fighter90/career-ops `main` 的最新提供者批次移植至 in-process 掃描器。**全站公開 API**（provider 選擇）：**Arbeitnow**、**Himalayas**、**Jobicy**、**Landing.jobs**、**4 Day Week**、**The Muse**、**The Hub**、**Jobspresso**（RSS），以及 **Hacker News "Who is hiring?"**（Algolia 兩步驟）。**波蘭看板**（主機或 `provider:` 偵測）：**JustJoin.it** 和 **NoFluffJobs**（POST 搜尋）。**按租戶 ATS**（從 `careers_url` 自動辨識）：**Pinpoint**（`<slug>.pinpointhq.com/postings.json`）和 **Rippling**（`ats.rippling.com/<slug>` → `api.rippling.com` board）。每個來源均以 `redirect:'error'` 鎖定主機（防 SSRF），並可在 `#/scan` 的 **Source** 下拉中選取 —— 註冊表現已提供 **40 個掃描器轉接器**（35 EN + 5 RU）。新增 13 個 CI 隔離的逐來源測試套件；完整單元測試套件綠燈，共 1513 個。
+
 ## [1.80.0] — 2026-06-28
 
 **五項掃描升級（源自 job-crawler 的想法，已重新實作）。** (1) **Teamtailor** 來源——透過其公開 `/jobs.rss` 來源抓取 `<slug>.teamtailor.com` 的按租戶站點，從 `careers_url` 自動辨識（主機鎖定 + `redirect:'error'`）；註冊表現有 **27 個轉接器**。(2) **來源隔離**——回傳永久 404/410 的來源會寫入 `data/scan-quarantine.json` 並在後續掃描中略過（自我修復：14 天後重試）。(3) **每來源上限**——`#/scan` 上的選用欄位，限制每個 board 的職缺數（預設 ∞）。(4) **發佈時間**——用戶端的時效篩選（24 小時 / 7 天 / 30 天）。(5) **已儲存搜尋 + ★ 收藏**——為篩選組合命名並重用、為職缺加星；儲存在 `localStorage` 並具防禦性驗證（損壞的快取會乾淨重設）；結果快取在每次掃描前重設並即時回填。

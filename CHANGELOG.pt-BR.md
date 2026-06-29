@@ -9,6 +9,10 @@ Traduções: [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [한국�
 ---
 
 
+## [1.81.0] — 2026-06-29
+
+**Paridade com o career-ops pai — 13 novas fontes de varredura de bolsas de emprego.** Porta o último lote de provedores do `main` do Fighter90/career-ops para o scanner em processo. **APIs públicas universais** (selecionadas por provedor): **Arbeitnow**, **Himalayas**, **Jobicy**, **Landing.jobs**, **4 Day Week**, **The Muse**, **The Hub**, **Jobspresso** (RSS) e **Hacker News "Who is hiring?"** (Algolia em dois passos). **Bolsas polonesas** (detectadas por host ou `provider:`): **JustJoin.it** e **NoFluffJobs** (busca POST). **ATS por tenant** (autodetectados de `careers_url`): **Pinpoint** (`<slug>.pinpointhq.com/postings.json`) e **Rippling** (`ats.rippling.com/<slug>` → `api.rippling.com`). Cada fonte é fixada por host com `redirect:'error'` (anti-SSRF) e selecionável no menu **Source** de `#/scan` — o registro conta agora com **40 adaptadores de scanner** (35 EN + 5 RU). Adiciona 13 suítes de testes CI isoladas por fonte; suite de testes unitários completa no verde com 1513 testes.
+
 ## [1.80.0] — 2026-06-28
 
 **Cinco melhorias de varredura (ideias do job-crawler, reimplementadas).** (1) Fonte **Teamtailor** — sites `<slug>.teamtailor.com` via o feed público `/jobs.rss`, autodetectado de `careers_url` (host fixado + `redirect:'error'`); o registro agora traz **27 adaptadores**. (2) **Quarentena de fontes** — uma fonte com 404/410 permanente é gravada em `data/scan-quarantine.json` e ignorada em varreduras posteriores (autocorrigível: nova tentativa após 14 dias). (3) **Máx. por fonte** — campo opcional em `#/scan` que limita vagas por board (∞ por padrão). (4) **Publicado em** — filtro de idade no cliente (24h / 7d / 30d). (5) **Buscas salvas + ★ favoritos** — nomeie e reutilize conjuntos de filtros e marque vagas, em `localStorage` com validação defensiva (cache corrompido reinicia limpo); o cache de resultados é reiniciado antes de cada varredura e preenchido ao vivo.

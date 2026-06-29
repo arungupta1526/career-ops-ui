@@ -9,6 +9,10 @@
 ---
 
 
+## [1.81.0] — 2026-06-29
+
+**与上游 career-ops 对齐 — 13 个新的求职板扫描来源。** 将 [`Fighter90/career-ops`](https://github.com/Fighter90/career-ops) `main` 的最新提供方批次移植到进程内扫描器。**全站公开 API**（由提供方选择）：**Arbeitnow**、**Himalayas**、**Jobicy**、**Landing.jobs**、**4 Day Week**、**The Muse**、**The Hub**、**Jobspresso**（RSS）以及 **Hacker News "Who is hiring?"**（Algolia 两步）。**波兰求职板**（按主机或 `provider:` 识别）：**JustJoin.it** 和 **NoFluffJobs**（POST 搜索）。**按租户的 ATS**（从 `careers_url` 自动识别）：**Pinpoint**（`<slug>.pinpointhq.com/postings.json`）和 **Rippling**（`ats.rippling.com/<slug>` → `api.rippling.com` 板）。所有来源均以 `redirect:'error'` 锁定主机（防 SSRF），并可在 `#/scan` 的 **Source** 下拉中选择 —— 注册表现在提供 **40 个扫描器适配器**（EN 35 + RU 5）。新增 13 套 CI 隔离的按来源测试套件；完整单元测试套件绿灯 1513。
+
 ## [1.80.0] — 2026-06-28
 
 **五项扫描升级（源自 job-crawler 的思路，已重写实现）。** (1) **Teamtailor** 源——通过其公开 `/jobs.rss` 源抓取 `<slug>.teamtailor.com` 的按租户站点，从 `careers_url` 自动识别（主机锁定 + `redirect:'error'`）；注册表现有 **27 个适配器**。(2) **源隔离**——返回永久 404/410 的源会写入 `data/scan-quarantine.json` 并在后续扫描中跳过（自愈：14 天后重试）。(3) **每来源上限**——`#/scan` 上的可选字段，限制每个 board 的职位数（默认 ∞）。(4) **发布时间**——客户端的时效过滤（24 小时 / 7 天 / 30 天）。(5) **已保存搜索 + ★ 收藏**——为筛选集合命名并复用、给职位加星；保存在 `localStorage` 并带防御性校验（损坏缓存会干净重置）；结果缓存在每次扫描前重置并实时回填。

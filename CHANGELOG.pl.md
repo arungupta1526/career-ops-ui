@@ -9,6 +9,10 @@ Tłumaczenia: [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [Portugu
 ---
 
 
+## [1.81.0] — 2026-06-29
+
+**Parytet z nadrzędnym career-ops — 13 nowych źródeł skanowania.** Przenosi najnowszą partię dostawców z `main` projektu Fighter90/career-ops do skanera działającego w procesie. Ogólnoportalowe publiczne API (wybrane przez dostawcę): Arbeitnow, Himalayas, Jobicy, Landing.jobs, 4 Day Week, The Muse, The Hub, Jobspresso (RSS) oraz Hacker News „Who is hiring?" (dwuetapowe Algolia). Portale polskie (wykrywane przez hosta lub `provider:`): JustJoin.it i NoFluffJobs (wyszukiwanie POST). ATS per-tenant (autowykrywane z `careers_url`): Pinpoint (`<slug>.pinpointhq.com/postings.json`) i Rippling (`ats.rippling.com/<slug>` → `api.rippling.com` board). Każde źródło jest przypięte do hosta z `redirect:'error'` (ochrona przed SSRF) i wybieralne na liście **Source** w `#/scan` — rejestr ma teraz **40 adapterów skanera** (35 EN + 5 RU). Dodaje 13 izolowanych zestawów testów CI na źródło; pełny zestaw jednostkowy na zielono przy 1513.
+
 ## [1.80.0] — 2026-06-28
 
 **Pięć usprawnień skanera (pomysły z job-crawler, zaimplementowane od nowa).** (1) Źródło **Teamtailor** — witryny `<slug>.teamtailor.com` przez publiczny kanał `/jobs.rss`, autowykrywane z `careers_url` (host przypięty + `redirect:'error'`); rejestr ma teraz **27 adapterów**. (2) **Kwarantanna źródeł** — źródło ze stałym 404/410 jest zapisywane w `data/scan-quarantine.json` i pomijane w kolejnych skanach (samonaprawa: ponów po 14 dniach). (3) **Maks. na źródło** — opcjonalne pole na `#/scan` ograniczające liczbę ofert z boardu (∞ domyślnie). (4) **Opublikowano w** — filtr wieku po stronie klienta (24 h / 7 dni / 30 dni). (5) **Zapisane wyszukiwania + ★ ulubione** — nazywaj i używaj zestawów filtrów oraz oznaczaj oferty, w `localStorage` z defensywną walidacją (uszkodzony cache resetuje się czysto); cache wyników jest resetowany przed skanem i wypełniany na żywo.

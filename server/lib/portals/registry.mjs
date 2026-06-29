@@ -51,6 +51,23 @@ import { solidjobsAdapter } from './adapters/solidjobs.mjs';
 import { weworkremotelyAdapter } from './adapters/weworkremotely.mjs';
 // v1.80.0 — Teamtailor per-tenant ATS (public /jobs.rss feed).
 import { teamtailorAdapter } from './adapters/teamtailor.mjs';
+// v1.81.0 — parent career-ops origin/main parity: 13 new job-board providers.
+// Board-wide public APIs (provider-selected, fixed endpoint):
+import { thehubAdapter } from './adapters/thehub.mjs';
+import { arbeitnowAdapter } from './adapters/arbeitnow.mjs';
+import { himalayasAdapter } from './adapters/himalayas.mjs';
+import { jobicyAdapter } from './adapters/jobicy.mjs';
+import { landingjobsAdapter } from './adapters/landingjobs.mjs';
+import { fourDayWeekAdapter } from './adapters/4dayweek.mjs';
+import { themuseAdapter } from './adapters/themuse.mjs';
+import { jobspressoAdapter } from './adapters/jobspresso.mjs';
+import { hackernewsAdapter } from './adapters/hackernews.mjs';
+// Poland boards — detected by host (justjoin.it / nofluffjobs.com) OR provider:
+import { justjoinAdapter } from './adapters/justjoin.mjs';
+import { nofluffjobsAdapter } from './adapters/nofluffjobs.mjs';
+// Per-tenant ATS — host-detected from careers_url:
+import { pinpointAdapter } from './adapters/pinpoint.mjs';
+import { ripplingAdapter } from './adapters/rippling.mjs';
 
 export const ALL_ADAPTERS = [
   greenhouseAdapter,
@@ -81,6 +98,23 @@ export const ALL_ADAPTERS = [
   weworkremotelyAdapter,
   // v1.80.0 — per-tenant ATS, auto-detected from a <slug>.teamtailor.com host.
   teamtailorAdapter,
+  // v1.81.0 — parent origin/main parity: 13 new job-board providers.
+  // Board-wide public APIs, provider-selected (like RemoteOK / Remotive):
+  thehubAdapter,
+  arbeitnowAdapter,
+  himalayasAdapter,
+  jobicyAdapter,
+  landingjobsAdapter,
+  fourDayWeekAdapter,
+  themuseAdapter,
+  jobspressoAdapter,
+  hackernewsAdapter,
+  // Poland boards — host-detected (justjoin.it / nofluffjobs.com) or provider-selected.
+  justjoinAdapter,
+  nofluffjobsAdapter,
+  // Per-tenant ATS — auto-detected from careers_url host (pinpointhq.com / ats.rippling.com).
+  pinpointAdapter,
+  ripplingAdapter,
 ];
 
 /**

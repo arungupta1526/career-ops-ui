@@ -12,13 +12,13 @@ _Nieoficjalny interfejs — niepowiązany z career-ops / santifer ani przez nich
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#testy)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#wymagania)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.80.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.80.0)
+[![release](https://img.shields.io/badge/release-v1.81.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.81.0)
 
-> **🆕 Najnowsze wydanie — v1.80.0**
+> **🆕 Najnowsze wydanie — v1.81.0**
 >
-> **Pięć ulepszeń skanowania** (pomysły z [job-crawler](https://github.com/bracketouverte/job-crawler), zaimplementowane na nowo): źródło **Teamtailor** — witryny na tenant `<slug>.teamtailor.com` przez ich publiczny kanał `/jobs.rss` (łącznie **27 adapterów**); **kwarantanna źródeł** — martwe źródła zwracające 404/410 są zapisywane i pomijane w kolejnych skanach (samonaprawa po 14 dniach), co eliminuje powtarzający się szum martwych slugów; pole limitu **Max per source** (∞ domyślnie); filtr wieku **Posted within** (24h / 7d / 30d); oraz **zapisane wyszukiwania + ★ ulubione** na `#/scan`, utrwalane w `localStorage` z defensywną walidacją. Bazuje na v1.79.0 (We Work Remotely), v1.78.x (filtr kraju, automatyczne odświeżanie, Enter→Skanowanie, klikalne logo), v1.77.0 (duński) i v1.76.0 (źródła ATS na tenant, `trust_filter`).
+> **13 nowych źródeł skanowania** (parytet z nadrzędnym career-ops): ogólnoportalowe publiczne API **Arbeitnow · Himalayas · Jobicy · Landing.jobs · 4 Day Week · The Muse · The Hub · Jobspresso · Hacker News "Who is hiring?"**, polskie portale **JustJoin.it · NoFluffJobs** (wyszukiwanie POST) oraz ATS per-tenant **Pinpoint · Rippling** (autowykrywane z `careers_url`) — wszystkie przypięte do hosta z `redirect:'error'` (ochrona przed SSRF) i wybieralne na liście **Source** w `#/scan` (**40 adapterów** łącznie). Bazuje na v1.80.0 (Teamtailor, kwarantanna źródeł, limit na źródło, filtr wieku, zapisane wyszukiwania), v1.79.0 (We Work Remotely), v1.77.0 (duński) i v1.76.0 (źródła ATS per-tenant).
 >
-> _13 lokalizacji · 6 dostawców LLM · 27 adapterów skanera · zapisane wyszukiwania + ulubione · parytet z nadrzędnym career-ops v1.14.0._
+> _13 lokalizacji · 6 dostawców LLM · 40 adapterów skanera · 13 nowych źródeł · parytet z nadrzędnym career-ops._
 
 ![career-ops-ui](./images/dashboard-pl.png)
 

@@ -72,10 +72,12 @@ test('GET /api/scan/sources includes the EN ATS + aggregator sources', async () 
   assert.deepEqual(
     enValues,
     [
-      'arbeitsagentur', 'ashby', 'bamboohr', 'breezy', 'comeet', 'glints',
-      'greenhouse', 'ibm', 'jobstreet', 'lever', 'personio', 'recruitee',
-      'remoteok', 'remotive', 'rss', 'smartrecruiters', 'solidjobs', 'teamtailor',
-      'weworkremotely', 'workable', 'workday', 'workingnomads',
+      '4dayweek', 'arbeitnow', 'arbeitsagentur', 'ashby', 'bamboohr', 'breezy',
+      'comeet', 'glints', 'greenhouse', 'hackernews', 'himalayas', 'ibm',
+      'jobicy', 'jobspresso', 'jobstreet', 'justjoin', 'landingjobs', 'lever',
+      'nofluffjobs', 'personio', 'pinpoint', 'recruitee', 'remoteok', 'remotive',
+      'rippling', 'rss', 'smartrecruiters', 'solidjobs', 'teamtailor', 'thehub',
+      'themuse', 'weworkremotely', 'workable', 'workday', 'workingnomads',
     ],
   );
 });
