@@ -20,8 +20,11 @@ export const hackernewsAdapter = {
   matches(company) {
     return company.provider === 'hackernews';
   },
-  buildEndpoint(company) {
-    return company.hackernews || company.api || 'https://hn.algolia.com';
+  buildEndpoint() {
+    // Nominal, FIXED value — fetchHackerNews ignores it and always uses the
+    // Algolia SEARCH_URL internally. Returning a constant (never a user-supplied
+    // company.api / company.hackernews) keeps an arbitrary URL out of the slot.
+    return 'https://hn.algolia.com';
   },
   fetch: fetchHackerNews,
 };

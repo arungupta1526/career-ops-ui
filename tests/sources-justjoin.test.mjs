@@ -198,6 +198,13 @@ test('adapter.buildEndpoint: returns custom api if host is justjoin.it', () => {
   assert.equal(justjoinAdapter.buildEndpoint({ api: custom }), custom);
 });
 
+test('adapter.buildEndpoint: browser api/careers URL falls back to API_URL (never a fetch endpoint)', () => {
+  // A justjoin.it browser job-offers URL passes the host check but is NOT the
+  // candidate-api endpoint — it must fall back so fetchJustJoin gets JSON.
+  assert.equal(justjoinAdapter.buildEndpoint({ api: 'https://justjoin.it/job-offers/my-company' }), API_URL);
+  assert.equal(justjoinAdapter.buildEndpoint({ careers_url: 'https://justjoin.it/job-offers/x' }), API_URL);
+});
+
 test('adapter: id and label', () => {
   assert.equal(justjoinAdapter.id, 'justjoin');
   assert.equal(justjoinAdapter.label, 'JustJoin.it');

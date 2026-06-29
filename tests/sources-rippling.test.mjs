@@ -98,7 +98,7 @@ test('fetchRippling: returns 12-field shape, source=rippling', async () => {
   const jobs = await fetchRippling(VALID_API_URL, { fetchImpl });
   // 2 valid (no-url and no-name dropped)
   assert.equal(jobs.length, 2);
-  const [j0, j1] = jobs;
+  const [j0] = jobs;
 
   // 12 fields present
   const REQUIRED = ['id','title','url','company','location','isRemote','workplaceType','salary','date','snippet','relocates','source'];
