@@ -160,6 +160,16 @@ test('addPipelineUrl: no comp → bare URL line (backward compatible)', () => {
   assert.match(after, /```\nhttps:\/\/x\.com\/1\n```/);
 });
 
+test('addPipelineUrl: comp capped to 80 content chars, formula-lead keeps its last char', () => {
+  const long = '=' + 'A'.repeat(85);                 // 86 raw chars, formula lead
+  const after = addPipelineUrl('', 'https://x.com/1', { comp: long });
+  const cell = after.match(/https:\/\/x\.com\/1 \| (.+)\n/)[1];
+  // raw content sliced to 80 ('=' + 79 'A'), THEN the neutralizing quote → 81
+  assert.equal(cell, "'=" + 'A'.repeat(79));
+  assert.equal(cell.length, 81);
+  assert.deepEqual(parsePipeline(after), ['https://x.com/1']);
+});
+
 test('removePipelineUrl: removes url', () => {
   const before = '```\nhttps://a.com/1\nhttps://b.com/2\n```';
   const after = removePipelineUrl(before, 'https://a.com/1');

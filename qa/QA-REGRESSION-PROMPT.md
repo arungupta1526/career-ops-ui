@@ -2,7 +2,7 @@
 
 Single standalone hand-off for a QA tester (human or agent) to verify the **entire** career-ops-ui build end-to-end, in **all 13 languages**. Walking this top-to-bottom signs off the build without needing the rest of the `qa/` tree.
 
-- **Version under test:** `package.json` **1.82.0** · parent career-ops v1.15.0 parity.
+- **Version under test:** `package.json` **1.84.0** · parent career-ops v1.15.0 parity.
 - **Baseline:** **1541** `node --test` cases · Playwright (smoke + full-cycle + forms + **locale-sweep ×13** + theme-toggle) · 20 smoke E2E · 23 comprehensive E2E · CI matrix green on Node 18/20/22 + Playwright + CodeQL.
 - **Server:** `npm start` → `http://127.0.0.1:4317`.
 - **Sibling docs:** `qa/QA-REGRESSION-PROMPT-v1.76.0-FULL.md` (parent-parity gate driver) · `key/E2E-REGRESSION-EVERY-BUTTON-EVERY-LANGUAGE-v1.78.0.md` (exhaustive UI click-through) · `REGRESSION-FINAL.md` (invariant ledger).
@@ -150,10 +150,10 @@ Locales: `en, es, pt-BR, ko, ja, ru, zh-CN, zh-TW, fr, pl, uk, da, ar` (dict fil
 
 ## §7 — Docs / branding / release mechanics
 
-- **README ×13** + **CHANGELOG ×13** at **v1.83.0** (parity gate green); each language switcher lists all 13 incl. **Dansk**. README "Latest release" blurb describes the repost detector. All 13 `images/dashboard-<locale>.png` regenerated with the new branding.
+- **README ×13** + **CHANGELOG ×13** at **v1.84.0** (parity gate green); each language switcher lists all 13 incl. **Dansk**. README "Latest release" blurb describes the re-apply cooldown + compensation-in-pipeline.md upgrades. All 13 `images/dashboard-<locale>.png` regenerated with the new branding.
 - **Help ×13** carry the Country-filter bullet; H2/H3 counts unchanged (19/75).
 - **Branding:** new radar icon as favicon (`favicon.ico` + 16/32 + apple-touch-icon) and sidebar logo; app name **career-ops-ui** in title + logo. Parent `career-ops` references intentionally unchanged.
-- **Release:** `package.json` 1.83.0; footer reads `/api/health`; `parentVersion` = 1.15.0 (independent; semver only — the `# x-release-please-version` comment is stripped). Tag `v1.83.0` → `release.yml` → `publish-package.yml` (GitHub Packages). `images/` holds only README/help screenshots (icon masters live in `public/`).
+- **Release:** `package.json` 1.84.0; footer reads `/api/health`; `parentVersion` = 1.15.0 (independent; semver only — the `# x-release-please-version` comment is stripped). Tag `v1.84.0` → `release.yml` → `publish-package.yml` (GitHub Packages). `images/` holds only README/help screenshots (icon masters live in `public/`).
 
 ---
 
