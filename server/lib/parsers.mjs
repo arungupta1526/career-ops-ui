@@ -143,10 +143,12 @@ function defaultUrlGate(s) {
  */
 function sanitizePipelineComp(v) {
   if (typeof v !== 'string') return '';
-  let s = v.replace(/[\r\n\t|]+/g, ' ').replace(/\s+/g, ' ').trim();
+  // Cap the raw content FIRST, then neutralize a formula-lead, so the quote is
+  // never the character that gets truncated away.
+  let s = v.replace(/[\r\n\t|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
   if (!s) return '';
   if (/^[=+\-@]/.test(s)) s = `'${s}`;
-  return s.slice(0, 80);
+  return s;
 }
 
 /**

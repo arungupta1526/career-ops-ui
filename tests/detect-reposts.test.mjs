@@ -48,7 +48,7 @@ test('detectReposts: genuine repost flagged; same-url & distinct-role & out-of-w
   assert.equal(sre[0].repostCount, 2, 'sre-1 + sre-2 (sre-1 dup collapses; sre-3 out of window)');
   const urls = sre[0].appearances.map((a) => a.url);
   assert.equal(new Set(urls).size, urls.length, 'no duplicate urls within a cluster');
-  assert.ok(!urls.includes('https://acme.com/jobs/sre-3'), 'outside-window url excluded');
+  assert.ok(urls.every((u) => u !== 'https://acme.com/jobs/sre-3'), 'outside-window url excluded');
   // distinct Engineering Manager role never clusters
   assert.equal(clusters.filter((c) => /Engineering Manager/.test(c.role)).length, 0);
 });
