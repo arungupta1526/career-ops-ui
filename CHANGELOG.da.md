@@ -10,6 +10,10 @@ Oversættelser: [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [Portu
 
 
 
+## [1.83.0] — 2026-06-30
+
+**Genopslags-/spøgelsesstillings-detektor (paritet med forælderens career-ops v1.15.0).** Et nyt panel **🔁 Genopslåede / spøgelsesstillinger** på `#/scan` markerer firma+stilling-klynger, der er genopslået under forskellige URL'er inden for et rullende 90-dages vindue — et signal om forældede pipelines og spøgelsesstillinger. Understøttet af en fuzzy stillingstitel-matcher (`server/lib/role-matcher.mjs`) og en skrivebeskyttet detektor (`server/lib/detect-reposts.mjs`) over `data/scan-history.tsv`, eksponeret via `GET /api/scan/reposts`. Desuden: `parentVersion` i `/api/health` rapporterer nu blot semver-nummeret (release-please-kommentaren `# x-release-please-version` fjernes). Medfølger `tests/detect-reposts.test.mjs`. Kildeantallet uændret på 41 — genopslag er en analysefunktion, ikke et nyt board.
+
 ## [1.82.0] — 2026-06-30
 
 **NoDesk-scanningskilde (paritet med forælderens career-ops v1.15.0).** Det boards-dækkende NoDesk RSS-feed med fjernjob er nu en førsteklasses scanningskilde — tilføj en `provider: nodesk`-post, og den vises i **Source**-dropdownen på `#/scan` (41 adaptere i alt: 36 EN + 5 RU). Host-låst til `nodesk.co` med `redirect:'error'` (SSRF-sikker); titler opdeles på `Role at Company` (NoDesk har ingen lokationstag, så lokation forbliver tom); alle rækker er fjernjob. Medfølger en CI-isoleret `tests/sources-nodesk.test.mjs`-suite; den fulde unittest-suite er grøn ved 1523.

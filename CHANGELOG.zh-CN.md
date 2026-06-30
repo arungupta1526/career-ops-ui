@@ -9,6 +9,10 @@
 ---
 
 
+## [1.83.0] — 2026-06-30
+
+**重复发布 / 幽灵职位检测器（与上游 career-ops v1.15.0 对齐）。** `#/scan` 新增 **🔁 重复发布 / 幽灵职位** 面板，标记在 90 天滚动窗口内以不同 URL 重复发布的公司+职位集群 —— 这是过时招聘流水线和幽灵职位的信号。基于模糊职位标题匹配器（`server/lib/role-matcher.mjs`）和针对 `data/scan-history.tsv` 的只读检测器（`server/lib/detect-reposts.mjs`），通过 `GET /api/scan/reposts` 暴露。此外：`/api/health` 的 `parentVersion` 现在只返回语义化版本号（去除了 release-please 的 `# x-release-please-version` 注释）。附带 `tests/detect-reposts.test.mjs`。来源数量维持 41 个不变 —— 重复发布检测是分析功能，而非新增看板。
+
 ## [1.82.0] — 2026-06-30
 
 **NoDesk 扫描源（与上游 career-ops v1.15.0 对齐）。** NoDesk 全站远程职位 RSS 源现已成为一级扫描源 —— 添加 `provider: nodesk` 条目后即出现在 `#/scan` 的 **Source** 下拉中（共 **41 个适配器**：EN 36 + RU 5）。主机锁定为 `nodesk.co` 并使用 `redirect:'error'`（防 SSRF）；标题按 `Role at Company` 拆分（NoDesk 无位置标签，因此地点保持为空）；所有条目均为远程。附带 CI 隔离的 `tests/sources-nodesk.test.mjs` 测试套件；完整单元测试套件绿灯 1523。

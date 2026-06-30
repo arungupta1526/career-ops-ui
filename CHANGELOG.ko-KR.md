@@ -9,6 +9,10 @@
 ---
 
 
+## [1.83.0] — 2026-06-30
+
+**재게시 / 유령 공고 감지기 (상위 career-ops v1.15.0 패리티).** `#/scan`에 새로운 **🔁 재게시 / 유령 공고** 패널이 추가되어, 90일 롤링 윈도우 내에서 다른 URL로 재게재된 회사+직무 클러스터를 표시합니다 — 오래된 채용 파이프라인과 유령 공고의 신호입니다. 퍼지 직무 제목 매처(`server/lib/role-matcher.mjs`)와 `data/scan-history.tsv`에 대한 읽기 전용 감지기(`server/lib/detect-reposts.mjs`)를 기반으로 하며, `GET /api/scan/reposts`를 통해 노출됩니다. 또한: `/api/health`의 `parentVersion`이 이제 순수 semver만 반환합니다(릴리스-플리즈 `# x-release-please-version` 주석이 제거됨). `tests/detect-reposts.test.mjs` 포함. 소스 수는 41개 유지 — 재게시는 분석 기능으로 새 보드가 아닙니다.
+
 ## [1.82.0] — 2026-06-30
 
 **NoDesk 스캔 소스 (상위 career-ops v1.15.0 패리티).** 보드 전체 NoDesk 원격 채용 RSS 피드가 이제 1급 스캔 소스입니다 — `provider: nodesk` 항목을 추가하면 `#/scan`의 **Source** 드롭다운에 표시됩니다(총 **41개 어댑터**: EN 36 + RU 5). 호스트는 `nodesk.co`로 고정되고 `redirect:'error'`(SSRF 방지); 제목은 `Role at Company`로 분리됩니다(NoDesk에는 위치 태그가 없어 위치는 빈 채로 유지); 모든 항목은 원격. CI 격리 `tests/sources-nodesk.test.mjs` 스위트 포함; 전체 유닛 테스트 스위트 1523개 통과.
