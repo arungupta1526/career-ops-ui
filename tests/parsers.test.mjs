@@ -160,14 +160,18 @@ test('addPipelineUrl: no comp → bare URL line (backward compatible)', () => {
   assert.match(after, /```\nhttps:\/\/x\.com\/1\n```/);
 });
 
-test('addPipelineUrl: comp capped to 80 content chars, formula-lead keeps its last char', () => {
-  const long = '=' + 'A'.repeat(85);                 // 86 raw chars, formula lead
-  const after = addPipelineUrl('', 'https://x.com/1', { comp: long });
+test('addPipelineUrl: comp is hard-capped to 80 chars TOTAL (formula-lead reserves the quote)', () => {
+  // (a) formula-lead, over length → quote + 79 content chars = 80 total (not 81)
+  const after = addPipelineUrl('', 'https://x.com/1', { comp: '=' + 'A'.repeat(85) });
   const cell = after.match(/https:\/\/x\.com\/1 \| (.+)\n/)[1];
-  // raw content sliced to 80 ('=' + 79 'A'), THEN the neutralizing quote → 81
-  assert.equal(cell, "'=" + 'A'.repeat(79));
-  assert.equal(cell.length, 81);
+  assert.equal(cell, "'=" + 'A'.repeat(78));
+  assert.equal(cell.length, 80);
   assert.deepEqual(parsePipeline(after), ['https://x.com/1']);
+  // (b) non-formula, over length → exactly 80
+  const after2 = addPipelineUrl('', 'https://y.com/2', { comp: 'B'.repeat(90) });
+  const cell2 = after2.match(/https:\/\/y\.com\/2 \| (.+)\n/)[1];
+  assert.equal(cell2.length, 80);
+  assert.ok(!cell2.startsWith("'"));
 });
 
 test('removePipelineUrl: removes url', () => {

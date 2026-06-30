@@ -3,7 +3,7 @@
 Single standalone hand-off for a QA tester (human or agent) to verify the **entire** career-ops-ui build end-to-end, in **all 13 languages**. Walking this top-to-bottom signs off the build without needing the rest of the `qa/` tree.
 
 - **Version under test:** `package.json` **1.84.0** · parent career-ops v1.15.0 parity.
-- **Baseline:** **1541** `node --test` cases · Playwright (smoke + full-cycle + forms + **locale-sweep ×13** + theme-toggle) · 20 smoke E2E · 23 comprehensive E2E · CI matrix green on Node 18/20/22 + Playwright + CodeQL.
+- **Baseline:** **1543** `node --test` cases · Playwright (smoke + full-cycle + forms + **locale-sweep ×13** + theme-toggle) · 20 smoke E2E · 23 comprehensive E2E · CI matrix green on Node 18/20/22 + Playwright + CodeQL.
 - **Server:** `npm start` → `http://127.0.0.1:4317`.
 - **Sibling docs:** `qa/QA-REGRESSION-PROMPT-v1.76.0-FULL.md` (parent-parity gate driver) · `key/E2E-REGRESSION-EVERY-BUTTON-EVERY-LANGUAGE-v1.78.0.md` (exhaustive UI click-through) · `REGRESSION-FINAL.md` (invariant ledger).
 
@@ -12,7 +12,7 @@ Single standalone hand-off for a QA tester (human or agent) to verify the **enti
 ## §0 — Gates (all must be green before sign-off)
 
 ```bash
-npm test                                    # full suite (≥1541 cases)
+npm test                                    # full suite (≥1543 cases)
 npm run test:ci                             # unit + check-no-also + check-changelog-parity + i18n-audit
 node tools/i18n-audit.mjs                   # "no hard failures — dictionary is clean"
 node scripts/check-changelog-parity.mjs     # "all 12 locales at v1.84.0" (EN + 12 = 13 files)
@@ -159,6 +159,6 @@ Locales: `en, es, pt-BR, ko, ja, ru, zh-CN, zh-TW, fr, pl, uk, da, ar` (dict fil
 
 ## §8 — Exit criteria
 - Every (page × control × 13 languages) PASS or a logged FAIL→fix (one-fix-per-release; HIGH → MEDIUM → LOW).
-- `npm test` ≥ **1541** green; `npm run test:ci` green; coverage ≥ floor; Playwright (locale-sweep ×13) green; CI matrix green.
+- `npm test` ≥ **1543** green; `npm run test:ci` green; coverage ≥ floor; Playwright (locale-sweep ×13) green; CI matrix green.
 - Zero console errors; no RTL leak; no untranslated shipped key; favicon/icon endpoints 200.
 - All §2 deltas verified live.
