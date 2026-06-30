@@ -239,9 +239,12 @@ test('adapter: matches only on provider=hackernews', () => {
   assert.equal(hackernewsAdapter.matches({}), false);
 });
 
-test('adapter: buildEndpoint returns a non-null string', () => {
+test('adapter: buildEndpoint returns a fixed hn.algolia.com string, ignoring overrides', () => {
   const ep = hackernewsAdapter.buildEndpoint({ provider: 'hackernews' });
-  assert.ok(typeof ep === 'string' && ep.length > 0);
+  assert.equal(ep, 'https://hn.algolia.com');
+  // A user-supplied override must NOT leak into the endpoint slot.
+  assert.equal(hackernewsAdapter.buildEndpoint({ hackernews: 'https://evil.com' }), 'https://hn.algolia.com');
+  assert.equal(hackernewsAdapter.buildEndpoint({ api: 'https://evil.com' }), 'https://hn.algolia.com');
 });
 
 test('adapter: id and label are correct', () => {

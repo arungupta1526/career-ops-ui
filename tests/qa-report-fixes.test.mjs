@@ -1075,7 +1075,9 @@ test('footer hint reads "Enter — <verb>" in every locale (no ⌘K/Ctrl+K)', ()
     "top.langhint EN must use 'Enter — search'");
   for (const lang of ['es', 'pt-BR', 'ko', 'ja', 'ru', 'zh-CN', 'zh-TW', 'fr', 'pl', 'uk', 'da', 'ar']) {
     const quotedKey = /-/.test(lang) ? `'${lang}'` : lang;
-    assert.match(dict, new RegExp(`${quotedKey.replace(/[\.]/g, '\\.')}:\\s*'Enter — [^']+'`),
+    // Escape EVERY regex metacharacter (incl. backslash) before interpolating.
+    const escKey = quotedKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    assert.match(dict, new RegExp(`${escKey}:\\s*'Enter — [^']+'`),
       `top.langhint ${lang} must use 'Enter — <verb>' shape`);
   }
   // The {hotkey} token and its platform substitution are gone for good.

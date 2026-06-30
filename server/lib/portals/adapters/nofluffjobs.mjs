@@ -42,7 +42,17 @@ export const nofluffjobsAdapter = {
    * but a browser careers_url is not the POST API — ignore it for endpoint.
    */
   buildEndpoint(company) {
-    return company.nofluffjobs || API_URL;
+    // Defence-in-depth: host-pin an explicit `nofluffjobs:` override here too
+    // (the source-level assertNoFluffUrl is the hard SSRF guard, but an
+    // off-host override should never reach the fetch slot in the first place).
+    const override = company.nofluffjobs;
+    if (override) {
+      try {
+        const u = new URL(override);
+        if (u.protocol === 'https:' && NOFLUFF_HOST_RE.test(u.hostname)) return override;
+      } catch { /* fall through to API_URL */ }
+    }
+    return API_URL;
   },
 
   fetch: fetchNoFluffJobs,

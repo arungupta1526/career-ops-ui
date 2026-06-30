@@ -126,7 +126,7 @@ test('fetchJobicy: drops rows with empty title', async () => {
 test('fetchJobicy: drops rows with bad host in URL', async () => {
   const fetchImpl = async () => ({ ok: true, json: async () => FAKE_RESPONSE });
   const jobs = await fetchJobicy(FEED_URL, { fetchImpl });
-  assert.ok(jobs.every((j) => j.url.includes('jobicy.com')));
+  assert.ok(jobs.every((j) => new URL(j.url).hostname === 'jobicy.com'));
 });
 
 test('fetchJobicy: throws on non-ok HTTP response', async () => {

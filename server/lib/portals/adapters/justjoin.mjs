@@ -37,7 +37,11 @@ export const justjoinAdapter = {
     if (candidate) {
       try {
         const u = new URL(candidate);
-        if (u.protocol === 'https:' && JUSTJOIN_HOST_RE.test(u.hostname)) {
+        // Host-pin AND require an `/api/` path: a browser job-offers URL
+        // (justjoin.it/job-offers/…) passes the host check but is NOT the
+        // candidate-api endpoint — it must never become the fetch target.
+        if (u.protocol === 'https:' && JUSTJOIN_HOST_RE.test(u.hostname)
+            && u.pathname.startsWith('/api/')) {
           return candidate;
         }
       } catch {

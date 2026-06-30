@@ -9,7 +9,6 @@ import {
   assertNoFluffUrl,
   API_URL,
   JOB_BASE,
-  NOFLUFF_HOST_RE,
   meta,
 } from '../server/lib/sources/nofluffjobs.mjs';
 import { nofluffjobsAdapter } from '../server/lib/portals/adapters/nofluffjobs.mjs';
@@ -218,6 +217,12 @@ test('adapter.buildEndpoint: returns API_URL by default', () => {
 test('adapter.buildEndpoint: respects explicit nofluffjobs override key', () => {
   const override = 'https://nofluffjobs.com/api/search/posting?region=de';
   assert.equal(nofluffjobsAdapter.buildEndpoint({ nofluffjobs: override }), override);
+});
+
+test('adapter.buildEndpoint: off-host / non-https override falls back to API_URL', () => {
+  assert.equal(nofluffjobsAdapter.buildEndpoint({ nofluffjobs: 'https://evil.com/api/search/posting' }), API_URL);
+  assert.equal(nofluffjobsAdapter.buildEndpoint({ nofluffjobs: 'http://nofluffjobs.com/api/search/posting' }), API_URL);
+  assert.equal(nofluffjobsAdapter.buildEndpoint({ nofluffjobs: 'not a url' }), API_URL);
 });
 
 test('adapter.id and label', () => {
