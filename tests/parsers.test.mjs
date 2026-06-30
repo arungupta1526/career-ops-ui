@@ -127,6 +127,39 @@ test('addPipelineUrl: creates fence when missing', () => {
   assert.match(after, /```[\s\S]*```/);
 });
 
+// v1.84.0 (#1017) — optional compensation column `url | <comp>`
+test('addPipelineUrl: appends a compensation column when opts.comp is set', () => {
+  const after = addPipelineUrl('', 'https://x.com/1', { comp: '120000-150000 USD' });
+  assert.match(after, /https:\/\/x\.com\/1 \| 120000-150000 USD/);
+  assert.deepEqual(parsePipeline(after), ['https://x.com/1']); // URL still extracted
+});
+
+test('addPipelineUrl: preserves an existing comp column when adding another url', () => {
+  let md = addPipelineUrl('', 'https://a.com/1', { comp: '100k EUR' });
+  md = addPipelineUrl(md, 'https://b.com/2', { comp: '200k USD' });
+  assert.match(md, /https:\/\/a\.com\/1 \| 100k EUR/);
+  assert.match(md, /https:\/\/b\.com\/2 \| 200k USD/);
+  assert.deepEqual(parsePipeline(md), ['https://a.com/1', 'https://b.com/2']);
+});
+
+test('addPipelineUrl: dedups on the URL even when a comp column is present', () => {
+  const before = addPipelineUrl('', 'https://a.com/1', { comp: '100k' });
+  const after = addPipelineUrl(before, 'https://a.com/1', { comp: '999k' });
+  assert.equal(after, before); // unchanged (URL already present)
+});
+
+test('addPipelineUrl: sanitizes comp (strips pipe/newline, neutralizes formula lead)', () => {
+  const after = addPipelineUrl('', 'https://x.com/1', { comp: '=cmd()\n| evil' });
+  // newline + extra pipe collapsed to spaces (no injected row), formula lead quoted
+  assert.match(after, /https:\/\/x\.com\/1 \| '=cmd\(\) evil/);
+  assert.deepEqual(parsePipeline(after), ['https://x.com/1']); // exactly one entry — no row injection
+});
+
+test('addPipelineUrl: no comp → bare URL line (backward compatible)', () => {
+  const after = addPipelineUrl('', 'https://x.com/1');
+  assert.match(after, /```\nhttps:\/\/x\.com\/1\n```/);
+});
+
 test('removePipelineUrl: removes url', () => {
   const before = '```\nhttps://a.com/1\nhttps://b.com/2\n```';
   const after = removePipelineUrl(before, 'https://a.com/1');

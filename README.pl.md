@@ -12,13 +12,13 @@ _Nieoficjalny interfejs — niepowiązany z career-ops / santifer ani przez nich
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#testy)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#wymagania)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.83.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.83.0)
+[![release](https://img.shields.io/badge/release-v1.84.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.84.0)
 
-> **🆕 Najnowsze wydanie — v1.83.0**
+> **🆕 Najnowsze wydanie — v1.84.0**
 >
-> **Detektor ponownych publikacji / ofert-widm** (parytet z nadrzędnym career-ops v1.15.0): nowy panel **🔁 Ponownie opublikowane / oferty-widma** na `#/scan` oznacza klastry firma+stanowisko ponownie opublikowane pod różnymi adresami URL w ruchomym oknie 90 dni — sygnał przestarzałego potoku / oferty-widma — odczytywany z historii skanowania (`GET /api/scan/reposts`). Bazuje na v1.82.0 (NoDesk), v1.81.0 (13 nowych źródeł) i v1.80.0 (Teamtailor, kwarantanna źródeł, zapisane wyszukiwania).
+> **Cooldown ponownego aplikowania + wynagrodzenie w pipeline.md** (parytet z nadrzędnym career-ops v1.15.0): skan EN teraz **pomija role w firmach, do których niedawno aplikowałeś/aś** (`config/profile.yml → re_apply_windows:`, domyślnie wyłączone), dzięki czemu wyniki koncentrują się na nowych ofertach, a skanowane oferty zapisują swoje **wynagrodzenie** jako opcjonalną kolumnę `url | <comp>` w `data/pipeline.md`. Bazuje na v1.83.0 (detektor ponownych publikacji), v1.82.0 (NoDesk) i v1.81.0 (13 nowych źródeł).
 >
-> _13 lokalizacji · 6 dostawców LLM · 41 adapterów skanera · detektor ponownych publikacji · parytet z nadrzędnym career-ops v1.15.0._
+> _13 lokalizacji · 6 dostawców LLM · 41 adapterów skanera · detektor ponownych publikacji · cooldown ponownego aplikowania · parytet z nadrzędnym career-ops v1.15.0._
 
 ![career-ops-ui](./images/dashboard-pl.png)
 

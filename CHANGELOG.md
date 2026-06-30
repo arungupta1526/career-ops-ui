@@ -8,6 +8,15 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.84.0] — 2026-06-30
+
+**Re-apply cooldown + compensation in pipeline.md (parent career-ops v1.15.0 parity).** Two scanner upgrades:
+
+- **Re-apply cooldown** (#1201): the EN scan now skips roles at companies you applied to recently, so results stay focused on NEW openings. Configure per-company windows in `config/profile.yml` under `re_apply_windows:` (`last_apply_date`, `same_role_days`, `applied_to: [roles]`, optional `cross_role_bucket`); company matching is punctuation-insensitive + word-boundary (`server/lib/cooldown.mjs`). Off when the key is absent; the scan log shows `Cooldown skipped: N`.
+- **Compensation in pipeline.md** (#1017): scanned offers now persist their salary as an optional trailing column (`url | <salary>`) in `data/pipeline.md`. The URL stays the dedup key (the `| comp` column is stripped on read), the cell is sanitized (no row/column injection, formula-leading neutralized), and bare-URL pipelines stay backward-compatible.
+
+Ships `tests/cooldown.test.mjs` + pipeline compensation tests. Source count unchanged at **41** (both are scan-logic upgrades, not new boards).
+
 ## [1.83.0] — 2026-06-30
 
 **Repost / ghost-posting detector (parent career-ops v1.15.0 parity).** A new **🔁 Reposted / ghost roles** panel on `#/scan` flags company+role clusters that were re-listed under *different* URLs within a rolling 90-day window — a signal of stale pipelines and ghost postings. Backed by a fuzzy role-title matcher (`server/lib/role-matcher.mjs`) and a read-only detector (`server/lib/detect-reposts.mjs`) over `data/scan-history.tsv`, surfaced via `GET /api/scan/reposts` (window clamped 7–365 days; fail-soft on a malformed history). Also: `/api/health` `parentVersion` now reports just the semver — the release-please `# x-release-please-version` comment is stripped. Ships `tests/detect-reposts.test.mjs`. (Source count unchanged at **41** — reposts is an analysis feature, not a new board.)

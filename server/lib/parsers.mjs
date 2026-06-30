@@ -119,7 +119,9 @@ export function parsePipeline(text) {
   const block = fenceMatch ? fenceMatch[1] : text;
   return block
     .split('\n')
-    .map((l) => l.trim())
+    // v1.84.0 (#1017) — a line may carry an optional `| <compensation>` column;
+    // the URL is the first ` | `-delimited token. Bare URLs are unaffected.
+    .map((l) => l.trim().split(/\s+\|\s+/)[0].trim())
     .filter((l) => l && (l.startsWith('http') || l.startsWith('local:')));
 }
 
@@ -135,22 +137,46 @@ function defaultUrlGate(s) {
 }
 
 /**
+ * Sanitize an optional compensation cell for pipeline.md (#1017). Collapses
+ * newlines / tabs / pipes (which would inject a column or row), trims, and
+ * neutralizes a spreadsheet-formula-leading char. Returns '' when empty.
+ */
+function sanitizePipelineComp(v) {
+  if (typeof v !== 'string') return '';
+  let s = v.replace(/[\r\n\t|]+/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!s) return '';
+  if (/^[=+\-@]/.test(s)) s = `'${s}`;
+  return s.slice(0, 80);
+}
+
+/**
  * Add a URL to pipeline.md content. Returns updated content.
- * Preserves existing fence; creates one if missing.
+ * Preserves existing fence (and any existing `| comp` columns); creates one if missing.
  *
- * Optional `opts.validate` overrides the default `https?://` gate; pass
- * a function returning boolean.
+ * Optional `opts.validate` overrides the default `https?://` gate.
+ * Optional `opts.comp` appends a sanitized compensation column (`url | comp`).
  */
 export function addPipelineUrl(text, url, opts = {}) {
   const trimmed = (url || '').trim();
   if (!trimmed) return text;
   const validate = typeof opts.validate === 'function' ? opts.validate : defaultUrlGate;
   if (!validate(trimmed)) return text; // refuse to write an invalid URL
-  const existing = parsePipeline(text);
-  if (existing.includes(trimmed)) return text; // dedup
 
-  const lines = [...existing, trimmed];
-  const fenceContent = lines.join('\n');
+  // Keep existing FULL lines (preserve any trailing `| comp` already written).
+  const fenceMatch = text && text.match(/```([\s\S]*?)```/);
+  const existingLines = (fenceMatch ? fenceMatch[1] : (text || ''))
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => {
+      const u = l.split(/\s+\|\s+/)[0].trim();
+      return u.startsWith('http') || u.startsWith('local:');
+    });
+  // Dedup on the URL token (ignore the comp column).
+  if (existingLines.some((l) => l.split(/\s+\|\s+/)[0].trim() === trimmed)) return text;
+
+  const comp = sanitizePipelineComp(opts.comp);
+  const newLine = comp ? `${trimmed} | ${comp}` : trimmed;
+  const fenceContent = [...existingLines, newLine].join('\n');
   if (text && text.includes('```')) {
     return text.replace(/```[\s\S]*?```/, '```\n' + fenceContent + '\n```');
   }

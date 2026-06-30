@@ -28,8 +28,11 @@ test('neither scanner truncates the matched `filtered` set (no slice cap)', () =
   for (const f of ['en-scanner.mjs', 'ru-scanner.mjs']) {
     const src = read(f);
     assert.doesNotMatch(src, /slice\(0,\s*500\)/, `${f} still has the legacy hard 500 cap`);
-    assert.doesNotMatch(src, /filtered:\s*filtered\.slice\(/, `${f} still slices the filtered display set`);
-    assert.match(src, /\bfiltered,\s/, `${f} should store the full matched set as \`filtered,\``);
+    assert.doesNotMatch(src, /filtered:\s*\w*\.slice\(/, `${f} still slices the stored display set`);
+    // The stored set is the full matched set — either the `filtered,` shorthand
+    // (ru-scanner) or the post-cooldown `filtered: afterCooldown,` (en-scanner,
+    // v1.84.0). Neither is sliced/capped.
+    assert.match(src, /\bfiltered(?::\s*\w+)?,\s/, `${f} should store the full matched set, uncapped`);
   }
 });
 

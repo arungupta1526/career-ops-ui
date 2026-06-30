@@ -12,13 +12,13 @@ _واجهة غير رسمية — لا علاقة لها بـ career-ops / santi
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#الاختبارات)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#المتطلبات)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.83.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.83.0)
+[![release](https://img.shields.io/badge/release-v1.84.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.84.0)
 
-> **🆕 أحدث إصدار — v1.83.0**
+> **🆕 أحدث إصدار — v1.84.0**
 >
-> **كاشف إعادة النشر / الوظائف الوهمية** (تكافؤ مع المشروع الأصلي career-ops v1.15.0): لوحة جديدة **🔁 الوظائف المُعاد نشرها / الوهمية** في `#/scan` تُحدّد مجموعات الشركة+الوظيفة التي أُعيد إدراجها تحت روابط URL مختلفة خلال نافذة متحرّكة مدتها 90 يوماً — إشارة إلى خطوط توظيف قديمة / وظائف وهمية — مقروءة من سجل فحصك (`GET /api/scan/reposts`). يُبنى على v1.82.0 (NoDesk)، وv1.81.0 (13 مصدراً جديداً)، وv1.80.0 (Teamtailor، وحجر المصادر، والبحث المحفوظ).
+> **cooldown إعادة التقديم + التعويض في pipeline.md** (تكافؤ مع المشروع الأصلي career-ops v1.15.0): **يتخطّى مسح EN الآن الأدوار لدى الشركات التي تقدّمت إليها مؤخراً** (`config/profile.yml → re_apply_windows:`، معطّل افتراضياً) لتبقى النتائج مُركّزة على الفرص الجديدة، وتحفظ العروض الممسوحة **الراتب** في عمود اختياري `url | <comp>` في `data/pipeline.md`. يُبنى على v1.83.0 (كاشف إعادة النشر)، وv1.82.0 (NoDesk)، وv1.81.0 (13 مصدراً جديداً).
 >
-> _13 locales · 6 مزوّدات LLM · 41 محوّل ماسح · كاشف إعادة النشر · تكافؤ مع المشروع الأصلي career-ops v1.15.0._
+> _13 locales · 6 مزوّدات LLM · 41 محوّل ماسح · كاشف إعادة النشر · cooldown إعادة التقديم · تكافؤ مع المشروع الأصلي career-ops v1.15.0._
 
 ![career-ops-ui](./images/dashboard-ar.png)
 

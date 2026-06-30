@@ -9,6 +9,15 @@
 ---
 
 
+## [1.84.0] — 2026-06-30
+
+**재적용 쿨다운 + pipeline.md 내 보상 정보 (상위 career-ops v1.15.0 패리티).** 두 가지 스캐너 업그레이드:
+
+- **재적용 쿨다운** (#1201): EN 스캔이 최근 지원한 회사의 역할을 건너뛰어 결과가 새로운 채용 공고에만 집중됩니다. `config/profile.yml`의 `re_apply_windows:` 아래에서 회사별 기간을 설정할 수 있습니다(`last_apply_date`, `same_role_days`, `applied_to: [roles]`, 선택적 `cross_role_bucket`); 회사 매칭은 구두점 비민감 + 단어 경계 방식입니다(`server/lib/cooldown.mjs`). 키가 없으면 비활성화; 스캔 로그에 `Cooldown skipped: N`이 표시됩니다.
+- **pipeline.md 내 보상 정보** (#1017): 스캔된 채용 공고가 이제 선택적 후행 열로 급여를 `data/pipeline.md`에 저장합니다(`url | <salary>`). URL은 중복 제거 키로 유지되고(`| comp` 열은 읽을 때 제거됨), 셀은 정제되며(행/열 주입 없음, 수식 선두 중화), 일반 URL 파이프라인은 하위 호환성을 유지합니다.
+
+`tests/cooldown.test.mjs` 및 pipeline 보상 테스트 포함. 소스 수는 41개 유지 — 두 기능 모두 스캔 로직 업그레이드이며, 새 보드가 아닙니다.
+
 ## [1.83.0] — 2026-06-30
 
 **재게시 / 유령 공고 감지기 (상위 career-ops v1.15.0 패리티).** `#/scan`에 새로운 **🔁 재게시 / 유령 공고** 패널이 추가되어, 90일 롤링 윈도우 내에서 다른 URL로 재게재된 회사+직무 클러스터를 표시합니다 — 오래된 채용 파이프라인과 유령 공고의 신호입니다. 퍼지 직무 제목 매처(`server/lib/role-matcher.mjs`)와 `data/scan-history.tsv`에 대한 읽기 전용 감지기(`server/lib/detect-reposts.mjs`)를 기반으로 하며, `GET /api/scan/reposts`를 통해 노출됩니다. 또한: `/api/health`의 `parentVersion`이 이제 순수 semver만 반환합니다(릴리스-플리즈 `# x-release-please-version` 주석이 제거됨). `tests/detect-reposts.test.mjs` 포함. 소스 수는 41개 유지 — 재게시는 분석 기능으로 새 보드가 아닙니다.

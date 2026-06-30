@@ -12,13 +12,13 @@ _Interface non officielle — sans affiliation ni approbation de career-ops / sa
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.83.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.83.0)
+[![release](https://img.shields.io/badge/release-v1.84.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.84.0)
 
-> **🆕 Dernière version — v1.83.0**
+> **🆕 Dernière version — v1.84.0**
 >
-> **Détecteur de reposts / offres fantômes** (parité career-ops v1.15.0) : un nouveau panneau **🔁 Reposts / offres fantômes** sur `#/scan` signale les clusters entreprise+rôle republiés sous des URL différentes dans une fenêtre glissante de 90 jours — signal de pipelines obsolètes et d'offres fantômes — lus depuis votre historique de scan (`GET /api/scan/reposts`). S'appuie sur la v1.82.0 (NoDesk), la v1.81.0 (13 nouvelles sources) et la v1.80.0 (Teamtailor, mise en quarantaine des sources, recherches enregistrées).
+> **Cooldown de recandidature + rémunération dans pipeline.md** (parité career-ops v1.15.0) : le scan EN **ignore désormais les rôles dans les entreprises auxquelles vous avez postulé récemment** (`config/profile.yml → re_apply_windows:`, désactivé par défaut) afin que les résultats restent focalisés sur les nouvelles offres, et les offres scannées sauvegardent leur **salaire** sous forme de colonne optionnelle `url | <comp>` dans `data/pipeline.md`. S'appuie sur la v1.83.0 (détecteur de reposts), la v1.82.0 (NoDesk) et la v1.81.0 (13 nouvelles sources).
 >
-> _13 locales · 6 fournisseurs LLM · 41 adaptateurs de scanner · détecteur de reposts · parité avec le career-ops v1.15.0._
+> _13 locales · 6 fournisseurs LLM · 41 adaptateurs de scanner · détecteur de reposts · cooldown de recandidature · parité avec le career-ops v1.15.0._
 
 ![career-ops-ui — Centre de commande](./images/dashboard-fr.png)
 

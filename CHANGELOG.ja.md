@@ -9,6 +9,15 @@
 ---
 
 
+## [1.84.0] — 2026-06-30
+
+**再応募クールダウン + pipeline.md への報酬情報（親 career-ops v1.15.0 パリティ）。** スキャナーの 2 件のアップグレード:
+
+- **再応募クールダウン** (#1201): EN スキャンが最近応募した企業の求人をスキップし、結果が新しい求人にフォーカスされます。`config/profile.yml` の `re_apply_windows:` 以下で企業ごとの期間を設定できます（`last_apply_date`、`same_role_days`、`applied_to: [roles]`、省略可能な `cross_role_bucket`）；企業マッチングは句読点非依存 + 単語境界（`server/lib/cooldown.mjs`）。キーが存在しない場合は無効；スキャンログに `Cooldown skipped: N` が表示されます。
+- **pipeline.md への報酬情報** (#1017): スキャンされた求人が給与をオプションの末尾カラム（`url | <salary>`）として `data/pipeline.md` に保存されます。URL は重複排除キーのまま（`| comp` 列は読み込み時に除去）、セルはサニタイズされ（行/列インジェクションなし、数式先頭を無効化）、ベア URL のパイプラインは後方互換性を維持します。
+
+`tests/cooldown.test.mjs` および pipeline 報酬テストを同梱。ソース数は 41 のまま — いずれもスキャンロジックのアップグレードであり、新しいボードではありません。
+
 ## [1.83.0] — 2026-06-30
 
 **再掲載 / ゴースト求人検出器（親 career-ops v1.15.0 パリティ）。** `#/scan` に新しい **🔁 再掲載 / ゴースト求人** パネルが追加され、90 日のローリングウィンドウ内で異なる URL に再掲載された企業+職種クラスタを表示します — 古い採用パイプラインやゴースト求人のシグナルです。ファジー職種タイトルマッチャー（`server/lib/role-matcher.mjs`）と `data/scan-history.tsv` に対する読み取り専用の検出器（`server/lib/detect-reposts.mjs`）を基盤とし、`GET /api/scan/reposts` で公開されます。また：`/api/health` の `parentVersion` がセマバーのみを返すようになりました（リリース-プリーズ `# x-release-please-version` コメントを除去）。`tests/detect-reposts.test.mjs` を同梱。ソース数は 41 のまま — 再掲載は分析機能であり、新しいボードではありません。
