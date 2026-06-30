@@ -72,11 +72,9 @@ function normalize(j) {
 
   const lowerLoc = location.toLowerCase();
   const isRemote = lowerLoc.includes('remote') || lowerLoc.includes('flexible');
-  const workplaceType = lowerLoc.includes('remote')
-    ? 'Remote'
-    : lowerLoc.includes('flexible')
-      ? 'Flexible'
-      : 'On-site';
+  // Canonical enum only (Remote / Hybrid / Onsite). "Flexible" → Remote so
+  // isRemote and workplaceType never disagree.
+  const workplaceType = isRemote ? 'Remote' : 'Onsite';
 
   const date =
     typeof j.publication_date === 'string'

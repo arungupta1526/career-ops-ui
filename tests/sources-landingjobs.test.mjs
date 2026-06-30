@@ -135,7 +135,7 @@ test('fetchLandingjobs: second job (on-site, no salary, fallback date from creat
   assert.equal(job.id, 'landingjobs-1002');
   assert.equal(job.company, 'Globex Solutions');
   assert.equal(job.isRemote, false);
-  assert.equal(job.workplaceType, 'On-site');
+  assert.equal(job.workplaceType, 'Onsite');
   assert.equal(job.salary, '');
   assert.equal(job.date, '2026-06-20');
   assert.equal(job.source, 'landingjobs');

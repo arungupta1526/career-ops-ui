@@ -91,7 +91,7 @@ function normalize(j) {
   const locBase = [city, country].filter(Boolean).join(', ');
   const isRemote = j.remote === true || j.work_arrangement === 'remote' || first.work_arrangement === 'remote';
   const location = [locBase, isRemote ? 'Remote' : ''].filter(Boolean).join(', ');
-  const workplaceType = isRemote ? 'Remote' : locBase || '';
+  const workplaceType = isRemote ? 'Remote' : 'Onsite';
 
   // date: posted is epoch SECONDS → multiply by 1000 → YYYY-MM-DD
   let date = '';

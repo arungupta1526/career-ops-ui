@@ -70,7 +70,7 @@ function normalize(p) {
   const location = [...new Set(locationParts.filter(Boolean))].join(', ');
 
   const isRemote = !!(p.fullyRemote || p.location?.fullyRemote);
-  const workplaceType = isRemote ? 'Remote' : (location ? 'Office' : '');
+  const workplaceType = isRemote ? 'Remote' : 'Onsite';
 
   // Salary: format range + currency if present
   let salary = '';
