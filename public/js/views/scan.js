@@ -788,6 +788,52 @@ Router.register('scan', async () => {
     return row;
   }
 
+  // v1.83.0 — repost / ghost-posting detector (parent career-ops v1.15.0).
+  // A collapsed panel that lazy-loads GET /api/scan/reposts on first open:
+  // company+role clusters re-listed under different URLs within a window =
+  // likely stale / ghost postings. CSP-safe (addEventListener, no innerHTML).
+  const repostsBody = c('div', { className: 'reposts-body' });
+  const repostsPanel = c('details', { className: 'card mb-3 reposts' }, [
+    c('summary', { className: 'reposts-summary' }, '🔁 ' + t('scan.reposts.title', 'Reposted / ghost roles')),
+    repostsBody,
+  ]);
+  let repostsLoaded = false;
+  repostsPanel.addEventListener('toggle', async () => {
+    if (!repostsPanel.open || repostsLoaded) return;
+    repostsLoaded = true;
+    repostsBody.textContent = t('common.loading', 'Loading…');
+    try {
+      const d = await API.get('/api/scan/reposts');
+      repostsBody.textContent = '';
+      const clusters = Array.isArray(d.clusters) ? d.clusters : [];
+      if (clusters.length === 0) {
+        repostsBody.appendChild(c('p', { className: 'muted' },
+          t('scan.reposts.empty', 'No reposted roles detected in scan history.')));
+        return;
+      }
+      repostsBody.appendChild(c('p', { className: 'muted' },
+        t('scan.reposts.intro', 'Roles re-listed under different URLs (possible stale / ghost postings):')));
+      repostsBody.appendChild(c('table', { className: 'tbl' }, [
+        c('thead', null, c('tr', null, [
+          c('th', null, t('scan.reposts.company', 'Company')),
+          c('th', null, t('scan.reposts.role', 'Role')),
+          c('th', null, t('scan.reposts.count', 'Reposts')),
+          c('th', null, t('scan.reposts.span', 'Span')),
+          c('th', null, t('scan.reposts.range', 'First → Last')),
+        ])),
+        c('tbody', null, clusters.map((cl) => c('tr', null, [
+          c('td', null, cl.company || ''),
+          c('td', null, cl.role || ''),
+          c('td', null, String(cl.repostCount || 0)),
+          c('td', null, (cl.daysSpan || 0) + 'd'),
+          c('td', null, (cl.firstSeen || '') + ' → ' + (cl.lastSeen || '')),
+        ]))),
+      ]));
+    } catch {
+      repostsBody.textContent = t('common.error', 'Error');
+    }
+  });
+
   // load results on first render
   refreshResults();
 
@@ -832,6 +878,8 @@ Router.register('scan', async () => {
     ]),
 
     c('div', null, [errBanner, scanProgressWrap, statusRegion, consoleEl]),
+
+    repostsPanel,
 
     c('section', { className: 'section' }, [
       c('h2', { className: 'section-title', style: { marginTop: 0 } }, t('scan.results')),

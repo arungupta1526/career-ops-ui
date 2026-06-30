@@ -8,6 +8,10 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.83.0] — 2026-06-30
+
+**Repost / ghost-posting detector (parent career-ops v1.15.0 parity).** A new **🔁 Reposted / ghost roles** panel on `#/scan` flags company+role clusters that were re-listed under *different* URLs within a rolling 90-day window — a signal of stale pipelines and ghost postings. Backed by a fuzzy role-title matcher (`server/lib/role-matcher.mjs`) and a read-only detector (`server/lib/detect-reposts.mjs`) over `data/scan-history.tsv`, surfaced via `GET /api/scan/reposts` (window clamped 7–365 days; fail-soft on a malformed history). Also: `/api/health` `parentVersion` now reports just the semver — the release-please `# x-release-please-version` comment is stripped. Ships `tests/detect-reposts.test.mjs`. (Source count unchanged at **41** — reposts is an analysis feature, not a new board.)
+
 ## [1.82.0] — 2026-06-30
 
 **NoDesk scan source (parent career-ops v1.15.0 parity).** The board-wide [NoDesk](https://nodesk.co) remote-jobs RSS feed is now a first-class scan source — add a `provider: nodesk` entry and it appears in the `#/scan` **Source** dropdown (**41 adapters** total: 36 EN + 5 RU). Host-pinned to `nodesk.co` with `redirect:'error'` (SSRF-safe); titles split on `Role at Company` (NoDesk has no location tag, so location stays empty); all rows remote. Ships a CI-isolated `tests/sources-nodesk.test.mjs` suite; full unit suite green at 1523.

@@ -20,6 +20,8 @@ import { runRuScan, loadConfig as loadRuConfig } from '../ru-scanner.mjs';
 import { runEnScan, loadLastScan } from '../en-scanner.mjs';
 import { getLastWorkdayFallback } from '../sources/workday.mjs';
 import { SOURCES } from '../sources/registry.mjs';
+import { PATHS } from '../paths.mjs';
+import { detectRepostsFromFile, DEFAULT_WINDOW_DAYS } from '../detect-reposts.mjs';
 
 /**
  * Open an SSE response with the standard headers used across this repo.
@@ -127,6 +129,22 @@ export function registerScanRoutes(app) {
   app.get('/api/scan/sources', (_req, res) => {
     res.set('Cache-Control', 'public, max-age=60');
     res.json({ sources: SOURCES });
+  });
+
+  // ─── Repost / ghost-posting detection (v1.83.0, parent v1.15.0 parity) ───
+  // Reads data/scan-history.tsv and flags company+role clusters re-listed under
+  // different URLs within a rolling window. Read-only; never writes.
+  app.get('/api/scan/reposts', (req, res) => {
+    const raw = parseInt(String(req.query.window || ''), 10);
+    const windowDays = Number.isFinite(raw) ? Math.min(365, Math.max(7, raw)) : DEFAULT_WINDOW_DAYS;
+    let clusters = [];
+    try {
+      clusters = detectRepostsFromFile(PATHS.scanHistory, windowDays);
+    } catch {
+      clusters = []; // fail-soft: a malformed history must not 500 the page
+    }
+    res.set('Cache-Control', 'public, max-age=60');
+    res.json({ windowDays, clusters });
   });
 
   // ─── Latest scan results (for table view in UI) ───

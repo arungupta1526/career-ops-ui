@@ -9,6 +9,10 @@ Tłumaczenia: [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [Portugu
 ---
 
 
+## [1.83.0] — 2026-06-30
+
+**Detektor ponownych publikacji / ofert-widm (parytet z nadrzędnym career-ops v1.15.0).** Nowy panel **🔁 Ponownie opublikowane / oferty-widma** na `#/scan` oznacza klastry firma+stanowisko, które zostały ponownie opublikowane pod różnymi adresami URL w ruchomym oknie 90 dni — sygnał przestarzałych potoków i ofert-widm. Oparty na rozmytym dopasowywaczu tytułów stanowisk (`server/lib/role-matcher.mjs`) i detektorze tylko do odczytu (`server/lib/detect-reposts.mjs`) operującym na `data/scan-history.tsv`, dostępnym przez `GET /api/scan/reposts`. Ponadto: `parentVersion` w `/api/health` podaje teraz sam semver (komentarz release-please `# x-release-please-version` jest usuwany). Dostarcza `tests/detect-reposts.test.mjs`. Liczba źródeł bez zmian: 41 — wykrywanie ponownych publikacji to funkcja analityczna, nie nowa tablica.
+
 ## [1.82.0] — 2026-06-30
 
 **Źródło skanowania NoDesk (parytet z nadrzędnym career-ops v1.15.0).** Ogólnoportalowy kanał RSS pracy zdalnej NoDesk jest teraz pełnoprawnym źródłem skanowania — dodaj wpis `provider: nodesk`, a pojawi się na liście **Source** w `#/scan` (łącznie 41 adapterów: 36 EN + 5 RU). Host przypięty do `nodesk.co` z `redirect:'error'` (ochrona przed SSRF); tytuły dzielone po `Role at Company` (NoDesk nie ma tagu lokalizacji, więc lokalizacja pozostaje pusta); wszystkie wiersze zdalne. Dostarcza izolowany zestawy testów CI `tests/sources-nodesk.test.mjs`; pełny zestaw jednostkowy na zielono przy 1523.

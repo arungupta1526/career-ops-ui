@@ -12,13 +12,13 @@ _Неофіційний інтерфейс — не пов'язаний із car
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#тести)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#вимоги)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.82.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.82.0)
+[![release](https://img.shields.io/badge/release-v1.83.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.83.0)
 
-> **🆕 Останній реліз — v1.82.0**
+> **🆕 Останній реліз — v1.83.0**
 >
-> **Джерело сканування NoDesk** (паритет із батьківським career-ops v1.15.0): загальнодошкова RSS-стрічка віддаленої роботи NoDesk тепер повноцінне джерело — додайте запис `provider: nodesk`, і воно з'явиться у списку **Source** на `#/scan` (загалом **41 адаптер**). Хост закріплено за `nodesk.co` із `redirect:'error'` (захист від SSRF); заголовки діляться за `Role at Company`. Базується на v1.81.0 (13 нових джерел), v1.80.0 (Teamtailor, карантин джерел, збережені пошуки) і v1.77.0 (данська).
+> **Детектор повторних публікацій / фантомних вакансій** (паритет із батьківським career-ops v1.15.0): на `#/scan` з'явилася панель **🔁 Повторні публікації / фантомні вакансії**, яка позначає кластери «компанія + посада», повторно розміщені під різними URL у ковзному 90-денному вікні — сигнал застарілих конвеєрів і фантомних оголошень — дані зчитуються з історії сканування (`GET /api/scan/reposts`). Базується на v1.82.0 (NoDesk), v1.81.0 (13 нових джерел) і v1.80.0 (Teamtailor, карантин джерел, збережені пошуки).
 >
-> _13 locales · 6 LLM-провайдерів · 41 адаптер сканера · паритет із батьківським career-ops v1.15.0._
+> _13 locales · 6 LLM-провайдерів · 41 адаптер сканера · детектор повторних публікацій · паритет із батьківським career-ops v1.15.0._
 
 ![career-ops-ui](./images/dashboard-uk.png)
 

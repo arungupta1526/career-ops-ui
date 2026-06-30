@@ -11,6 +11,10 @@ Traductions : [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [Portugu
 ---
 
 
+## [1.83.0] — 2026-06-30
+
+**Détecteur de reposts / offres fantômes (parité avec career-ops parent v1.15.0).** Un nouveau panneau **🔁 Reposts / offres fantômes** sur `#/scan` signale les clusters entreprise+rôle republiés sous des URL différentes dans une fenêtre glissante de 90 jours — signal de pipelines obsolètes et d'offres fantômes. Alimenté par un comparateur de titres de rôle fuzzy (`server/lib/role-matcher.mjs`) et un détecteur en lecture seule (`server/lib/detect-reposts.mjs`) sur `data/scan-history.tsv`, exposé via `GET /api/scan/reposts`. Aussi : `parentVersion` dans `/api/health` ne renvoie désormais que le semver (le commentaire `# x-release-please-version` de release-please est supprimé). Inclut `tests/detect-reposts.test.mjs`. Le nombre de sources reste à 41 — les reposts sont une fonctionnalité d'analyse, pas un nouveau board.
+
 ## [1.82.0] — 2026-06-30
 
 **Source de scan NoDesk (parité career-ops v1.15.0).** Le flux RSS d'emplois à distance de [NoDesk](https://nodesk.co) est désormais une source de premier plan — ajoutez une entrée `provider: nodesk` et elle apparaît dans le menu **Source** de `#/scan` (**41 adaptateurs** au total : 36 EN + 5 RU). Hôte verrouillé sur `nodesk.co` avec `redirect:'error'` (anti-SSRF) ; les titres sont scindés sur `Role at Company` (NoDesk n'a pas de balise de localisation, donc la localisation reste vide) ; toutes les lignes sont en télétravail. Inclut une suite CI isolée `tests/sources-nodesk.test.mjs` ; suite de tests unitaires complète au vert avec 1523.

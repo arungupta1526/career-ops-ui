@@ -104,7 +104,10 @@ export function registerHealthRoutes(app) {
       version = pkg.version || '?';
     } catch {}
     try {
-      parentVersion = readFileSync(PATHS.version, 'utf8').trim();
+      // The parent VERSION file may carry a release-please inline comment
+      // ("1.15.0 # x-release-please-version") — surface just the semver.
+      const raw = readFileSync(PATHS.version, 'utf8').trim();
+      parentVersion = (raw.match(/\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?/) || [raw])[0];
     } catch {}
 
     const ok = checks.filter((c) => c.required).every((c) => c.ok);

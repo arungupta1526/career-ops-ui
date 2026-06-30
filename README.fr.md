@@ -12,13 +12,13 @@ _Interface non officielle — sans affiliation ni approbation de career-ops / sa
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.82.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.82.0)
+[![release](https://img.shields.io/badge/release-v1.83.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.83.0)
 
-> **🆕 Dernière version — v1.82.0**
+> **🆕 Dernière version — v1.83.0**
 >
-> **Source de scan NoDesk** (parité career-ops v1.15.0) : le flux RSS d'emplois à distance de [NoDesk](https://nodesk.co) est désormais une source de premier plan — ajoutez une entrée `provider: nodesk` et elle apparaît dans le menu **Source** de `#/scan` (**41 adaptateurs** au total). Hôte verrouillé sur `nodesk.co` avec `redirect:'error'` (anti-SSRF) ; les titres sont scindés sur `Role at Company`. S'appuie sur la v1.81.0 (13 nouvelles sources), la v1.80.0 (Teamtailor, mise en quarantaine des sources, recherches enregistrées) et la v1.77.0 (danois).
+> **Détecteur de reposts / offres fantômes** (parité career-ops v1.15.0) : un nouveau panneau **🔁 Reposts / offres fantômes** sur `#/scan` signale les clusters entreprise+rôle republiés sous des URL différentes dans une fenêtre glissante de 90 jours — signal de pipelines obsolètes et d'offres fantômes — lus depuis votre historique de scan (`GET /api/scan/reposts`). S'appuie sur la v1.82.0 (NoDesk), la v1.81.0 (13 nouvelles sources) et la v1.80.0 (Teamtailor, mise en quarantaine des sources, recherches enregistrées).
 >
-> _13 locales · 6 fournisseurs LLM · 41 adaptateurs de scanner · parité avec le career-ops v1.15.0._
+> _13 locales · 6 fournisseurs LLM · 41 adaptateurs de scanner · détecteur de reposts · parité avec le career-ops v1.15.0._
 
 ![career-ops-ui — Centre de commande](./images/dashboard-fr.png)
 
@@ -676,7 +676,7 @@ Rafraîchissez la page Health — chaque vérification requise doit être verte.
 5. Les rapports atterrissent dans `reports/`, le tracker dans `data/applications.md`, la recherche approfondie live dans `interview-prep/`. Tout visible dans l'UI.
 
 > Les traductions de ce guide vivent dans chaque README spécifique à la langue :
-> [English](README.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [한국어](README.ko-KR.md) · [日本語](README.ja.md) · [Русский](README.ru.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [Polski](README.pl.md) · [Українська](README.uk.md) · [العربية](README.ar.md)
+> [English](README.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [한국어](README.ko-KR.md) · [日本語](README.ja.md) · [Русский](README.ru.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [Polski](README.pl.md) · [Українська](README.uk.md) · [Dansk](README.da.md) · [العربية](README.ar.md)
 
 ---
 
