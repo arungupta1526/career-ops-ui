@@ -56,6 +56,30 @@ test('loadReApplyWindows: reads + validates config/profile.yml re_apply_windows'
   assert.deepEqual(loadReApplyWindows(''), {});
 });
 
+test('loadReApplyWindows: an UNQUOTED YAML date is coerced to a string (not dropped)', () => {
+  // js-yaml parses unquoted `2026-05-01` as a Date — the reader must coerce it,
+  // else the window is silently dropped and cooldown never fires.
+  const dir = mkdtempSync(join(tmpdir(), 'cooldown-'));
+  const p = join(dir, 'profile.yml');
+  try {
+    writeFileSync(p, [
+      're_apply_windows:',
+      '  Acme:',
+      '    last_apply_date: 2026-05-01',   // UNQUOTED → js-yaml Date
+      '    same_role_days: 30',
+      '    applied_to: ["Backend Engineer"]',
+    ].join('\n'));
+    const w = loadReApplyWindows(p);
+    assert.deepEqual(Object.keys(w), ['Acme']);
+    assert.equal(w.Acme.last_apply_date, '2026-05-01'); // coerced to YYYY-MM-DD string
+    // and the filter actually fires with the coerced window
+    const f = buildCooldownFilter(w, '2026-05-15');
+    assert.equal(f({ company: 'Acme', title: 'Backend Engineer' }).skip, true);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('buildCooldownFilter: skips applied role within cooldown, passes after it elapses', () => {
   const windows = {
     'Acme Inc': { last_apply_date: '2026-05-01', same_role_days: 30, applied_to: ['Senior Backend Engineer'] },

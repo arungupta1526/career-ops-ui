@@ -67,7 +67,14 @@ export function loadReApplyWindows(profilePath) {
     const valid = {};
     for (const [company, win] of Object.entries(windows)) {
       if (!win || typeof win !== 'object') continue;
-      const lastApplyDate = win.last_apply_date;
+      // js-yaml's default schema parses an UNQUOTED `last_apply_date: 2026-05-01`
+      // as a JS Date (the YAML timestamp type), not a string. Coerce it back to
+      // a YYYY-MM-DD string so unquoted dates work too — otherwise the window is
+      // silently dropped and cooldown never fires.
+      let lastApplyDate = win.last_apply_date;
+      if (lastApplyDate instanceof Date && !Number.isNaN(lastApplyDate.getTime())) {
+        lastApplyDate = lastApplyDate.toISOString().slice(0, 10);
+      }
       if (typeof lastApplyDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(lastApplyDate)) continue;
       if (Number.isNaN(Date.parse(lastApplyDate))) continue;
       const sameRoleDays = win.same_role_days;
@@ -75,7 +82,8 @@ export function loadReApplyWindows(profilePath) {
       if (win.applied_to !== undefined && !Array.isArray(win.applied_to)) continue;
       if (win.applied_to !== undefined && win.applied_to.some((x) => typeof x !== 'string')) continue;
       if (win.cross_role_bucket !== undefined && typeof win.cross_role_bucket !== 'string') continue;
-      valid[company] = win;
+      // Store the normalized YYYY-MM-DD string so buildCooldownFilter's addDays works.
+      valid[company] = { ...win, last_apply_date: lastApplyDate };
     }
     return valid;
   } catch {
