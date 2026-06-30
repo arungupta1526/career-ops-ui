@@ -143,8 +143,10 @@ function defaultUrlGate(s) {
  */
 function sanitizePipelineComp(v) {
   if (typeof v !== 'string') return '';
-  // Cap the raw content FIRST, then neutralize a formula-lead, so the quote is
-  // never the character that gets truncated away.
+  // Cap the raw content to 80 chars FIRST, then prepend the formula-neutralizing
+  // quote. This preserves the LAST content char of a max-length cell (slicing
+  // after quoting would have dropped it). The `'` adds at most one char, so the
+  // cell is ≤ 81 — pipeline.md cell width is not contractually bounded.
   let s = v.replace(/[\r\n\t|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
   if (!s) return '';
   if (/^[=+\-@]/.test(s)) s = `'${s}`;
