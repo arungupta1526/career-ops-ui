@@ -12,13 +12,13 @@ _Nieoficjalny interfejs — niepowiązany z career-ops / santifer ani przez nich
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#testy)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#wymagania)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.81.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.81.0)
+[![release](https://img.shields.io/badge/release-v1.82.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.82.0)
 
-> **🆕 Najnowsze wydanie — v1.81.0**
+> **🆕 Najnowsze wydanie — v1.82.0**
 >
-> **13 nowych źródeł skanowania** (parytet z nadrzędnym career-ops): ogólnoportalowe publiczne API **Arbeitnow · Himalayas · Jobicy · Landing.jobs · 4 Day Week · The Muse · The Hub · Jobspresso · Hacker News "Who is hiring?"**, polskie portale **JustJoin.it · NoFluffJobs** (wyszukiwanie POST) oraz ATS per-tenant **Pinpoint · Rippling** (autowykrywane z `careers_url`) — wszystkie przypięte do hosta z `redirect:'error'` (ochrona przed SSRF) i wybieralne na liście **Source** w `#/scan` (**40 adapterów** łącznie). Bazuje na v1.80.0 (Teamtailor, kwarantanna źródeł, limit na źródło, filtr wieku, zapisane wyszukiwania), v1.79.0 (We Work Remotely), v1.77.0 (duński) i v1.76.0 (źródła ATS per-tenant).
+> **Źródło skanowania NoDesk** (parytet z nadrzędnym career-ops v1.15.0): ogólnoportalowy kanał RSS pracy zdalnej NoDesk jest teraz pełnoprawnym źródłem skanowania — dodaj wpis `provider: nodesk`, a pojawi się na liście **Source** w `#/scan` (łącznie 41 adapterów). Host przypięty do `nodesk.co` z `redirect:'error'` (ochrona przed SSRF); tytuły dzielone po `Role at Company`. Bazuje na v1.81.0 (13 nowych źródeł), v1.80.0 (Teamtailor, kwarantanna źródeł, zapisane wyszukiwania) i v1.77.0 (duński).
 >
-> _13 lokalizacji · 6 dostawców LLM · 40 adapterów skanera · 13 nowych źródeł · parytet z nadrzędnym career-ops._
+> _13 lokalizacji · 6 dostawców LLM · 41 adapterów skanera · parytet z nadrzędnym career-ops v1.15.0._
 
 ![career-ops-ui](./images/dashboard-pl.png)
 

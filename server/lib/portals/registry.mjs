@@ -68,6 +68,8 @@ import { nofluffjobsAdapter } from './adapters/nofluffjobs.mjs';
 // Per-tenant ATS — host-detected from careers_url:
 import { pinpointAdapter } from './adapters/pinpoint.mjs';
 import { ripplingAdapter } from './adapters/rippling.mjs';
+// v1.82.0 — parent career-ops v1.15.0 parity: NoDesk board-wide remote RSS feed.
+import { nodeskAdapter } from './adapters/nodesk.mjs';
 
 export const ALL_ADAPTERS = [
   greenhouseAdapter,
@@ -115,6 +117,8 @@ export const ALL_ADAPTERS = [
   // Per-tenant ATS — auto-detected from careers_url host (pinpointhq.com / ats.rippling.com).
   pinpointAdapter,
   ripplingAdapter,
+  // v1.82.0 — board-wide remote RSS feed, provider-selected (like We Work Remotely).
+  nodeskAdapter,
 ];
 
 /**

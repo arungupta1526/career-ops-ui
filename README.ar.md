@@ -12,13 +12,13 @@ _واجهة غير رسمية — لا علاقة لها بـ career-ops / santi
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#الاختبارات)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#المتطلبات)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.81.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.81.0)
+[![release](https://img.shields.io/badge/release-v1.82.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.82.0)
 
-> **🆕 أحدث إصدار — v1.81.0**
+> **🆕 أحدث إصدار — v1.82.0**
 >
-> **13 مصدر فحص وظائف جديد** (تكافؤ مع المشروع الأصلي career-ops): واجهات API عامة على مستوى اللوحة **Arbeitnow · Himalayas · Jobicy · Landing.jobs · 4 Day Week · The Muse · The Hub · Jobspresso · Hacker News "Who is hiring?"**، واللوحات البولندية **JustJoin.it · NoFluffJobs** (بحث POST)، وATS لكل مستأجر **Pinpoint · Rippling** (يُكتشف تلقائياً من `careers_url`) — جميعها مثبّتة بالمضيف مع `redirect:'error'` (حماية من SSRF) وقابلة للاختيار في قائمة **Source** المنسدلة في `#/scan` (**40 محوّلاً** إجمالاً). يُبنى على v1.80.0 (Teamtailor، وحجر المصادر، والحد لكل مصدر، ومرشّح العمر، والبحث المحفوظ)، وv1.79.0 (We Work Remotely)، وv1.77.0 (الدنماركية)، وv1.76.0 (مصادر ATS لكل مستأجر).
+> **مصدر فحص NoDesk** (تكافؤ مع المشروع الأصلي career-ops v1.15.0): أصبحت تغذية RSS للوظائف عن بُعد على مستوى اللوحة بأكملها من NoDesk مصدر فحص من الدرجة الأولى — أضف إدخال `provider: nodesk` ليظهر في قائمة **Source** المنسدلة في `#/scan` (41 محوّلاً إجمالاً). المضيف مثبّت على `nodesk.co` مع `redirect:'error'` (حماية من SSRF)؛ وتُقسَّم العناوين على `Role at Company`. يُبنى على v1.81.0 (13 مصدراً جديداً)، وv1.80.0 (Teamtailor، وحجر المصادر، والبحث المحفوظ)، وv1.77.0 (الدنماركية).
 >
-> _13 locales · 6 مزوّدات LLM · 40 محوّل ماسح · 13 مصدراً جديداً · التكافؤ مع المشروع الأصلي career-ops._
+> _13 locales · 6 مزوّدات LLM · 41 محوّل ماسح · تكافؤ مع المشروع الأصلي career-ops v1.15.0._
 
 ![career-ops-ui](./images/dashboard-ar.png)
 

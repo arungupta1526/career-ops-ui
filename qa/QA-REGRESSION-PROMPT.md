@@ -1,9 +1,9 @@
-# QA REGRESSION PROMPT — career-ops-ui **v1.81.0** (DEFINITIVE · WHOLE PROJECT · ALL LANGUAGES)
+# QA REGRESSION PROMPT — career-ops-ui **v1.82.0** (DEFINITIVE · WHOLE PROJECT · ALL LANGUAGES)
 
 Single standalone hand-off for a QA tester (human or agent) to verify the **entire** career-ops-ui build end-to-end, in **all 13 languages**. Walking this top-to-bottom signs off the build without needing the rest of the `qa/` tree.
 
-- **Version under test:** `package.json` **1.81.0** · parent career-ops parity.
-- **Baseline:** **1513** `node --test` cases · Playwright (smoke + full-cycle + forms + **locale-sweep ×13** + theme-toggle) · 20 smoke E2E · 23 comprehensive E2E · CI matrix green on Node 18/20/22 + Playwright + CodeQL.
+- **Version under test:** `package.json` **1.82.0** · parent career-ops v1.15.0 parity.
+- **Baseline:** **1523** `node --test` cases · Playwright (smoke + full-cycle + forms + **locale-sweep ×13** + theme-toggle) · 20 smoke E2E · 23 comprehensive E2E · CI matrix green on Node 18/20/22 + Playwright + CodeQL.
 - **Server:** `npm start` → `http://127.0.0.1:4317`.
 - **Sibling docs:** `qa/QA-REGRESSION-PROMPT-v1.76.0-FULL.md` (parent-parity gate driver) · `key/E2E-REGRESSION-EVERY-BUTTON-EVERY-LANGUAGE-v1.78.0.md` (exhaustive UI click-through) · `REGRESSION-FINAL.md` (invariant ledger).
 
@@ -15,7 +15,7 @@ Single standalone hand-off for a QA tester (human or agent) to verify the **enti
 npm test                                    # full suite (≥1513 cases)
 npm run test:ci                             # unit + check-no-also + check-changelog-parity + i18n-audit
 node tools/i18n-audit.mjs                   # "no hard failures — dictionary is clean"
-node scripts/check-changelog-parity.mjs     # "all 12 locales at v1.81.0" (EN + 12 = 13 files)
+node scripts/check-changelog-parity.mjs     # "all 12 locales at v1.82.0" (EN + 12 = 13 files)
 npm run test:coverage                       # ≥80% line / ≥75% branch (baseline ~93/~83)
 npm run test:e2e:browser                    # playwright smoke + full-cycle + forms + locale-sweep(13) + theme-toggle
 npm run test:e2e && npm run test:e2e:full   # smoke (20) + comprehensive (23) E2E
@@ -64,6 +64,7 @@ node scripts/portals-health-check.mjs       # portals.yml reachability (informat
 | 18 | **Saved searches + ★ favorites (v1.80.0)** | `localStorage` via `public/js/lib/scan-prefs.js`. Save/apply/delete named filter sets; ☆/★ per row toggles a favorite (by URL); "★ Favorites" filter shows starred only. Corrupt/edited cache resets to empty (validated). Results cache is reset at scan start + refilled. |
 | 13 | **Title-filter trim (v1.79.0 — parent #1261)** | `title_filter` keywords are trimmed BEFORE the length check — a whitespace-only keyword (`"  "`) is dropped, not compiled into a match-everything substring. Both EN + RU scanners (`compileKeywordList`). |
 | 19 | **13 new scan sources (v1.81.0 — parent parity)** | `#/scan` **Source** dropdown lists **40** adapters; `GET /api/scan/sources` returns **40** (35 EN + 5 RU). New board-wide (provider-selected): **Arbeitnow / Himalayas / Jobicy / Landing.jobs / 4 Day Week / The Muse / The Hub / Jobspresso** (RSS) **/ Hacker News “Who is hiring?”** (Algolia 2-step). Poland (host- or `provider:`): **JustJoin.it / NoFluffJobs** (POST search). Per-tenant ATS (careers_url host): **Pinpoint** (`<slug>.pinpointhq.com/postings.json`) **/ Rippling** (`ats.rippling.com/<slug>` → `api.rippling.com`). All host-pinned + `redirect:'error'` (SSRF). Each ships a `tests/sources-<slug>.test.mjs` suite; `ALL_ADAPTERS` length 35, sorted-id + EN-set assertions updated. |
+| 20 | **NoDesk source (v1.82.0 — parent v1.15.0)** | `#/scan` **Source** dropdown includes **NoDesk**; a `provider: nodesk` entry scans the board-wide RSS feed `https://nodesk.co/remote-jobs/index.xml` (host-pinned to nodesk.co + `redirect:'error'`). Titles split on `Role at Company`; NoDesk has no location tag (location stays empty); all rows remote. `GET /api/scan/sources` now returns **41** (36 EN + 5 RU); `ALL_ADAPTERS` length 36. |
 
 ---
 
@@ -113,7 +114,7 @@ Allowlist = batch, contacto, cover, followup, interview-prep, patterns, project,
 - `#/health`: OK/OPTIONAL/FAIL cards (no overflow); run `doctor.mjs` / `verify-pipeline.mjs`.
 - `#/activity`: log; redaction.
 - Notifications drawer (🔔): unread badge; journal of last 50 toasts, each `(METHOD /path · HTTP NNN)` postfix in `<details>`; Clear-all + per-entry dismiss.
-- `#/help`: **13 markdown bundles** (en, es, pt-BR, ko-KR, ja, ru, zh-CN, zh-TW, fr, pl, uk, **da**, ar); `GET /api/help/<lang>` serves each. Invariant **19 H2 / 75 H3** per bundle (`canonical-docs-coverage` + `help-ui` + `help-ru-config-section`). §7 documents the Source dropdown (40) + the **Country** filter; §17 says **40 adapters**. TOC scroll-spy.
+- `#/help`: **13 markdown bundles** (en, es, pt-BR, ko-KR, ja, ru, zh-CN, zh-TW, fr, pl, uk, **da**, ar); `GET /api/help/<lang>` serves each. Invariant **19 H2 / 75 H3** per bundle (`canonical-docs-coverage` + `help-ui` + `help-ru-config-section`). §7 documents the Source dropdown (41) + the **Country** filter; §17 says **41 adapters**. TOC scroll-spy.
 
 ### 4.8 Runners / PDF / OpenRouter / output
 Buffered `/api/run/*` (doctor, verify, normalize, dedup, merge, sync-check); streaming `/api/stream/*` (scan, liveness, pdf + /report /deep /inline); `/api/output/pdfs` list + download (Content-Disposition, name sanitized). `/api/openrouter/models` catalogue proxy. PDFs embed fonts.
@@ -155,6 +156,6 @@ Locales: `en, es, pt-BR, ko, ja, ru, zh-CN, zh-TW, fr, pl, uk, da, ar` (dict fil
 
 ## §8 — Exit criteria
 - Every (page × control × 13 languages) PASS or a logged FAIL→fix (one-fix-per-release; HIGH → MEDIUM → LOW).
-- `npm test` ≥ **1513** green; `npm run test:ci` green; coverage ≥ floor; Playwright (locale-sweep ×13) green; CI matrix green.
+- `npm test` ≥ **1523** green; `npm run test:ci` green; coverage ≥ floor; Playwright (locale-sweep ×13) green; CI matrix green.
 - Zero console errors; no RTL leak; no untranslated shipped key; favicon/icon endpoints 200.
 - All §2 deltas verified live.

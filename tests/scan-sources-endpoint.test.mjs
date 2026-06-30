@@ -75,9 +75,9 @@ test('GET /api/scan/sources includes the EN ATS + aggregator sources', async () 
       '4dayweek', 'arbeitnow', 'arbeitsagentur', 'ashby', 'bamboohr', 'breezy',
       'comeet', 'glints', 'greenhouse', 'hackernews', 'himalayas', 'ibm',
       'jobicy', 'jobspresso', 'jobstreet', 'justjoin', 'landingjobs', 'lever',
-      'nofluffjobs', 'personio', 'pinpoint', 'recruitee', 'remoteok', 'remotive',
-      'rippling', 'rss', 'smartrecruiters', 'solidjobs', 'teamtailor', 'thehub',
-      'themuse', 'weworkremotely', 'workable', 'workday', 'workingnomads',
+      'nodesk', 'nofluffjobs', 'personio', 'pinpoint', 'recruitee', 'remoteok',
+      'remotive', 'rippling', 'rss', 'smartrecruiters', 'solidjobs', 'teamtailor',
+      'thehub', 'themuse', 'weworkremotely', 'workable', 'workday', 'workingnomads',
     ],
   );
 });

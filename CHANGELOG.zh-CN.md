@@ -9,6 +9,10 @@
 ---
 
 
+## [1.82.0] — 2026-06-30
+
+**NoDesk 扫描源（与上游 career-ops v1.15.0 对齐）。** NoDesk 全站远程职位 RSS 源现已成为一级扫描源 —— 添加 `provider: nodesk` 条目后即出现在 `#/scan` 的 **Source** 下拉中（共 **41 个适配器**：EN 36 + RU 5）。主机锁定为 `nodesk.co` 并使用 `redirect:'error'`（防 SSRF）；标题按 `Role at Company` 拆分（NoDesk 无位置标签，因此地点保持为空）；所有条目均为远程。附带 CI 隔离的 `tests/sources-nodesk.test.mjs` 测试套件；完整单元测试套件绿灯 1523。
+
 ## [1.81.0] — 2026-06-29
 
 **与上游 career-ops 对齐 — 13 个新的求职板扫描来源。** 将 [`Fighter90/career-ops`](https://github.com/Fighter90/career-ops) `main` 的最新提供方批次移植到进程内扫描器。**全站公开 API**（由提供方选择）：**Arbeitnow**、**Himalayas**、**Jobicy**、**Landing.jobs**、**4 Day Week**、**The Muse**、**The Hub**、**Jobspresso**（RSS）以及 **Hacker News "Who is hiring?"**（Algolia 两步）。**波兰求职板**（按主机或 `provider:` 识别）：**JustJoin.it** 和 **NoFluffJobs**（POST 搜索）。**按租户的 ATS**（从 `careers_url` 自动识别）：**Pinpoint**（`<slug>.pinpointhq.com/postings.json`）和 **Rippling**（`ats.rippling.com/<slug>` → `api.rippling.com` 板）。所有来源均以 `redirect:'error'` 锁定主机（防 SSRF），并可在 `#/scan` 的 **Source** 下拉中选择 —— 注册表现在提供 **40 个扫描器适配器**（EN 35 + RU 5）。新增 13 套 CI 隔离的按来源测试套件；完整单元测试套件绿灯 1513。

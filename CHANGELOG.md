@@ -8,6 +8,10 @@ Translations: [Español](CHANGELOG.es.md) · [Português](CHANGELOG.pt-BR.md) ·
 
 
 
+## [1.82.0] — 2026-06-30
+
+**NoDesk scan source (parent career-ops v1.15.0 parity).** The board-wide [NoDesk](https://nodesk.co) remote-jobs RSS feed is now a first-class scan source — add a `provider: nodesk` entry and it appears in the `#/scan` **Source** dropdown (**41 adapters** total: 36 EN + 5 RU). Host-pinned to `nodesk.co` with `redirect:'error'` (SSRF-safe); titles split on `Role at Company` (NoDesk has no location tag, so location stays empty); all rows remote. Ships a CI-isolated `tests/sources-nodesk.test.mjs` suite; full unit suite green at 1523.
+
 ## [1.81.0] — 2026-06-29
 
 **Parent career-ops parity — 13 new job-board scan sources.** Ports the latest provider batch from [`Fighter90/career-ops`](https://github.com/Fighter90/career-ops) `main` into the in-process scanner. **Board-wide public APIs** (provider-selected): **Arbeitnow**, **Himalayas**, **Jobicy**, **Landing.jobs**, **4 Day Week**, **The Muse**, **The Hub**, **Jobspresso** (RSS), and **Hacker News “Who is hiring?”** (Algolia two-step). **Poland boards** (host- or `provider:`-detected): **JustJoin.it** and **NoFluffJobs** (POST search). **Per-tenant ATS** (auto-detected from `careers_url`): **Pinpoint** (`<slug>.pinpointhq.com/postings.json`) and **Rippling** (`ats.rippling.com/<slug>` → `api.rippling.com` board). Every source is host-pinned with `redirect:'error'` (SSRF-safe) and selectable in the `#/scan` **Source** dropdown — the registry now ships **40 scanner adapters** (35 EN + 5 RU). Adds 13 CI-isolated per-source test suites; full unit suite green at 1513.

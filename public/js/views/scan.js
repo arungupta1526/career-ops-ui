@@ -149,6 +149,7 @@ Router.register('scan', async () => {
     { value: 'justjoin',        label: 'JustJoin.it' },
     { value: 'landingjobs',     label: 'Landing.jobs' },
     { value: 'lever',           label: 'Lever' },
+    { value: 'nodesk',          label: 'NoDesk' },
     { value: 'nofluffjobs',     label: 'NoFluffJobs' },
     { value: 'personio',        label: 'Personio' },
     { value: 'pinpoint',        label: 'Pinpoint' },
