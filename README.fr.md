@@ -12,13 +12,13 @@ _Interface non officielle — sans affiliation ni approbation de career-ops / sa
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#tests)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#requirements)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.81.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.81.0)
+[![release](https://img.shields.io/badge/release-v1.82.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.82.0)
 
-> **🆕 Dernière version — v1.81.0**
+> **🆕 Dernière version — v1.82.0**
 >
-> **13 nouvelles sources de scan de job boards** (parité avec le career-ops parent) : APIs publiques universelles **Arbeitnow · Himalayas · Jobicy · Landing.jobs · 4 Day Week · The Muse · The Hub · Jobspresso · Hacker News "Who is hiring?"**, les boards polonais **JustJoin.it · NoFluffJobs** (recherche POST) et ATS par tenant **Pinpoint · Rippling** (auto-détectés depuis `careers_url`) — tous verrouillés par hôte avec `redirect:'error'` (anti-SSRF) et sélectionnables dans le menu **Source** de `#/scan` (**40 adaptateurs** au total). S'appuie sur la v1.80.0 (Teamtailor, mise en quarantaine des sources, max par source, filtre d'ancienneté, recherches enregistrées), la v1.79.0 (We Work Remotely), la v1.77.0 (danois) et la v1.76.0 (sources ATS par tenant).
+> **Source de scan NoDesk** (parité career-ops v1.15.0) : le flux RSS d'emplois à distance de [NoDesk](https://nodesk.co) est désormais une source de premier plan — ajoutez une entrée `provider: nodesk` et elle apparaît dans le menu **Source** de `#/scan` (**41 adaptateurs** au total). Hôte verrouillé sur `nodesk.co` avec `redirect:'error'` (anti-SSRF) ; les titres sont scindés sur `Role at Company`. S'appuie sur la v1.81.0 (13 nouvelles sources), la v1.80.0 (Teamtailor, mise en quarantaine des sources, recherches enregistrées) et la v1.77.0 (danois).
 >
-> _13 locales · 6 fournisseurs LLM · 40 adaptateurs de scanner · 13 nouvelles sources · parité avec le career-ops parent._
+> _13 locales · 6 fournisseurs LLM · 41 adaptateurs de scanner · parité avec le career-ops v1.15.0._
 
 ![career-ops-ui — Centre de commande](./images/dashboard-fr.png)
 

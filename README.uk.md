@@ -12,13 +12,13 @@ _Неофіційний інтерфейс — не пов'язаний із car
 [![playwright](https://img.shields.io/badge/playwright-CI%20green-brightgreen)](#тести)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-blue)](#вимоги)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![release](https://img.shields.io/badge/release-v1.81.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.81.0)
+[![release](https://img.shields.io/badge/release-v1.82.0-blue)](https://github.com/Fighter90/career-ops-ui/releases/tag/v1.82.0)
 
-> **🆕 Останній реліз — v1.81.0**
+> **🆕 Останній реліз — v1.82.0**
 >
-> **13 нових джерел сканування вакансій** (паритет із батьківським career-ops): загальнодоступні API дошок **Arbeitnow · Himalayas · Jobicy · Landing.jobs · 4 Day Week · The Muse · The Hub · Jobspresso · Hacker News "Who is hiring?"**, польські дошки **JustJoin.it · NoFluffJobs** (POST-пошук) і per-tenant ATS **Pinpoint · Rippling** (автовизначення за `careers_url`) — усі закріплені за хостом із `redirect:'error'` (захист від SSRF) і доступні у списку **Source** на `#/scan` (загалом **40 адаптерів**). Базується на v1.80.0 (Teamtailor, карантин джерел, макс. на джерело, фільтр за віком, збережені пошуки), v1.79.0 (We Work Remotely), v1.77.0 (данська) і v1.76.0 (джерела ATS на тенант).
+> **Джерело сканування NoDesk** (паритет із батьківським career-ops v1.15.0): загальнодошкова RSS-стрічка віддаленої роботи NoDesk тепер повноцінне джерело — додайте запис `provider: nodesk`, і воно з'явиться у списку **Source** на `#/scan` (загалом **41 адаптер**). Хост закріплено за `nodesk.co` із `redirect:'error'` (захист від SSRF); заголовки діляться за `Role at Company`. Базується на v1.81.0 (13 нових джерел), v1.80.0 (Teamtailor, карантин джерел, збережені пошуки) і v1.77.0 (данська).
 >
-> _13 locales · 6 LLM-провайдерів · 40 адаптерів сканера · 13 нових джерел · паритет із батьківським career-ops._
+> _13 locales · 6 LLM-провайдерів · 41 адаптер сканера · паритет із батьківським career-ops v1.15.0._
 
 ![career-ops-ui](./images/dashboard-uk.png)
 

@@ -11,6 +11,10 @@ Traductions : [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [Portugu
 ---
 
 
+## [1.82.0] — 2026-06-30
+
+**Source de scan NoDesk (parité career-ops v1.15.0).** Le flux RSS d'emplois à distance de [NoDesk](https://nodesk.co) est désormais une source de premier plan — ajoutez une entrée `provider: nodesk` et elle apparaît dans le menu **Source** de `#/scan` (**41 adaptateurs** au total : 36 EN + 5 RU). Hôte verrouillé sur `nodesk.co` avec `redirect:'error'` (anti-SSRF) ; les titres sont scindés sur `Role at Company` (NoDesk n'a pas de balise de localisation, donc la localisation reste vide) ; toutes les lignes sont en télétravail. Inclut une suite CI isolée `tests/sources-nodesk.test.mjs` ; suite de tests unitaires complète au vert avec 1523.
+
 ## [1.81.0] — 2026-06-29
 
 **Parité avec le career-ops parent — 13 nouvelles sources de scan de job boards.** Porte le dernier lot de fournisseurs depuis le `main` de Fighter90/career-ops dans le scanner en processus. **APIs publiques universelles** (sélectionnées par fournisseur) : **Arbeitnow**, **Himalayas**, **Jobicy**, **Landing.jobs**, **4 Day Week**, **The Muse**, **The Hub**, **Jobspresso** (RSS) et **Hacker News "Who is hiring?"** (Algolia en deux étapes). **Boards polonais** (détectés par hôte ou `provider:`) : **JustJoin.it** et **NoFluffJobs** (recherche POST). **ATS par tenant** (auto-détectés depuis `careers_url`) : **Pinpoint** (`<slug>.pinpointhq.com/postings.json`) et **Rippling** (`ats.rippling.com/<slug>` → `api.rippling.com`). Chaque source est verrouillée par hôte avec `redirect:'error'` (anti-SSRF) et sélectionnable dans le menu **Source** de `#/scan` — le registre compte désormais **40 adaptateurs de scanner** (35 EN + 5 RU). Ajoute 13 suites de tests CI isolées par source ; suite de tests unitaires complète au vert avec 1513 tests.

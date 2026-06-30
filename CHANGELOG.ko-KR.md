@@ -9,6 +9,10 @@
 ---
 
 
+## [1.82.0] — 2026-06-30
+
+**NoDesk 스캔 소스 (상위 career-ops v1.15.0 패리티).** 보드 전체 NoDesk 원격 채용 RSS 피드가 이제 1급 스캔 소스입니다 — `provider: nodesk` 항목을 추가하면 `#/scan`의 **Source** 드롭다운에 표시됩니다(총 **41개 어댑터**: EN 36 + RU 5). 호스트는 `nodesk.co`로 고정되고 `redirect:'error'`(SSRF 방지); 제목은 `Role at Company`로 분리됩니다(NoDesk에는 위치 태그가 없어 위치는 빈 채로 유지); 모든 항목은 원격. CI 격리 `tests/sources-nodesk.test.mjs` 스위트 포함; 전체 유닛 테스트 스위트 1523개 통과.
+
 ## [1.81.0] — 2026-06-29
 
 **상위 career-ops 패리티 — 13개의 새로운 채용 보드 스캔 소스.** [`Fighter90/career-ops`](https://github.com/Fighter90/career-ops) `main`의 최신 프로바이더 배치를 인프로세스 스캐너에 이식합니다. **보드 전체 공개 API**(프로바이더 선택): **Arbeitnow**, **Himalayas**, **Jobicy**, **Landing.jobs**, **4 Day Week**, **The Muse**, **The Hub**, **Jobspresso**(RSS), 그리고 **Hacker News "Who is hiring?"**(Algolia 2단계). **폴란드 보드**(호스트 또는 `provider:` 감지): **JustJoin.it** 및 **NoFluffJobs**(POST 검색). **테넌트별 ATS**(`careers_url`에서 자동 감지): **Pinpoint**(`<slug>.pinpointhq.com/postings.json`) 및 **Rippling**(`ats.rippling.com/<slug>` → `api.rippling.com` 보드). 모든 소스는 `redirect:'error'`로 호스트 고정(SSRF 방지)되며 `#/scan` **Source** 드롭다운에서 선택 가능합니다 — 레지스트리는 이제 **40개 스캐너 어댑터**(EN 35 + RU 5)를 제공합니다. 소스별 CI 격리 테스트 스위트 13개 추가; 전체 유닛 테스트 스위트 1513개 통과.

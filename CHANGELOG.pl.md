@@ -9,6 +9,10 @@ Tłumaczenia: [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [Portugu
 ---
 
 
+## [1.82.0] — 2026-06-30
+
+**Źródło skanowania NoDesk (parytet z nadrzędnym career-ops v1.15.0).** Ogólnoportalowy kanał RSS pracy zdalnej NoDesk jest teraz pełnoprawnym źródłem skanowania — dodaj wpis `provider: nodesk`, a pojawi się na liście **Source** w `#/scan` (łącznie 41 adapterów: 36 EN + 5 RU). Host przypięty do `nodesk.co` z `redirect:'error'` (ochrona przed SSRF); tytuły dzielone po `Role at Company` (NoDesk nie ma tagu lokalizacji, więc lokalizacja pozostaje pusta); wszystkie wiersze zdalne. Dostarcza izolowany zestawy testów CI `tests/sources-nodesk.test.mjs`; pełny zestaw jednostkowy na zielono przy 1523.
+
 ## [1.81.0] — 2026-06-29
 
 **Parytet z nadrzędnym career-ops — 13 nowych źródeł skanowania.** Przenosi najnowszą partię dostawców z `main` projektu Fighter90/career-ops do skanera działającego w procesie. Ogólnoportalowe publiczne API (wybrane przez dostawcę): Arbeitnow, Himalayas, Jobicy, Landing.jobs, 4 Day Week, The Muse, The Hub, Jobspresso (RSS) oraz Hacker News „Who is hiring?" (dwuetapowe Algolia). Portale polskie (wykrywane przez hosta lub `provider:`): JustJoin.it i NoFluffJobs (wyszukiwanie POST). ATS per-tenant (autowykrywane z `careers_url`): Pinpoint (`<slug>.pinpointhq.com/postings.json`) i Rippling (`ats.rippling.com/<slug>` → `api.rippling.com` board). Każde źródło jest przypięte do hosta z `redirect:'error'` (ochrona przed SSRF) i wybieralne na liście **Source** w `#/scan` — rejestr ma teraz **40 adapterów skanera** (35 EN + 5 RU). Dodaje 13 izolowanych zestawów testów CI na źródło; pełny zestaw jednostkowy na zielono przy 1513.

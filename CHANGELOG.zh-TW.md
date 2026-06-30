@@ -9,6 +9,10 @@
 ---
 
 
+## [1.82.0] — 2026-06-30
+
+**NoDesk 掃描來源（與父層 career-ops v1.15.0 對齊）。** 全站 NoDesk 遠端職缺 RSS 來源現已成為一級掃描來源——加入 `provider: nodesk` 條目後即出現在 `#/scan` 的 **Source** 下拉中（共 **41 個轉接器**：36 EN + 5 RU）。主機鎖定為 `nodesk.co` 並使用 `redirect:'error'`（防 SSRF）；標題以 `Role at Company` 拆分（NoDesk 無地點標籤，地點欄位留空）；所有職缺標記為遠端。隨附 CI 隔離的 `tests/sources-nodesk.test.mjs` 測試套件；完整單元測試套件綠燈，共 1523 個。
+
 ## [1.81.0] — 2026-06-29
 
 **與父層 career-ops 對齊 — 13 個全新職缺看板掃描來源。** 將 Fighter90/career-ops `main` 的最新提供者批次移植至 in-process 掃描器。**全站公開 API**（provider 選擇）：**Arbeitnow**、**Himalayas**、**Jobicy**、**Landing.jobs**、**4 Day Week**、**The Muse**、**The Hub**、**Jobspresso**（RSS），以及 **Hacker News "Who is hiring?"**（Algolia 兩步驟）。**波蘭看板**（主機或 `provider:` 偵測）：**JustJoin.it** 和 **NoFluffJobs**（POST 搜尋）。**按租戶 ATS**（從 `careers_url` 自動辨識）：**Pinpoint**（`<slug>.pinpointhq.com/postings.json`）和 **Rippling**（`ats.rippling.com/<slug>` → `api.rippling.com` board）。每個來源均以 `redirect:'error'` 鎖定主機（防 SSRF），並可在 `#/scan` 的 **Source** 下拉中選取 —— 註冊表現已提供 **40 個掃描器轉接器**（35 EN + 5 RU）。新增 13 個 CI 隔離的逐來源測試套件；完整單元測試套件綠燈，共 1513 個。

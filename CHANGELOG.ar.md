@@ -9,6 +9,10 @@
 ---
 
 
+## [1.82.0] — 2026-06-30
+
+**مصدر فحص NoDesk (تكافؤ مع المشروع الأصلي career-ops v1.15.0).** أصبحت تغذية RSS للوظائف عن بُعد على مستوى اللوحة بأكملها من NoDesk مصدر فحص من الدرجة الأولى — أضف إدخال `provider: nodesk` ليظهر في قائمة **Source** المنسدلة في `#/scan` (41 محوّلًا إجمالًا: 36 إنجليزي + 5 روسي). المضيف مثبّت على `nodesk.co` مع `redirect:'error'` (حماية من SSRF)؛ وتُقسَّم العناوين على `Role at Company` (لا تحتوي NoDesk على وسم للموقع، لذا يبقى الموقع فارغاً)؛ وجميع الصفوف عن بُعد. يشحن مع مجموعة اختبار `tests/sources-nodesk.test.mjs` معزولة CI؛ مجموعة الاختبارات الوحدوية الكاملة على الأخضر عند 1523.
+
 ## [1.81.0] — 2026-06-29
 
 **تكافؤ مع المشروع الأصلي career-ops — 13 مصدر فحص وظائف جديد.** ينقل أحدث دُفعة مزوّدين من `main` في Fighter90/career-ops إلى الماسح الداخلي للعملية. واجهات API عامة على مستوى اللوحة بأكملها (مُختارة بالمزوّد): Arbeitnow وHimalayas وJobicy وLanding.jobs و4 Day Week وThe Muse وThe Hub وJobspresso (RSS) وHacker News "Who is hiring?" (خطوتان عبر Algolia). لوحات بولندية (تُكتشف عبر المضيف أو `provider:`): JustJoin.it وNoFluffJobs (بحث POST). ATS لكل مستأجر (يُكتشف تلقائياً من `careers_url`): Pinpoint (`<slug>.pinpointhq.com/postings.json`) وRippling (`ats.rippling.com/<slug>` → لوحة `api.rippling.com`). كل مصدر مثبّت بالمضيف مع `redirect:'error'` (حماية من SSRF) وقابل للاختيار في قائمة **Source** المنسدلة في `#/scan` — يضم السجل الآن **40 محوّل ماسح** (35 إنجليزي + 5 روسي). يضيف 13 مجموعة اختبار معزولة CI لكل مصدر؛ مجموعة الاختبارات الوحدوية الكاملة على الأخضر عند 1513.

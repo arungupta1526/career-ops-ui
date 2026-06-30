@@ -9,6 +9,10 @@
 ---
 
 
+## [1.82.0] — 2026-06-30
+
+**NoDesk スキャンソース（親 career-ops v1.15.0 パリティ）。** ボード全体の NoDesk リモート求人 RSS フィードが第一級のスキャンソースになりました — `provider: nodesk` のエントリを追加すると `#/scan` の **Source** ドロップダウンに表示されます（合計 **41 アダプタ**：EN 36 + RU 5）。ホストは `nodesk.co` に固定し `redirect:'error'`（SSRF 対策）；タイトルは `Role at Company` で分割（NoDesk にはロケーションタグがないため所在地は空欄のまま）；全行リモート。CI 隔離の `tests/sources-nodesk.test.mjs` スイートを同梱；フルユニットスイート 1523 件グリーン。
+
 ## [1.81.0] — 2026-06-29
 
 **親 career-ops パリティ — 13 件の新規求人ボードスキャンソース。** [`Fighter90/career-ops`](https://github.com/Fighter90/career-ops) `main` の最新プロバイダバッチをインプロセススキャナに移植します。**ボード全体の公開 API**（プロバイダ選択）: **Arbeitnow**、**Himalayas**、**Jobicy**、**Landing.jobs**、**4 Day Week**、**The Muse**、**The Hub**、**Jobspresso**（RSS）、**Hacker News "Who is hiring?"**（Algolia 2 ステップ）。**ポーランドのボード**（ホストまたは `provider:` 検出）: **JustJoin.it** および **NoFluffJobs**（POST 検索）。**テナント別 ATS**（`careers_url` から自動検出）: **Pinpoint**（`<slug>.pinpointhq.com/postings.json`）および **Rippling**（`ats.rippling.com/<slug>` → `api.rippling.com` ボード）。すべてのソースは `redirect:'error'` でホスト固定（SSRF 対策）され、`#/scan` の **Source** ドロップダウンで選択できます — レジストリは **40 スキャナアダプタ**（EN 35 + RU 5）を提供します。ソースごとの CI 隔離テストスイート 13 件を追加; フルユニットスイート 1513 件グリーン。
