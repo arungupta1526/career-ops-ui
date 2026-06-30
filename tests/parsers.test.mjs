@@ -167,9 +167,10 @@ test('addPipelineUrl: comp is hard-capped to 80 chars TOTAL (formula-lead reserv
   assert.equal(cell, "'=" + 'A'.repeat(78));
   assert.equal(cell.length, 80);
   assert.deepEqual(parsePipeline(after), ['https://x.com/1']);
-  // (b) non-formula, over length → exactly 80
+  // (b) non-formula, over length → exactly 80 of the content, no stray quote
   const after2 = addPipelineUrl('', 'https://y.com/2', { comp: 'B'.repeat(90) });
   const cell2 = after2.match(/https:\/\/y\.com\/2 \| (.+)\n/)[1];
+  assert.equal(cell2, 'B'.repeat(80));
   assert.equal(cell2.length, 80);
   assert.ok(!cell2.startsWith("'"));
 });
