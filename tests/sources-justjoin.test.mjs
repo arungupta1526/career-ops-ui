@@ -83,6 +83,20 @@ test('fetchJustJoin: id prefixed with "justjoin-"', async () => {
   assert.ok(jobs[1].id.startsWith('justjoin-'));
 });
 
+test('fetchJustJoin: offers with no slug/id are dropped (stable dedup, never a random id)', async () => {
+  // Previously a missing slug/id minted a random id + empty url, so the same
+  // posting got a new id every scan and dedup never matched. Such rows are
+  // now dropped, like every other source.
+  const fetchImpl = async () => ({ ok: true, json: async () => [
+    { slug: 'real-role', title: 'Real', company_name: 'Acme' },
+    { title: 'No Key', company_name: 'Ghost' }, // no slug AND no id → dropped
+  ] });
+  const jobs = await fetchJustJoin(API_URL, { fetchImpl });
+  assert.equal(jobs.length, 1);
+  assert.equal(jobs[0].id, 'justjoin-real-role');
+  assert.ok(jobs.every((j) => j.url && /^https:\/\/justjoin\.it\/job-offer\//.test(j.url)));
+});
+
 test('fetchJustJoin: workplace type mapping', async () => {
   const jobs = await fetchJustJoin(API_URL, { fetchImpl: fakeFetch });
   assert.equal(jobs[0].workplaceType, 'Hybrid');

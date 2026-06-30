@@ -57,7 +57,7 @@ test('fetchTheMuse: maps all 12 fields from a standard job', async () => {
   assert.equal(j.salary, '');
   assert.equal(j.location, 'New York, NY');
   assert.equal(j.isRemote, false);
-  assert.equal(j.workplaceType, 'On-site');
+  assert.equal(j.workplaceType, 'Onsite');
   assert.equal(j.relocates, false);
   assert.equal(j.date, '2026-06-15');
   assert.equal(j.snippet, '');
@@ -82,12 +82,13 @@ test('fetchTheMuse: isRemote true when location contains "Remote"', async () => 
   assert.equal(results[0].workplaceType, 'Remote');
 });
 
-test('fetchTheMuse: isRemote true when location contains "Flexible" (pure, no "remote")', async () => {
-  // "Flexible" alone → workplaceType Flexible; "Flexible / Remote" hits "remote" first → Remote
+test('fetchTheMuse: "Flexible" location → isRemote true, canonical Remote workplaceType', async () => {
+  // "Flexible" counts as remote-friendly, so isRemote and workplaceType agree
+  // on the canonical enum (Remote / Hybrid / Onsite — never the raw "Flexible").
   const job = makeJob({ locations: [{ name: 'Flexible' }] });
   const results = await fetchTheMuse(FEED_BASE, { fetchImpl: fakeOnePage([job]) });
   assert.equal(results[0].isRemote, true);
-  assert.equal(results[0].workplaceType, 'Flexible');
+  assert.equal(results[0].workplaceType, 'Remote');
 });
 
 test('fetchTheMuse: multiple locations are joined with ", "', async () => {

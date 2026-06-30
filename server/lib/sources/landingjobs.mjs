@@ -136,7 +136,7 @@ function normalize(j) {
     salary,
     location,
     isRemote,
-    workplaceType: isRemote ? 'Remote' : 'On-site',
+    workplaceType: isRemote ? 'Remote' : 'Onsite',
     relocates: false,
     date: toDateStr(j.published_at) || toDateStr(j.created_at),
     snippet: '',

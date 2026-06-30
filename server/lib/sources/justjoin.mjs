@@ -67,7 +67,8 @@ export async function fetchJustJoin(apiUrl = API_URL, opts = {}) {
   }
   return json
     .filter((o) => o && typeof o === 'object')
-    .map((o) => normalize(o));
+    .map((o) => normalize(o))
+    .filter(Boolean);
 }
 
 function workplaceType(o) {
@@ -103,13 +104,17 @@ function formatDate(value) {
 
 function normalize(o) {
   const slug = String(o.slug || o.id || '').trim();
+  // No stable key → drop the row (every other source does the same). A random
+  // id would mint a NEW id for the same posting on each scan, so scan-history
+  // dedup never recognizes it (and the url would be empty too).
+  if (!slug) return null;
   const wt = workplaceType(o);
   const city = String(o.city || '').trim();
   return {
-    id: `justjoin-${slug || Math.random().toString(36).slice(2)}`,
+    id: `justjoin-${slug}`,
     title: String(o.title || '').trim(),
     company: String(o.company_name || o.companyName || '').trim(),
-    url: slug ? `${JOB_BASE}${slug}` : '',
+    url: `${JOB_BASE}${slug}`,
     salary: formatSalary(o),
     location: city || wt,
     isRemote: wt === 'Remote',
