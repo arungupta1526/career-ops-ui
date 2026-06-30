@@ -14,7 +14,9 @@
  */
 import { fetchNodesk, FEED_URL } from '../../sources/nodesk.mjs';
 
-const NODESK_HOST_RE = /(^|\.)nodesk\.co$/i;
+// Exact host match — mirrors the source's assertNodeskUrl so an override that
+// the adapter accepts can never be rejected later by the fetch-time guard.
+const NODESK_HOST_RE = /^nodesk\.co$/i;
 
 export const nodeskAdapter = {
   id: 'nodesk',

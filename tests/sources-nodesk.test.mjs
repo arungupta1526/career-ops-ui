@@ -80,6 +80,9 @@ test('adapter.buildEndpoint: FEED_URL by default; honors on-host override; rejec
   assert.equal(nodeskAdapter.buildEndpoint({ nodesk: mirror }), mirror);
   assert.equal(nodeskAdapter.buildEndpoint({ api: 'https://evil.com/index.xml' }), FEED_URL);
   assert.equal(nodeskAdapter.buildEndpoint({ api: 'http://nodesk.co/index.xml' }), FEED_URL);
+  // Subdomain override is rejected too — the adapter's host rule matches the
+  // source's exact-host assertNodeskUrl, so what the adapter accepts always fetches.
+  assert.equal(nodeskAdapter.buildEndpoint({ nodesk: 'https://sub.nodesk.co/index.xml' }), FEED_URL);
 });
 
 test('meta: id/label/region', () => {
