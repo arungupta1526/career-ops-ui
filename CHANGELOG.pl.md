@@ -9,6 +9,14 @@ Tłumaczenia: [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [Portugu
 ---
 
 
+## [1.84.0] — 2026-06-30
+
+**Cooldown ponownego aplikowania + wynagrodzenie w pipeline.md (parytet z nadrzędnym career-ops v1.15.0).** Dwa usprawnienia skanera:
+
+- **Cooldown ponownego aplikowania** (#1201): skan EN pomija teraz role w firmach, do których niedawno aplikowałeś/aś, dzięki czemu wyniki koncentrują się na NOWYCH ofertach. Skonfiguruj okna per firma w `config/profile.yml` pod kluczem `re_apply_windows:` (`last_apply_date`, `same_role_days`, `applied_to: [roles]`, opcjonalnie `cross_role_bucket`); dopasowanie firm jest nieczułe na interpunkcję + oparte na granicach słów (`server/lib/cooldown.mjs`). Wyłączone gdy klucz jest nieobecny; log skanu pokazuje `Cooldown skipped: N`.
+- **Wynagrodzenie w pipeline.md** (#1017): skanowane oferty zapisują teraz swoje wynagrodzenie jako opcjonalną kolumnę końcową (`url | <salary>`) w `data/pipeline.md`. URL pozostaje kluczem deduplikacji (kolumna `| comp` jest pomijana przy odczycie), zawartość komórki jest sanityzowana (bez wstrzyknięcia wiersza/kolumny, formuły wiodące są neutralizowane), a istniejące pliki pipeline z samymi URL-ami pozostają kompatybilne wstecz.
+Dostarcza `tests/cooldown.test.mjs` + testy kompensacji w pipeline. Liczba źródeł bez zmian: 41 (oba to usprawnienia logiki skanowania, nie nowe tablice).
+
 ## [1.83.0] — 2026-06-30
 
 **Detektor ponownych publikacji / ofert-widm (parytet z nadrzędnym career-ops v1.15.0).** Nowy panel **🔁 Ponownie opublikowane / oferty-widma** na `#/scan` oznacza klastry firma+stanowisko, które zostały ponownie opublikowane pod różnymi adresami URL w ruchomym oknie 90 dni — sygnał przestarzałych potoków i ofert-widm. Oparty na rozmytym dopasowywaczu tytułów stanowisk (`server/lib/role-matcher.mjs`) i detektorze tylko do odczytu (`server/lib/detect-reposts.mjs`) operującym na `data/scan-history.tsv`, dostępnym przez `GET /api/scan/reposts`. Ponadto: `parentVersion` w `/api/health` podaje teraz sam semver (komentarz release-please `# x-release-please-version` jest usuwany). Dostarcza `tests/detect-reposts.test.mjs`. Liczba źródeł bez zmian: 41 — wykrywanie ponownych publikacji to funkcja analityczna, nie nowa tablica.

@@ -9,6 +9,15 @@
 ---
 
 
+## [1.84.0] — 2026-06-30
+
+**重新申請冷卻 + pipeline.md 中的薪酬欄位（與父層 career-ops v1.15.0 對齊）。** 兩項掃描器升級：
+
+- **重新申請冷卻**（#1201）：EN 掃描現在會略過你近期已投遞過的公司職缺，讓結果聚焦於全新機會。在 `config/profile.yml` 的 `re_apply_windows:` 下按公司設定冷卻視窗（`last_apply_date`、`same_role_days`、`applied_to: [roles]`，選填 `cross_role_bucket`）；公司比對採去標點 + 詞界模糊比對（`server/lib/cooldown.mjs`）。未設定該鍵時自動停用；掃描日誌顯示 `Cooldown skipped: N`。
+- **pipeline.md 中的薪酬欄位**（#1017）：掃描到的職缺現在會以選填尾欄（`url | <salary>`）的形式將薪資持久化至 `data/pipeline.md`。URL 仍為去重鍵（讀取時會剝除 `| comp` 欄位），儲存格已做清理（無列/欄注入，以公式起始的內容會被中和），純 URL 格式的 pipeline 維持向下相容。
+
+隨附 `tests/cooldown.test.mjs` 及 pipeline 薪酬測試。來源總數維持 41（兩項均為掃描邏輯升級，並非新看板）。
+
 ## [1.83.0] — 2026-06-30
 
 **重複刊登 / 幽靈職缺偵測器（與父層 career-ops v1.15.0 對齊）。** `#/scan` 頁面新增 **🔁 重複刊登 / 幽靈職缺** 面板，標記同一公司＋職位組合在 90 天滾動視窗內以不同 URL 重複刊登的情形——此為招募管線停滯與幽靈職缺的信號。底層由模糊職稱比對器（`server/lib/role-matcher.mjs`）和針對 `data/scan-history.tsv` 的唯讀偵測器（`server/lib/detect-reposts.mjs`）支援，透過 `GET /api/scan/reposts` 公開。另：`/api/health` 的 `parentVersion` 現在僅回傳語意化版本號（已去除 release-please 的 `# x-release-please-version` 註解）。隨附 `tests/detect-reposts.test.mjs`。來源總數維持 41——重複刊登為分析功能，並非新看板。

@@ -10,6 +10,14 @@ Oversættelser: [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [Portu
 
 
 
+## [1.84.0] — 2026-06-30
+
+**Genansøgnings-cooldown + kompensation i pipeline.md (paritet med forælderens career-ops v1.15.0).** To scan-opgraderinger:
+
+- **Genansøgnings-cooldown** (#1201): EN-scanningen springer nu over roller hos virksomheder, du har søgt hos for nylig, så resultaterne forbliver fokuserede på NYE opslag. Konfigurér vinduer pr. virksomhed i `config/profile.yml` under `re_apply_windows:` (`last_apply_date`, `same_role_days`, `applied_to: [roles]`, valgfri `cross_role_bucket`); virksomhedsmatchning er tegnsætningsuafhængig + ordgrænsebaseret (`server/lib/cooldown.mjs`). Slået fra, når nøglen mangler; scanloggen viser `Cooldown skipped: N`.
+- **Kompensation i pipeline.md** (#1017): scannede opslag gemmer nu deres løn som en valgfri trailingkolonne (`url | <salary>`) i `data/pipeline.md`. URL'en forbliver dedup-nøgle (`| comp`-kolonnen strippes ved læsning), cellen saniteres (ingen række-/kolonneindsprøjtning, formel-led neutraliseres), og bare-URL-pipelines bevarer bagudkompatibiliteten.
+Medfølger `tests/cooldown.test.mjs` + pipeline-kompensationstests. Kildeantallet uændret på 41 (begge er scan-logik-opgraderinger, ikke nye boards).
+
 ## [1.83.0] — 2026-06-30
 
 **Genopslags-/spøgelsesstillings-detektor (paritet med forælderens career-ops v1.15.0).** Et nyt panel **🔁 Genopslåede / spøgelsesstillinger** på `#/scan` markerer firma+stilling-klynger, der er genopslået under forskellige URL'er inden for et rullende 90-dages vindue — et signal om forældede pipelines og spøgelsesstillinger. Understøttet af en fuzzy stillingstitel-matcher (`server/lib/role-matcher.mjs`) og en skrivebeskyttet detektor (`server/lib/detect-reposts.mjs`) over `data/scan-history.tsv`, eksponeret via `GET /api/scan/reposts`. Desuden: `parentVersion` i `/api/health` rapporterer nu blot semver-nummeret (release-please-kommentaren `# x-release-please-version` fjernes). Medfølger `tests/detect-reposts.test.mjs`. Kildeantallet uændret på 41 — genopslag er en analysefunktion, ikke et nyt board.

@@ -19,6 +19,7 @@ import { buildLocationFilter, buildContentFilter, buildTitleFilter } from './loc
 import { buildTrustValidator } from './trust-validator.mjs';
 import { loadQuarantine, isQuarantined, quarantineAdd, pruneQuarantine, saveQuarantine, isPermanentFailure, RETRY_AFTER_DAYS } from './scan-quarantine.mjs';
 import { makeTimeoutFetch } from './fetch-timeout.mjs';
+import { loadReApplyWindows, buildCooldownFilter } from './cooldown.mjs';
 import { fetchGreenhouse } from './sources/greenhouse.mjs';
 import { fetchAshby } from './sources/ashby.mjs';
 import { fetchLever } from './sources/lever.mjs';
@@ -221,13 +222,21 @@ export async function runEnScan(opts = {}) {
       return out;
     });
   const removedTitle = allRaw.length - filtered.length;
-  const fresh = filtered.filter((j) => !seen.has(j.url));
-  const dup = filtered.length - fresh.length;
+  // v1.84.0 — re-apply cooldown (parent career-ops v1.15.0 / #1201). Drop roles
+  // at companies you applied to recently, so the scan stays focused on NEW
+  // openings. Config: config/profile.yml::re_apply_windows. Off when unset.
+  const cooldownToday = new Date().toISOString().slice(0, 10);
+  const cooldownFilter = buildCooldownFilter(loadReApplyWindows(PATHS.profile), cooldownToday);
+  const afterCooldown = filtered.filter((j) => !cooldownFilter(j).skip);
+  const cooldownSkipped = filtered.length - afterCooldown.length;
+  const fresh = afterCooldown.filter((j) => !seen.has(j.url));
+  const dup = afterCooldown.length - fresh.length;
 
   log('stdout', '');
   log('stdout', '━'.repeat(60));
   log('stdout', `Total found:           ${allRaw.length}`);
   log('stdout', `Filtered by title:     ${removedTitle} removed`);
+  if (cooldownSkipped) log('stdout', `Cooldown skipped:      ${cooldownSkipped} (re-applied roles, re_apply_windows)`);
   log('stdout', `Already-seen dedup:    ${dup} skipped`);
   log('stdout', `New offers added:      ${fresh.length}`);
   log('stdout', '━'.repeat(60));
@@ -244,7 +253,7 @@ export async function runEnScan(opts = {}) {
       kind: 'en',
       when: new Date().toISOString(),
       fresh,
-      filtered, // v1.76.0 — full matched set, no cap; #/scan paginates client-side
+      filtered: afterCooldown, // v1.76.0 — full matched set, no cap; #/scan paginates client-side (v1.84.0: post-cooldown)
       errors,
     });
   }
@@ -256,7 +265,7 @@ export async function runEnScan(opts = {}) {
   }
 
   return {
-    counts: { raw: allRaw.length, removedTitle, dup, fresh: fresh.length, skipped },
+    counts: { raw: allRaw.length, removedTitle, cooldownSkipped, dup, fresh: fresh.length, skipped },
     fresh,
     errors,
   };
@@ -268,7 +277,9 @@ function appendToPipeline(jobs) {
   let updated = content;
   // v1.75.0 (#1098) — normalize external URLs (drop smuggled whitespace/newlines)
   // before they reach the fenced pipeline list.
-  for (const j of jobs) updated = addPipelineUrl(updated, normalizeScanUrl(j.url));
+  // v1.84.0 (#1017) — persist compensation as an optional trailing column
+  // (`url | <salary>`); web-ui jobs already carry a display salary string.
+  for (const j of jobs) updated = addPipelineUrl(updated, normalizeScanUrl(j.url), { comp: j.salary });
   mkdirSync(PATHS.pipeline.replace(/\/[^/]+$/, ''), { recursive: true });
   writeFileSync(PATHS.pipeline, updated);
 }

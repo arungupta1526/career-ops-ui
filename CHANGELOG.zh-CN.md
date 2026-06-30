@@ -9,6 +9,15 @@
 ---
 
 
+## [1.84.0] — 2026-06-30
+
+**重复投递冷却期 + pipeline.md 薪资信息（与上游 career-ops v1.15.0 对齐）。** 两项扫描器升级：
+
+- **重复投递冷却期** (#1201)：EN 扫描现在会跳过你近期已投递公司的职位，使结果聚焦于**新**的招聘信息。可在 `config/profile.yml` 的 `re_apply_windows:` 下为每家公司配置时间窗口（`last_apply_date`、`same_role_days`、`applied_to: [roles]`、可选 `cross_role_bucket`）；公司匹配不区分标点符号 + 按词边界（`server/lib/cooldown.mjs`）。未配置键时关闭；扫描日志显示 `Cooldown skipped: N`。
+- **pipeline.md 薪资信息** (#1017)：扫描到的职位现在将薪资作为可选的尾部列（`url | <salary>`）持久化到 `data/pipeline.md`。URL 仍是去重键（读取时 `| comp` 列会被剥离），单元格经过清洗（无行/列注入，公式前缀被中和），纯 URL 流水线保持向后兼容。
+
+附带 `tests/cooldown.test.mjs` 及 pipeline 薪资测试。来源数量维持 41 个不变 —— 两项均为扫描逻辑升级，而非新增看板。
+
 ## [1.83.0] — 2026-06-30
 
 **重复发布 / 幽灵职位检测器（与上游 career-ops v1.15.0 对齐）。** `#/scan` 新增 **🔁 重复发布 / 幽灵职位** 面板，标记在 90 天滚动窗口内以不同 URL 重复发布的公司+职位集群 —— 这是过时招聘流水线和幽灵职位的信号。基于模糊职位标题匹配器（`server/lib/role-matcher.mjs`）和针对 `data/scan-history.tsv` 的只读检测器（`server/lib/detect-reposts.mjs`），通过 `GET /api/scan/reposts` 暴露。此外：`/api/health` 的 `parentVersion` 现在只返回语义化版本号（去除了 release-please 的 `# x-release-please-version` 注释）。附带 `tests/detect-reposts.test.mjs`。来源数量维持 41 个不变 —— 重复发布检测是分析功能，而非新增看板。

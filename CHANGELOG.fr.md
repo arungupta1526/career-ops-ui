@@ -11,6 +11,15 @@ Traductions : [English](CHANGELOG.md) · [Español](CHANGELOG.es.md) · [Portugu
 ---
 
 
+## [1.84.0] — 2026-06-30
+
+**Cooldown de recandidature + rémunération dans pipeline.md (parité avec career-ops parent v1.15.0).** Deux améliorations du scanner :
+
+- **Cooldown de recandidature** (#1201) : le scan EN ignore désormais les rôles dans les entreprises auxquelles vous avez postulé récemment, afin que les résultats restent focalisés sur les NOUVELLES offres. Configurez des fenêtres par entreprise dans `config/profile.yml` sous `re_apply_windows:` (`last_apply_date`, `same_role_days`, `applied_to: [roles]`, `cross_role_bucket` optionnel) ; la correspondance d'entreprise est insensible à la ponctuation et basée sur des limites de mots (`server/lib/cooldown.mjs`). Désactivé si la clé est absente ; le journal de scan affiche `Cooldown skipped: N`.
+- **Rémunération dans pipeline.md** (#1017) : les offres scannées sauvegardent désormais leur salaire sous forme de colonne optionnelle en fin de ligne (`url | <salary>`) dans `data/pipeline.md`. L'URL reste la clé de déduplication (la colonne `| comp` est supprimée à la lecture), la cellule est assainie (pas d'injection de lignes/colonnes, formules initiales neutralisées) et les pipelines avec URL seule restent rétrocompatibles.
+
+Fournit `tests/cooldown.test.mjs` + tests de rémunération de pipeline. Le nombre de sources reste à 41 (les deux sont des améliorations de la logique de scan, pas de nouveaux boards).
+
 ## [1.83.0] — 2026-06-30
 
 **Détecteur de reposts / offres fantômes (parité avec career-ops parent v1.15.0).** Un nouveau panneau **🔁 Reposts / offres fantômes** sur `#/scan` signale les clusters entreprise+rôle republiés sous des URL différentes dans une fenêtre glissante de 90 jours — signal de pipelines obsolètes et d'offres fantômes. Alimenté par un comparateur de titres de rôle fuzzy (`server/lib/role-matcher.mjs`) et un détecteur en lecture seule (`server/lib/detect-reposts.mjs`) sur `data/scan-history.tsv`, exposé via `GET /api/scan/reposts`. Aussi : `parentVersion` dans `/api/health` ne renvoie désormais que le semver (le commentaire `# x-release-please-version` de release-please est supprimé). Inclut `tests/detect-reposts.test.mjs`. Le nombre de sources reste à 41 — les reposts sont une fonctionnalité d'analyse, pas un nouveau board.

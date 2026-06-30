@@ -1,9 +1,9 @@
-# QA REGRESSION PROMPT — career-ops-ui **v1.83.0** (DEFINITIVE · WHOLE PROJECT · ALL LANGUAGES)
+# QA REGRESSION PROMPT — career-ops-ui **v1.84.0** (DEFINITIVE · WHOLE PROJECT · ALL LANGUAGES)
 
 Single standalone hand-off for a QA tester (human or agent) to verify the **entire** career-ops-ui build end-to-end, in **all 13 languages**. Walking this top-to-bottom signs off the build without needing the rest of the `qa/` tree.
 
 - **Version under test:** `package.json` **1.82.0** · parent career-ops v1.15.0 parity.
-- **Baseline:** **1530** `node --test` cases · Playwright (smoke + full-cycle + forms + **locale-sweep ×13** + theme-toggle) · 20 smoke E2E · 23 comprehensive E2E · CI matrix green on Node 18/20/22 + Playwright + CodeQL.
+- **Baseline:** **1541** `node --test` cases · Playwright (smoke + full-cycle + forms + **locale-sweep ×13** + theme-toggle) · 20 smoke E2E · 23 comprehensive E2E · CI matrix green on Node 18/20/22 + Playwright + CodeQL.
 - **Server:** `npm start` → `http://127.0.0.1:4317`.
 - **Sibling docs:** `qa/QA-REGRESSION-PROMPT-v1.76.0-FULL.md` (parent-parity gate driver) · `key/E2E-REGRESSION-EVERY-BUTTON-EVERY-LANGUAGE-v1.78.0.md` (exhaustive UI click-through) · `REGRESSION-FINAL.md` (invariant ledger).
 
@@ -12,10 +12,10 @@ Single standalone hand-off for a QA tester (human or agent) to verify the **enti
 ## §0 — Gates (all must be green before sign-off)
 
 ```bash
-npm test                                    # full suite (≥1530 cases)
+npm test                                    # full suite (≥1541 cases)
 npm run test:ci                             # unit + check-no-also + check-changelog-parity + i18n-audit
 node tools/i18n-audit.mjs                   # "no hard failures — dictionary is clean"
-node scripts/check-changelog-parity.mjs     # "all 12 locales at v1.83.0" (EN + 12 = 13 files)
+node scripts/check-changelog-parity.mjs     # "all 12 locales at v1.84.0" (EN + 12 = 13 files)
 npm run test:coverage                       # ≥80% line / ≥75% branch (baseline ~93/~83)
 npm run test:e2e:browser                    # playwright smoke + full-cycle + forms + locale-sweep(13) + theme-toggle
 npm run test:e2e && npm run test:e2e:full   # smoke (20) + comprehensive (23) E2E
@@ -66,6 +66,8 @@ node scripts/portals-health-check.mjs       # portals.yml reachability (informat
 | 19 | **13 new scan sources (v1.81.0 — parent parity)** | `#/scan` **Source** dropdown lists **40** adapters; `GET /api/scan/sources` returns **40** (35 EN + 5 RU). New board-wide (provider-selected): **Arbeitnow / Himalayas / Jobicy / Landing.jobs / 4 Day Week / The Muse / The Hub / Jobspresso** (RSS) **/ Hacker News “Who is hiring?”** (Algolia 2-step). Poland (host- or `provider:`): **JustJoin.it / NoFluffJobs** (POST search). Per-tenant ATS (careers_url host): **Pinpoint** (`<slug>.pinpointhq.com/postings.json`) **/ Rippling** (`ats.rippling.com/<slug>` → `api.rippling.com`). All host-pinned + `redirect:'error'` (SSRF). Each ships a `tests/sources-<slug>.test.mjs` suite; `ALL_ADAPTERS` length 35, sorted-id + EN-set assertions updated. |
 | 20 | **NoDesk source (v1.82.0 — parent v1.15.0)** | `#/scan` **Source** dropdown includes **NoDesk**; a `provider: nodesk` entry scans the board-wide RSS feed `https://nodesk.co/remote-jobs/index.xml` (host-pinned to nodesk.co + `redirect:'error'`). Titles split on `Role at Company`; NoDesk has no location tag (location stays empty); all rows remote. `GET /api/scan/sources` now returns **41** (36 EN + 5 RU); `ALL_ADAPTERS` length 36. |
 | 21 | **Repost / ghost detector (v1.83.0 — parent v1.15.0)** | `#/scan` has a collapsed **🔁 Reposted / ghost roles** panel that lazy-loads on open. `GET /api/scan/reposts` reads `data/scan-history.tsv` and returns company+role clusters re-listed under DIFFERENT URLs within a rolling 90-day window (window clamped 7–365; fail-soft on malformed history; fuzzy role-title match via `role-matcher.mjs`). Read-only — never writes. Empty history → "No reposted roles detected". Also: `/api/health` `parentVersion` strips the `# x-release-please-version` comment (semver only). Source count unchanged at **41** (reposts is analysis, not a board). |
+| 22 | **Re-apply cooldown (v1.84.0 — parent #1201)** | Add `re_apply_windows:` to `config/profile.yml` (per-company: `last_apply_date`, `same_role_days`, `applied_to: [roles]`, optional `cross_role_bucket`). EN scan then SKIPS matching roles at that company until `last_apply_date + same_role_days` elapses — log shows `Cooldown skipped: N (re-applied roles, re_apply_windows)` and those rows are absent from results + pipeline. Company match is punctuation-insensitive + word-boundary ("Acme Inc" ↔ "Acme, Inc."). No key → no cooldown (default). `server/lib/cooldown.mjs` + `tests/cooldown.test.mjs`. |
+| 23 | **Compensation → pipeline.md (v1.84.0 — parent #1017)** | A scanned offer with a salary writes `url \| salary` (an optional trailing column) into the `data/pipeline.md` code-fence. The URL stays the dedup key (the `\| comp` column is stripped on read by `parsePipeline`), the cell is sanitized (no row/column injection; a leading `=+-@` is quote-neutralized); bare-URL pipelines are unchanged (backward-compatible). Source count unchanged at **41**. |
 
 ---
 
@@ -157,6 +159,6 @@ Locales: `en, es, pt-BR, ko, ja, ru, zh-CN, zh-TW, fr, pl, uk, da, ar` (dict fil
 
 ## §8 — Exit criteria
 - Every (page × control × 13 languages) PASS or a logged FAIL→fix (one-fix-per-release; HIGH → MEDIUM → LOW).
-- `npm test` ≥ **1530** green; `npm run test:ci` green; coverage ≥ floor; Playwright (locale-sweep ×13) green; CI matrix green.
+- `npm test` ≥ **1541** green; `npm run test:ci` green; coverage ≥ floor; Playwright (locale-sweep ×13) green; CI matrix green.
 - Zero console errors; no RTL leak; no untranslated shipped key; favicon/icon endpoints 200.
 - All §2 deltas verified live.

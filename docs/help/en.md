@@ -858,6 +858,25 @@ sections are NOT auto-injected; they come from the
 `templates/portals.example.yml` you copied per the canonical bootstrap
 above.
 
+**Re-apply cooldown (v1.84.0).** Add a `re_apply_windows:` block to
+`config/profile.yml` to stop the scan from re-surfacing roles you already
+applied to. Per company you set `last_apply_date` (`YYYY-MM-DD`),
+`same_role_days` (cooldown length), `applied_to:` (a list of role titles you
+applied to), and an optional `cross_role_bucket` (underscore keywords, e.g.
+`backend_em`). While `today` is before `last_apply_date + same_role_days`, any
+scanned role at that company whose title matches `applied_to` (substring) or
+the bucket keywords is **skipped** — the scan log shows `Cooldown skipped: N`
+and those rows never reach the results table or `pipeline.md`. Company matching
+is punctuation-insensitive and word-boundary aware (`Acme Inc` matches
+`Acme, Inc.`). No `re_apply_windows:` key → no cooldown (the default).
+
+**Compensation in `pipeline.md` (v1.84.0).** When a scanned offer carries a
+salary, it is appended to `data/pipeline.md` as an optional trailing column —
+`url | salary` — alongside the URL. The URL stays the dedup key (the salary
+column is stripped when the pipeline is read back), the cell is sanitized so it
+can't inject a row or a spreadsheet formula, and existing bare-URL pipelines
+keep working unchanged.
+
 ---
 
 ## 6. Health (`#/health`)

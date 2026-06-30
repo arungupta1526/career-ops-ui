@@ -11,6 +11,15 @@ Traducciones: [English](CHANGELOG.md) · [Português](CHANGELOG.pt-BR.md) · [�
 ---
 
 
+## [1.84.0] — 2026-06-30
+
+**Cooldown de repostulación + compensación en pipeline.md (paridad con career-ops padre v1.15.0).** Dos mejoras del escáner:
+
+- **Cooldown de repostulación** (#1201): el escaneo EN ahora omite roles en empresas a las que postulaste recientemente, para que los resultados se centren en NUEVAS ofertas. Configura ventanas por empresa en `config/profile.yml` bajo `re_apply_windows:` (`last_apply_date`, `same_role_days`, `applied_to: [roles]`, `cross_role_bucket` opcional); la coincidencia de empresa es insensible a puntuación y basada en límites de palabra (`server/lib/cooldown.mjs`). Desactivado cuando la clave está ausente; el registro de escaneo muestra `Cooldown skipped: N`.
+- **Compensación en pipeline.md** (#1017): las ofertas escaneadas ahora persisten su salario como columna opcional al final (`url | <salary>`) en `data/pipeline.md`. La URL sigue siendo la clave de deduplicación (la columna `| comp` se elimina en la lectura), la celda se sanea (sin inyección de filas/columnas, fórmulas iniciales neutralizadas) y los pipelines con solo URL son retrocompatibles.
+
+Incluye `tests/cooldown.test.mjs` + tests de compensación de pipeline. El número de fuentes se mantiene en 41 (ambas son mejoras de lógica de escaneo, no nuevos boards).
+
 ## [1.83.0] — 2026-06-30
 
 **Detector de reposteos / empleos fantasma (paridad con career-ops padre v1.15.0).** Un nuevo panel **🔁 Reposteos / empleos fantasma** en `#/scan` señala los clústeres empresa+rol que fueron publicados de nuevo bajo distintas URLs en una ventana móvil de 90 días — señal de pipelines obsoletas y ofertas fantasma. Respaldado por un comparador difuso de títulos de rol (`server/lib/role-matcher.mjs`) y un detector de solo lectura (`server/lib/detect-reposts.mjs`) sobre `data/scan-history.tsv`, expuesto vía `GET /api/scan/reposts`. Además: `parentVersion` en `/api/health` ahora reporta solo el semver (se elimina el comentario `# x-release-please-version` de release-please). Incluye `tests/detect-reposts.test.mjs`. El número de fuentes se mantiene en 41 — los reposteos son una función de análisis, no un nuevo board.
