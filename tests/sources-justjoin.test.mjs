@@ -89,11 +89,13 @@ test('fetchJustJoin: offers with no slug/id are dropped (stable dedup, never a r
   // now dropped, like every other source.
   const fetchImpl = async () => ({ ok: true, json: async () => [
     { slug: 'real-role', title: 'Real', company_name: 'Acme' },
+    { id: 'abc123', title: 'Id Only', company_name: 'Initech' }, // id falls back as the key → kept
     { title: 'No Key', company_name: 'Ghost' }, // no slug AND no id → dropped
   ] });
   const jobs = await fetchJustJoin(API_URL, { fetchImpl });
-  assert.equal(jobs.length, 1);
+  assert.equal(jobs.length, 2); // real-role + abc123 kept; keyless dropped
   assert.equal(jobs[0].id, 'justjoin-real-role');
+  assert.equal(jobs[1].id, 'justjoin-abc123'); // slug = o.slug || o.id
   assert.ok(jobs.every((j) => j.url && /^https:\/\/justjoin\.it\/job-offer\//.test(j.url)));
 });
 
